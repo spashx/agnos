@@ -74,7 +74,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-004: Page assembly, tokens and vendored library
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Vendor Cytoscape.js (pinned, licence, SHA-256), write the token file and its resolver, and assemble the
   self-contained page from the template, the CSS, the scripts and the escaped JSON data, reproducibly.
 - **Requirement refs**: RQ-TRC-010, RQ-TRC-018, RQ-TRC-022, RQ-TRC-023, RQ-TRC-024
@@ -84,8 +84,15 @@ This plan implements the tasks in the format specified below.
   holding `</script>` cannot close the data block.
 - **Dependencies**: TASK-TRC-003
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: unittest: 28 tests OK, 9 new (no external reference in the page; two runs with one `--generated-at`
+  byte-identical, no CR; vendored files equal their SHA-256 in VENDOR.md and the page carries the MIT notice; the data
+  block holds no `<` and keeps the fixture's `</script><img …>` line as text; tokens write `--s-`/`--c-` for both themes;
+  an unresolved semantic or component reference is an InputError; no raw colour, `px` or `ms` in matrix.css/.js/.html;
+  default output in the process folder). Cytoscape.js 3.30.2: SHA-512 matched cdnjs's SRI. On this repository: 2.0 MB
+  page. SonarQube for IDE: 0 finding (480 lines).
+- **Assumptions**: Library: Cytoscape.js 3.30.2 (latest 3.30 line known, MIT); its only URLs are in licence comments, so
+  the page requests nothing. Global tokens are not written to the page: CSS and script can only reach `--s-` and `--c-`
+  properties, which enforces the three tiers.
 
 ### TASK-TRC-005: Page views — overview, search, matrix, gaps, detail, deep links
 - **Tier**: M

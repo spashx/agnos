@@ -6,7 +6,10 @@ Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS 
 nothing of the product being developed (RQ-TRC-019).
 """
 import argparse
+import datetime
 import fnmatch
+import html
+import json
 import os
 import re
 import sys
@@ -32,6 +35,19 @@ DEFAULT_EXCLUDES = (".git", ".hg", ".svn", "node_modules", "build", "build-*", "
                     "_deps", ".venv", "venv", "__pycache__", ".idea", ".vs", ".vscode", "target", "bin", "obj")
 MAX_SOURCE_BYTES = 2 * 1024 * 1024             # a larger file is taken as generated or as data (DEC-TRC-003)
 BINARY_PROBE_BYTES = 8192                      # a NUL byte in this head marks a binary file
+
+# DEC-TRC-005, DEC-TRC-008: the page's parts, beside this script in the skill folder.
+SKILL_DIR = Path(__file__).resolve().parent.parent
+ASSETS_DIR = SKILL_DIR / "assets"
+VENDOR_DIR = Path(__file__).resolve().parent / "vendor"
+TEMPLATE_PATH = ASSETS_DIR / "matrix.html"
+TOKENS_PATH = ASSETS_DIR / "tokens.json"
+LIBRARY_FILE = "cytoscape.min.js"
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA)@")
+SCRIPT_END_RE = re.compile(r"</(script)", re.IGNORECASE)
+TOKEN_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+THEMES = ("light", "dark")
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%MZ"
 
 # DEC-TRC-003: an ID is not part of a longer word or number; a range is "<A> to <B>", "<A>–<B>", "<A>—<B>", "<A>..<B>"
 # or "<A>-<B>".
@@ -319,6 +335,98 @@ def summary(model, analysis):
             f"gaps: {gaps}")
 
 
+# ---- design tokens -----------------------------------------------------------------------------------------------
+# RQ-TRC-018, DEC-TRC-009
+def load_tokens(path):
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise InputError(f"design tokens {path}: {error}") from error
+
+
+def global_value(tokens, ref, owner):
+    if ref not in tokens["global"]:
+        raise InputError(f"design token '{owner}' refers to '{ref}', which is not a global token")
+    return tokens["global"][ref]
+
+
+def tokens_css(tokens):
+    """The custom properties of the page: --s-<semantic> per theme, --c-<component> as var(--s-<semantic>); an
+    unresolved reference is an input error (DEC-TRC-009)."""
+    light, dark = [], []
+    for name, ref in tokens["semantic"].items():
+        if not TOKEN_NAME_RE.match(name):
+            raise InputError(f"design token name '{name}' is not kebab-case")
+        if isinstance(ref, dict):
+            if set(ref) != set(THEMES):
+                raise InputError(f"design token '{name}' needs exactly a light and a dark value")
+            light.append(f"  --s-{name}: {global_value(tokens, ref['light'], name)};")
+            dark.append(f"  --s-{name}: {global_value(tokens, ref['dark'], name)};")
+        else:
+            light.append(f"  --s-{name}: {global_value(tokens, ref, name)};")
+    for name, ref in tokens["component"].items():
+        if not TOKEN_NAME_RE.match(name) or ref not in tokens["semantic"]:
+            raise InputError(f"component token '{name}' refers to '{ref}', which is not a semantic token")
+        light.append(f"  --c-{name}: var(--s-{ref});")
+    dark_block = ["  color-scheme: dark;", *dark]
+    return "\n".join([":root {", "  color-scheme: light;", *light, "}", "@media (prefers-color-scheme: dark) {",
+                      ':root:not([data-theme="light"]) {', *dark_block, "}", "}", ':root[data-theme="dark"] {',
+                      *dark_block, "}"])
+
+
+# ---- page --------------------------------------------------------------------------------------------------------
+def library_label():
+    """'Cytoscape.js 3.30.2', read from VENDOR.md so that the version is written once (RQ-TRC-024)."""
+    text = (VENDOR_DIR / "VENDOR.md").read_text(encoding="utf-8")
+    m = re.search(rf"^\| `{re.escape(LIBRARY_FILE)}` \| ([^|]+?) \| ([^|]+?) \|", text, re.M)
+    return f"{m.group(1)} {m.group(2)}" if m else LIBRARY_FILE
+
+
+# DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
+def page_data(model, analysis, meta):
+    defined = [e for e in model.elements.values() if e["kind"] == "element"]
+    undefined = sorted((e for e in model.elements.values() if e["kind"] == "undefined"), key=lambda e: e["id"])
+    fields = ("id", "kind", "type", "tri", "doc", "first", "last", "status", "title")
+    return {
+        "meta": meta,
+        "elements": [{f: e[f] for f in fields} for e in defined + undefined],
+        "files": [model.files[p] for p in sorted(model.files)],
+        "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
+        "coverage": analysis["coverage"],
+        "gaps": analysis["gaps"],
+        "gapKinds": list(GAP_KINDS),
+    }
+
+
+def embed_json(data):
+    """JSON safe inside a <script> element: no '<' at all, so no file content can close the block (DEC-TRC-005)."""
+    return json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+
+
+def embed_script(code):
+    return SCRIPT_END_RE.sub(r"<\\/\1", code)
+
+
+# RQ-TRC-010 (TASK-TRC-004)
+def render_page(data, title):
+    """The page: the template with its markers replaced in one pass, so inserted text is never scanned again."""
+    parts = {
+        "TOKENS": tokens_css(load_tokens(TOKENS_PATH)),
+        "CSS": (ASSETS_DIR / "matrix.css").read_text(encoding="utf-8"),
+        "LIBRARY": embed_script((VENDOR_DIR / LIBRARY_FILE).read_text(encoding="utf-8")),
+        "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding="utf-8")),
+        "TITLE": html.escape(title),
+        "DATA": embed_json(data),
+    }
+    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+    return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], template)
+
+
+def write_page(path, page):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(page, encoding="utf-8", newline="\n")
+
+
 # ---- command line ------------------------------------------------------------------------------------------------
 # RQ-TRC-001
 def parse_args(argv):
@@ -329,6 +437,9 @@ def parse_args(argv):
     parser.add_argument("--ext", action="append", help="source extension to scan, replaces the default list (repeatable)")
     parser.add_argument("--exclude", action="append",
                         help="file or folder name pattern to skip, replaces the default list (repeatable)")
+    parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
+    parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
+                                               "makes the output reproducible")
     return parser.parse_args(argv)
 
 
@@ -341,15 +452,25 @@ def check_sources(sources):
 
 def main(argv=None):
     args = parse_args(argv)
+    process = Path(args.process)
+    out = Path(args.out) if args.out else process / DEFAULT_OUT_NAME
+    title = args.title or process.resolve().parent.name
+    generated_at = args.generated_at or datetime.datetime.now(datetime.timezone.utc).strftime(TIMESTAMP_FORMAT)
     try:
         check_sources(args.sources)
-        model = build_process_model(args.process)
+        model = build_process_model(process)
         scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
                      excludes=args.exclude or DEFAULT_EXCLUDES)
+        analysis = analyse(model)
+        line = summary(model, analysis)
+        meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
+                "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
+        page = render_page(page_data(model, analysis, meta), title)
     except InputError as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1
-    print(summary(model, analyse(model)))
+    write_page(out, page)
+    print(f"{line}; {out.as_posix()} written")
     return 0
 
 

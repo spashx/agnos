@@ -183,5 +183,104 @@ class CoverageAndGapsTest(unittest.TestCase):
             self.assertIn(part, summary)
 
 
+GENERATED_AT = "2026-01-01T00:00Z"
+SKILL = HERE.parent
+RAW_VISUAL_RE = r"#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(|\b\d+(?:\.\d+)?(?:px|ms)\b"
+
+
+def generate(out, *extra):
+    code, stdout, stderr = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(out),
+                                     "--generated-at", GENERATED_AT, *extra])
+    if code:
+        raise AssertionError(stderr)
+    return out.read_text(encoding="utf-8"), stdout
+
+
+def data_block(page):
+    start = page.index('<script type="application/json" id="trace-data">') + len(
+        '<script type="application/json" id="trace-data">')
+    return page[start:page.index("</script>", start)]
+
+
+class PageAssemblyTest(unittest.TestCase):
+    """TASK-TRC-004: RQ-TRC-001, RQ-TRC-010, RQ-TRC-018, RQ-TRC-022 to RQ-TRC-024 (DEC-TRC-005, DEC-TRC-006,
+    DEC-TRC-009, DEC-TRC-010)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.page, cls.stdout = generate(Path(cls.tmp.name) / "page.html")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_010_given_a_generated_page_when_searched_then_it_references_nothing_outside_itself(self):
+        lowered = self.page.lower()
+        for needle in ("<script src", "<link", "url(http", "@import", 'src="http', "href=\"http"):
+            self.assertNotIn(needle, lowered)
+
+    def test_RQ_TRC_023_given_one_generated_at_when_generated_twice_then_the_pages_are_identical_and_in_lf(self):
+        again, _ = generate(Path(self.tmp.name) / "again.html")
+        self.assertEqual(self.page, again)
+        raw = (Path(self.tmp.name) / "again.html").read_bytes()
+        self.assertNotIn(b"\r", raw)
+
+    def test_RQ_TRC_024_given_the_vendored_library_when_hashed_then_it_matches_the_recorded_sha256(self):
+        import hashlib
+        import re
+        vendor = SKILL / "scripts" / "vendor"
+        recorded = dict(re.findall(r"^\| `([^`]+)` \|.*\| ([0-9a-f]{64}) \|$", (vendor / "VENDOR.md").read_text(
+            encoding="utf-8"), re.M))
+        for name, sha in recorded.items():
+            self.assertEqual(sha, hashlib.sha256((vendor / name).read_bytes()).hexdigest(), name)
+        self.assertEqual({"cytoscape.min.js", "LICENSE"}, set(recorded))
+
+    def test_RQ_TRC_024_given_a_generated_page_then_it_carries_the_library_and_its_licence(self):
+        self.assertIn("Permission is hereby granted", self.page)
+        self.assertIn("The Cytoscape Consortium", self.page)
+
+    def test_RQ_TRC_022_given_a_source_line_holding_a_script_end_when_embedded_then_it_cannot_close_the_data(self):
+        import json
+        block = data_block(self.page)
+        self.assertNotIn("<", block)
+        data = json.loads(block)
+        texts = [line[1] for edge in data["edges"] for line in edge[3]]
+        self.assertIn("// RQ-DEM-001 </script><img src=x onerror=alert(1)>", texts)
+
+    def test_RQ_TRC_018_given_the_token_file_when_resolved_then_both_themes_are_written(self):
+        css = tm.tokens_css(tm.load_tokens(tm.TOKENS_PATH))
+        self.assertIn("--s-surface:", css)
+        self.assertIn("--c-graph-node-size: var(--s-size-node);", css)
+        self.assertIn("[data-theme=\"dark\"]", css)
+        self.assertIn("prefers-color-scheme: dark", css)
+
+    def test_RQ_TRC_018_given_an_unresolved_token_when_resolved_then_it_is_an_input_error(self):
+        broken = {"global": {"color.a": "#000000"}, "semantic": {"text": {"light": "color.a", "dark": "color.b"}},
+                  "component": {}}
+        with self.assertRaises(tm.InputError):
+            tm.tokens_css(broken)
+        with self.assertRaises(tm.InputError):
+            tm.tokens_css({"global": {"color.a": "#000000"}, "semantic": {"text": "color.a"},
+                           "component": {"x": "nothing"}})
+
+    def test_RQ_TRC_018_given_the_page_style_and_script_when_searched_then_they_hold_no_raw_visual_value(self):
+        import re
+        for name in ("matrix.css", "matrix.js", "matrix.html"):
+            text = (SKILL / "assets" / name).read_text(encoding="utf-8")
+            self.assertEqual([], re.findall(RAW_VISUAL_RE, text), name)
+
+    def test_RQ_TRC_001_given_no_out_when_the_generator_runs_then_the_page_is_written_in_the_process_folder(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            shutil.copytree(FIXTURE, repo)
+            code, out, err = run_main(["--process", str(repo / "process"), "--sources", str(repo / "src"),
+                                       "--generated-at", GENERATED_AT])
+            self.assertEqual(0, code, err)
+            self.assertTrue((repo / "process" / tm.DEFAULT_OUT_NAME).is_file())
+            self.assertIn(tm.DEFAULT_OUT_NAME, out.strip().splitlines()[-1])
+
+
 if __name__ == "__main__":
     unittest.main()

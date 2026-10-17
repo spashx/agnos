@@ -1,0 +1,2 @@
+/* agnos-trace page styles (RQ-TRC-018, DEC-TRC-010): var(--s-*) and var(--c-*) only. Views: TASK-TRC-005, TASK-TRC-006. */
+body { margin: var(--s-space-none); background: var(--c-page-bg); color: var(--s-text); font-family: var(--s-font-sans); }

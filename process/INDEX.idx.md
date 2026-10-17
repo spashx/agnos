@@ -74,11 +74,11 @@ PLAN-IDX-001|1-53||Process artifact index
 TASK-IDX-001|15-35|Done|Index generators and tests
 TASK-IDX-002|36-53|Done|Skill packaging and process integration
 @process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
-PLAN-TRC-001|1-131||The agnos-trace Skill
+PLAN-TRC-001|1-138||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references
 TASK-TRC-002|36-54|Done|Source scanner
 TASK-TRC-003|55-74|Done|Coverage and gaps
-TASK-TRC-004|75-89|Not Started|Page assembly, tokens and vendored library
-TASK-TRC-005|90-104|Not Started|Page views — overview, search, matrix, gaps, detail, deep links
-TASK-TRC-006|105-118|Not Started|Interactive graph
-TASK-TRC-007|119-131|Not Started|Skill packaging and run on this repository
+TASK-TRC-004|75-96|Done|Page assembly, tokens and vendored library
+TASK-TRC-005|97-111|Not Started|Page views — overview, search, matrix, gaps, detail, deep links
+TASK-TRC-006|112-125|Not Started|Interactive graph
+TASK-TRC-007|126-138|Not Started|Skill packaging and run on this repository

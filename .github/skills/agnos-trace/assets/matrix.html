@@ -1,0 +1,135 @@
+<!doctype html>
+<!-- agnos-trace page skeleton (RQ-TRC-010, DEC-TRC-005, DEC-TRC-007). The generator replaces each marker once:
+     tokens, page styles, the vendored graph library, the page script and the escaped JSON data. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="agnos-trace">
+<title>@TITLE@</title>
+<style>
+/*@TOKENS@*/
+/*@CSS@*/
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="5" cy="12" r="3"></circle><circle cx="19" cy="5" r="3"></circle><circle cx="19" cy="19" r="3"></circle>
+        <path d="M7.6 10.6 16.4 6.4M7.6 13.4l8.8 4.2"></path>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-kicker">Traceability matrix</span>
+        <h1 class="brand-title" id="title">@TITLE@</h1>
+      </div>
+    </div>
+    <div class="topbar-meta" id="meta"></div>
+    <button class="icon-button" id="theme-toggle" type="button" title="Switch light / dark theme" aria-label="Switch theme">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"></path></svg>
+    </button>
+  </header>
+
+  <aside class="sidebar" aria-label="Search and filters">
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input id="search" type="search" placeholder="Search ID, title or file…" autocomplete="off" spellcheck="false"
+             aria-label="Search" aria-controls="search-results" aria-expanded="false" role="combobox">
+      <kbd class="search-key">/</kbd>
+      <ul class="search-results" id="search-results" role="listbox" hidden></ul>
+    </div>
+    <section class="side-section">
+      <h2 class="side-title">Element types</h2>
+      <div class="chips" id="type-filters"></div>
+    </section>
+    <section class="side-section">
+      <h2 class="side-title">Trigrams</h2>
+      <div class="chips" id="tri-filters"></div>
+    </section>
+    <section class="side-section">
+      <h2 class="side-title">Gaps</h2>
+      <ul class="gap-shortcuts" id="gap-shortcuts"></ul>
+    </section>
+    <footer class="side-footer" id="about"></footer>
+  </aside>
+
+  <main class="main">
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false">Graph</button>
+      <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false">Matrix</button>
+      <button class="tab" role="tab" type="button" data-view="gaps" aria-selected="false">Gaps <span class="tab-count" id="gaps-count"></span></button>
+    </nav>
+
+    <section class="view" id="view-overview" role="tabpanel">
+      <div class="kpis" id="kpis"></div>
+      <div class="overview-grid">
+        <article class="card">
+          <header class="card-header"><h2 class="card-title">Requirement coverage</h2><span class="card-hint">source files citing each requirement</span></header>
+          <div id="coverage-chart"></div>
+        </article>
+        <article class="card">
+          <header class="card-header"><h2 class="card-title">Gaps</h2><span class="card-hint">breaches of the traceability rules</span></header>
+          <div id="gap-summary"></div>
+        </article>
+        <article class="card card-wide">
+          <header class="card-header"><h2 class="card-title">Coverage by trigram</h2><span class="card-hint">requirements of each feature area</span></header>
+          <div id="tri-table"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="view" id="view-graph" role="tabpanel" hidden>
+      <div class="toolbar">
+        <div class="segmented" id="depth" role="group" aria-label="Depth">
+          <span class="segmented-label">Depth</span>
+          <button type="button" data-depth="1">1</button>
+          <button type="button" data-depth="2" aria-pressed="true">2</button>
+          <button type="button" data-depth="3">3</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="show-files" checked> Source files</label>
+        <label class="toggle"><input type="checkbox" id="show-containment" checked> Containment</label>
+        <span class="toolbar-spacer"></span>
+        <span class="graph-status" id="graph-status"></span>
+        <button class="button" type="button" id="fit">Fit</button>
+        <button class="button" type="button" id="whole">Whole graph</button>
+      </div>
+      <div class="graph-frame">
+        <div class="graph" id="cy" aria-label="Traceability graph"></div>
+        <div class="graph-empty" id="graph-empty">Select an element — search, or click a row of the matrix or the gaps — to draw its links.</div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-matrix" role="tabpanel" hidden>
+      <div class="toolbar">
+        <div class="segmented" id="coverage-filter" role="group" aria-label="Coverage">
+          <button type="button" data-coverage="all" aria-pressed="true">All</button>
+          <button type="button" data-coverage="covered">Covered</button>
+          <button type="button" data-coverage="indirect">Indirect</button>
+          <button type="button" data-coverage="uncovered">Uncovered</button>
+        </div>
+        <span class="toolbar-spacer"></span>
+        <span class="graph-status" id="matrix-status"></span>
+        <button class="button" type="button" id="export-csv">Export CSV</button>
+      </div>
+      <div class="table-frame"><table class="matrix" id="matrix-table"></table></div>
+    </section>
+
+    <section class="view" id="view-gaps" role="tabpanel" hidden>
+      <div class="gaps" id="gaps-list"></div>
+    </section>
+  </main>
+
+  <aside class="detail" id="detail" aria-label="Selected element" aria-live="polite"></aside>
+</div>
+<script type="application/json" id="trace-data">@DATA@</script>
+<script>
+/*@LIBRARY@*/
+</script>
+<script>
+/*@SCRIPT@*/
+</script>
+</body>
+</html>
