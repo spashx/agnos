@@ -6,6 +6,8 @@ Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS 
 nothing of the product being developed (RQ-TRC-019).
 """
 import argparse
+import fnmatch
+import os
 import re
 import sys
 from pathlib import Path
@@ -17,6 +19,19 @@ ID_PATTERN = r"(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}"
 NUMBER_LENGTH = 3
 PREFIX_CUT = -(NUMBER_LENGTH + 1)              # "RQ-ABC-001"[:PREFIX_CUT] == "RQ-ABC"
 LINE_TEXT_MAX = 200                            # characters of a line kept as evidence (DEC-TRC-003)
+
+# RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command line.
+DEFAULT_EXTENSIONS = frozenset(
+    ".c .cc .cpp .cxx .c++ .h .hh .hpp .hxx .h++ .inl .ipp .tpp .m .mm .cs .fs .vb .java .kt .kts .scala .groovy .gradle "
+    ".go .rs .swift .dart .py .pyi .pyw .rb .php .pl .pm .lua .r .jl .ex .exs .erl .hs .clj .js .jsx .mjs .cjs .ts .tsx "
+    ".vue .svelte .html .htm .css .scss .sass .less .sql .sh .bash .zsh .fish .ps1 .psm1 .psd1 .bat .cmd .cmake .mk "
+    ".yml .yaml .toml .ini .cfg .xml .proto .graphql .tf .glsl .hlsl .metal .cu .asm .s .v .sv .vhd".split())
+DEFAULT_NAMES = frozenset({"CMakeLists.txt", "Makefile", "makefile", "GNUmakefile", "Dockerfile", "Jenkinsfile",
+                           "Rakefile", "Gemfile", "meson.build", "BUILD", "BUILD.bazel", "WORKSPACE"})
+DEFAULT_EXCLUDES = (".git", ".hg", ".svn", "node_modules", "build", "build-*", "build_*", "cmake-build-*", "dist", "out",
+                    "_deps", ".venv", "venv", "__pycache__", ".idea", ".vs", ".vscode", "target", "bin", "obj")
+MAX_SOURCE_BYTES = 2 * 1024 * 1024             # a larger file is taken as generated or as data (DEC-TRC-003)
+BINARY_PROBE_BYTES = 8192                      # a NUL byte in this head marks a binary file
 
 # DEC-TRC-003: an ID is not part of a longer word or number; a range is "<A> to <B>", "<A>–<B>", "<A>—<B>", "<A>..<B>"
 # or "<A>-<B>".
@@ -157,6 +172,64 @@ def build_process_model(process_dir):
     return model
 
 
+# ---- sources -----------------------------------------------------------------------------------------------------
+# RQ-TRC-006, DEC-TRC-003
+def is_excluded(name, excludes):
+    return any(fnmatch.fnmatchcase(name, pattern) for pattern in excludes)
+
+
+def source_files(root, extensions, excludes):
+    """The files of a source folder to scan, in path order, excluded folders pruned."""
+    found = []
+    for folder, dirs, files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if not is_excluded(d, excludes))
+        for name in sorted(files):
+            if is_excluded(name, excludes):
+                continue
+            if name in DEFAULT_NAMES or os.path.splitext(name)[1].lower() in extensions:
+                found.append(Path(folder) / name)
+    return found
+
+
+def read_source(path):
+    """The lines of a source file, or None for a binary or oversized one (DEC-TRC-003)."""
+    if path.stat().st_size > MAX_SOURCE_BYTES:
+        return None
+    data = path.read_bytes()
+    if b"\x00" in data[:BINARY_PROBE_BYTES]:
+        return None
+    return data.decode("utf-8", errors="replace").splitlines()
+
+
+def display_path(path, root, base):
+    """A file's path as the page shows it: relative to the base folder, else prefixed by its source folder's name."""
+    try:
+        return path.resolve().relative_to(base.resolve()).as_posix()
+    except ValueError:
+        return (Path(root.resolve().name) / path.relative_to(root)).as_posix()
+
+
+# RQ-TRC-006, RQ-TRC-007 (TASK-TRC-002)
+def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, excludes=DEFAULT_EXCLUDES):
+    """Links every scanned source file to the IDs its lines hold, with the line numbers and texts."""
+    base = Path(base) if base is not None else Path.cwd()
+    defined = {i for i, e in model.elements.items() if e["kind"] == "element"}
+    extensions = {e.lower() if e.startswith(".") else "." + e.lower() for e in extensions}
+    for root in map(Path, roots):
+        for path in source_files(root, extensions, excludes):
+            lines = read_source(path)
+            if lines is None:
+                continue
+            shown = display_path(path, root, base)
+            count = 0
+            for ln, text in enumerate(lines, 1):
+                for target in sorted(extract_ids(text, defined)):
+                    model.ensure(target)
+                    model.add_edge(shown, target, "code", evidence(ln, text))
+                    count += 1
+            model.files[shown] = {"path": shown, "ids": count}
+
+
 # ---- command line ------------------------------------------------------------------------------------------------
 # RQ-TRC-001
 def parse_args(argv):
@@ -164,6 +237,9 @@ def parse_args(argv):
     parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
     parser.add_argument("--sources", required=True, action="append", help="source folder to scan (repeatable)")
     parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
+    parser.add_argument("--ext", action="append", help="source extension to scan, replaces the default list (repeatable)")
+    parser.add_argument("--exclude", action="append",
+                        help="file or folder name pattern to skip, replaces the default list (repeatable)")
     return parser.parse_args(argv)
 
 
@@ -178,7 +254,9 @@ def main(argv=None):
     args = parse_args(argv)
     try:
         check_sources(args.sources)
-        build_process_model(args.process)
+        model = build_process_model(args.process)
+        scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
+                     excludes=args.exclude or DEFAULT_EXCLUDES)
     except InputError as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1

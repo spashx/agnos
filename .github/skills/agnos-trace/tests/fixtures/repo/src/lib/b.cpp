@@ -1,2 +1,2 @@
-// TASK-DEM-002: the task cites RQ-DEM-002, so this file covers it indirectly.
+// TASK-DEM-002: this file covers the requirement of its task indirectly.
 int indirect() { return 2; }

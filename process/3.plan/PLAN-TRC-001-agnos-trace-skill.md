@@ -34,7 +34,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-002: Source scanner
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Walk the source folders with the default or given extensions and exclusions, skip binary and oversized
   files, and record each ID with its line numbers and texts; undefined IDs become undefined elements.
 - **Requirement refs**: RQ-TRC-006, RQ-TRC-007, RQ-TRC-020, RQ-TRC-021
@@ -43,8 +43,13 @@ This plan implements the tasks in the format specified below.
   an excluded `build/` folder is ignored, and RQ-X-099 is undefined with its file and line.
 - **Dependencies**: TASK-TRC-001
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: unittest: 15 tests OK, 6 of them new (`src/a.py` line 1 → RQ-DEM-001 and line 5 → RQ-DEM-099
+  undefined; `src/dist/` and `.bin` skipped by default, scanned with `--ext .bin` / other excludes; NUL-headed and
+  oversized files skipped; untraced `src/notrace.py` kept with 0 ID). On this repository (`process/`, a C++ code base,
+  `.github/`): 337 files, 7,114 links, 2.82 s Python start included. SonarQube for IDE: 0 finding (269 lines).
+- **Assumptions**: The excluded fixture folder is `dist/`, not `build/`: the repository's `.gitignore` ignores `build/`,
+  so a fixture file there would not be committed. File paths are shown relative to the current folder (the repository
+  root when the skill runs), else prefixed by their source folder's name.
 
 ### TASK-TRC-003: Coverage and gaps
 - **Tier**: M

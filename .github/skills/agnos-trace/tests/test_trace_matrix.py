@@ -95,5 +95,55 @@ class ProcessModelTest(unittest.TestCase):
             self.assertFalse(out.exists())
 
 
+def scanned_model(**options):
+    """The fixture model with its sources scanned, file paths shown relative to the fixture repository."""
+    model = tm.build_process_model(PROCESS)
+    tm.scan_sources(model, [SOURCES], base=FIXTURE, **options)
+    return model
+
+
+def code_links(model, path):
+    return {dst: lines for (src, dst, kind), lines in model.edges.items() if src == path and kind == "code"}
+
+
+class SourceScannerTest(unittest.TestCase):
+    """TASK-TRC-002: RQ-TRC-006, RQ-TRC-007 (DEC-TRC-001, DEC-TRC-003)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.model = scanned_model()
+
+    def test_RQ_TRC_006_given_a_source_line_citing_an_id_when_scanned_then_the_file_links_to_it_with_the_line(self):
+        self.assertEqual({"RQ-DEM-001": [[1, "# Implements RQ-DEM-001."]],
+                          "RQ-DEM-099": [[5, '"""RQ-DEM-099 is not defined anywhere."""']]},
+                         code_links(self.model, "src/a.py"))
+        self.assertEqual(["TASK-DEM-002"], list(code_links(self.model, "src/lib/b.cpp")))
+
+    def test_RQ_TRC_006_given_the_default_lists_when_scanned_then_excluded_folders_and_other_extensions_are_skipped(self):
+        self.assertEqual(["src/a.py", "src/lib/b.cpp", "src/notrace.py", "src/xss.js"], sorted(self.model.files))
+
+    def test_RQ_TRC_006_given_a_file_without_id_when_scanned_then_it_is_kept_with_no_link(self):
+        self.assertEqual({}, code_links(self.model, "src/notrace.py"))
+        self.assertEqual(0, self.model.files["src/notrace.py"]["ids"])
+
+    def test_RQ_TRC_006_given_other_extensions_and_exclusions_when_scanned_then_they_replace_the_defaults(self):
+        model = scanned_model(extensions={".bin", ".py"}, excludes=["lib"])
+        self.assertEqual(["src/a.py", "src/data.bin", "src/dist/generated.py", "src/notrace.py"], sorted(model.files))
+        self.assertIn("RQ-DEM-005", code_links(model, "src/data.bin"))
+
+    def test_RQ_TRC_006_given_a_binary_or_oversized_file_when_scanned_then_it_is_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "bin.py").write_bytes(b"RQ-DEM-001\x00\x01")
+            (root / "big.py").write_bytes(b"# RQ-DEM-001\n" + b"x" * tm.MAX_SOURCE_BYTES)
+            (root / "ok.py").write_text("# RQ-DEM-001\n", encoding="utf-8")
+            model = tm.build_process_model(PROCESS)
+            tm.scan_sources(model, [root], base=root)
+            self.assertEqual(["ok.py"], sorted(model.files))
+
+    def test_RQ_TRC_007_given_an_undefined_id_in_a_source_when_scanned_then_it_is_an_undefined_element(self):
+        self.assertEqual("undefined", self.model.elements["RQ-DEM-099"]["kind"])
+
+
 if __name__ == "__main__":
     unittest.main()
