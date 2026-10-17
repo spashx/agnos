@@ -145,5 +145,43 @@ class SourceScannerTest(unittest.TestCase):
         self.assertEqual("undefined", self.model.elements["RQ-DEM-099"]["kind"])
 
 
+class CoverageAndGapsTest(unittest.TestCase):
+    """TASK-TRC-003: RQ-TRC-008, RQ-TRC-009, RQ-TRC-017 (DEC-TRC-002, DEC-TRC-004)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.analysis = tm.analyse(scanned_model())
+
+    def test_RQ_TRC_008_given_the_fixture_when_coverage_is_computed_then_each_requirement_has_its_rating(self):
+        self.assertEqual({"RQ-DEM-001": "covered", "RQ-DEM-002": "indirect", "RQ-DEM-003": "uncovered",
+                          "RQ-DEM-004": "uncovered", "RQ-DEM-005": "uncovered"}, self.analysis["coverage"])
+
+    def test_RQ_TRC_008_given_a_requirement_depending_on_a_covered_one_when_rated_then_the_dependency_does_not_cover_it(
+            self):
+        model = tm.build_process_model(PROCESS)
+        model.add_edge("src/x.py", "RQ-DEM-001", "code", [1, "RQ-DEM-001"])
+        self.assertEqual("uncovered", tm.analyse(model)["coverage"]["RQ-DEM-002"])
+
+    def test_RQ_TRC_009_given_the_fixture_when_gaps_are_listed_then_each_list_holds_its_planted_elements(self):
+        self.assertEqual({"uncovered": ["RQ-DEM-003", "RQ-DEM-004", "RQ-DEM-005"],
+                          "untasked": ["RQ-DEM-004", "RQ-DEM-005"],
+                          "task-no-rq": ["TASK-DEM-003"],
+                          "adr-no-rq": ["ADR-DEM-002"],
+                          "empty": ["FTR-DEM-002", "ADR-DEM-002", "PLAN-DEM-002"],
+                          "isolated": ["RQ-DEM-005", "FTR-DEM-002", "ADR-DEM-002", "PLAN-DEM-002"],
+                          "undefined": ["DEC-DEM-099", "RQ-DEM-099"],
+                          "untraced-files": ["src/notrace.py"]}, self.analysis["gaps"])
+
+    def test_RQ_TRC_017_given_the_fixture_when_the_generator_runs_then_it_prints_the_counts_and_the_gaps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, _ = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out",
+                                     str(Path(tmp) / "page.html")])
+        self.assertEqual(0, code)
+        summary = out.strip().splitlines()[-1]
+        for part in ("15 elements", "4 files", "RQ 5: covered 1, indirect 1, uncovered 3", "uncovered 3", "untasked 2",
+                     "task-no-rq 1", "adr-no-rq 1", "empty 3", "isolated 4", "undefined 2", "untraced-files 1"):
+            self.assertIn(part, summary)
+
+
 if __name__ == "__main__":
     unittest.main()

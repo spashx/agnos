@@ -230,6 +230,95 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
             model.files[shown] = {"path": shown, "ids": count}
 
 
+# ---- coverage and gaps -------------------------------------------------------------------------------------------
+GAP_KINDS = ("uncovered", "untasked", "task-no-rq", "adr-no-rq", "empty", "isolated", "undefined", "untraced-files")
+CONTAINED_TYPE = {"FTR": "RQ", "ADR": "DEC", "PLAN": "TASK"}       # what a container type is empty without
+COVERING_TYPES = frozenset({"DEC", "TASK", "ADR", "PLAN", "FTR"})  # elements through which coverage is indirect
+
+
+class Links:
+    """The model's edges indexed per element: who it contains, references and is referenced by, and what code cites."""
+
+    def __init__(self, model):
+        self.children, self.parent, self.refs_out, self.refs_in, self.code_in = {}, {}, {}, {}, {}
+        for (src, dst, kind) in model.edges:
+            if kind == "contains":
+                self.children.setdefault(src, []).append(dst)
+                self.parent[dst] = src
+            elif kind == "refs":
+                self.refs_out.setdefault(src, set()).add(dst)
+                self.refs_in.setdefault(dst, set()).add(src)
+            else:
+                self.code_in.setdefault(dst, set()).add(src)
+
+    def descendants(self, element_id):
+        found, stack = [], list(self.children.get(element_id, []))
+        while stack:
+            child = stack.pop()
+            found.append(child)
+            stack.extend(self.children.get(child, []))
+        return found
+
+    def touched(self, element_id):
+        """True when a refs or code edge touches the element."""
+        return bool(self.refs_out.get(element_id) or self.refs_in.get(element_id) or self.code_in.get(element_id))
+
+
+# RQ-TRC-008, DEC-TRC-004
+def rate(rq, links, model):
+    """covered: code cites the requirement; indirect: code cites a decision, task, ADR, plan or feature linked to it or
+    holding it (another requirement does not count); else uncovered."""
+    if links.code_in.get(rq):
+        return "covered"
+    neighbours = links.refs_in.get(rq, set()) | links.refs_out.get(rq, set())
+    ancestor = links.parent.get(rq)
+    while ancestor:
+        neighbours.add(ancestor)
+        ancestor = links.parent.get(ancestor)
+    if any(model.elements[n]["type"] in COVERING_TYPES and links.code_in.get(n) for n in neighbours):
+        return "indirect"
+    return "uncovered"
+
+
+def refs_to_type(links, model, element_id, wanted):
+    return any(model.elements[t]["type"] == wanted for t in links.refs_out.get(element_id, ()))
+
+
+# RQ-TRC-009, DEC-TRC-004 (TASK-TRC-003)
+def analyse(model):
+    """The coverage of every requirement and the gap lists, IDs in index order, undefined IDs and files by name."""
+    links = Links(model)
+    defined = [e for e in model.elements.values() if e["kind"] == "element"]
+    coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e["type"] == "RQ"}
+    of_type = lambda t: [e["id"] for e in defined if e["type"] == t]  # noqa: E731
+    gaps = {
+        "uncovered": [rq for rq, r in coverage.items() if r == "uncovered"],
+        "untasked": [rq for rq in of_type("RQ")
+                     if not any(model.elements[s]["type"] == "TASK" for s in links.refs_in.get(rq, ()))],
+        "task-no-rq": [t for t in of_type("TASK") if not refs_to_type(links, model, t, "RQ")],
+        "adr-no-rq": [a for a in of_type("ADR") if not any(refs_to_type(links, model, x, "RQ")
+                                                           for x in [a] + links.descendants(a))],
+        "empty": [e["id"] for e in defined if e["type"] in CONTAINED_TYPE
+                  and not any(model.elements[c]["type"] == CONTAINED_TYPE[e["type"]]
+                              for c in links.children.get(e["id"], ()))],
+        "isolated": [e["id"] for e in defined
+                     if not any(links.touched(x) for x in [e["id"]] + links.descendants(e["id"]))],
+        "undefined": sorted(i for i, e in model.elements.items() if e["kind"] == "undefined"),
+        "untraced-files": sorted(p for p, f in model.files.items() if not f["ids"]),
+    }
+    return {"coverage": coverage, "gaps": gaps}
+
+
+def summary(model, analysis):
+    """The one line the generator ends with: element and file counts, coverage, gap counts (RQ-TRC-017)."""
+    defined = sum(e["kind"] == "element" for e in model.elements.values())
+    rated = list(analysis["coverage"].values())
+    gaps = ", ".join(f"{k} {len(analysis['gaps'][k])}" for k in GAP_KINDS)
+    return (f"agnos-trace: {defined} elements, {len(model.files)} files; RQ {len(rated)}: covered "
+            f"{rated.count('covered')}, indirect {rated.count('indirect')}, uncovered {rated.count('uncovered')}; "
+            f"gaps: {gaps}")
+
+
 # ---- command line ------------------------------------------------------------------------------------------------
 # RQ-TRC-001
 def parse_args(argv):
@@ -260,6 +349,7 @@ def main(argv=None):
     except InputError as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1
+    print(summary(model, analyse(model)))
     return 0
 
 
