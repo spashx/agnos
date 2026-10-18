@@ -470,6 +470,9 @@
         ...BOX_KINDS.map((kind) => ({ selector: `node:parent.box-${kind}`,
           style: { "background-color": prop(`--c-graph-box-${kind}`), color: prop(`--c-graph-box-${kind}`) } })),
         { selector: `node:parent.box-${NAMESPACE_KIND}`, style: { "border-style": "dashed" } },
+        // Its own frame, label and fill only: an opacity on a compound node would fade its pills a second time.
+        { selector: "node:parent.faint", style: { "border-opacity": num("--c-graph-dim"), "text-opacity": num("--c-graph-dim"),
+          "background-opacity": num("--c-graph-box-fill-opacity") * num("--c-graph-dim") } },
         { selector: "node:parent.selected", style: { "border-width": num("--c-graph-selected-border-width"),
           "border-color": prop("--c-graph-selected-border") } },
         { selector: "node.header", style: {
@@ -835,7 +838,7 @@
     }
 
     function highlight(key) {
-      cy.elements().removeClass("selected near faded dim");
+      cy.elements().removeClass("selected near faded dim faint");
       // The drawn node, or the frames of a selected box with what they hold (DEC-TRC-022).
       const frames = key ? cy.nodes().filter((n) => n.data("boxKey") === key && !n.hasClass("item")) : cy.collection();
       const own = key ? cy.getElementById(key).union(frames) : cy.collection();
@@ -843,6 +846,8 @@
       if (centre.empty()) return;
       const near = centre.closedNeighborhood();
       cy.nodes(".item").not(near).addClass(whole ? "faded" : "dim");
+      // DEC-TRC-020: a frame holding nothing near the selection is faint like its pills, not a veil drawn over them.
+      cy.nodes(".box").not(".item").filter((frame) => frame.descendants(".item").intersection(near).empty()).addClass("faint");
       cy.edges().not(centre.connectedEdges()).addClass("faded");
       own.addClass("selected");
       centre.connectedEdges().addClass("near");

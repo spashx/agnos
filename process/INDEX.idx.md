@@ -106,13 +106,13 @@ DEC-TRC-016|46-54||Functions in the link model, in a compact encoding
 DEC-TRC-017|55-70||Keeping the central graph fast
 DEC-TRC-018|71-76||What the call graph does not change
 @process/2.architecture/ADR-TRC-005-namespace-and-class-boxes.md
-ADR-TRC-005|1-114|Accepted — reviewed and accepted by the owner on 2026-10-18. Implemented by PLAN-TRC-003. Owner request of 2026-10-18 (functions in nested namespace and class boxes, three levels of detail, the|Namespace and Class Boxes in the Graph
+ADR-TRC-005|1-116|Accepted — reviewed and accepted by the owner on 2026-10-18. Implemented by PLAN-TRC-003. Owner request of 2026-10-18 (functions in nested namespace and class boxes, three levels of detail, the|Namespace and Class Boxes in the Graph
 DEC-TRC-019|18-32||Scopes as data, their kind from the language table
-DEC-TRC-020|33-40||Boxes are Cytoscape compound nodes placed by the flow layout
-DEC-TRC-021|41-48||Levels are computed in the page, from the arrays already there
-DEC-TRC-022|49-57||Controls, detail panel and look
-DEC-TRC-023|58-73||Specification and implementation told apart in the toolbar and the links
-DEC-TRC-024|74-82||A search result's tooltip is the page's own
+DEC-TRC-020|33-42||Boxes are Cytoscape compound nodes placed by the flow layout
+DEC-TRC-021|43-50||Levels are computed in the page, from the arrays already there
+DEC-TRC-022|51-59||Controls, detail panel and look
+DEC-TRC-023|60-75||Specification and implementation told apart in the toolbar and the links
+DEC-TRC-024|76-84||A search result's tooltip is the page's own
 @process/3.plan/PLAN-IDX-001.md
 PLAN-IDX-001|1-53||Process artifact index
 TASK-IDX-001|15-35|Done|Index generators and tests

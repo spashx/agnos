@@ -36,7 +36,9 @@ children keep the flow layout's preset positions (DEC-TRC-006): the Functions co
 top to bottom in name order, each holding its children in rows, and Cytoscape sizes each box around them. Around a
 selected function the column still splits in three — callers, the function, callees (DEC-TRC-017) — each third holding
 the boxes of its functions. With enclosing boxes off, the outer level's boxes are not drawn and their children stand in
-the column by themselves.
+the column by themselves. A frame holding nothing near the selection is drawn faint like its pills (its border, label
+and fill at the dim opacity, not the node's opacity, which would fade its pills twice); a frame holding the selection
+or one of its neighbours stays plain (owner review of 2026-10-18: plain frames over faint pills read as a veil).
 
 ### DEC-TRC-021: Levels are computed in the page, from the arrays already there
 The level of detail maps each function to the box that stands for it — itself, its class, or its namespace — once per
