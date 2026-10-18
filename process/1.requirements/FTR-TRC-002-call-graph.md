@@ -153,6 +153,31 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   function is selected, Then its panel shows "Functions 0"; Given a page without call graph, Then none of these appear.
 - **Dependencies**: RQ-TRC-014, RQ-TRC-033, RQ-TRC-034
 
+### RQ-TRC-047: Functions grouped in namespace and class boxes, at a chosen level of detail
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the graph draws functions of a language with namespaces (or packages, modules) or classes, the
+  graph SHALL group them in nested boxes, a namespace box holding its class boxes and free functions, a class box
+  holding its methods, at the level of detail the user chooses:
+  - **namespace**: the namespaces only, one box each;
+  - **class**: the classes, one box each, inside their namespace box or alone;
+  - **function**: the functions, inside their class box and namespace box, or inside their class box only.
+  At the class and function levels, the user SHALL choose whether the enclosing boxes are drawn. At the namespace and
+  class levels, the calls between functions of two boxes SHALL be drawn as one link per pair of boxes, in its
+  direction, with the number of calls; a requirement cited by a function SHALL be linked to the box that holds the
+  function at the level drawn. A box's kind (namespace or class) SHALL come from the declarations the analysis read
+  (`namespace`, `class`, `struct`…), its name from the functions' qualified names.
+- **Rationale**: thousands of functions are read by their structure first; a reviewer goes from the namespace to the
+  class to the function without losing the calls or the requirements on the way.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the fixture's call graph and functions on, When the level is "namespace", Then one
+  `net` box is drawn and no function, and the call from `relay` to `net::Port::send` shows as one link from the box
+  holding `relay` to `net` with its count; When the level is "class", Then the `net::Port` and `net::Session` boxes are
+  drawn, inside the `net` box when enclosing boxes are on and alone when they are off; When the level is "function",
+  Then `net::Port::send` is drawn inside the `net::Port` box, itself inside `net` when enclosing boxes are on; When a
+  requirement cited by `net::Port::send` is drawn at the class level, Then it is linked to the `net::Port` box.
+- **Dependencies**: RQ-TRC-028, RQ-TRC-029, RQ-TRC-034, RQ-TRC-037, RQ-TRC-044, DEC-TRC-014, DEC-TRC-017
+
 ---
 
 ## Non-Functional Requirements
