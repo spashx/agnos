@@ -231,7 +231,7 @@
   // RQ-TRC-044: one look per relation — dash pattern token (none: solid), colour token, arrow at the target — read by
   // the graph's style and by the legend's drawn samples alike. Each relation has a colour of its own.
   const EDGE_LOOK = {
-    contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-contains", arrow: "vee",
+    contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-contains", arrow: "triangle",
       meaning: "contains (container → contained)" },
     refs: { dash: "", colour: "--c-graph-edge-cites", arrow: "triangle", meaning: "cites (citing → cited)" },
     code: { dash: "--c-graph-dash-code", colour: "--c-graph-edge-code", arrow: "triangle",

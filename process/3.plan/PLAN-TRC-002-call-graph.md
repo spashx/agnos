@@ -259,3 +259,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
+
+### TASK-TRC-022: Contains arrow like the others, opaque legend samples
+- **Tier**: S
+- **Status**: Done
+- **Description**: Contains links take the triangle arrow of the other relations (their colour tells them apart now);
+  the legend's samples are opaque, like the selection's links (owner review).
+- **Requirement refs**: RQ-TRC-044, RQ-TRC-018
+- **ADR refs**: ADR-TRC-002 (DEC-TRC-010, DEC-TRC-011)
+- **Acceptance Criteria**: Given the graph and its legend, Then contains links end in a triangle and the samples are
+  drawn without transparency.
+- **Dependencies**: TASK-TRC-021
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None

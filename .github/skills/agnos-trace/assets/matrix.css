@@ -786,7 +786,7 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 }
 .graph-tip[hidden] { display: none; }
 /* RQ-TRC-044: a relation's sample, drawn like the graph draws it */
-.legend-edge { flex: none; width: var(--s-space-2xl); height: var(--s-space-md); opacity: var(--s-opacity-muted); }
+.legend-edge { flex: none; width: var(--s-space-2xl); height: var(--s-space-md); }   /* opaque, like the selection's links */
 .legend-shape { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); background: var(--type-color); }
 .legend-shape.t-UNDEFINED { background: var(--type-color); }
 .shape-FTR { border-radius: var(--s-radius-pill); }
