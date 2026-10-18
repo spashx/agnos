@@ -151,7 +151,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   requirement cited by `net::Port::send` lists that function under "Functions" and the CSV has a "Functions" column;
   When the toolbar's "Functions" switch is turned on, Then the type filter is on too; When a requirement cited by no
   function is selected, Then its panel shows "Functions 0"; Given a page without call graph, Then none of these appear.
-- **Dependencies**: RQ-TRC-014, RQ-TRC-033, RQ-TRC-034
+- **Dependencies**: RQ-TRC-014, RQ-TRC-033, RQ-TRC-034; the graph's switch is named "Implementation" by RQ-TRC-048
 
 ### RQ-TRC-047: Functions grouped in namespace and class boxes, at a chosen level of detail
 - **Category**: Functional
@@ -176,7 +176,35 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   drawn, inside the `net` box when enclosing boxes are on and alone when they are off; When the level is "function",
   Then `net::Port::send` is drawn inside the `net::Port` box, itself inside `net` when enclosing boxes are on; When a
   requirement cited by `net::Port::send` is drawn at the class level, Then it is linked to the `net::Port` box.
-- **Dependencies**: RQ-TRC-028, RQ-TRC-029, RQ-TRC-034, RQ-TRC-037, RQ-TRC-044, DEC-TRC-014, DEC-TRC-017
+- **Dependencies**: RQ-TRC-028, RQ-TRC-029, RQ-TRC-034, RQ-TRC-037, RQ-TRC-044, DEC-TRC-014, DEC-TRC-017; the
+  choice, the switch and the box kinds are named by RQ-TRC-048 ("Implementation detail", "Enclosing scopes")
+
+### RQ-TRC-048: Graph toolbar words that tell the specification from the implementation
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the page holds a call graph, the graph SHALL name what it draws of the code "Implementation" —
+  the column (and "Callers · Implementation · Callees" around a selected function or box), the switch of RQ-TRC-041 —
+  since a node of that column is a function, a class or a namespace; the choice of RQ-TRC-047 SHALL be named
+  "Implementation detail" (Namespace · Class · Function) and its switch "Enclosing scopes"; the legend SHALL name the box
+  kinds "Namespace", "Class" and "Global namespace", the latter labelled `(global namespace)`. The graph SHALL tell its
+  two structures apart: the links feature → requirement, ADR → decision, plan → task SHALL be the "specification
+  hierarchy", drawn and walked only while a "Specification hierarchy" switch is on; the link file → function SHALL be
+  "defines", with its own look, drawn and walked with the source files ("Source files" switch). The toolbar's switches
+  (Source files, Implementation, Specification hierarchy, Enclosing scopes) SHALL stand in one labelled "Display" group,
+  like the "Depth" and "Implementation detail" groups. Without call graph, only "Source files" and "Specification
+  hierarchy" remain in the group.
+- **Rationale**: owner review of 2026-10-18: "Functions" named classes and namespaces too; "Containment" mixed the
+  specification's structure with the code's and its effect on the graph was not understood; "Enclosing boxes" was not
+  a professional term (a namespace, module, package or class is a scope in every language tree-sitter parses; blocks
+  and functions, scopes too, are never drawn).
+- **Priority**: Should
+- **Acceptance Criteria**: Given the fixture page with the call graph, When the graph opens, Then the toolbar shows the
+  groups "Depth", "Implementation detail" and "Display", the last holding "Source files", "Implementation",
+  "Specification hierarchy" and "Enclosing scopes"; When functions are drawn, Then their column is "Implementation";
+  When "Specification hierarchy" is off and a requirement is drawn, Then its feature is not drawn, and a function is
+  still linked to its file by "defines"; When "Source files" is off, Then no file and no "defines" link is drawn; Given
+  a page without call graph, Then "Display" holds "Source files" and "Specification hierarchy" only.
+- **Dependencies**: RQ-TRC-041, RQ-TRC-044, RQ-TRC-045, RQ-TRC-047, DEC-TRC-022
 
 ---
 

@@ -160,3 +160,20 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: `(global)` also frames the classes outside any namespace at the function level when enclosing
   boxes are on (as namespaces frame theirs); C functions, having no scope, are in `(global)`; its colour is the source
   files' grey (`graph-box-global` → `type-file`).
+
+### TASK-TRC-029: Implementation words, a Display group, the specification hierarchy apart from "defines"
+- **Tier**: M
+- **Status**: In Progress
+- **Description**: Owner review of the toolbar: name the code column, its split and its switch "Implementation", the
+  choice "Implementation detail", the switch "Enclosing scopes", the box kinds "Namespace", "Class", "Global namespace"
+  (label `(global namespace)`); split "Containment" into the "Specification hierarchy" switch (feature, ADR, plan
+  links) and a `defines` link kind for file → function with its own look and colour token, governed by "Source files";
+  group the switches in a "Display" fieldset; tooltips and SKILL.md follow.
+- **Requirement refs**: RQ-TRC-048, RQ-TRC-041, RQ-TRC-044, RQ-TRC-045, RQ-TRC-047, RQ-TRC-018
+- **ADR refs**: ADR-TRC-005 (DEC-TRC-022 as renamed, DEC-TRC-023), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: those of RQ-TRC-048; Given the relation looks, Then `defines` has a colour of its own, an
+  arrow and a legend sample (RQ-TRC-044).
+- **Dependencies**: TASK-TRC-028
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:

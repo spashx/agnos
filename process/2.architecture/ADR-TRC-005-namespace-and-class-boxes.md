@@ -52,6 +52,20 @@ The graph toolbar gains, with a call graph only, a "Detail" choice — Namespace
 selectable: its detail panel gives its kind, qualified name, enclosing box, its classes and functions with their counts,
 its calls in and out by box, and the requirements its functions cite. The box colours, frame stroke, label and padding
 are tokens; an aggregated link takes the call colour and arrow (RQ-TRC-044), its tooltip (RQ-TRC-046) gives the count.
+Renamed by the owner on 2026-10-18 (RQ-TRC-048, DEC-TRC-023): the choice is "Implementation detail", the switch
+"Enclosing scopes", the box kinds "Namespace", "Class" and "Global namespace".
+
+### DEC-TRC-023: Specification and implementation told apart in the toolbar and the links
+RQ-TRC-048. The graph calls what it draws of the code "Implementation": the column, its callers / callees split, and
+the switch bound to the Function type filter, whose label alone changes. The single "Containment" switch is split by
+what it governed: the specification's links (feature → requirement, ADR → decision, plan → task) keep the kind
+`contains`, shown as "specification hierarchy", under a "Specification hierarchy" switch that, off, neither draws nor
+walks them; the link from a file to its functions becomes a kind of its own, `defines`, with its own colour token,
+always walked, so drawn whenever files are (the "Source files" switch). The four switches stand in one `fieldset`
+"Display", styled like the "Depth" group; "Implementation" and "Enclosing scopes" are added there by the page only with
+a call graph. "Scope" is the word every language parsed by tree-sitter uses for a namespace, module, package or class;
+the switch's tooltip says that blocks and functions, scopes too, are not drawn. The global box's label becomes
+`(global namespace)`; its key stays `box:(global)`.
 
 ## Consequences
 **Easier.** A large code base is read from the top: which namespace calls which, which classes carry a requirement,
@@ -70,6 +84,8 @@ the detail panel and the function level show it.
 - **Boxes by file or folder.** Always available, any language; but the owner asks for the language's own structure, and
   files are already their own column.
 - **Kinds from the qualified name alone.** No change to the analysis, but `a::b::f` cannot tell a namespace from a class.
+- **A "Defines" switch of its own for file → function** (DEC-TRC-023). One more switch for a link that means nothing
+  without the files it starts from; the "Source files" switch already decides whether files are drawn.
 
 ## Diagram
 ```mermaid

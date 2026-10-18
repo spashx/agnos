@@ -268,8 +268,9 @@ ADR-TRC-003).
 ### RQ-TRC-044: Readable relations in the graph
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The graph SHALL draw each relation (contains, cites, cited in code, calls, ambiguous call) with a colour
-  of its own and a line style, an arrow from the container to the contained, from the citing to the cited and from
+- **Statement**: The graph SHALL draw each relation (specification hierarchy, defines, cites, cited in code, calls,
+  ambiguous call; the first two named by RQ-TRC-048) with a colour of its own and a line style, an arrow from the
+  container to the contained, from the file to the function it defines, from the citing to the cited and from
   the caller to the callee, and SHALL show in its legend a drawn sample of each line with its arrow and its meaning.
 - **Rationale**: two relations drawn alike, or a call without direction, cannot be read.
 - **Priority**: Must
