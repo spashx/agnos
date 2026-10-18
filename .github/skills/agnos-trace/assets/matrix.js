@@ -51,24 +51,27 @@
   const CALLS_SHOWN = 50;               // callers or callees listed at first, and added per "more" (DEC-TRC-017)
   // RQ-TRC-047, DEC-TRC-021: the levels of detail, and the boxes drawn in place of functions above the function level.
   const DETAIL = { namespace: "namespace", class: "class", function: "function" };
-  const BOX_PREFIX = "box:";            // a box's key: box:<qualified scope name>, or box:file:<path> for a file's box
+  const BOX_PREFIX = "box:";            // a box's key: box:<qualified scope name>
   const NAMESPACE_KIND = "namespace";   // a scope's kind in the call graph's scope table (DEC-TRC-019)
   const CLASS_KIND = "class";
-  const FILE_BOX = "file";              // the kind of the box of a file's functions without scope
-  const BOX_KINDS = [NAMESPACE_KIND, CLASS_KIND, FILE_BOX];
+  // DEC-TRC-019 as amended (TASK-TRC-028): one box for what stands in no named namespace, anonymous ones included.
+  const GLOBAL_BOX = "global";
+  const GLOBAL_LABEL = "(global)";
+  const GLOBAL_KEY = BOX_PREFIX + GLOBAL_LABEL;
+  const BOX_KINDS = [NAMESPACE_KIND, CLASS_KIND, GLOBAL_BOX];
   const SEPARATOR_RE = /^[:.]+/;        // what joins a scope's name to an inner name (C++ "::", others ".")
-  const BOX_NAME = { [NAMESPACE_KIND]: "Namespace box", [CLASS_KIND]: "Class box", [FILE_BOX]: "File box" };
+  const BOX_NAME = { [NAMESPACE_KIND]: "Namespace box", [CLASS_KIND]: "Class box", [GLOBAL_BOX]: "Global box" };
   const DETAIL_CHOICES = [
-    [DETAIL.namespace, "Namespace", "Namespaces only, the calls merged between them; a file's other functions in its box"],
+    [DETAIL.namespace, "Namespace", "Namespaces only, the calls merged between them; the rest in the (global) box"],
     [DETAIL.class, "Class", "Classes, the calls merged between them; a namespace's free functions in its box"],
     [DETAIL.function, "Function", "Every function, in the box of its class or namespace"],
   ];
-  const ENCLOSING_HINT = "Draw the boxes around the level's own: the namespaces around classes, and around a function's "
-    + "class; off, each box stands alone (not at the namespace level)";
+  const ENCLOSING_HINT = "Draw the boxes around the level's own: the namespaces, or (global), around classes and around "
+    + "a function's class; off, each box stands alone (not at the namespace level)";
   const BOX_HINT = {
     [NAMESPACE_KIND]: "a namespace: its classes and functions (dashed frame)",
     [CLASS_KIND]: "a class or struct: its methods",
-    [FILE_BOX]: "the functions of a file outside any namespace or class",
+    [GLOBAL_BOX]: "what stands in no named namespace: global and anonymous-namespace functions, classes outside a namespace",
   };
   const SCOPE_FIELD = 7;                // a function row's scope index (-1: none)
 
@@ -240,42 +243,37 @@
   }
 
   // ---- boxes (TASK-TRC-024: RQ-TRC-047; DEC-TRC-019, DEC-TRC-021) ---------------------------------------------
-  // A namespace or class of the scope table, or the box of a file's functions without scope, drawn in place of its
-  // functions at the namespace and class levels. File boxes are made the first time a function needs one.
+  // A namespace or class of the scope table, or the (global) box of what stands in no named namespace (TASK-TRC-028),
+  // drawn in place of its functions at the namespace and class levels. A class outside any namespace is in (global).
   function buildBoxes() {
     const found = new Map();
     const scopes = CALL_GRAPH?.scopes || [];
     const scopeKey = (i) => BOX_PREFIX + scopes[i][0];
-    scopes.forEach(([name, kind, parent], i) => found.set(scopeKey(i), { key: scopeKey(i), label: name, type: "FN",
-      box: kind, parent: parent >= 0 ? scopeKey(parent) : null, scope: i }));
-    const fileBox = (path) => {
-      const key = BOX_PREFIX + FILE_PREFIX + path;
-      if (!found.has(key)) found.set(key, { key, label: path, type: "FN", box: FILE_BOX, parent: null, path });
-      return key;
+    if (CALL_GRAPH) found.set(GLOBAL_KEY, { key: GLOBAL_KEY, label: GLOBAL_LABEL, type: "FN", box: GLOBAL_BOX, parent: null });
+    const outerOf = (kind, parent) => {
+      if (parent >= 0) return scopeKey(parent);
+      return kind === CLASS_KIND ? GLOBAL_KEY : null;
     };
+    scopes.forEach(([name, kind, parent], i) => found.set(scopeKey(i), { key: scopeKey(i), label: name, type: "FN",
+      box: kind, parent: outerOf(kind, parent), scope: i }));
     // The box standing for function i: itself at the function level, its own scope at the class level, its nearest
-    // namespace at the namespace level, else the box of its file.
+    // namespace at the namespace level, else (global).
     const of = (i, level) => {
       if (level === DETAIL.function) return fnKeys[i];
       let scope = CALL_GRAPH.functions[i][SCOPE_FIELD];
       while (level === DETAIL.namespace && scope >= 0 && scopes[scope][1] !== NAMESPACE_KIND) scope = scopes[scope][2];
-      return scope >= 0 ? scopeKey(scope) : fileBox(nodes.get(fnKeys[i]).path);
+      return scope >= 0 ? scopeKey(scope) : GLOBAL_KEY;
     };
     const scopeOf = (i) => {                       // the key of a function's own scope box, null when it has none
       const scope = CALL_GRAPH.functions[i][SCOPE_FIELD];
       return scope >= 0 ? scopeKey(scope) : null;
     };
-    // A box by key; a file's box, named by a deep link, is made then (DEC-TRC-022).
-    const get = (key) => {
-      const path = key?.startsWith(BOX_PREFIX + FILE_PREFIX) ? key.slice(BOX_PREFIX.length + FILE_PREFIX.length) : null;
-      if (!found.has(key) && path && nodes.has(FILE_PREFIX + path)) fileBox(path);
-      return found.get(key);
-    };
-    // The functions a box holds, directly or through its inner boxes: those of a scope and its inner scopes, or, for a
-    // file's box, those of the file standing in it at the namespace level.
+    const get = (key) => found.get(key);
+    // The functions a box holds, directly or through its inner boxes: those of a scope and its inner scopes, or, for
+    // (global), every function standing in it at the namespace level.
     const members = new Map();
     const within = (i, key) => {
-      if (found.get(key).box === FILE_BOX) return of(i, DETAIL.namespace) === key;
+      if (key === GLOBAL_KEY) return of(i, DETAIL.namespace) === key;
       for (let scope = CALL_GRAPH.functions[i][SCOPE_FIELD]; scope >= 0; scope = scopes[scope][2]) {
         if (scopeKey(scope) === key) return true;
       }
@@ -334,7 +332,7 @@
   const graph = createGraph();
 
   function shortLabel(n) {
-    return clip(n.type === "FILE" || n.box === FILE_BOX ? n.label.split("/").pop() : n.label);
+    return clip(n.type === "FILE" ? n.label.split("/").pop() : n.label);
   }
 
   function clip(text) {
@@ -1568,7 +1566,7 @@
   function renderBoxDetail(panel, box) {
     const members = boxes.membersOf(box.key);
     const inner = boxes.innerOf(box.key).sort(byKeyLabel);
-    const own = (box.box === FILE_BOX ? members : members.filter((i) => boxes.scopeOf(i) === box.key)).map((i) => fnKeys[i]);
+    const own = members.filter((i) => (boxes.scopeOf(i) ?? GLOBAL_KEY) === box.key).map((i) => fnKeys[i]);
     const cited = unique(members.flatMap((i) => links.get(fnKeys[i]).filter((l) => l.kind === "code" && l.dir === "out"
       && nodes.get(l.key).type === "RQ").map((l) => l.key))).sort(byKeyLabel);
     const { callers, callees } = boxCalls(box, members);

@@ -793,7 +793,7 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .legend-box { display: inline-block; width: var(--s-space-xl); height: var(--s-space-md); border: var(--c-graph-box-border-width) solid var(--box-color); border-radius: var(--s-radius-sm); }
 .legend-box.box-namespace { --box-color: var(--c-graph-box-namespace); border-style: dashed; }
 .legend-box.box-class { --box-color: var(--c-graph-box-class); }
-.legend-box.box-file { --box-color: var(--c-graph-box-file); }
+.legend-box.box-global { --box-color: var(--c-graph-box-global); }
 .legend-shape { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); background: var(--type-color); }
 .legend-shape.t-UNDEFINED { background: var(--type-color); }
 .shape-FTR { border-radius: var(--s-radius-pill); }

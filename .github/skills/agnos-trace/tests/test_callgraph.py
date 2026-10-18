@@ -417,6 +417,7 @@ class FunctionGraphTest(unittest.TestCase):
         self.assertIn("4 elements · 5 links", attributes["status"])
 
 
+GLOBAL_BOX = "box:(global)"         # what stands in no named namespace (DEC-TRC-019 as amended, TASK-TRC-028)
 READ_DRAWING = "document.documentElement.dataset.drawing = JSON.stringify(agnosTrace.graph.elements());"
 
 
@@ -446,23 +447,18 @@ class DetailLevelTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
-    def file_box(self, suffix):
-        return "box:file:" + next(p for p in self.paths if p.endswith(suffix))
-
     def test_RQ_TRC_047_given_the_namespace_level_when_relay_is_drawn_then_its_calls_are_one_link_per_box_with_a_count(
             self):
         nodes, edges = drawing(self.path, f"agnosTrace.graph.setDetail('namespace');"
                                           f"agnosTrace.select('{self.keys['relay']}'); agnosTrace.showView('graph');")
-        self.assertFalse([key for key in nodes if key.startswith("fn:")])
-        main, session = self.file_box("calls/app/main.cpp"), self.file_box("calls/net/session.cpp")
+        self.assertFalse([key for key in nodes if key.startswith(("fn:", "box:file:"))])     # TASK-TRC-028: no file box
         self.assertIn("box:net", nodes)
-        to_net = edges[f"{main}>box:net>calls"]
+        to_net = edges[f"{GLOBAL_BOX}>box:net>calls"]
         self.assertEqual((2, True), (to_net["count"], to_net["ambiguous"]))     # x.send() and port.write(3), ambiguous
-        to_log = edges[f"{main}>{session}>calls"]
-        self.assertEqual((2, False), (to_log["count"], to_log["ambiguous"]))    # log(1), log(2)
-        net_to_log = edges[f"box:net>{session}>calls"]                          # net::Session::send calls log(2)
-        self.assertEqual((1, False), (net_to_log["count"], net_to_log["ambiguous"]))
-        self.assertEqual(3, len([e for e in edges.values() if e["kind"] == "calls"]))     # send -> write: inside net
+        to_global = edges[f"box:net>{GLOBAL_BOX}>calls"]                         # net::Session::send calls log(2)
+        self.assertEqual((1, False), (to_global["count"], to_global["ambiguous"]))
+        # relay -> log (both global) and send -> write (both in net) stay inside their box
+        self.assertEqual(2, len([e for e in edges.values() if e["kind"] == "calls"]))
 
     def test_RQ_TRC_047_given_the_class_level_when_a_requirement_is_drawn_then_its_citing_function_is_its_class(self):
         nodes, edges = drawing(self.path, "agnosTrace.graph.setDetail('class');"
@@ -523,7 +519,7 @@ class BoxDrawingTest(unittest.TestCase):
 
     def test_RQ_TRC_018_given_the_box_kinds_then_each_has_its_colour_token(self):
         tokens = tm.load_tokens(tm.TOKENS_PATH)["component"]
-        for kind in ("namespace", "class", "file"):
+        for kind in ("namespace", "class", "global"):
             self.assertIn(f"graph-box-{kind}", tokens)
 
 
@@ -588,17 +584,27 @@ class DetailControlsTest(unittest.TestCase):
     def test_RQ_TRC_046_given_a_link_merging_calls_when_its_tooltip_is_asked_then_it_gives_their_count(self):
         import html
         import re
-        main = "box:file:" + next(p for p in self.paths if p.endswith("calls/app/main.cpp"))
         dom = rendered_dom_after(self.path, TURN_FUNCTIONS_ON + "agnosTrace.graph.setDetail('namespace');" + self.show_relay
-                                 + f"document.documentElement.dataset.tip = agnosTrace.graph.tipFor('{main}>box:net>calls');")
+                                 + f"document.documentElement.dataset.tip = "
+                                   f"agnosTrace.graph.tipFor('{GLOBAL_BOX}>box:net>calls');")
         tip = html.unescape(re.search(r'data-tip="([^"]*)"', dom).group(1))
         self.assertIn("ambiguous call", tip)
         self.assertIn("2 call sites", tip)
 
     def test_RQ_TRC_047_given_the_legend_then_it_shows_the_box_kinds(self):
         dom = rendered_dom(self.path)
-        for kind in ("namespace", "class", "file"):
+        for kind in ("namespace", "class", "global"):
             self.assertIn(f'<span class="legend-box box-{kind}"></span>', dom)
+
+    def test_RQ_TRC_016_given_the_global_box_when_selected_then_its_panel_lists_the_functions_outside_any_namespace(self):
+        dom = rendered_dom(self.path, fragment(GLOBAL_BOX))
+        panel = dom[dom.index('id="detail"'):]
+        panel = panel[:panel.index("</aside>")]                                 # the matrix lists functions too
+        self.assertIn('<h2 class="detail-id">(global)</h2>', panel)
+        self.assertIn("Global box", panel)
+        for name in ("relay", "log", "operator==", "helper", "table", "run"):
+            self.assertIn(f'<span class="id">{name}</span>', panel)
+        self.assertNotIn('<span class="id">net::Port::send</span>', panel)
 
     def test_RQ_TRC_047_given_a_page_without_call_graph_then_neither_control_appears(self):
         dom = rendered_dom(self.plain)

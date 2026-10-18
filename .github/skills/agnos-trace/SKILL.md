@@ -65,10 +65,11 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 - Boxes, with `--call-graph`: the graph's "Detail" choice draws the functions at three levels. **Function** (the
   default): every function in the box of its class or namespace. **Class**: one box per class, the calls between their
   functions merged into one link per pair of boxes with its count of call sites. **Namespace**: one box per namespace,
-  merged the same way. A function outside any namespace or class stands in its file's box at the class and namespace
-  levels. "Enclosing boxes" draws the boxes around the level's own (namespaces around classes, and around a function's
-  class) or leaves them out; it has no meaning at the namespace level. A box is selected like an element (click it,
-  or `#box:<qualified name>`, `#box:file:<path>` in the URL): its panel lists the box around it, its inner boxes, its
+  merged the same way. What stands in no named namespace (global functions, those of anonymous namespaces, classes
+  outside any namespace) is one `(global)` box at the class and namespace levels. "Enclosing boxes" draws the boxes
+  around the level's own (namespaces, or `(global)`, around classes and around a function's class) or leaves them out;
+  it has no meaning at the namespace level. A box is selected like an element (click it, or `#box:<qualified name>`,
+  `#box:(global)` in the URL): its panel lists the box around it, its inner boxes, its
   functions, its callers and callees by box with their call sites, and the requirements its functions cite.
 
 ## Call graph (DEC-TRC-013 to DEC-TRC-018)
@@ -85,8 +86,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   language: one table entry, one query file, its grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Boxes come from the entry's `scopes` map (DEC-TRC-019): each scope node type its query captures as `@scope`, with
   the box kind it stands for, `namespace` or `class`. C++ maps `namespace_definition` to `namespace` and
-  `class_specifier`, `struct_specifier`, `union_specifier` to `class`; C has no scope (`{}`), so its functions have no
-  box. To give a new language its boxes, list its grammar's node types for packages, modules or namespaces (`namespace`)
+  `class_specifier`, `struct_specifier`, `union_specifier` to `class`; C has no scope (`{}`), so its functions are in
+  `(global)`. To give a new language its boxes, list its grammar's node types for packages, modules or namespaces (`namespace`)
   and for classes, structs or interfaces (`class`). A scope whose node type is not listed, like a qualifier part no
   scanned file declares (a class declared in a header outside the sources), gets a guessed kind: the innermost part of
   a method's qualifier is a class, the outer parts namespaces. Anonymous namespaces and

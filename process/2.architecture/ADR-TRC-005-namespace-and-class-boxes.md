@@ -22,8 +22,13 @@ Each language entry of `languages.json` gains a `scopes` map from a scope node t
 reads, by qualified name, with its kind; a qualifier part that no scanned declaration defines (a class declared in a
 file not scanned, say) takes the kind `class` when it is the innermost part of a method's qualifier and `namespace`
 otherwise. The page data gains one table, `scopes: [[qualified name, kind, parent index]]`, and each function row its
-scope index (`-1`: none). A language with no scope entry (C) gives functions without box; at the namespace and class
-levels they gather in one box per file, named after it, of kind `file`.
+scope index (`-1`: none). A language with no scope entry (C) gives functions without box. At the namespace and class
+levels, what stands in no named namespace gathers in one box, `(global)`, of kind `global`: the global namespace, which
+an anonymous namespace counts as. At the namespace level it holds every function outside a named namespace; at the
+class level the functions without scope, and with enclosing boxes it frames the classes outside any namespace. Amended
+by the owner on 2026-10-18 after a run on a C++ code base: the first version's box per file, named after the file, drew 92
+file names among the namespaces (316 functions in anonymous namespaces, 74 methods of classes outside a namespace, 8
+global ones).
 
 ### DEC-TRC-020: Boxes are Cytoscape compound nodes placed by the flow layout
 A box is a compound node (`parent` data), drawn as a labelled rounded frame in the colour of its kind (tokens); its

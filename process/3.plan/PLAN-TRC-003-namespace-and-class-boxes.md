@@ -135,3 +135,28 @@ This plan implements the tasks in the format specified below.
   under "What the page shows"; the `scopes` map, C++'s and C's entries and how to give a language its boxes under
   "Call graph".
 - **Assumptions**: AGENTS.md's trace bullet is left as it is (minimal; the skill documents the boxes).
+
+### TASK-TRC-028: One (global) box instead of a box per file
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner review of the namespace level on a C++ code base (file names among the namespaces): replace the file
+  boxes by one `(global)` box, of kind `global`, for what stands in no named namespace, anonymous namespaces included;
+  at the class level it holds the functions without scope and, with enclosing boxes, frames the classes outside any
+  namespace; its panel, legend sample, token and documentation follow.
+- **Requirement refs**: RQ-TRC-047, RQ-TRC-018, RQ-TRC-016
+- **ADR refs**: ADR-TRC-005 (DEC-TRC-019 as amended, DEC-TRC-021, DEC-TRC-022)
+- **Acceptance Criteria**: Given the fixture page, When the level is namespace and `relay` is drawn, Then no file box
+  is drawn, `relay`'s calls are one link from `(global)` to `net` and `log`, global too, is inside `(global)`; Given
+  the `(global)` box selected, Then its panel lists `relay`, `log` and the C functions; Given a C++ code base at the namespace
+  level, Then no box is named after a file.
+- **Dependencies**: TASK-TRC-027
+- **Assignee**: AI
+- **Verification**: whole suite 95 OK, 1 skipped. `DetailLevelTest`: namespace level around `relay`, no `fn:` or file
+  box, `(global)` → `net` 2 call sites ambiguous, `net` → `(global)` 1 (`Session::send` calls `log`), 2 call links
+  (`relay` → `log` inside `(global)`); `DetailControlsTest`: `#box:(global)` panel "Global box" lists `relay`, `log`,
+  `operator==`, `helper`, `table`, `run`, not `net::Port::send`; the merged link's tip "2 call sites"; legend and token
+  `global`. On a C++ code base at the three levels around `core::setZoneSample`: no box named after a file; namespace level
+  around `core::Session::submit`, depth 2: callers `(global)`, `core::harness`, `core::test`, `server`. Sonar: no finding.
+- **Assumptions**: `(global)` also frames the classes outside any namespace at the function level when enclosing
+  boxes are on (as namespaces frame theirs); C functions, having no scope, are in `(global)`; its colour is the source
+  files' grey (`graph-box-global` → `type-file`).
