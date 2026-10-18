@@ -111,10 +111,10 @@ TASK-TRC-006|120-139|Done|Interactive graph
 TASK-TRC-007|140-158|Done|Skill packaging and run on this repository
 TASK-TRC-008|159-177|Done|Resizable panels
 @process/3.plan/PLAN-TRC-002-call-graph.md
-PLAN-TRC-002|1-114||Call Graph in agnos-trace
+PLAN-TRC-002|1-120||Call Graph in agnos-trace
 TASK-TRC-009|17-39|Done|Optional call-graph module and language table
-TASK-TRC-010|40-54|Not Started|C and C++ functions and their IDs
-TASK-TRC-011|55-69|Not Started|Call resolution
-TASK-TRC-012|70-85|Not Started|Functions in the page — data, panel, search, overview
-TASK-TRC-013|86-101|Not Started|Functions in the graph, within its limits
-TASK-TRC-014|102-114|Not Started|Documentation and run on this repository
+TASK-TRC-010|40-60|Done|C and C++ functions and their IDs
+TASK-TRC-011|61-75|Not Started|Call resolution
+TASK-TRC-012|76-91|Not Started|Functions in the page — data, panel, search, overview
+TASK-TRC-013|92-107|Not Started|Functions in the graph, within its limits
+TASK-TRC-014|108-120|Not Started|Documentation and run on this repository

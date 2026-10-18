@@ -39,7 +39,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-010: C and C++ functions and their IDs
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the C and C++ query files and extract each definition's qualified name, lines and first line,
   contained by its file, with the IDs of its lines and of the comment block just above it.
 - **Requirement refs**: RQ-TRC-028, RQ-TRC-031, RQ-TRC-032
@@ -49,8 +49,14 @@ This plan implements the tasks in the format specified below.
   and lines, and a `///` ID above a function links that function.
 - **Dependencies**: TASK-TRC-009
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` 49 tests OK; `FunctionsTest` on `tests/fixtures/repo/calls` (`.c`, `.cpp`, `.hpp`):
+  the 11 definitions in file then line order with qualified names and lines (in-class and out-of-class methods,
+  namespace, constructor, `operator==`, `int **` return); key `fn:calls/net/session.cpp:14`, language, first line; `///`,
+  `//` and two-line `/* */` blocks just above link their function, a function without one has no ID, the file keeps its
+  link. IDE SonarQube: no finding.
+- **Assumptions**: a separate fixture folder `calls/` keeps the counts of the FTR-TRC-001 tests; a function's IDs are the
+  file's own citations within its range (no second scan); a comment after code on its line starts no block; two
+  definitions on one line get keys `…:<line>` and `…:<line>.2`.
 
 ### TASK-TRC-011: Call resolution
 - **Tier**: M

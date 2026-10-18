@@ -20,7 +20,9 @@ sys.path.insert(0, str(HERE))
 
 import callgraph as cg  # noqa: E402
 import trace_matrix as tm  # noqa: E402
-from test_trace_matrix import PROCESS, SKILL, SOURCES, data_block, generate, run_main  # noqa: E402
+from test_trace_matrix import FIXTURE, PROCESS, SKILL, SOURCES, data_block, generate, run_main  # noqa: E402
+
+CALLS = FIXTURE / "calls"
 
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-trace/requirements-callgraph.txt)"
@@ -108,6 +110,58 @@ class LanguageTableTest(unittest.TestCase):
             seen += entry["extensions"]
         self.assertEqual(len(seen), len(set(seen)))
         self.assertIn(".h", table["cpp"]["extensions"])          # owner default: headers read with the C++ grammar
+
+
+def fixture_call_graph():
+    """The model of the fixture process with tests/fixtures/repo/calls scanned, and the call graph of those files."""
+    model = tm.build_process_model(PROCESS)
+    scanned = tm.scan_sources(model, [CALLS], base=FIXTURE)
+    return model, cg.analyse(scanned, tm.code_citations(model), tm.evidence)
+
+
+def by_name(graph):
+    return {f["qualified"]: f for f in graph.functions}
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class FunctionsTest(unittest.TestCase):
+    """TASK-TRC-010: RQ-TRC-028, RQ-TRC-031, RQ-TRC-032 (DEC-TRC-014, DEC-TRC-016)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.model, cls.graph = fixture_call_graph()
+        cls.functions = by_name(cls.graph)
+
+    def test_RQ_TRC_028_given_c_and_cpp_files_when_analysed_then_every_definition_has_its_qualified_name_and_lines(self):
+        self.assertEqual([("relay", "calls/app/main.cpp", 4, 11),
+                          ("net::Port::send", "calls/net/port.hpp", 7, 7),
+                          ("net::Port::write", "calls/net/port.hpp", 8, 8),
+                          ("net::Session::send", "calls/net/session.cpp", 14, 17),
+                          ("net::Session::write", "calls/net/session.cpp", 19, 19),
+                          ("net::Session::Session", "calls/net/session.cpp", 21, 21),
+                          ("log", "calls/net/session.cpp", 25, 25),
+                          ("operator==", "calls/net/session.cpp", 27, 27),
+                          ("helper", "calls/util.c", 3, 3),
+                          ("table", "calls/util.c", 5, 5),
+                          ("run", "calls/util.c", 7, 10)],
+                         [(f["qualified"], f["file"], f["first"], f["last"]) for f in self.graph.functions])
+
+    def test_RQ_TRC_028_given_a_function_when_analysed_then_it_has_its_key_name_language_and_first_line(self):
+        send = self.functions["net::Session::send"]
+        self.assertEqual(("fn:calls/net/session.cpp:14", "send", "cpp", "int Session::send()"),
+                         (send["key"], send["name"], send["language"], send["text"]))
+        self.assertEqual("c", self.functions["helper"]["language"])
+
+    def test_RQ_TRC_031_given_an_id_in_the_comment_just_above_a_function_when_analysed_then_the_function_cites_it(self):
+        self.assertEqual({"RQ-DEM-001": [[6, "/// RQ-DEM-001: a port sends what it writes."]]},
+                         self.functions["net::Port::send"]["ids"])
+        self.assertEqual({"TASK-DEM-001": [[13, "// TASK-DEM-001: sending logs."]]},
+                         self.functions["net::Session::send"]["ids"])
+        self.assertEqual({"RQ-DEM-002": [[1, "/* RQ-DEM-002: helpers in C."]]}, self.functions["helper"]["ids"])
+        self.assertEqual({}, self.functions["net::Port::write"]["ids"])
+
+    def test_RQ_TRC_031_given_a_function_citing_an_id_when_analysed_then_its_file_still_cites_it(self):
+        self.assertIn(("calls/net/port.hpp", "RQ-DEM-001", "code"), self.model.edges)
 
 
 if __name__ == "__main__":

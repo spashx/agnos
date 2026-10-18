@@ -254,6 +254,16 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
     return scanned
 
 
+# RQ-TRC-031, DEC-TRC-016: a function cites the IDs its file cites on its lines, with the same proofs.
+def code_citations(model):
+    """{source file: [(line, ID, proof)]} in line order, from the files' code links."""
+    cited = {}
+    for (src, dst, kind), proofs in model.edges.items():
+        if kind == "code":
+            cited.setdefault(src, []).extend((proof[0], dst, proof) for proof in proofs)
+    return {path: sorted(lines) for path, lines in cited.items()}
+
+
 # RQ-TRC-026, RQ-TRC-039, DEC-TRC-013: the module, and through it tree-sitter, are loaded only when asked for.
 def load_call_graph_module():
     spec = importlib.util.spec_from_file_location(CALLGRAPH_MODULE, CALLGRAPH_PATH)
@@ -482,7 +492,7 @@ def main(argv=None):
         analysis = analyse(model)
         line = summary(model, analysis)
         if args.call_graph:
-            graph = load_call_graph_module().analyse(scanned)
+            graph = load_call_graph_module().analyse(scanned, code_citations(model), evidence)
             line += "; " + graph.summary()
         meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
