@@ -119,7 +119,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-027: Documentation and run on this repository
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Document the levels of detail, the boxes and the `scopes` map of the language table in SKILL.md, and
   run the skill with the call graph on this repository at the three levels.
 - **Requirement refs**: RQ-TRC-047, RQ-TRC-017, RQ-TRC-032
@@ -128,5 +128,10 @@ This plan implements the tasks in the format specified below.
   and functions of a C++ code base are drawn in their boxes; SKILL.md says how to add a language's scopes.
 - **Dependencies**: TASK-TRC-026
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `trace_matrix.py --process process --sources <cpp-sources> --call-graph`: 1908 functions, 7745 calls, undefined
+  92 (unchanged). Drawn in headless Edge around `core::setZoneSample`: function level 16 elements · 25 links, 15
+  functions in 8 class and 12 namespace frames; class level 11 · 20, 8 class and 2 namespace pills in 10 namespace
+  frames; namespace level 8 · 16, 7 namespace pills. SKILL.md: the three levels, the switch, box deep links and panel
+  under "What the page shows"; the `scopes` map, C++'s and C's entries and how to give a language its boxes under
+  "Call graph".
+- **Assumptions**: AGENTS.md's trace bullet is left as it is (minimal; the skill documents the boxes).

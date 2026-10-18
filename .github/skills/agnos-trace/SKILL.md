@@ -8,7 +8,7 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 
 <!-- FTR-TRC-001; ADR-TRC-001 (DEC-TRC-001 to DEC-TRC-004), ADR-TRC-002 (DEC-TRC-009 to DEC-TRC-011),
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
-     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026. -->
+     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -62,6 +62,14 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   Functions filter is off when the page opens: turn it on to draw functions in the graph, where a selected function's
   callers stand on its left and its callees on its right; at most 400 nodes are drawn, the status line says how many
   are left out. The overview has a "Call graph" card and the gaps an informational "Untraced functions" list.
+- Boxes, with `--call-graph`: the graph's "Detail" choice draws the functions at three levels. **Function** (the
+  default): every function in the box of its class or namespace. **Class**: one box per class, the calls between their
+  functions merged into one link per pair of boxes with its count of call sites. **Namespace**: one box per namespace,
+  merged the same way. A function outside any namespace or class stands in its file's box at the class and namespace
+  levels. "Enclosing boxes" draws the boxes around the level's own (namespaces around classes, and around a function's
+  class) or leaves them out; it has no meaning at the namespace level. A box is selected like an element (click it,
+  or `#box:<qualified name>`, `#box:file:<path>` in the URL): its panel lists the box around it, its inner boxes, its
+  functions, its callers and callees by box with their call sites, and the requirements its functions cite.
 
 ## Call graph (DEC-TRC-013 to DEC-TRC-018)
 
@@ -75,6 +83,14 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. C and C++ are delivered (`.h` read as C++). To add a
   language: one table entry, one query file, its grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
+- Boxes come from the entry's `scopes` map (DEC-TRC-019): each scope node type its query captures as `@scope`, with
+  the box kind it stands for, `namespace` or `class`. C++ maps `namespace_definition` to `namespace` and
+  `class_specifier`, `struct_specifier`, `union_specifier` to `class`; C has no scope (`{}`), so its functions have no
+  box. To give a new language its boxes, list its grammar's node types for packages, modules or namespaces (`namespace`)
+  and for classes, structs or interfaces (`class`). A scope whose node type is not listed, like a qualifier part no
+  scanned file declares (a class declared in a header outside the sources), gets a guessed kind: the innermost part of
+  a method's qualifier is a class, the outer parts namespaces. Anonymous namespaces and
+  lambdas make no box.
 
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 
