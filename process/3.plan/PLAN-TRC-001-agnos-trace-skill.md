@@ -96,7 +96,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-005: Page views — overview, search, matrix, gaps, detail, deep links
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the page script and style sheet of the header, sidebar, Overview, Matrix (sort, filter, CSV) and
   Gaps views, the detail panel and the URL-fragment selection, on tokens only.
 - **Requirement refs**: RQ-TRC-011, RQ-TRC-013, RQ-TRC-014, RQ-TRC-015, RQ-TRC-016, RQ-TRC-018, RQ-TRC-022
@@ -106,8 +106,16 @@ This plan implements the tasks in the format specified below.
   hold no raw visual literal and no `innerHTML` with data.
 - **Dependencies**: TASK-TRC-004
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: unittest: 33 tests OK, 5 new run in headless Edge (`--dump-dom`): the fragment of a fixture
+  requirement selects it, its detail shows "Feature 1", "Requirement 1", "Tasks 2" and the linked IDs, no "null" text;
+  the overview shows 20 % covered; the matrix has 5 rows; the fixture's `</script><img …>` line renders as text, no
+  `<img>`; the script holds no innerHTML/outerHTML/insertAdjacentHTML/document.write. A wrong fragment selects another
+  element (the tests discriminate). Screenshots of this repository's page (overview, matrix, gaps, search, dark theme)
+  checked by eye. SonarQube for IDE: 0 finding on matrix.js and matrix.css.
+- **Assumptions**: Deviation from test-first: the browser tests were written after the view script, not before it; the
+  null-text defect they now guard was found on a screenshot. The browser tests skip when no Chromium-family browser is
+  found (`AGNOS_TRACE_BROWSER` overrides). No width media query: a breakpoint would be a raw px value; the layout is a
+  fixed grid for review screens, sidebar 264 and detail 360 (tokens).
 
 ### TASK-TRC-006: Interactive graph
 - **Tier**: M

@@ -1,3 +1,582 @@
-/* agnos-trace page script (DEC-TRC-005, DEC-TRC-007). Views: TASK-TRC-005; graph: TASK-TRC-006. */
+/* agnos-trace page script (FTR-TRC-001; ADR-TRC-003: DEC-TRC-005, DEC-TRC-007; ADR-TRC-002: DEC-TRC-010).
+   Views (TASK-TRC-005): overview, search, filters, matrix, gaps, detail panel, deep links.
+   Graph (TASK-TRC-006): see the "graph" section.
+   Every text taken from the data is inserted with textContent, never as HTML (RQ-TRC-022); every visual value comes
+   from the design tokens' custom properties (RQ-TRC-018). */
 "use strict";
-const DATA = JSON.parse(document.getElementById("trace-data").textContent);
+
+(function () {
+  const STARTED = performance.now();
+  const DATA = JSON.parse(document.getElementById("trace-data").textContent);
+
+  // ---- vocabulary ---------------------------------------------------------------------------------------------
+  const TYPES = ["FTR", "RQ", "ADR", "DEC", "PLAN", "TASK"];
+  const NODE_TYPES = [...TYPES, "FILE", "UNDEFINED"];
+  const TYPE_NAME = {
+    FTR: ["Feature", "Features"], RQ: ["Requirement", "Requirements"], ADR: ["ADR", "ADRs"],
+    DEC: ["Decision", "Decisions"], PLAN: ["Plan", "Plans"], TASK: ["Task", "Tasks"],
+    FILE: ["Source file", "Source files"], UNDEFINED: ["Undefined ID", "Undefined IDs"],
+  };
+  const RELATION = {
+    "contains:out": "contains", "contains:in": "part of", "refs:out": "cites", "refs:in": "cited by",
+    "code:out": "cites", "code:in": "cited in",
+  };
+  const COVERAGE = {
+    covered: ["Covered", "a source file cites the requirement"],
+    indirect: ["Indirect", "a source file cites a decision, task or ADR linked to it"],
+    uncovered: ["Uncovered", "no source file cites it, directly or indirectly"],
+  };
+  const GAP = {
+    "uncovered": ["Uncovered requirements", "No source file cites them, directly or through a decision, task or ADR linked to them.", "error"],
+    "untasked": ["Requirements without a task", "No task of any plan cites them.", "warn"],
+    "task-no-rq": ["Tasks without a requirement", "The task cites no requirement itself.", "warn"],
+    "adr-no-rq": ["ADRs without a requirement", "Neither the ADR nor any of its decisions cites a requirement.", "warn"],
+    "empty": ["Empty containers", "Features without requirements, ADRs without decisions, plans without tasks.", "warn"],
+    "isolated": ["Isolated elements", "Nothing cites them and they cite nothing, nor does anything they contain.", "warn"],
+    "undefined": ["Undefined IDs", "Cited by the process or the sources, but defined nowhere in the index.", "error"],
+    "untraced-files": ["Untraced source files", "Scanned files that cite no ID at all.", "warn"],
+  };
+  const SEARCH_LIMIT = 60;
+  const CELL_LIMIT = 3;
+  const GAP_ITEMS_SHOWN = 60;
+  const EVIDENCE_SHOWN = 3;
+  const PERCENT = 100;
+  const FILE_PREFIX = "file:";
+
+  // ---- DOM helpers (text only) --------------------------------------------------------------------------------
+  const isAbsent = (value) => value === undefined || value === null || value === false;
+
+  function setProp(node, key, value) {
+    if (key === "class") node.className = value;
+    else if (key === "text") node.textContent = value;
+    else if (key === "on") Object.entries(value).forEach(([type, fn]) => node.addEventListener(type, fn));
+    else if (key === "style") Object.entries(value).forEach(([prop, v]) => node.style.setProperty(prop, v));
+    else node.setAttribute(key, value === true ? "" : String(value));
+  }
+
+  function el(tag, props, ...children) {
+    const node = document.createElement(tag);
+    Object.entries(props || {}).filter(([, value]) => !isAbsent(value)).forEach(([key, value]) => setProp(node, key, value));
+    children.flat().filter((child) => !isAbsent(child))
+      .forEach((child) => node.append(child instanceof Node ? child : document.createTextNode(String(child))));
+    return node;
+  }
+  const $ = (id) => document.getElementById(id);
+  const clear = (node) => { node.replaceChildren(); return node; };
+  const plural = (type, n) => TYPE_NAME[type][n === 1 ? 0 : 1];
+  const pct = (part, whole) => (whole ? Math.round((PERCENT * part) / whole) : 0);
+
+  // ---- model --------------------------------------------------------------------------------------------------
+  const nodes = new Map();
+  const links = new Map();
+  for (const e of DATA.elements) {
+    nodes.set(e.id, {
+      key: e.id, label: e.id, type: e.kind === "undefined" ? "UNDEFINED" : e.type, elementType: e.type,
+      kind: e.kind, title: e.title, tri: e.tri, status: e.status, doc: e.doc, first: e.first, last: e.last,
+    });
+  }
+  for (const f of DATA.files) {
+    const key = FILE_PREFIX + f.path;
+    nodes.set(key, { key, label: f.path, type: "FILE", kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
+  }
+  for (const key of nodes.keys()) links.set(key, []);
+  for (const [source, target, kind, lines] of DATA.edges) {
+    const from = kind === "code" ? FILE_PREFIX + source : source;
+    if (!nodes.has(from) || !nodes.has(target)) continue;
+    links.get(from).push({ key: target, kind, dir: "out", lines });
+    links.get(target).push({ key: from, kind, dir: "in", lines });
+  }
+  const keyOf = (gapKind, item) => (gapKind === "untraced-files" ? FILE_PREFIX + item : item);
+  const typeOrder = (type) => NODE_TYPES.indexOf(type);
+  const requirements = DATA.elements.filter((e) => e.kind === "element" && e.type === "RQ").map((e) => nodes.get(e.id));
+  const counts = Object.fromEntries(NODE_TYPES.map((t) => [t, 0]));
+  for (const n of nodes.values()) counts[n.type] += 1;
+  const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === "element").map((e) => e.tri))]
+    .sort((a, b) => a.localeCompare(b));
+  const gapBadgeClass = (gapKind, count) => "badge badge-" + (count ? GAP[gapKind][2] : "ok");
+
+  // ---- state --------------------------------------------------------------------------------------------------
+  const state = {
+    selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
+    types: new Set(NODE_TYPES), tris: new Set(trigrams), expandedGaps: new Set(),
+  };
+  const isVisible = (node) => state.types.has(node.type) && (!node.tri || state.tris.has(node.tri));
+
+  // ---- graph hook (TASK-TRC-006) -------------------------------------------------------------------------------
+  const graph = { show() {}, select() {}, refresh() {}, restyle() {} };
+
+  // ---- header and footer --------------------------------------------------------------------------------------
+  function renderHeader() {
+    const meta = DATA.meta;
+    const item = (label, value, title) => el("div", { class: "meta-item", title: title || value },
+      el("span", { class: "meta-label", text: label }), el("span", { class: "meta-value", text: value }));
+    clear($("meta")).append(item("Generated", meta.generatedAt), item("Process", meta.process),
+      item("Sources", meta.sources.join(", ")));
+    $("about").append(el("div", { text: `Generated by agnos-trace · graph by ${meta.library} (MIT)` }));
+    document.title = `Traceability matrix — ${meta.title}`;
+  }
+
+  // ---- overview -----------------------------------------------------------------------------------------------
+  function coverageCounts(list) {
+    const c = { covered: 0, indirect: 0, uncovered: 0 };
+    for (const rq of list) c[DATA.coverage[rq.key]] += 1;
+    return c;
+  }
+
+  function stackBar(c, total) {
+    return el("div", { class: "stack", role: "img",
+      "aria-label": `${c.covered} covered, ${c.indirect} indirect, ${c.uncovered} uncovered of ${total}` },
+      ...Object.keys(COVERAGE).map((k) => el("div", { class: `stack-part stack-${k}`, title: `${COVERAGE[k][0]}: ${c[k]}`,
+        style: { width: `${total ? (PERCENT * c[k]) / total : 0}%` } })));
+  }
+
+  function searchPrefix(type) {
+    if (type === "FILE") return FILE_PREFIX;
+    if (type === "UNDEFINED") return "";
+    return `${type}-`;
+  }
+
+  function renderOverview() {
+    const c = coverageCounts(requirements);
+    const total = requirements.length;
+    const coverageCard = el("article", { class: "card kpi" },
+      el("span", { class: "kpi-label", text: "Requirements covered by source" }),
+      el("span", { class: "kpi-value", text: `${pct(c.covered, total)} %` }),
+      el("span", { class: "kpi-sub", text: `${c.covered} of ${total} cited by a source file · ${c.indirect} more indirectly` }));
+    const typeTiles = el("article", { class: "card kpis-types" },
+      ...NODE_TYPES.map((t) => el("button", { class: `kpi-type t-${t}`, type: "button",
+        title: `Search ${plural(t, 2).toLowerCase()}`, on: { click: () => searchFor(searchPrefix(t), t) } },
+        el("span", { class: "kpi-type-value", text: counts[t] }), el("span", { class: "kpi-type-label", text: plural(t, counts[t]) }))));
+    clear($("kpis")).append(coverageCard, typeTiles);
+
+    clear($("coverage-chart")).append(stackBar(c, total), el("div", { class: "coverage-legend" },
+      ...Object.keys(COVERAGE).map((k) => el("button", { class: "coverage-item", type: "button", title: COVERAGE[k][1],
+        on: { click: () => { setCoverageFilter(k); showView("matrix"); } } },
+        el("span", { class: "coverage-item-label" }, el("span", { class: `legend-swatch stack-${k}` }), COVERAGE[k][0]),
+        el("span", { class: "coverage-item-value", text: `${c[k]}` }),
+        el("span", { class: "kpi-sub", text: `${pct(c[k], total)} % of ${total}` })))));
+
+    clear($("gap-summary")).append(el("div", { class: "gap-rows" }, ...DATA.gapKinds.map((g) => {
+      const n = DATA.gaps[g].length;
+      return el("button", { class: "gap-row", type: "button", on: { click: () => openGap(g) } },
+        el("span", { class: "gap-row-label", text: GAP[g][0] }),
+        el("span", { class: "gap-row-hint", text: GAP[g][1] }),
+        el("span", { class: gapBadgeClass(g, n), text: n }));
+    })));
+
+    const rows = trigrams.map((tri) => {
+      const list = requirements.filter((r) => r.tri === tri);
+      const tc = coverageCounts(list);
+      return el("tr", { title: `Show the requirements of ${tri} in the matrix`, on: { click: () => onlyTrigram(tri) } },
+        el("td", {}, el("span", { class: "id", text: tri })),
+        el("td", { class: "num", text: list.length }), el("td", { class: "num", text: tc.covered }),
+        el("td", { class: "num", text: tc.indirect }), el("td", { class: "num", text: tc.uncovered }),
+        el("td", { class: "num", text: list.length ? `${pct(tc.covered, list.length)} %` : "—" }),
+        el("td", { class: "bar-cell" }, stackBar(tc, list.length)));
+    });
+    clear($("tri-table")).append(el("table", { class: "simple" },
+      el("thead", {}, el("tr", {}, ...["Trigram", "Requirements", "Covered", "Indirect", "Uncovered", "Coverage", ""].map(
+        (h, i) => el("th", { class: i > 0 && i < 6 ? "num" : null, text: h })))),
+      el("tbody", {}, rows)));
+  }
+
+  // ---- sidebar ------------------------------------------------------------------------------------------------
+  function chip(label, count, pressed, onClick, cls) {
+    return el("button", { class: `chip ${cls || ""}`, type: "button", "aria-pressed": String(pressed), on: { click: onClick } },
+      cls ? el("span", { class: `dot ${cls}` }) : null, label, el("span", { class: "chip-count", text: count }));
+  }
+
+  function renderFilters() {
+    clear($("type-filters")).append(...NODE_TYPES.map((t) => chip(plural(t, 2), counts[t], state.types.has(t), () => {
+      toggle(state.types, t); renderFilters(); filtersChanged();
+    }, `t-${t}`)));
+    const triCount = (tri) => DATA.elements.filter((e) => e.kind === "element" && e.tri === tri).length;
+    clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
+      toggle(state.tris, tri); renderFilters(); filtersChanged();
+    })));
+    clear($("gap-shortcuts")).append(...DATA.gapKinds.map((g) => el("li", {}, el("button", { class: "gap-shortcut", type: "button",
+      on: { click: () => openGap(g) } }, el("span", { text: GAP[g][0] }),
+      el("span", { class: gapBadgeClass(g, DATA.gaps[g].length), text: DATA.gaps[g].length })))));
+  }
+
+  function toggle(set, value) { if (set.has(value)) set.delete(value); else set.add(value); }
+
+  function filtersChanged() { renderMatrix(); graph.refresh(); }
+
+  function onlyTrigram(tri) {
+    state.tris = new Set([tri]);
+    renderFilters();
+    filtersChanged();
+    showView("matrix");
+  }
+
+  // ---- search -------------------------------------------------------------------------------------------------
+  const search = $("search");
+  const results = $("search-results");
+  let resultKeys = [];
+  let active = -1;
+
+  function rank(node, q) {
+    const label = node.label.toLowerCase();
+    if (label === q) return 0;
+    if (label.startsWith(q)) return 1;
+    if (label.includes(q)) return 2;
+    return node.title?.toLowerCase().includes(q) ? 3 : -1;
+  }
+
+  function matches(q, onlyType) {
+    const found = [];
+    for (const node of nodes.values()) {
+      if (onlyType ? node.type !== onlyType : !isVisible(node)) continue;
+      const r = q ? rank(node, q) : 0;
+      if (r >= 0) found.push([r, typeOrder(node.type), node.label, node]);
+    }
+    found.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2].localeCompare(b[2]));
+    return found.map((f) => f[3]);
+  }
+
+  function renderResults(onlyType) {
+    const q = search.value.trim().toLowerCase();
+    state.search = q;
+    renderMatrix();
+    if (!q && !onlyType) { closeResults(); return; }
+    const found = matches(q, onlyType);
+    resultKeys = found.slice(0, SEARCH_LIMIT).map((n) => n.key);
+    active = resultKeys.length ? 0 : -1;
+    clear(results).append(...(resultKeys.length ? resultKeys.map((key, i) => {
+      const n = nodes.get(key);
+      return el("li", { class: `search-result t-${n.type}`, role: "option", "aria-selected": String(i === active),
+        on: { mousedown: (event) => { event.preventDefault(); pick(i); } } },
+        el("span", { class: "id-link" }, el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label })),
+        n.title ? el("span", { class: "search-result-title", text: n.title }) : null);
+    }) : [el("li", { class: "search-empty", text: "No element matches." })]));
+    if (found.length > SEARCH_LIMIT) {
+      results.append(el("li", { class: "search-empty", text: `${found.length - SEARCH_LIMIT} more — refine the search` }));
+    }
+    results.hidden = false;
+    search.setAttribute("aria-expanded", "true");
+  }
+
+  function closeResults() { results.hidden = true; search.setAttribute("aria-expanded", "false"); }
+
+  function moveActive(step) {
+    if (!resultKeys.length) return;
+    active = (active + step + resultKeys.length) % resultKeys.length;
+    [...results.children].forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    results.children[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function pick(i) {
+    if (i < 0 || i >= resultKeys.length) return;
+    closeResults();
+    select(resultKeys[i]);
+    if (state.view === "overview") showView("graph");
+  }
+
+  function searchFor(text, type) {
+    search.value = text;
+    search.focus();
+    renderResults(type);
+  }
+
+  search.addEventListener("input", () => renderResults());
+  search.addEventListener("focus", () => { if (search.value.trim()) renderResults(); });
+  search.addEventListener("blur", closeResults);
+  search.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") { event.preventDefault(); moveActive(1); }
+    else if (event.key === "ArrowUp") { event.preventDefault(); moveActive(-1); }
+    else if (event.key === "Enter") { event.preventDefault(); pick(active); }
+    else if (event.key === "Escape") { closeResults(); search.blur(); }
+  });
+  document.addEventListener("keydown", (event) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (event.key === "/" && !typing) { event.preventDefault(); search.focus(); search.select(); }
+  });
+
+  // ---- matrix -------------------------------------------------------------------------------------------------
+  function matrixRow(rq) {
+    const all = links.get(rq.key);
+    const ofTypes = (types, dirs) => all.filter((l) => types.includes(nodes.get(l.key).type) && dirs.includes(l.dir)
+      && l.kind !== "code").map((l) => l.key);
+    const files = all.filter((l) => l.kind === "code").map((l) => l.key);
+    const lines = all.filter((l) => l.kind === "code").reduce((sum, l) => sum + l.lines.length, 0);
+    return {
+      node: rq, id: rq.key, title: rq.title, status: rq.status,
+      feature: all.filter((l) => l.kind === "contains" && l.dir === "in").map((l) => l.key),
+      decisions: unique(ofTypes(["ADR", "DEC"], ["in", "out"])),
+      tasks: unique(ofTypes(["TASK", "PLAN"], ["in"])),
+      files: unique(files), lines, coverage: DATA.coverage[rq.key],
+    };
+  }
+
+  function unique(list) { return [...new Set(list)]; }
+
+  const MATRIX_COLUMNS = [
+    { key: "id", label: "Requirement", value: (r) => r.id },
+    { key: "coverage", label: "Coverage", value: (r) => ["covered", "indirect", "uncovered"].indexOf(r.coverage) },
+    { key: "feature", label: "Feature", value: (r) => r.feature.join(" ") },
+    { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length, num: true },
+    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, num: true },
+    { key: "files", label: "Source files", value: (r) => r.files.length, num: true },
+    { key: "lines", label: "Lines", value: (r) => r.lines, num: true },
+  ];
+  const matrixRows = requirements.map(matrixRow);
+
+  function rowMatches(r) {
+    if (!state.tris.has(r.node.tri)) return false;
+    if (state.coverage !== "all" && r.coverage !== state.coverage) return false;
+    const q = state.search;
+    if (!q) return true;
+    return [r.id, r.title, ...r.feature, ...r.decisions, ...r.tasks, ...r.files.map((f) => nodes.get(f).label)]
+      .some((v) => v.toLowerCase().includes(q));
+  }
+
+  function idList(keys) {
+    if (!keys.length) return el("span", { class: "cell-empty", text: "—" });
+    const shown = keys.slice(0, CELL_LIMIT).map((k) => idButton(k, true));
+    return el("div", { class: "cell-list" }, shown,
+      keys.length > CELL_LIMIT ? el("span", { class: "cell-more", text: `+${keys.length - CELL_LIMIT}` }) : null);
+  }
+
+  function idButton(key, short) {
+    const n = nodes.get(key);
+    const label = n.type === "FILE" && short ? n.label.split("/").pop() : n.label;
+    return el("button", { class: `id-link t-${n.type}`, type: "button", title: n.title || n.label,
+      on: { click: (event) => { event.stopPropagation(); select(key); } } },
+      el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: label }));
+  }
+
+  function coverageBadge(rating) {
+    return el("span", { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
+  }
+
+  function renderMatrix() {
+    const column = MATRIX_COLUMNS.find((c) => c.key === state.sort.column);
+    const rows = matrixRows.filter(rowMatches).sort((a, b) => {
+      const va = column.value(a);
+      const vb = column.value(b);
+      const order = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true });
+      return order * state.sort.dir || a.id.localeCompare(b.id);
+    });
+    const head = el("tr", {}, ...MATRIX_COLUMNS.map((c) => el("th", {
+      class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key),
+      on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } },
+      text: c.label })));
+    const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
+      on: { click: () => select(r.id) } },
+      el("td", { class: "cell-requirement" }, idButton(r.id),
+        el("div", { class: "cell-title", text: r.title }),
+        r.status ? el("span", { class: "badge badge-neutral", text: r.status }) : null),
+      el("td", {}, coverageBadge(r.coverage)),
+      el("td", {}, idList(r.feature)), el("td", {}, idList(r.decisions)), el("td", {}, idList(r.tasks)),
+      el("td", {}, idList(r.files)), el("td", { class: "num", text: r.lines || "—" })));
+    clear($("matrix-table")).append(el("thead", {}, head), el("tbody", {}, body));
+    $("matrix-status").textContent = `${rows.length} of ${matrixRows.length} requirements`;
+  }
+
+  function ariaSort(columnKey) {
+    if (state.sort.column !== columnKey) return null;
+    return state.sort.dir > 0 ? "ascending" : "descending";
+  }
+
+  function setCoverageFilter(value) {
+    state.coverage = value;
+    for (const b of $("coverage-filter").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.coverage === value));
+    renderMatrix();
+  }
+
+  $("coverage-filter").addEventListener("click", (event) => {
+    const b = event.target.closest("button");
+    if (b) setCoverageFilter(b.dataset.coverage);
+  });
+
+  function csvCell(value) {
+    const text = String(value);
+    return /[",\n;]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  }
+
+  function exportCsv() {
+    const header = ["Requirement", "Title", "Status", "Feature", "ADRs / decisions", "Plans / tasks", "Source files",
+      "Source lines", "Coverage"];
+    const lines = matrixRows.filter(rowMatches).map((r) => [r.id, r.title, r.status, r.feature.join(" "),
+      r.decisions.join(" "), r.tasks.join(" "), r.files.map((f) => nodes.get(f).label).join(" "),
+      links.get(r.id).filter((l) => l.kind === "code").flatMap((l) => l.lines.map((line) => `${nodes.get(l.key).label}:${line[0]}`)).join(" "),
+      r.coverage]);
+    const text = [header, ...lines].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob(["﻿", text], { type: "text/csv;charset=utf-8" }));
+    const a = el("a", { href: url, download: `traceability-${DATA.meta.title}.csv` });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  $("export-csv").addEventListener("click", exportCsv);
+
+  // ---- gaps ---------------------------------------------------------------------------------------------------
+  function renderGaps() {
+    const total = DATA.gapKinds.reduce((sum, g) => sum + DATA.gaps[g].length, 0);
+    $("gaps-count").textContent = total ? String(total) : "";
+    clear($("gaps-list")).append(...DATA.gapKinds.map((g) => {
+      const items = DATA.gaps[g];
+      const shown = state.expandedGaps.has(g) ? items : items.slice(0, GAP_ITEMS_SHOWN);
+      return el("article", { class: "card gap-card", id: `gap-${g}` },
+        el("header", { class: "card-header" },
+          el("h2", { class: "card-title gap-card-title" }, GAP[g][0]),
+          el("span", { class: gapBadgeClass(g, items.length), text: items.length })),
+        el("p", { class: "gap-card-desc", text: GAP[g][1] }),
+        items.length ? el("ul", { class: "gap-items" }, ...shown.map((item) => {
+          const key = keyOf(g, item);
+          const n = nodes.get(key);
+          return el("li", {}, el("button", { class: "gap-item", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
+            el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label }),
+            n.title ? el("span", { class: "gap-item-title", text: n.title }) : null));
+        })) : el("div", { class: "gap-none", text: "None — the rule holds." }),
+        items.length > shown.length ? el("button", { class: "link-button", type: "button",
+          on: { click: () => { state.expandedGaps.add(g); renderGaps(); } }, text: `Show all ${items.length}` }) : null);
+    }));
+  }
+
+  function openGap(g) {
+    showView("gaps");
+    const card = $(`gap-${g}`);
+    if (card) card.scrollIntoView({ block: "start" });
+  }
+
+  // ---- detail panel -------------------------------------------------------------------------------------------
+  function renderDetail() {
+    const panel = clear($("detail"));
+    const key = state.selected;
+    if (!key) {
+      panel.append(el("div", { class: "detail-empty" },
+        el("span", { class: "detail-empty-title", text: "No element selected" }),
+        el("span", { text: "Search an ID, a title or a file, or click any element of the matrix, the gaps or the graph: its links appear here, grouped by type." })));
+      return;
+    }
+    const n = nodes.get(key);
+    const head = el("div", { class: `detail-head t-${n.type}` },
+      el("div", { class: "detail-kind" }, el("span", { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
+      el("h2", { class: "detail-id", text: n.label }),
+      n.title ? el("p", { class: "detail-title", text: n.title }) : null,
+      el("div", { class: "detail-badges" },
+        n.status ? el("span", { class: "badge badge-neutral", text: n.status }) : null,
+        n.type === "RQ" && DATA.coverage[key] ? coverageBadge(DATA.coverage[key]) : null,
+        n.kind === "undefined" ? el("span", { class: "badge badge-error", text: "Not in the index" }) : null),
+      n.doc ? el("div", { class: "detail-location", text: `${n.doc}:${n.first}-${n.last}` }) : null,
+      el("div", { class: "detail-actions" },
+        el("button", { class: "button button-primary", type: "button", text: "Show in graph", on: { click: () => showView("graph") } }),
+        el("button", { class: "button", type: "button", text: "Copy ID", on: { click: () => copy(n.label) } })));
+    const all = links.get(key);
+    const groups = new Map();
+    for (const l of all) {
+      const type = nodes.get(l.key).type;
+      if (!groups.has(type)) groups.set(type, new Map());
+      const byKey = groups.get(type);
+      if (!byKey.has(l.key)) byKey.set(l.key, []);
+      byKey.get(l.key).push(l);
+    }
+    const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
+    const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
+      el("span", { class: `badge badge-neutral t-${t}` }, el("span", { class: `dot t-${t}` }), `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
+      : el("span", { class: "badge badge-error", text: "No link" }));
+    panel.append(head, summary, ...ordered.map((t) => linkGroup(t, groups.get(t))));
+  }
+
+  function linkGroup(type, byKey) {
+    const items = [...byKey.entries()].sort((a, b) => nodes.get(a[0]).label.localeCompare(nodes.get(b[0]).label, undefined, { numeric: true }));
+    return el("section", { class: "group" },
+      el("div", { class: "group-head" }, el("h3", { class: "group-title" }, el("span", { class: `dot t-${type}` }), plural(type, items.length)),
+        el("span", { class: "group-count", text: items.length })),
+      el("ul", { class: "group-items" }, ...items.map(([key, list]) => {
+        const n = nodes.get(key);
+        const rel = unique(list.map((l) => RELATION[`${l.kind}:${l.dir}`])).join(", ");
+        const lines = list.flatMap((l) => l.lines);
+        return el("li", { class: "link-item" }, idButton(key), el("span", { class: "link-rel", text: rel }),
+          n.title ? el("span", { class: "link-title", text: n.title }) : null,
+          lines.length ? evidence(lines) : null);
+      })));
+  }
+
+  function evidence(lines) {
+    const box = el("div", { class: "evidence" });
+    const draw = (all) => {
+      clear(box).append(...(all ? lines : lines.slice(0, EVIDENCE_SHOWN)).map(([no, text]) => el("div", { class: "evidence-line" },
+        el("span", { class: "evidence-no", text: `L${no}` }), el("span", { class: "evidence-text", text }))));
+      if (!all && lines.length > EVIDENCE_SHOWN) {
+        box.append(el("button", { class: "link-button", type: "button", text: `${lines.length - EVIDENCE_SHOWN} more lines`,
+          on: { click: () => draw(true) } }));
+      }
+    };
+    draw(false);
+    return box;
+  }
+
+  function copy(text) {
+    navigator.clipboard?.writeText(text).catch(() => undefined);
+  }
+
+  // ---- selection, views, history ------------------------------------------------------------------------------
+  function hashKey() {
+    const raw = decodeURIComponent(location.hash.slice(1));
+    return nodes.has(raw) ? raw : null;
+  }
+
+  function select(key, options) {
+    if (!nodes.has(key)) return;
+    const fromHistory = options?.fromHistory;
+    state.selected = key;
+    renderDetail();
+    for (const tr of $("matrix-table").querySelectorAll("tbody tr")) tr.classList.toggle("selected", tr.dataset.key === key);
+    graph.select(key);
+    const hash = `#${encodeURIComponent(key)}`;
+    if (!fromHistory && location.hash !== hash) history.pushState({ key }, "", hash);
+  }
+
+  function showView(view) {
+    state.view = view;
+    for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.view === view));
+    for (const section of document.querySelectorAll(".view")) section.hidden = section.id !== `view-${view}`;
+    if (view === "graph") graph.show();
+  }
+
+  document.querySelector(".tabs").addEventListener("click", (event) => {
+    const tab = event.target.closest(".tab");
+    if (tab) showView(tab.dataset.view);
+  });
+
+  function followHash() {
+    const key = hashKey();
+    if (key) select(key, { fromHistory: true });
+  }
+  window.addEventListener("popstate", followHash);
+  window.addEventListener("hashchange", followHash);
+
+  // ---- theme --------------------------------------------------------------------------------------------------
+  const THEME_KEY = "agnos-trace-theme";
+  function effectiveTheme() {
+    const set = document.documentElement.dataset.theme;
+    if (set) return set;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* storage unavailable: the choice lasts this visit */ }
+    graph.restyle();
+  }
+  try { const saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.dataset.theme = saved; } catch (error) { /* no storage */ }
+  $("theme-toggle").addEventListener("click", () => applyTheme(effectiveTheme() === "dark" ? "light" : "dark"));
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => graph.restyle());
+
+  // ---- start --------------------------------------------------------------------------------------------------
+  window.agnosTrace = { nodes, links, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES, FILE_PREFIX };
+  renderHeader();
+  renderFilters();
+  renderOverview();
+  renderMatrix();
+  renderGaps();
+  renderDetail();
+  const initial = hashKey();
+  if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
+  document.documentElement.dataset.ready = "true";
+  console.info(`agnos-trace: interactive in ${Math.round(performance.now() - STARTED)} ms`);
+})();

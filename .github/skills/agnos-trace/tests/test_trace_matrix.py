@@ -282,5 +282,85 @@ class PageAssemblyTest(unittest.TestCase):
             self.assertIn(tm.DEFAULT_OUT_NAME, out.strip().splitlines()[-1])
 
 
+BROWSER_CANDIDATES = (
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+)
+BROWSER_NAMES = ("chromium", "chromium-browser", "google-chrome", "chrome", "msedge", "microsoft-edge")
+BROWSER_BUDGET_MS = "8000"
+
+
+def find_browser():
+    """A Chromium-family browser for the page tests: $AGNOS_TRACE_BROWSER, a usual install path or one on the PATH."""
+    import os
+    import shutil
+    if os.environ.get("AGNOS_TRACE_BROWSER"):
+        return os.environ["AGNOS_TRACE_BROWSER"]
+    found = [p for p in BROWSER_CANDIDATES if Path(p).is_file()] + [shutil.which(n) for n in BROWSER_NAMES]
+    return next((p for p in found if p), None)
+
+
+BROWSER = find_browser()
+
+
+def rendered_dom(page_path, fragment=""):
+    """The DOM of the page once its script ran, from a headless browser (--dump-dom)."""
+    import subprocess
+    with tempfile.TemporaryDirectory() as profile:
+        done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+                               f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}", "--dump-dom",
+                               page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False)
+    return done.stdout.decode("utf-8", errors="replace")
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class PageViewsTest(unittest.TestCase):
+    """TASK-TRC-005: RQ-TRC-011, RQ-TRC-013 to RQ-TRC-016, RQ-TRC-022 (DEC-TRC-005, DEC-TRC-007), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_016_given_a_fragment_when_the_page_opens_then_the_detail_shows_the_element_links_by_type(self):
+        dom = rendered_dom(self.path, "#RQ-DEM-002")
+        self.assertIn('data-ready="true"', dom)
+        self.assertIn('<h2 class="detail-id">RQ-DEM-002</h2>', dom)
+        for summary in ("Feature 1", "Requirement 1", "Tasks 2"):
+            self.assertIn(summary, dom)
+        for linked in ("TASK-DEM-001", "TASK-DEM-002", "FTR-DEM-001", "RQ-DEM-001"):
+            self.assertIn(f'<span class="id">{linked}</span>', dom)
+        import re
+        self.assertEqual([], re.findall(r">\s*(?:null|undefined)\s*<", dom))
+
+    def test_RQ_TRC_015_given_the_fixture_when_the_page_opens_then_the_overview_shows_its_coverage(self):
+        dom = rendered_dom(self.path)
+        self.assertIn('<span class="kpi-value">20 %</span>', dom)
+        self.assertIn("1 of 5 cited by a source file · 1 more indirectly", dom)
+
+    def test_RQ_TRC_014_given_the_fixture_when_the_page_opens_then_the_matrix_has_a_row_per_requirement(self):
+        dom = rendered_dom(self.path)
+        self.assertEqual(5, dom.count('<tr data-key="RQ-DEM-') + dom.count('<tr class="selected" data-key="RQ-DEM-'))
+        self.assertIn("5 of 5 requirements", dom)
+
+    def test_RQ_TRC_022_given_a_source_line_holding_html_when_shown_then_it_is_text(self):
+        dom = rendered_dom(self.path, "#RQ-DEM-001")
+        self.assertIn("&lt;/script&gt;&lt;img src=x onerror=alert(1)&gt;", dom)
+        self.assertNotIn("<img", dom)
+
+    def test_RQ_TRC_022_given_the_page_script_when_searched_then_it_never_writes_html(self):
+        script = (SKILL / "assets" / "matrix.js").read_text(encoding="utf-8")
+        for needle in ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write"):
+            self.assertNotIn(needle, script)
+
+
 if __name__ == "__main__":
     unittest.main()
