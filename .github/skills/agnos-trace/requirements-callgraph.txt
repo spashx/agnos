@@ -1,0 +1,4 @@
+# agnos-trace --call-graph (RQ-TRC-039, DEC-TRC-013): the versions supported; prebuilt wheels, no compiler needed.
+tree-sitter==0.25.2
+tree-sitter-c==0.24.1
+tree-sitter-cpp==0.23.4

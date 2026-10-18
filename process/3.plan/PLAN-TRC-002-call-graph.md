@@ -16,7 +16,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-009: Optional call-graph module and language table
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add `scripts/callgraph.py`, imported only with `--call-graph`, its py-tree-sitter adapter,
   `assets/callgraph/languages.json`, `requirements-callgraph.txt` (tree-sitter 0.25.2, tree-sitter-c 0.24.1,
   tree-sitter-cpp 0.23.4, to be confirmed when installed), and the "call graph skipped" path when a package is missing.
@@ -27,8 +27,15 @@ This plan implements the tasks in the format specified below.
   imported; the stdlib-only and independence tests still pass.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` 45 tests OK (38 before + 7 of `test_callgraph.py`): with `tree_sitter` masked,
+  `--call-graph` exits 0, "call graph skipped: tree-sitter not installed, run: pip install -r …requirements-callgraph.txt",
+  page written; without the option the fixture data hashes to the value taken before this plan (c43656a2…) and a fresh
+  interpreter has no `tree_sitter*` / `agnos_trace*` module; stdlib-only test passes on both scripts; pins equal the
+  installed versions. Fixture run with the packages: "call graph: 0 functions, 0 calls, ambiguous 0, external 0" (both
+  queries compile). IDE SonarQube: no finding.
+- **Assumptions**: the two query files are written here because the table names them, their captures tested by
+  TASK-TRC-010/011; the module is loaded by file path so the core script holds no non-stdlib import statement; the
+  "same page" check compares the data block with the two machine-dependent paths blanked (assets change in TASK-TRC-012).
 
 ### TASK-TRC-010: C and C++ functions and their IDs
 - **Tier**: M

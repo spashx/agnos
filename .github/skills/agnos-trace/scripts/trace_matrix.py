@@ -3,12 +3,14 @@
 
 Implements FTR-TRC-001 after ADR-TRC-001, ADR-TRC-002 and ADR-TRC-003. Procedure and options: ../SKILL.md.
 Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS ID grammar and the INDEX.idx.md format,
-nothing of the product being developed (RQ-TRC-019).
+nothing of the product being developed (RQ-TRC-019). --call-graph loads callgraph.py beside it (FTR-TRC-002,
+ADR-TRC-004).
 """
 import argparse
 import datetime
 import fnmatch
 import html
+import importlib.util
 import json
 import os
 import re
@@ -43,6 +45,8 @@ VENDOR_DIR = Path(__file__).resolve().parent / "vendor"
 TEMPLATE_PATH = ASSETS_DIR / "matrix.html"
 TOKENS_PATH = ASSETS_DIR / "tokens.json"
 LIBRARY_FILE = "cytoscape.min.js"
+CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
+CALLGRAPH_MODULE = "agnos_trace_callgraph"
 MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA)@")
 SCRIPT_END_RE = re.compile(r"</(script)", re.IGNORECASE)
 TOKEN_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -227,10 +231,12 @@ def display_path(path, root, base):
 
 # RQ-TRC-006, RQ-TRC-007 (TASK-TRC-002)
 def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, excludes=DEFAULT_EXCLUDES):
-    """Links every scanned source file to the IDs its lines hold, with the line numbers and texts."""
+    """Links every scanned source file to the IDs its lines hold, with the line numbers and texts; returns the files
+    scanned, [(shown path, path)], for the call graph (DEC-TRC-013: no second walk)."""
     base = Path(base) if base is not None else Path.cwd()
     defined = {i for i, e in model.elements.items() if e["kind"] == "element"}
     extensions = {e.lower() if e.startswith(".") else "." + e.lower() for e in extensions}
+    scanned = []
     for root in map(Path, roots):
         for path in source_files(root, extensions, excludes):
             lines = read_source(path)
@@ -244,6 +250,16 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
                     model.add_edge(shown, target, "code", evidence(ln, text))
                     count += 1
             model.files[shown] = {"path": shown, "ids": count}
+            scanned.append((shown, path))
+    return scanned
+
+
+# RQ-TRC-026, RQ-TRC-039, DEC-TRC-013: the module, and through it tree-sitter, are loaded only when asked for.
+def load_call_graph_module():
+    spec = importlib.util.spec_from_file_location(CALLGRAPH_MODULE, CALLGRAPH_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 # ---- coverage and gaps -------------------------------------------------------------------------------------------
@@ -440,6 +456,8 @@ def parse_args(argv):
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
     parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
                                                "makes the output reproducible")
+    parser.add_argument("--call-graph", action="store_true",
+                        help="add the functions and calls of the sources, parsed with tree-sitter (FTR-TRC-002)")
     return parser.parse_args(argv)
 
 
@@ -459,10 +477,13 @@ def main(argv=None):
     try:
         check_sources(args.sources)
         model = build_process_model(process)
-        scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
-                     excludes=args.exclude or DEFAULT_EXCLUDES)
+        scanned = scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
+                               excludes=args.exclude or DEFAULT_EXCLUDES)
         analysis = analyse(model)
         line = summary(model, analysis)
+        if args.call_graph:
+            graph = load_call_graph_module().analyse(scanned)
+            line += "; " + graph.summary()
         meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
         page = render_page(page_data(model, analysis, meta), title)
