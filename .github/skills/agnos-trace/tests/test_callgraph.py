@@ -417,6 +417,68 @@ class FunctionGraphTest(unittest.TestCase):
         self.assertIn("4 elements · 5 links", attributes["status"])
 
 
+READ_DRAWING = "document.documentElement.dataset.drawing = JSON.stringify(agnosTrace.graph.elements());"
+
+
+def drawing(path, script):
+    """The data of the elements drawn once functions are on and the script ran: ({node id: data}, {edge id: data})."""
+    import html
+    import re
+    dom = rendered_dom_after(path, TURN_FUNCTIONS_ON + script + READ_DRAWING)
+    found = json.loads(html.unescape(re.search(r'data-drawing="([^"]*)"', dom).group(1)))
+    return ({e["id"]: e for e in found if "source" not in e}, {e["id"]: e for e in found if "source" in e})
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class DetailLevelTest(unittest.TestCase):
+    """TASK-TRC-024: RQ-TRC-047, RQ-TRC-037 (DEC-TRC-021), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        cls.paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{cls.paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def file_box(self, suffix):
+        return "box:file:" + next(p for p in self.paths if p.endswith(suffix))
+
+    def test_RQ_TRC_047_given_the_namespace_level_when_relay_is_drawn_then_its_calls_are_one_link_per_box_with_a_count(
+            self):
+        nodes, edges = drawing(self.path, f"agnosTrace.graph.setDetail('namespace');"
+                                          f"agnosTrace.select('{self.keys['relay']}'); agnosTrace.showView('graph');")
+        self.assertFalse([key for key in nodes if key.startswith("fn:")])
+        main, session = self.file_box("calls/app/main.cpp"), self.file_box("calls/net/session.cpp")
+        self.assertIn("box:net", nodes)
+        to_net = edges[f"{main}>box:net>calls"]
+        self.assertEqual((2, True), (to_net["count"], to_net["ambiguous"]))     # x.send() and port.write(3), ambiguous
+        to_log = edges[f"{main}>{session}>calls"]
+        self.assertEqual((2, False), (to_log["count"], to_log["ambiguous"]))    # log(1), log(2)
+        net_to_log = edges[f"box:net>{session}>calls"]                          # net::Session::send calls log(2)
+        self.assertEqual((1, False), (net_to_log["count"], net_to_log["ambiguous"]))
+        self.assertEqual(3, len([e for e in edges.values() if e["kind"] == "calls"]))     # send -> write: inside net
+
+    def test_RQ_TRC_047_given_the_class_level_when_a_requirement_is_drawn_then_its_citing_function_is_its_class(self):
+        nodes, edges = drawing(self.path, "agnosTrace.graph.setDetail('class');"
+                                          "agnosTrace.select('RQ-DEM-001'); agnosTrace.showView('graph');")
+        self.assertIn("box:net::Port>RQ-DEM-001>code", edges)
+        self.assertNotIn(self.keys["net::Port::send"], nodes)
+
+    def test_RQ_TRC_047_given_the_function_level_again_when_a_function_is_drawn_then_the_drawing_is_unchanged(self):
+        show = f"agnosTrace.select('{self.keys['net::Port::write']}'); agnosTrace.showView('graph');"
+        before = drawing(self.path, show)
+        after = drawing(self.path, "agnosTrace.graph.setDetail('namespace');" + show
+                        + "agnosTrace.graph.setDetail('function');")
+        self.assertEqual(before, after)
+        self.assertEqual(4, len(before[0]) - len([k for k in before[0] if k.startswith("header:")]))
+
+
 READ_LEGEND = """
 const out = document.documentElement.dataset;
 out.looks = JSON.stringify(agnosTrace.EDGE_LOOK);

@@ -42,7 +42,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-024: Functions mapped to boxes at a level of detail
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In the page, map each function to the box that stands for it at the namespace, class or function
   level (functions without scope: one box per file), after the neighbourhood walk; merge the calls between two boxes into
   one link per ordered pair with its count, drop calls inside one box, move a function's ID links to its box; apply the
@@ -55,8 +55,15 @@ This plan implements the tasks in the format specified below.
   `net::Port`; When the level is function, Then the drawing is the one before this plan.
 - **Dependencies**: TASK-TRC-023
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `DetailLevelTest` 3/3 OK in headless Edge: namespace level around `relay`, no `fn:` node, `box:net`
+  drawn, `main.cpp` box → `net` one link of 2 call sites, ambiguous; `main.cpp` box → `session.cpp` box 2 sites;
+  `net` → `session.cpp` box 1 site (`Session::send` calls `log`); `Port::send` → `Port::write` inside `net`, not drawn;
+  class level, `box:net::Port>RQ-DEM-001>code` drawn, `net::Port::send` not; function level after namespace: same
+  elements as before. Whole suite 83 OK, 1 skipped. Sonar: no finding (complexity and outer-scope findings fixed).
+- **Assumptions**: an aggregated call link counts its distinct call sites (caller, line), so one ambiguous call to two
+  methods of a box counts once; it is ambiguous only when every merged call is; at the class level a function with a
+  namespace but no class goes to its namespace's box; at the namespace level a method of a class outside any namespace
+  goes to its file's box; a link is drawn only between nodes the walk reached; box selection waits for TASK-TRC-026.
 
 ### TASK-TRC-025: Boxes drawn as compound nodes in the flow layout
 - **Tier**: M

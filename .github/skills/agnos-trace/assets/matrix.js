@@ -49,6 +49,12 @@
   const FILE_PREFIX = "file:";
   const FN_PREFIX = "fn:";
   const CALLS_SHOWN = 50;               // callers or callees listed at first, and added per "more" (DEC-TRC-017)
+  // RQ-TRC-047, DEC-TRC-021: the levels of detail, and the boxes drawn in place of functions above the function level.
+  const DETAIL = { namespace: "namespace", class: "class", function: "function" };
+  const BOX_PREFIX = "box:";            // a box's key: box:<qualified scope name>, or box:file:<path> for a file's box
+  const NAMESPACE_KIND = "namespace";   // a scope's kind in the call graph's scope table (DEC-TRC-019)
+  const FILE_BOX = "file";              // the kind of the box of a file's functions without scope
+  const SCOPE_FIELD = 7;                // a function row's scope index (-1: none)
 
   // ---- DOM helpers (text only) --------------------------------------------------------------------------------
   const isAbsent = (value) => value === undefined || value === null || value === false;
@@ -95,6 +101,8 @@
   addEdges();
   addFunctionLinks();
   const calls = buildCalls();
+  const boxes = buildBoxes();
+  const nodeOf = (key) => nodes.get(key) || boxes.get(key);
   indexSearch();
 
   function addEdges() {
@@ -214,6 +222,31 @@
     };
   }
 
+  // ---- boxes (TASK-TRC-024: RQ-TRC-047; DEC-TRC-019, DEC-TRC-021) ---------------------------------------------
+  // A namespace or class of the scope table, or the box of a file's functions without scope, drawn in place of its
+  // functions at the namespace and class levels. File boxes are made the first time a function needs one.
+  function buildBoxes() {
+    const found = new Map();
+    const scopes = CALL_GRAPH?.scopes || [];
+    const scopeKey = (i) => BOX_PREFIX + scopes[i][0];
+    scopes.forEach(([name, kind, parent], i) => found.set(scopeKey(i), { key: scopeKey(i), label: name, type: "FN",
+      box: kind, parent: parent >= 0 ? scopeKey(parent) : null, scope: i }));
+    const fileBox = (path) => {
+      const key = BOX_PREFIX + FILE_PREFIX + path;
+      if (!found.has(key)) found.set(key, { key, label: path, type: "FN", box: FILE_BOX, parent: null, path });
+      return key;
+    };
+    // The box standing for function i: itself at the function level, its own scope at the class level, its nearest
+    // namespace at the namespace level, else the box of its file.
+    const of = (i, level) => {
+      if (level === DETAIL.function) return fnKeys[i];
+      let scope = CALL_GRAPH.functions[i][SCOPE_FIELD];
+      while (level === DETAIL.namespace && scope >= 0 && scopes[scope][1] !== NAMESPACE_KIND) scope = scopes[scope][2];
+      return scope >= 0 ? scopeKey(scope) : fileBox(nodes.get(fnKeys[i]).path);
+    };
+    return { get: (key) => found.get(key), of };
+  }
+
   // ---- state --------------------------------------------------------------------------------------------------
   const state = {
     selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
@@ -259,7 +292,7 @@
   const graph = createGraph();
 
   function shortLabel(n) {
-    const text = n.type === "FILE" ? n.label.split("/").pop() : n.label;
+    const text = n.type === "FILE" || n.box === FILE_BOX ? n.label.split("/").pop() : n.label;
     return text.length > LABEL_MAX_CHARS ? `${text.slice(0, LABEL_MAX_CHARS - 1)}…` : text;
   }
 
@@ -271,6 +304,13 @@
   // The call-site count of one call link (RQ-TRC-046).
   function callSites(caller, callee) {
     return calls.callees(calls.index.get(caller)).find((c) => c.key === callee)?.lines.length || 0;
+  }
+
+  // One call merged into a link between boxes: its call sites, by caller and line, and its ambiguity (DEC-TRC-021).
+  function mergeCall(data, call, caller, sites) {
+    data.ambiguous = (data.ambiguous ?? true) && call.ambiguous;
+    if (!sites.has(data.id)) sites.set(data.id, new Set());
+    for (const line of call.lines) sites.get(data.id).add(caller + line);
   }
 
   // The calls of one function to the kept nodes, as graph edges.
@@ -293,6 +333,8 @@
     let cy = null;
     let whole = false;
     let depth = 1;
+    let detail = DETAIL.function;       // RQ-TRC-047: the level of detail, the function level by default
+    let centre = null;                  // the drawn node standing for the selection: itself, or its box
     let dirty = true;
     const prop = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const num = (name) => Number.parseFloat(prop(name));
@@ -437,6 +479,54 @@
       return edges;
     }
 
+    // RQ-TRC-047, DEC-TRC-021: the walk's functions replaced by the boxes standing for them at the level of detail,
+    // each box at the nearest level of its functions, in the walk's order; the other nodes stay themselves.
+    function detailView(levels) {
+      if (detail === DETAIL.function) return { levels, drawnOf: (key) => key, edges: edgesAmong };
+      const drawnOf = (key) => {
+        const index = calls.index.get(key);
+        return index === undefined ? key : boxes.of(index, detail);
+      };
+      const mapped = new Map();
+      for (const [key, level] of levels) {
+        const box = drawnOf(key);
+        if (!mapped.has(box)) mapped.set(box, level);
+      }
+      return { levels: mapped, drawnOf, edges: (keys, positions) => boxEdges({ members: levels, drawnOf, keys, positions }) };
+    }
+
+    // The links among the drawn boxes and nodes, one per relation and ordered pair, nothing inside one box. A link
+    // merging calls counts their call sites and is ambiguous only when every merged call is.
+    function boxEdges({ members, drawnOf, keys, positions }) {
+      const kept = new Set(keys);
+      const edges = new Map();
+      const sites = new Map();
+      const add = (from, to, kind) => {
+        const id = `${from}>${to}>${kind}`;
+        if (!edges.has(id)) {
+          const curve = kind === "calls" ? 0 : bow(positions.get(from), positions.get(to));
+          edges.set(id, { group: "edges", data: { id, source: from, target: to, kind, curve } });
+        }
+        return edges.get(id).data;
+      };
+      for (const key of members.keys()) {
+        const from = drawnOf(key);
+        if (kept.has(from)) memberEdges(key, from, { members, drawnOf, kept, add, sites });
+      }
+      for (const [id, found] of sites) edges.get(id).data.count = found.size;
+      return [...edges.values()];
+    }
+
+    // The links and calls of one walked node, from the box or node drawn for it to those drawn for the other ends.
+    function memberEdges(key, from, { members, drawnOf, kept, add, sites }) {
+      const to = (other) => (members.has(other) && kept.has(drawnOf(other)) ? drawnOf(other) : from);
+      for (const l of links.get(key)) if (l.dir === "out" && edgeAllowed(l) && to(l.key) !== from) add(from, to(l.key), l.kind);
+      const index = calls.index.get(key);
+      for (const c of index === undefined ? [] : calls.callees(index)) {
+        if (to(c.key) !== from) mergeCall(add(from, to(c.key), "calls"), c, `${key}:`, sites);
+      }
+    }
+
     function pillWidth(label) {
       return label.length * num("--c-graph-label-size") * MONO_CHAR_RATIO + 2 * num("--c-graph-node-padding");
     }
@@ -444,12 +534,12 @@
     // The flow's columns. Around a selected function, its column splits in three — callers, the function, callees —
     // so that calls run left to right, never along one column (DEC-TRC-017).
     function flowColumns(selected) {
-      const base = COLUMNS.map((types, c) => ({ name: COLUMN_NAME[c], has: (key) => types.includes(nodes.get(key).type) }));
+      const base = COLUMNS.map((types, c) => ({ name: COLUMN_NAME[c], has: (key) => types.includes(nodeOf(key).type) }));
       const index = calls?.index.get(selected);
       if (index === undefined) return base;
       const callers = new Set(calls.callers(index).map((c) => c.key));
       const callees = new Set(calls.callees(index).map((c) => c.key));
-      const isCall = (key, set) => key !== selected && nodes.get(key).type === "FN" && set.has(key);
+      const isCall = (key, set) => key !== selected && nodeOf(key).type === "FN" && set.has(key);
       const at = columnOf("FN");
       return [...base.slice(0, at),
         { name: "Callers", has: (key) => isCall(key, callers) },
@@ -459,7 +549,7 @@
     }
 
     // The flow layout: columns left to right, each as wide as its widest pill, the selection first in its column.
-    function flowElements(levels, selected) {
+    function flowElements(levels, selected, edgesOf) {
       const columnGap = num("--c-graph-column-gap");
       const subGap = num("--c-graph-sub-gap");
       const rowGap = num("--c-graph-row-gap");
@@ -473,9 +563,9 @@
       byColumn.forEach((keys, c) => {
         if (!keys.length) return;
         keys.sort((a, b) => (a === selected ? -1 : 0) - (b === selected ? -1 : 0)
-          || nodes.get(a).label.localeCompare(nodes.get(b).label, undefined, { numeric: true }));
+          || nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true }));
         const shown = keys.slice(0, MAX_PER_COLUMN);
-        const labels = shown.map((key) => shortLabel(nodes.get(key)));
+        const labels = shown.map((key) => shortLabel(nodeOf(key)));
         const widest = Math.max(...labels.map(pillWidth));
         const subColumns = Math.ceil(shown.length / MAX_ROWS);
         const rows = Math.ceil(shown.length / subColumns);
@@ -487,7 +577,7 @@
           position: { x: centre, y: -num("--c-graph-header-gap") } });
         shown.forEach((key, i) => {
           const position = { x: left + widest / 2 + Math.floor(i / rows) * step, y: (i % rows) * rowGap };
-          elements.push({ group: "nodes", classes: "item", data: { id: key, type: nodes.get(key).type, label: labels[i],
+          elements.push({ group: "nodes", classes: "item", data: { id: key, type: nodeOf(key).type, label: labels[i],
             width: pillWidth(labels[i]), level: levels.get(key) }, position });
           positions.set(key, position);
           drawn.push(key);
@@ -499,7 +589,7 @@
         }
         left += Math.max(span, pillWidth(header)) + columnGap;
       });
-      return { elements: [...elements, ...edgesAmong(drawn, positions)], drawn: drawn.length, total: levels.size };
+      return { elements: [...elements, ...edgesOf(drawn, positions)], drawn: drawn.length, total: levels.size };
     }
 
     function wholeElements() {
@@ -515,15 +605,15 @@
         boxSelectionEnabled: false, autoungrabify: true, hideEdgesOnViewport: Boolean(CALL_GRAPH) });   // DEC-TRC-017
       cy.on("tap", "node.item", (event) => select(event.target.id()));
       cy.on("mouseover", "node.item", (event) => {
-        const n = nodes.get(event.target.id());
+        const n = nodeOf(event.target.id());
         event.target.addClass("hover");
         event.target.connectedEdges().addClass("near");
         container.title = n.title ? `${n.label} — ${n.title}` : n.label;
       });
       cy.on("mouseout", "node.item", (event) => {
         event.target.removeClass("hover");
-        if (event.target.id() !== state.selected) event.target.connectedEdges().removeClass("near");
-        highlight(state.selected);
+        if (event.target.id() !== centre) event.target.connectedEdges().removeClass("near");
+        highlight(centre);
         container.title = "";
       });
       // RQ-TRC-046: a link's tooltip once the pointer rests on it for the token delay.
@@ -544,12 +634,16 @@
       const look = kind === "calls" && edge.data("ambiguous") ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind];
       const source = edge.data("source");
       const target = edge.data("target");
-      const proofs = kind === "calls" ? callSites(source, target)
-        : links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
+      const merged = edge.data("count");               // a link merging calls between boxes (DEC-TRC-021)
+      let proofs = merged ?? 0;
+      if (merged === undefined && kind === "calls") proofs = callSites(source, target);
+      else if (merged === undefined && links.has(source)) {
+        proofs = links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
           .reduce((sum, l) => sum + l.lines.length, 0);
+      }
       const unit = proofs === 1 ? "line" : "lines";
       const lines = proofs ? ` · ${proofs} ${unit}` : "";
-      return `${look.meaning}: ${nodes.get(source).label} → ${nodes.get(target).label}${lines}`;
+      return `${look.meaning}: ${nodeOf(source).label} → ${nodeOf(target).label}${lines}`;
     }
 
     function showTip(edgeId, at) {
@@ -583,15 +677,17 @@
       ensure();
       cy.resize();
       let built = { elements: [], drawn: 0, total: 0 };
+      centre = key;
       if (whole) built = wholeElements();
       else if (key) {
-        const levels = neighbourhood(key);
-        built = { ...flowElements(nearest(levels), key), total: levels.size };
+        const view = detailView(neighbourhood(key));      // the 400-node limit applies to what the level draws
+        centre = view.drawnOf(key);
+        built = { ...flowElements(nearest(view.levels), centre, view.edges), total: view.levels.size };
       }
       cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
       if (whole) cy.layout({ name: "cose", animate: false, numIter: COSE_ITERATIONS }).run();
       else cy.layout({ name: "preset" }).run();
-      highlight(key);
+      highlight(centre);
       frame();
       const ms = Math.round(performance.now() - started);
       const parts = [`${built.drawn} elements`, `${cy.edges().length} links`];
@@ -672,9 +768,16 @@
 
     return {
       tipFor,
+      // RQ-TRC-047: the level of detail, one of DETAIL's values.
+      setDetail(level) {
+        detail = level;
+        dirty = true;
+        if (visible()) draw();
+      },
+      elements() { return cy ? cy.elements().map((e) => e.data()) : []; },
       show() { if (dirty || !cy) draw(); else cy.resize(); },
       select(key) {
-        if (whole && cy) { highlight(key); return; }
+        if (whole && cy) { centre = key; highlight(key); return; }
         dirty = true;
         if (visible()) draw();
       },
