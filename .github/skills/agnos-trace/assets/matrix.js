@@ -1,6 +1,6 @@
 /* agnos-trace page script (FTR-TRC-001; ADR-TRC-003: DEC-TRC-005, DEC-TRC-007; ADR-TRC-002: DEC-TRC-010).
    Views (TASK-TRC-005): overview, search, filters, matrix, gaps, detail panel, deep links.
-   Graph (TASK-TRC-006): see the "graph" section.
+   Graph (TASK-TRC-006): see the "graph" section — the selection's neighbourhood as a traceability flow, columns by type.
    Every text taken from the data is inserted with textContent, never as HTML (RQ-TRC-022); every visual value comes
    from the design tokens' custom properties (RQ-TRC-018). */
 "use strict";
@@ -102,8 +102,281 @@
   };
   const isVisible = (node) => state.types.has(node.type) && (!node.tri || state.tris.has(node.tri));
 
-  // ---- graph hook (TASK-TRC-006) -------------------------------------------------------------------------------
-  const graph = { show() {}, select() {}, refresh() {}, restyle() {} };
+  // ---- graph (TASK-TRC-006: RQ-TRC-012, RQ-TRC-020; DEC-TRC-006) ------------------------------------------------
+  // The neighbourhood of the selection is laid out as a traceability flow: one column per element family, left to
+  // right, each node a labelled pill tinted with its type colour. The whole graph uses a force layout of small dots.
+  const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FILE"], ["UNDEFINED"]];
+  const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Source files", "Undefined IDs"];
+  const EDGE_LINE = { contains: "dashed", refs: "solid", code: "dotted" };
+  const EDGE_MEANING = { contains: "contains", refs: "cites", code: "cited in code" };
+  const MAX_ROWS = 18;                  // a taller column wraps into sub-columns
+  const MAX_PER_COLUMN = 72;            // beyond this, the column ends with a "+n more" note
+  const MONO_CHAR_RATIO = 0.62;         // width of a monospace character, as a share of the font size
+  const LABEL_MAX_CHARS = 26;
+  const WHOLE_GRAPH_WARN = 1500;        // the whole graph above this many nodes asks before drawing
+  const COSE_ITERATIONS = 600;
+  const STRIPE_PERCENT = 7;             // the type colour band at the left of a pill, as a share of its width
+  const BOW_RATIO = 0.35;               // how far a same-column edge bows out, as a share of its height
+  const BOW_WEIGHT = 0.5;               // the bow's control point sits halfway along the edge
+  const graph = createGraph();
+
+  function shortLabel(n) {
+    const text = n.type === "FILE" ? n.label.split("/").pop() : n.label;
+    return text.length > LABEL_MAX_CHARS ? `${text.slice(0, LABEL_MAX_CHARS - 1)}…` : text;
+  }
+
+  function createGraph() {
+    const container = $("cy");
+    let cy = null;
+    let whole = false;
+    let depth = 1;
+    let dirty = true;
+    const prop = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const num = (name) => Number.parseFloat(prop(name));
+    const showFiles = () => $("show-files").checked;
+    const showContainment = () => $("show-containment").checked;
+    const columnOf = (type) => COLUMNS.findIndex((c) => c.includes(type));
+
+    function style() {
+      const fontSize = num("--c-graph-label-size");
+      const fill = prop("--c-graph-node-fill");
+      const typeStyles = NODE_TYPES.map((t) => {
+        const colour = prop(`--s-type-${t.toLowerCase()}`);
+        return { selector: `node.item[type = "${t}"]`, style: { "border-color": colour,
+          "background-gradient-stop-colors": [colour, colour, fill, fill],
+          "background-gradient-stop-positions": [0, STRIPE_PERCENT, STRIPE_PERCENT, PERCENT] } };
+      });
+      return [
+        { selector: "node.item", style: {
+          shape: "round-rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
+          "background-color": prop("--c-graph-node-fill"), "background-fill": "linear-gradient",
+          "background-gradient-direction": "to-right", "border-width": num("--s-stroke-hairline"),
+          color: prop("--c-graph-node-text"), "font-family": prop("--s-font-mono"), "font-size": fontSize,
+          "font-weight": prop("--s-weight-medium"), "text-valign": "center", "text-halign": "center",
+          "min-zoomed-font-size": num("--s-space-xs") } },
+        ...typeStyles,
+        { selector: 'node.item[type = "UNDEFINED"]', style: { "border-style": "dashed" } },
+        { selector: "node.header", style: {
+          shape: "rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
+          "background-opacity": 0, "border-width": 0, color: prop("--c-graph-header-color"),
+          "font-family": prop("--s-font-sans"), "font-size": fontSize, "font-weight": prop("--s-weight-strong"),
+          "text-transform": "uppercase", "text-valign": "center", "text-halign": "center", events: "no" } },
+        ...NODE_TYPES.map((t) => ({ selector: `node.dot[type = "${t}"]`,
+          style: { "background-color": prop(`--s-type-${t.toLowerCase()}`) } })),
+        { selector: "node.dot", style: { label: "", width: num("--c-graph-node-size-file"), height: num("--c-graph-node-size-file"),
+          shape: "ellipse", "background-fill": "solid", "border-width": 0 } },
+        { selector: "edge", style: {
+          width: num("--c-graph-edge-width"), "line-color": prop("--c-graph-edge"), "curve-style": "unbundled-bezier",
+          "control-point-distances": "data(curve)", "control-point-weights": BOW_WEIGHT, opacity: num("--s-opacity-muted") } },
+        ...Object.entries(EDGE_LINE).map(([kind, line]) => ({ selector: `edge[kind = "${kind}"]`, style: { "line-style": line } })),
+        { selector: ".dim", style: { opacity: num("--c-graph-dim") } },
+        { selector: ".faded", style: { opacity: num("--c-graph-faded") } },
+        { selector: "edge.near", style: { width: num("--c-graph-edge-width-highlight"), opacity: 1,
+          "line-color": prop("--c-graph-edge-highlight") } },
+        { selector: "node.item.selected", style: { "border-width": num("--c-graph-selected-border-width"),
+          "border-color": prop("--c-graph-selected-border"), "font-weight": prop("--s-weight-bold") } },
+        { selector: "node.item.hover", style: { "border-width": num("--c-graph-node-border-width") } },
+      ];
+    }
+
+    function edgeAllowed(l) { return l.kind !== "contains" || showContainment(); }
+    function nodeAllowed(node) { return isVisible(node) && (node.type !== "FILE" || showFiles()); }
+
+    function neighbourhood(start) {
+      const seen = new Map([[start, 0]]);
+      let frontier = [start];
+      for (let level = 1; level <= depth && frontier.length; level += 1) {
+        const next = [];
+        for (const key of frontier) {
+          for (const l of links.get(key)) {
+            if (seen.has(l.key) || !edgeAllowed(l) || !nodeAllowed(nodes.get(l.key))) continue;
+            seen.set(l.key, level);
+            next.push(l.key);
+          }
+        }
+        frontier = next;
+      }
+      return seen;
+    }
+
+    // An edge between two nodes of one column bows out to the left of it, so that it does not run over the column.
+    function bow(from, to) {
+      if (!from || !to || from.x !== to.x) return 0;
+      const size = Math.abs(to.y - from.y) * BOW_RATIO + num("--c-graph-node-height");
+      return to.y > from.y ? size : -size;
+    }
+
+    function edgesAmong(keys, positions) {
+      const kept = new Set(keys);
+      const edges = [];
+      for (const key of keys) {
+        for (const l of links.get(key)) {
+          if (l.dir === "out" && kept.has(l.key) && edgeAllowed(l)) {
+            const curve = positions ? bow(positions.get(key), positions.get(l.key)) : 0;
+            edges.push({ group: "edges", data: { id: `${key}>${l.key}>${l.kind}`, source: key, target: l.key, kind: l.kind,
+              curve } });
+          }
+        }
+      }
+      return edges;
+    }
+
+    function pillWidth(label) {
+      return label.length * num("--c-graph-label-size") * MONO_CHAR_RATIO + 2 * num("--c-graph-node-padding");
+    }
+
+    // The flow layout: columns left to right, each as wide as its widest pill, the selection first in its column.
+    function flowElements(levels, selected) {
+      const columnGap = num("--c-graph-column-gap");
+      const subGap = num("--c-graph-sub-gap");
+      const rowGap = num("--c-graph-row-gap");
+      const byColumn = COLUMNS.map(() => []);
+      for (const key of levels.keys()) byColumn[columnOf(nodes.get(key).type)].push(key);
+      const elements = [];
+      const drawn = [];
+      const positions = new Map();
+      let left = 0;
+      byColumn.forEach((keys, c) => {
+        if (!keys.length) return;
+        keys.sort((a, b) => (a === selected ? -1 : 0) - (b === selected ? -1 : 0)
+          || nodes.get(a).label.localeCompare(nodes.get(b).label, undefined, { numeric: true }));
+        const shown = keys.slice(0, MAX_PER_COLUMN);
+        const labels = shown.map((key) => shortLabel(nodes.get(key)));
+        const widest = Math.max(...labels.map(pillWidth));
+        const subColumns = Math.ceil(shown.length / MAX_ROWS);
+        const rows = Math.ceil(shown.length / subColumns);
+        const step = widest + subGap;
+        const span = (subColumns - 1) * step + widest;
+        const centre = left + span / 2;
+        const header = `${COLUMN_NAME[c]} · ${keys.length}`;
+        elements.push({ group: "nodes", classes: "header", data: { id: `header:${c}`, label: header, width: pillWidth(header) },
+          position: { x: centre, y: -num("--c-graph-header-gap") } });
+        shown.forEach((key, i) => {
+          const position = { x: left + widest / 2 + Math.floor(i / rows) * step, y: (i % rows) * rowGap };
+          elements.push({ group: "nodes", classes: "item", data: { id: key, type: nodes.get(key).type, label: labels[i],
+            width: pillWidth(labels[i]), level: levels.get(key) }, position });
+          positions.set(key, position);
+          drawn.push(key);
+        });
+        if (keys.length > shown.length) {
+          const more = `+${keys.length - shown.length} more`;
+          elements.push({ group: "nodes", classes: "header", data: { id: `more:${c}`, label: more, width: pillWidth(more) },
+            position: { x: centre, y: rows * rowGap } });
+        }
+        left += Math.max(span, pillWidth(header)) + columnGap;
+      });
+      return { elements: [...elements, ...edgesAmong(drawn, positions)], drawn: drawn.length, total: levels.size };
+    }
+
+    function wholeElements() {
+      const keys = [...nodes.keys()].filter((k) => nodeAllowed(nodes.get(k)));
+      return { elements: [...keys.map((key) => ({ group: "nodes", classes: "item dot",
+        data: { id: key, type: nodes.get(key).type, label: shortLabel(nodes.get(key)), width: 0 } })), ...edgesAmong(keys)],
+      drawn: keys.length, total: keys.length };
+    }
+
+    function ensure() {
+      if (cy) return cy;
+      cy = cytoscape({ container, style: style(), minZoom: num("--c-graph-zoom-min"), maxZoom: num("--c-graph-zoom-max"),
+        boxSelectionEnabled: false, autoungrabify: true });
+      cy.on("tap", "node.item", (event) => select(event.target.id()));
+      cy.on("mouseover", "node.item", (event) => {
+        const n = nodes.get(event.target.id());
+        event.target.addClass("hover");
+        event.target.connectedEdges().addClass("near");
+        container.title = n.title ? `${n.label} — ${n.title}` : n.label;
+      });
+      cy.on("mouseout", "node.item", (event) => {
+        event.target.removeClass("hover");
+        if (event.target.id() !== state.selected) event.target.connectedEdges().removeClass("near");
+        highlight(state.selected);
+        container.title = "";
+      });
+      return cy;
+    }
+
+    function highlight(key) {
+      cy.elements().removeClass("selected near faded dim");
+      const centre = key ? cy.getElementById(key) : cy.collection();
+      if (centre.empty()) return;
+      const near = centre.closedNeighborhood();
+      cy.nodes(".item").not(near).addClass(whole ? "faded" : "dim");
+      cy.edges().not(centre.connectedEdges()).addClass("faded");
+      centre.addClass("selected");
+      centre.connectedEdges().addClass("near");
+    }
+
+    function draw() {
+      const started = performance.now();
+      const key = state.selected;
+      $("graph-empty").hidden = Boolean(key) || whole;
+      ensure();
+      cy.resize();
+      let built = { elements: [], drawn: 0, total: 0 };
+      if (whole) built = wholeElements();
+      else if (key) built = flowElements(neighbourhood(key), key);
+      cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
+      if (whole) cy.layout({ name: "cose", animate: false, numIter: COSE_ITERATIONS }).run();
+      else cy.layout({ name: "preset" }).run();
+      highlight(key);
+      frame();
+      const ms = Math.round(performance.now() - started);
+      const parts = [`${built.drawn} elements`, `${cy.edges().length} links`];
+      if (!whole) parts.push(`depth ${depth}`);
+      if (built.total > built.drawn) parts.push(`${built.total - built.drawn} not drawn`);
+      parts.push(`${ms} ms`);
+      $("graph-status").textContent = parts.join(" · ");
+      Object.assign(container.dataset, { graphNodes: String(built.drawn), graphSelected: key || "", graphMs: String(ms) });
+      dirty = false;
+    }
+
+    // Fit the drawing; in the flow view never below a readable zoom, then show its top-left corner.
+    function frame() {
+      const padding = num("--s-space-xl");
+      cy.fit(undefined, padding);
+      const floor = num("--c-graph-flow-min-zoom");
+      if (whole || cy.zoom() >= floor) return;
+      const box = cy.elements().boundingBox();
+      cy.zoom(floor);
+      cy.pan({ x: padding - box.x1 * floor, y: padding - box.y1 * floor });
+    }
+
+    const visible = () => state.view === "graph";
+
+    $("depth").addEventListener("click", (event) => {
+      const b = event.target.closest("button");
+      if (!b) return;
+      depth = Number(b.dataset.depth);
+      for (const other of $("depth").querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === b));
+      whole = false;
+      draw();
+    });
+    $("show-files").addEventListener("change", () => draw());
+    $("show-containment").addEventListener("change", () => draw());
+    $("fit").addEventListener("click", () => cy?.fit(undefined, num("--s-space-xl")));  // the whole drawing, any zoom
+    $("whole").addEventListener("click", () => {
+      const count = [...nodes.values()].filter(nodeAllowed).length;
+      if (count > WHOLE_GRAPH_WARN && !window.confirm(`Draw all ${count} elements? The layout may take a while.`)) return;
+      whole = true;
+      draw();
+    });
+
+    clear($("legend")).append(...NODE_TYPES.map((t) => el("span", { class: "legend-item" },
+      el("span", { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
+    ...Object.entries(EDGE_LINE).map(([kind, line]) => el("span", { class: "legend-item",
+      text: line + " — " + EDGE_MEANING[kind] })));
+
+    return {
+      show() { if (dirty || !cy) draw(); else cy.resize(); },
+      select(key) {
+        if (whole && cy) { highlight(key); return; }
+        dirty = true;
+        if (visible()) draw();
+      },
+      refresh() { dirty = true; if (visible()) draw(); },
+      restyle() { if (cy) cy.style(style()); },
+    };
+  }
 
   // ---- header and footer --------------------------------------------------------------------------------------
   function renderHeader() {

@@ -22,10 +22,17 @@ page script builds the DOM with `createElement`/`textContent` only, never `inner
 ### DEC-TRC-006: Cytoscape.js, pinned and vendored, drawing neighbourhoods first
 `scripts/vendor/cytoscape.min.js` at one pinned version, with `LICENSE` (MIT) and `VENDOR.md` (version, source URL,
 SHA-256, RQ-TRC-024); the licence notice is inlined with it. Core layouts only, no extension. The graph view draws the
-selected element and its neighbours to the chosen depth (1 to 3, `breadthfirst` from the selection), which stays under a
-few hundred nodes and redraws in well under 500 ms (RQ-TRC-020); "Whole graph" draws everything with `cose`, after a
-warning when there are more than 1,500 nodes. Selection: the element is outlined, its direct neighbours and edges
-highlighted, the rest faded (RQ-TRC-012); clicking a node selects it.
+selected element and its neighbours to the chosen depth (1 by default, up to 3) as a **traceability flow**: one column per
+element family, left to right (features, requirements, ADRs and decisions, plans and tasks, source files, undefined IDs),
+each column headed by its name and count, as wide as its widest node, wrapped into sub-columns beyond 18 rows and cut
+with a "+n more" note beyond 72; each node is a pill holding its ID (a file's base name), with a band of its type colour;
+an edge between two nodes of one column bows out of it. Positions are computed by the page (`preset` layout), so the
+drawing is the same at every visit and redraws in well under 500 ms (RQ-TRC-020); the view never zooms below a readable
+floor (a token) and starts at its top-left corner, "Fit" shows all of it. Selection: the element is outlined in the
+accent colour, its edges drawn in the accent colour, the others dimmed (RQ-TRC-012); clicking a node selects it; hovering
+shows its title. "Whole graph" draws every element as a dot with `cose`, after a warning when there are more than 1,500.
+A first concentric layout was replaced at the owner's review: at depth 2 a requirement brought ~370 nodes, which the fit
+shrank to unreadable dots.
 
 ### DEC-TRC-007: One page, four views, one selection
 A header (title, generation time, inputs, theme switch), a sidebar (search with keyboard navigation, type and trigram

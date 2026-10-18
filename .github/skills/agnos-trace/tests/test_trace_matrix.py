@@ -362,5 +362,38 @@ class PageViewsTest(unittest.TestCase):
             self.assertNotIn(needle, script)
 
 
+def neighbourhood(model, start, depth):
+    """The elements within `depth` links of `start`, links taken both ways (what the graph view draws)."""
+    adjacent = {}
+    for (src, dst, kind) in model.edges:
+        a = "file:" + src if kind == "code" else src
+        adjacent.setdefault(a, set()).add(dst)
+        adjacent.setdefault(dst, set()).add(a)
+    seen, frontier = {start}, {start}
+    for _ in range(depth):
+        frontier = {n for f in frontier for n in adjacent.get(f, ())} - seen
+        seen |= frontier
+    return seen
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class GraphViewTest(unittest.TestCase):
+    """TASK-TRC-006: RQ-TRC-012, RQ-TRC-020 (DEC-TRC-006, DEC-TRC-007), in a real browser."""
+
+    def test_RQ_TRC_012_given_a_selected_requirement_when_the_graph_opens_then_it_draws_its_direct_links(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            dom = rendered_dom(path, "#RQ-DEM-002")
+        expected = neighbourhood(scanned_model(), "RQ-DEM-002", 1)   # depth 1 is the default
+        self.assertEqual({"RQ-DEM-002", "FTR-DEM-001", "TASK-DEM-001", "TASK-DEM-002", "RQ-DEM-001"}, expected)
+        attributes = dict(re.findall(r'data-graph-(\w+)="([^"]*)"', dom))
+        self.assertEqual("RQ-DEM-002", attributes.get("selected"))
+        self.assertEqual(str(len(expected)), attributes.get("nodes"))
+        self.assertLess(int(attributes.get("ms", "99999")), 500)
+        self.assertIn("<canvas", dom)
+
+
 if __name__ == "__main__":
     unittest.main()

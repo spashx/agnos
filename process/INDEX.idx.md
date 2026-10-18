@@ -64,21 +64,21 @@ DEC-TRC-009|16-24||One token file in three tiers, compiled to CSS custom propert
 DEC-TRC-010|25-30||No raw visual value outside the token file
 DEC-TRC-011|31-40||The visual language
 @process/2.architecture/ADR-TRC-003-self-contained-page-and-graph.md
-ADR-TRC-003|1-71|Accepted — owner decisions of 2026-10-18: Cytoscape.js, vendored and inlined. Motivated by RQ-TRC-010 to RQ-TRC-016,|Self-Contained Page and Interactive Graph
+ADR-TRC-003|1-78|Accepted — owner decisions of 2026-10-18: Cytoscape.js, vendored and inlined. Motivated by RQ-TRC-010 to RQ-TRC-016,|Self-Contained Page and Interactive Graph
 DEC-TRC-005|15-21||Template assembly and safe data embedding
-DEC-TRC-006|22-29||Cytoscape.js, pinned and vendored, drawing neighbourhoods first
-DEC-TRC-007|30-36||One page, four views, one selection
-DEC-TRC-008|37-42||Skill packaging
+DEC-TRC-006|22-36||Cytoscape.js, pinned and vendored, drawing neighbourhoods first
+DEC-TRC-007|37-43||One page, four views, one selection
+DEC-TRC-008|44-49||Skill packaging
 @process/3.plan/PLAN-IDX-001.md
 PLAN-IDX-001|1-53||Process artifact index
 TASK-IDX-001|15-35|Done|Index generators and tests
 TASK-IDX-002|36-53|Done|Skill packaging and process integration
 @process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
-PLAN-TRC-001|1-146||The agnos-trace Skill
+PLAN-TRC-001|1-152||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references
 TASK-TRC-002|36-54|Done|Source scanner
 TASK-TRC-003|55-74|Done|Coverage and gaps
 TASK-TRC-004|75-96|Done|Page assembly, tokens and vendored library
 TASK-TRC-005|97-119|Done|Page views — overview, search, matrix, gaps, detail, deep links
-TASK-TRC-006|120-133|Not Started|Interactive graph
-TASK-TRC-007|134-146|Not Started|Skill packaging and run on this repository
+TASK-TRC-006|120-139|Done|Interactive graph
+TASK-TRC-007|140-152|Not Started|Skill packaging and run on this repository

@@ -119,7 +119,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-006: Interactive graph
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw the selection's neighbourhood at depth 1 to 3 with the type colours and shapes from the tokens,
   highlight and fade, click to navigate, whole-graph view with its warning, theme switch.
 - **Requirement refs**: RQ-TRC-012, RQ-TRC-018, RQ-TRC-020
@@ -128,8 +128,14 @@ This plan implements the tasks in the format specified below.
   neighbourhood is drawn within 500 ms with the selection highlighted and the rest faded.
 - **Dependencies**: TASK-TRC-005
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: unittest: 34 tests OK; the new browser test (written before the graph code, failed first) opens a
+  fixture requirement's fragment and checks that the graph draws exactly the elements a Python breadth-first walk finds
+  at the default depth, in under 500 ms, on a canvas. On this repository, a requirement with 38 direct links: drawn in
+  123–190 ms (status line); screenshots in light and dark themes checked by eye. SonarQube for IDE: 0 finding (856 lines).
+- **Assumptions**: The acceptance criterion's "depth 2" became depth 1 by default after the owner's review ("lisible et
+  professionnel"): a first concentric layout of a depth-2 neighbourhood (~370 nodes) was unreadable; the flow layout of
+  DEC-TRC-006 replaced it, depth 2 and 3 stay one click away. The test's expected depth changed with that decision, not to
+  make it pass.
 
 ### TASK-TRC-007: Skill packaging and run on this repository
 - **Tier**: M
