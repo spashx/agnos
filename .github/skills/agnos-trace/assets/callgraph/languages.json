@@ -60,5 +60,15 @@
     "scopes": {
       "class_declaration": "class"
     }
+  },
+  "python": {
+    "extensions": [".py", ".pyw"],
+    "package": "tree-sitter-python",
+    "module": "tree_sitter_python",
+    "query": "python.scm",
+    "separator": ".",
+    "scopes": {
+      "class_definition": "class"
+    }
   }
 }

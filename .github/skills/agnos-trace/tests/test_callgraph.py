@@ -102,7 +102,7 @@ class LanguageTableTest(unittest.TestCase):
 
     def test_RQ_TRC_032_given_the_language_table_then_each_entry_names_its_extensions_package_module_and_query(self):
         table = cg.load_table()
-        self.assertEqual({"c", "cpp", "csharp", "java", "javascript"}, set(table))                # RQ-TRC-050
+        self.assertEqual({"c", "cpp", "csharp", "java", "javascript", "python"}, set(table))                # RQ-TRC-050
         seen = []
         for name, entry in table.items():
             self.assertTrue(entry["extensions"] and all(x.startswith(".") for x in entry["extensions"]), name)
@@ -248,14 +248,15 @@ class PageDataTest(unittest.TestCase):
 
     def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_functions_are_a_table_and_calls_a_flat_integer_list(self):
         graph = self.data["callGraph"]
-        self.assertEqual(12, len(graph["functions"]))           # the 11 of calls/ and src/lib/b.cpp's indirect()
+        self.assertEqual(14, len(graph["functions"]))           # the 11 of calls/, src/lib/b.cpp's indirect(),
+        # and since Python is read (RQ-TRC-050) src/a.py's covered() and src/notrace.py's untraced()
         paths = [f["path"] for f in self.data["files"]]
         file_index, first, last, name, language = graph["functions"][1][:5]
         self.assertTrue(paths[file_index].endswith("/calls/net/port.hpp"), paths[file_index])   # shown from the cwd
         self.assertEqual((7, 7, "net::Port::send"), (first, last, name))
         self.assertEqual("cpp", graph["languages"][language])
         self.assertTrue(all(isinstance(n, int) for n in graph["calls"]))
-        self.assertEqual({"functions": 12, "calls": 8, "ambiguous": 2, "external": 2}, graph["counts"])
+        self.assertEqual({"functions": 14, "calls": 8, "ambiguous": 2, "external": 2}, graph["counts"])
 
     def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_it_adds_at_most_120_bytes_per_function_and_16_per_call(
             self):
@@ -267,7 +268,9 @@ class PageDataTest(unittest.TestCase):
     def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_listed_outside_the_gaps(self):
         graph = self.data["callGraph"]
         names = [graph["functions"][i][3] for i in graph["untraced"]]
-        self.assertEqual(8, len(names))
+        self.assertEqual(9, len(names))                         # src/notrace.py's untraced() since RQ-TRC-050
+        self.assertIn("untraced", names)
+        self.assertNotIn("covered", names)                      # its docstring cites an ID
         self.assertNotIn("net::Port::send", names)
         self.assertNotIn("untraced-functions", self.data["gapKinds"])
 

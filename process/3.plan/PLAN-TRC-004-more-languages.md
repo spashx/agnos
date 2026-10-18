@@ -78,7 +78,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-035: Python
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the `python` entry (`.py .pyw`, `tree-sitter-python`, separator `.`, classes), `python.scm` and
   the pinned wheel; `def` as definitions, decorators captured as `@comment` (DEC-TRC-026).
 - **Requirement refs**: RQ-TRC-050, RQ-TRC-031, RQ-TRC-032, RQ-TRC-047
@@ -89,8 +89,12 @@ This plan implements the tasks in the format specified below.
   `C`.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: —
-- **Assumptions**: —
+- **Verification**: `PythonTest` 4/4 OK: `Greeter.greet`, `Greeter.name`, `main`; `greet → name` (`self.name()`),
+  `main → Greeter.greet`, external 2 (`print`, the class call `Greeter()`); `Greeter.name` cites the ID above
+  `@staticmethod`, `greet` none; the only box is `Greeter`. The fixture repository's own `src/a.py` and
+  `src/notrace.py` are now read: `PageDataTest` expects 14 functions (was 12) and 9 untraced (was 8), `untraced()`
+  among them, not `covered()`. Whole suite 126 OK, 1 skipped; Sonar: no finding reported.
+- **Assumptions**: None
 
 ### TASK-TRC-036: Rust
 - **Tier**: L

@@ -121,5 +121,31 @@ class JavaScriptTest(unittest.TestCase):
         self.assertEqual({"Panel": ("class", None)}, scopes_of(self.graph))
 
 
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class PythonTest(unittest.TestCase):
+    """TASK-TRC-035: RQ-TRC-050, RQ-TRC-031, RQ-TRC-032, RQ-TRC-047 (DEC-TRC-025, DEC-TRC-026)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = language_graph("python")
+        cls.functions = by_name(cls.graph)
+
+    def test_RQ_TRC_050_given_a_python_file_when_analysed_then_methods_and_module_functions_are_functions(self):
+        self.assertEqual({"Greeter.greet", "Greeter.name", "main"}, set(self.functions))
+        self.assertEqual({"python"}, {f["language"] for f in self.graph.functions})
+
+    def test_RQ_TRC_050_given_python_calls_through_self_when_analysed_then_they_are_linked_and_print_is_external(self):
+        self.assertEqual({("Greeter.greet", "Greeter.name"): False, ("main", "Greeter.greet"): False},
+                         call_links(self.graph))
+        self.assertEqual((0, 2), (self.graph.ambiguous, self.graph.external))      # print, the class Greeter()
+
+    def test_RQ_TRC_031_given_an_id_above_a_decorator_when_analysed_then_the_decorated_method_cites_it(self):
+        self.assertEqual({CITED}, set(self.functions["Greeter.name"]["ids"]))
+        self.assertEqual({}, self.functions["Greeter.greet"]["ids"])
+
+    def test_RQ_TRC_050_given_a_python_module_when_analysed_then_the_class_is_the_only_box(self):
+        self.assertEqual({"Greeter": ("class", None)}, scopes_of(self.graph))
+
+
 if __name__ == "__main__":
     unittest.main()
