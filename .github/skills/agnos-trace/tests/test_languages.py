@@ -95,5 +95,31 @@ class JavaTest(unittest.TestCase):
                           "demo.shapes.Greeter": ("class", "demo.shapes")}, scopes_of(self.graph))
 
 
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class JavaScriptTest(unittest.TestCase):
+    """TASK-TRC-034: RQ-TRC-050, RQ-TRC-032, RQ-TRC-047 (DEC-TRC-025, DEC-TRC-026)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = language_graph("javascript")
+        cls.functions = by_name(cls.graph)
+
+    def test_RQ_TRC_050_given_javascript_files_when_analysed_then_every_function_given_a_name_is_a_function(self):
+        self.assertEqual({"start", "helper", "$", "Panel.show", "Panel.#paint", "click", "key", "load"},
+                         set(self.functions))
+        self.assertEqual({"javascript"}, {f["language"] for f in self.graph.functions})
+
+    def test_RQ_TRC_050_given_javascript_calls_to_dollar_and_a_private_method_then_they_are_linked(self):
+        self.assertEqual({("start", "$"): False, ("start", "helper"): False, ("Panel.show", "Panel.#paint"): False},
+                         call_links(self.graph))
+        self.assertEqual((0, 2), (self.graph.ambiguous, self.graph.external))     # require, readFileSync
+
+    def test_RQ_TRC_050_given_an_id_above_an_exports_member_when_analysed_then_its_function_cites_it(self):
+        self.assertEqual({CITED}, set(self.functions["load"]["ids"]))
+
+    def test_RQ_TRC_050_given_javascript_modules_when_analysed_then_the_class_is_the_only_box(self):
+        self.assertEqual({"Panel": ("class", None)}, scopes_of(self.graph))
+
+
 if __name__ == "__main__":
     unittest.main()

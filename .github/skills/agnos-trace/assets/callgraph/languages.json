@@ -50,5 +50,15 @@
       "enum_declaration": "class",
       "record_declaration": "class"
     }
+  },
+  "javascript": {
+    "extensions": [".js", ".jsx", ".mjs", ".cjs"],
+    "package": "tree-sitter-javascript",
+    "module": "tree_sitter_javascript",
+    "query": "javascript.scm",
+    "separator": ".",
+    "scopes": {
+      "class_declaration": "class"
+    }
   }
 }

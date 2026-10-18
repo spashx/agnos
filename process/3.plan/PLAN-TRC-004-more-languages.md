@@ -57,7 +57,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-034: JavaScript and Node.js
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the `javascript` entry (`.js .jsx .mjs .cjs`, `tree-sitter-javascript`, separator `.`, classes),
   `javascript.scm` and the pinned wheel; function declarations, methods, functions and arrows given a name, an object
   key or a member (`exports.f = …`); a called name may hold `$` and start with `#` (DEC-TRC-026).
@@ -69,8 +69,12 @@ This plan implements the tasks in the format specified below.
   `require` is external, and no namespace box exists.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: —
-- **Assumptions**: —
+- **Verification**: `JavaScriptTest` 4/4 OK on `ui.mjs` and `server.cjs`: `start`, `helper` (arrow), `$`, `Panel.show`,
+  `Panel.#paint`, `click`, `key` (object key), `load` (`exports.load = function`); `start → $`, `start → helper`,
+  `Panel.show → Panel.#paint`, external 2 (`require`, `readFileSync`); `load` cites the ID above it; the only box is
+  the class `Panel`. Whole suite 122 OK, 1 skipped (C and C++ unchanged with the new name rule); Sonar: no finding.
+- **Assumptions**: the fixture is split into an ES module and a CommonJS file, to cover `.mjs` and `.cjs`; a call
+  outside any function (a module's top-level `require`) belongs to no caller and is not counted, as in C++.
 
 ### TASK-TRC-035: Python
 - **Tier**: L

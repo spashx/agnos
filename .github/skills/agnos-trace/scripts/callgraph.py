@@ -30,7 +30,8 @@ NO_SCOPE = -1                                      # the scope index of a functi
 FOLDER_SEPARATOR = "/"                             # in the shown paths of the files
 TEMPLATE_ARGS_RE = re.compile(r"<[^<>]*>")         # innermost template or generic arguments, removed until none is left
 MEMBER_RE = re.compile(r"::|\.|->")                # what separates a called name from its receiver or qualifier
-NAME_RE = re.compile(r"^~?[A-Za-z_]\w*$|^operator\W")  # a name a call can be resolved by; "(*fp)" is not one
+# a name a call can be resolved by; "(*fp)" is not one; "$" and a leading "#" for JavaScript (DEC-TRC-026)
+NAME_RE = re.compile(r"^[~#]?[A-Za-z_$][\w$]*$|^operator\W")
 SPACE_RE = re.compile(r"\s+")
 
 
