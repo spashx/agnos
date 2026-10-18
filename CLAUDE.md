@@ -4,8 +4,9 @@
 
 ## Tool Mapping (Claude Code)
 
-The imported instruction file is written to be tool-neutral, but two Claude Code specifics are
-worth calling out explicitly :
+<!-- RQ-AGT-001 -->
+The imported instruction file is written to be tool-neutral; these Claude Code specifics are worth
+calling out explicitly:
 
 - **User questions**: where the process says `askQuestion` / `AskUserQuestion`, use the
   `AskUserQuestion` tool.
@@ -19,3 +20,6 @@ worth calling out explicitly :
   discovered at `.claude/skills/agnos-design-system/SKILL.md`, which points to the canonical
   procedure and template under `.github/skills/agnos-design-system/` — read and follow that
   procedure. <!-- RQ-DSY-001 -->
+- **Traceability skill**: use the skill named `agnos-trace`. Under Claude Code it is discovered at
+  `.claude/skills/agnos-trace/SKILL.md`, which points to the canonical procedure at
+  `.github/skills/agnos-trace/SKILL.md` — read and follow that procedure. <!-- RQ-AGT-001 -->
