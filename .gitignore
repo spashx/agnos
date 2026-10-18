@@ -481,6 +481,9 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+# Editor and manual backup files
+*.bak
+
 # RQ-TRC-001 / DEC-TRC-008: the agnos-trace page is generated on demand, its data beside it (RQ-TRC-010)
 process/TRACEABILITY.html
 process/TRACEABILITY.json
