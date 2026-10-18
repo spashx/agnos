@@ -1,0 +1,107 @@
+# PLAN-TRC-002: Call Graph in agnos-trace
+
+## Overview
+Add the optional tree-sitter call-graph analysis of FTR-TRC-002 to the `agnos-trace` skill: the optional module and its
+language table, C/C++ functions and function-level IDs, call resolution, the page's data, panel, search and overview,
+then the graph and its performance limits, and the skill's documentation.
+
+## References
+- **Requirements**: RQ-TRC-026 to RQ-TRC-040 (FTR-TRC-002)
+- **ADRs**: ADR-TRC-004; ADR-TRC-001, ADR-TRC-002, ADR-TRC-003 (extended)
+
+This plan implements the tasks in the format specified below.
+---
+
+## Tasks
+
+### TASK-TRC-009: Optional call-graph module and language table
+- **Tier**: L
+- **Status**: Not Started
+- **Description**: Add `scripts/callgraph.py`, imported only with `--call-graph`, its py-tree-sitter adapter,
+  `assets/callgraph/languages.json`, `requirements-callgraph.txt` (tree-sitter 0.25.2, tree-sitter-c 0.24.1,
+  tree-sitter-cpp 0.23.4, to be confirmed when installed), and the "call graph skipped" path when a package is missing.
+- **Requirement refs**: RQ-TRC-026, RQ-TRC-027, RQ-TRC-032, RQ-TRC-039
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-013, DEC-TRC-014)
+- **Acceptance Criteria**: Given no tree-sitter, When the generator runs with `--call-graph`, Then it exits 0 and prints
+  the install command; Given no `--call-graph`, Then the page equals the one before this plan and no tree-sitter module is
+  imported; the stdlib-only and independence tests still pass.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-010: C and C++ functions and their IDs
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Write the C and C++ query files and extract each definition's qualified name, lines and first line,
+  contained by its file, with the IDs of its lines and of the comment block just above it.
+- **Requirement refs**: RQ-TRC-028, RQ-TRC-031, RQ-TRC-032
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-014, DEC-TRC-016)
+- **Acceptance Criteria**: Given a fixture of `.c`, `.cpp` and `.hpp` files (free functions, methods defined in and out of
+  their class, namespaces, constructors, operators), When analysed, Then every definition is found with its qualified name
+  and lines, and a `///` ID above a function links that function.
+- **Dependencies**: TASK-TRC-009
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-011: Call resolution
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Find the call sites and resolve each called name with the preferences of DEC-TRC-015: one link, up to
+  five ambiguous links, or an ambiguous / external count; the same order on every run.
+- **Requirement refs**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-040
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-015)
+- **Acceptance Criteria**: Given the fixture, Then a call with one definition gives one link with its lines, `x.send()`
+  with two candidates outside both classes gives two ambiguous links, `printf` counts as external, and two runs give the
+  same page.
+- **Dependencies**: TASK-TRC-010
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-012: Functions in the page — data, panel, search, overview
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Embed functions and calls in the compact arrays of DEC-TRC-016, build their adjacency at load, show
+  callers, callees and IDs in the detail panel (first 50, more on request), the functions of a requirement, function
+  search, the overview counts and the informational "Untraced functions" list.
+- **Requirement refs**: RQ-TRC-033, RQ-TRC-035, RQ-TRC-038
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-016, DEC-TRC-018), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: Given the fixture page in a headless browser, When a function is selected, Then the panel shows
+  its callers and callees with counts and its IDs; When its requirement is selected, Then the function is listed; the
+  call graph adds at most 120 bytes per function and 16 per call.
+- **Dependencies**: TASK-TRC-011
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-013: Functions in the graph, within its limits
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Add the "Functions" column (type filter off at load), call edges in `haystack` style hidden while
+  panning, ambiguous calls dashed, the 400-node cap with its status message; measure on a generated 20,000-function,
+  100,000-call page.
+- **Requirement refs**: RQ-TRC-034, RQ-TRC-036, RQ-TRC-037
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-017), ADR-TRC-003 (DEC-TRC-006)
+- **Acceptance Criteria**: Given the generated page, When a much-called function is selected at depth 2 with functions on,
+  Then at most 400 nodes are drawn within 500 ms and the status line gives the number not drawn; the page is interactive
+  within 3 s; the analysis adds at most 30 s on 2,000 files.
+- **Dependencies**: TASK-TRC-012
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-014: Documentation and run on this repository
+- **Tier**: S
+- **Status**: Not Started
+- **Description**: Document `--call-graph`, the requirements file and the language table in SKILL.md and AGENTS.md, and
+  run the skill with the call graph on this repository.
+- **Requirement refs**: RQ-TRC-017, RQ-TRC-026
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-013)
+- **Acceptance Criteria**: Given this repository, When the documented command runs with `--call-graph`, Then the page holds
+  the call graph of a C++ code base and the summary line gives its counts.
+- **Dependencies**: TASK-TRC-013
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**:
