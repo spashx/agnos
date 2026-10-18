@@ -373,7 +373,7 @@
       const head = look.arrow === "vee"
         ? `${base},${middle - half} ${tip},${middle} ${base},${middle + half} ${base + length / 2},${middle}`
         : `${base},${middle - half} ${tip},${middle} ${base},${middle + half}`;
-      const line = svg("line", { x1: 0, y1: middle, x2: base, y2: middle, "stroke-width": num("--c-graph-edge-width"),
+      const line = svg("line", { x1: 0, y1: middle, x2: base, y2: middle, "stroke-width": num("--c-graph-legend-edge-width"),   // a little thicker than the graph's, to read
         "stroke-dasharray": dashOf(look).join(" ") || "none",
         "stroke-linecap": look.dash === EDGE_LOOK.code.dash ? "round" : "butt" });
       line.style.stroke = `var(${look.colour})`;

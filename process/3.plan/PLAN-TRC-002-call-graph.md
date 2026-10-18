@@ -246,3 +246,16 @@ This plan implements the tasks in the format specified below.
   ambiguous call's tooltip after the delay. IDE SonarQube: no finding.
 - **Assumptions**: links 0.6 px (1.2 px highlighted), selection frame 3 px instead of 4; the tooltip hides when the
   pointer leaves or the graph pans or zooms.
+
+### TASK-TRC-021: Thicker relation samples in the legend
+- **Tier**: S
+- **Status**: Done
+- **Description**: The legend's relation samples drawn at 1 px (graph links stay at 0.6 px), from their own token
+  (owner review).
+- **Requirement refs**: RQ-TRC-044, RQ-TRC-018
+- **ADR refs**: ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: Given the legend, Then its relation samples are drawn thicker than the graph's links.
+- **Dependencies**: TASK-TRC-020
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
