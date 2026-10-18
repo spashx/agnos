@@ -422,6 +422,9 @@ button, input, select { font: inherit; color: inherit; }
 .button:hover { background: var(--c-table-row-hover); }
 .button-primary { border-color: var(--s-accent); background: var(--s-accent); color: var(--s-text-on-accent); }
 .button-primary:hover { background: var(--s-accent-hover); }
+/* RQ-TRC-048: the detail panel's main button wears the toolbar's group-label colour, for one look */
+.detail-actions .button-primary { border-color: var(--c-group-label-bg); background: var(--c-group-label-bg); color: var(--c-group-label-text); }
+.detail-actions .button-primary:hover { background: var(--c-group-label-bg); box-shadow: var(--s-shadow); }
 
 .segmented {
   display: inline-flex;
