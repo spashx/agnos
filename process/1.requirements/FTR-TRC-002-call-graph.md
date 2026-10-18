@@ -6,7 +6,7 @@ adds the application's **call graph** to the matrix: one element per function or
 the functions it calls, and a link from a function to the requirement IDs written in it or in the comment just above
 it. Functions are an element type like the others ("Function"): searchable, shown in the detail panel, drawn in the graph
 in their own column. The analysis is syntactic (no build, no types): calls are resolved by name and an ambiguous call is
-shown as such. Languages are plug-ins; C and C++ come first. Out of scope: macros expanded, virtual dispatch, calls
+shown as such. Languages are plug-ins; C and C++ came first, then C#, Java, JavaScript, Python and Rust (RQ-TRC-050). Out of scope: macros expanded, virtual dispatch, calls
 through function pointers or callbacks, a call graph across languages (ADR-TRC-004).
 
 ## Stakeholders
@@ -210,6 +210,25 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   still linked to its file by "defines"; When "Source files" is off, Then no file and no "defines" link is drawn; Given
   a page without call graph, Then "Display" holds "Source files" and "Specification hierarchy" only.
 - **Dependencies**: RQ-TRC-041, RQ-TRC-044, RQ-TRC-045, RQ-TRC-047, DEC-TRC-022
+
+### RQ-TRC-050: C#, Java, JavaScript, Python and Rust
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The call-graph analysis SHALL deliver C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx
+  .mjs .cjs`), Python (`.py .pyw`) and Rust (`.rs`), each read with the grammar package the tree-sitter project
+  publishes for it, and SHALL find in each its functions and methods with a body, its calls, its namespaces (packages,
+  modules) and classes (structs, interfaces, traits, `impl` blocks) as boxes, and the comment block above a definition
+  even when attributes, annotations or decorators stand between them.
+- **Rationale**: AGNOS projects are not all C or C++; the official grammars follow their language and come as prebuilt
+  wheels.
+- **Priority**: Must
+- **Acceptance Criteria**: Given one fixture file per language with a class, two functions, a call between them, a call
+  to a library and an ID in the comment above a decorated or attributed function, When analysed, Then the functions have
+  their qualified names, the call links them, the library call is external, the function is linked to the ID and the
+  boxes are its namespace and class; Given `package a.b;` in Java or `namespace A.B;` in C#, Then the file's classes are
+  in the namespace `a.b` (`A.B`), itself in `a` (`A`); Given Python, JavaScript or a Rust file module, Then a class
+  outside any declared namespace is in `(global)`.
+- **Dependencies**: RQ-TRC-032, RQ-TRC-047, DEC-TRC-025, DEC-TRC-026
 
 ---
 

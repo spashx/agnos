@@ -7,7 +7,9 @@ Owner request of 2026-10-18 (the application's call graph as one more element ty
 tree-sitter analysis; "attention à la partie graph centrale qui pourrait devenir lente"); owner choices: languages as
 plug-ins with C/C++ first, optional pip packages, resolution by name with ambiguity shown. Motivated by RQ-TRC-026 to
 RQ-TRC-040 (FTR-TRC-002). Extends ADR-TRC-001 (the link model) and ADR-TRC-003 (the page and its graph); styled through
-ADR-TRC-002. Implemented by PLAN-TRC-002.
+ADR-TRC-002. Implemented by PLAN-TRC-002. Owner request of 2026-10-18 ("Ajoute le support des languages C#, JAVA,
+Javascript/Node.js, python et Rust. Utiliser les binding officiels en priorité"): DEC-TRC-025 and DEC-TRC-026, for
+RQ-TRC-050, implemented by PLAN-TRC-004.
 
 ## Context
 The matrix links requirements to files and lines (ADR-TRC-001). A reviewer wants one step more: which functions carry
@@ -74,6 +76,35 @@ header is covered as before. "Untraced functions" is an informational list (RQ-T
 should ever count (for example "a requirement is covered only when a function cites it") is left to a later decision of
 the owner.
 
+### DEC-TRC-025: C#, Java, JavaScript, Python and Rust from the tree-sitter project's own grammars
+Each language is one entry of the table and one query file (DEC-TRC-014), its grammar the wheel the tree-sitter project
+publishes (`tree-sitter-c-sharp`, `tree-sitter-java`, `tree-sitter-javascript`, `tree-sitter-python`,
+`tree-sitter-rust`), pinned beside the others (RQ-TRC-050). What each counts:
+
+| Language | Definitions (with a body) | Boxes: namespace / class | Calls | Separator |
+|---|---|---|---|---|
+| C# | methods (block or `=>`), constructors, local functions | namespaces / classes, structs, interfaces, records | invocations | `.` |
+| Java | methods, constructors | the package / classes, interfaces, enums, records | method invocations | `.` |
+| JavaScript | function declarations, methods, functions and arrows assigned to a name, an object key or a member (`exports.f = …`) | none / classes | call expressions | `.` |
+| Python | `def` | none / classes | calls | `.` |
+| Rust | `fn` with a body | inline `mod` / `impl` blocks (by their type) and traits | call expressions | `::` |
+
+`new`, macros (Rust's `println!`) and calls through a value are not followed, as in C++ (DEC-TRC-015). Python stubs
+(`.pyi`) are not read: their `...` bodies would double the functions.
+
+### DEC-TRC-026: The syntax that differs, settled in the query files
+- **A namespace that encloses nothing.** Java's `package a.b;` and C#'s `namespace A.B;` stand before the classes, not
+  around them: the query captures the file's root node as the `@scope`, with that name, and the table maps the root node
+  type to `namespace`.
+- **Attributes, annotations, decorators.** Java and C# keep them inside the definition; Python's decorators and Rust's
+  `#[...]` stand between the doc comment and the definition: the query captures them as `@comment`, so the comment block
+  above them reaches the definition (RQ-TRC-031).
+- **Names.** Two rules of the script, valid for every language: a trailing `::` left by a removed generic argument (Rust's
+  `f::<T>()`) is dropped, and a called name may hold `$` and start with `#` (JavaScript's `$()`, `this.#p()`).
+- Modules that are only files (Python, JavaScript, Rust's `mod x;`) give no box: their classes are in `(global)`
+  (DEC-TRC-019). A namespace taken from the file's path would be a name the code does not declare; left to a later
+  decision of the owner.
+
 ## Consequences
 **Easier.** "Which functions implement RQ-X, who calls them" is one selection; impact analysis before a change; new
 languages without code.
@@ -90,6 +121,8 @@ virtual calls, callbacks and macros are not followed; the function key changes w
 - **The tree-sitter CLI.** Needs Node or Rust and locally compiled grammars; the Python wheels need neither.
 - **Functions as nodes of the existing file links only (no call edges).** Answers "which function cites the requirement"
   but not "what calls it", which is the point.
+- **A bundle of grammars (`tree-sitter-language-pack`) for the new languages.** One wheel for a hundred languages, but
+  built by a third party, at its own pace; the owner asked for the official grammars first (DEC-TRC-025).
 - **Drawing the call graph with its own force layout.** Unreadable beyond a few hundred nodes; the flow columns with a node
   cap keep the one view readable.
 
@@ -97,7 +130,7 @@ virtual calls, callbacks and macros are not followed; the function key changes w
 ```mermaid
 flowchart LR
     SC[scanned source files] -->|--call-graph| CG[callgraph.py]
-    LT[languages.json + lang.scm] --> CG
+    LT[languages.json + lang.scm: C, C++, C#, Java, JavaScript, Python, Rust] --> CG
     TS[(py-tree-sitter + grammar wheels)] --> CG
     CG --> FN[Function elements]
     CG --> CA[calls: resolved / ambiguous / external]
