@@ -67,7 +67,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-025: Boxes drawn as compound nodes in the flow layout
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw boxes as Cytoscape compound nodes in the Functions column, stacked in name order, their children
   in rows inside; keep the callers · selection · callees split by box; draw or leave out the enclosing boxes; box look
   from new tokens per kind (frame, fill, label, padding).
@@ -79,8 +79,16 @@ This plan implements the tasks in the format specified below.
   drawing takes under 500 ms with at most 400 nodes.
 - **Dependencies**: TASK-TRC-024
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `BoxDrawingTest` 4/4 OK in headless Edge: `send` (named inside its box) has the parent `net::Port`
+  (label `Port`, kind class), itself inside `net` (namespace), `relay` no parent; enclosing boxes off: `net::Port`
+  alone, whole name, no namespace box; class level: `box:net::Port` inside `net`; the three box tokens. Whole suite 87
+  OK, 1 skipped. `AGNOS_TRACE_PERF=1` (2,000 classes in 20 namespaces, hub at depth 2): function 74 nodes 90 ms,
+  class 74 nodes 105 ms, namespace 93 nodes 193 ms; page +2,243,556 bytes, interactive 141 ms. Screenshots on a C++ code base
+  (light and dark): nested dashed namespace and class frames per column. Sonar: no finding (S7721 fixed).
+- **Assumptions**: at the function level a function is always drawn in its own scope box, the switch adding or
+  removing the outer ones; a boxed column is one pill per row (no sub-columns); a box appearing in two columns is
+  drawn once in each; inside a drawn box a name drops the box's own name (`send` in `Port`, `Port` in `net`), the whole
+  name staying in the node's data; namespace frames dashed, class frames solid violet.
 
 ### TASK-TRC-026: Detail choice, enclosing-boxes switch and the box's panel
 - **Tier**: M

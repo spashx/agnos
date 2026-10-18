@@ -140,9 +140,9 @@ TASK-TRC-020|232-249|Done|Relation colours, finer strokes and a relation's toolt
 TASK-TRC-021|250-262|Done|Thicker relation samples in the legend
 TASK-TRC-022|263-275|Done|Contains arrow like the others, opaque legend samples
 @process/3.plan/PLAN-TRC-003-namespace-and-class-boxes.md
-PLAN-TRC-003|1-115||Namespace and Class Boxes in the Graph
+PLAN-TRC-003|1-123||Namespace and Class Boxes in the Graph
 TASK-TRC-023|19-42|Done|Scopes and their kinds in the call graph data
 TASK-TRC-024|43-67|Done|Functions mapped to boxes at a level of detail
-TASK-TRC-025|68-84|Not Started|Boxes drawn as compound nodes in the flow layout
-TASK-TRC-026|85-102|Not Started|Detail choice, enclosing-boxes switch and the box's panel
-TASK-TRC-027|103-115|Not Started|Documentation and run on this repository
+TASK-TRC-025|68-92|Done|Boxes drawn as compound nodes in the flow layout
+TASK-TRC-026|93-110|Not Started|Detail choice, enclosing-boxes switch and the box's panel
+TASK-TRC-027|111-123|Not Started|Documentation and run on this repository

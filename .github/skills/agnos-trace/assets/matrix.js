@@ -53,7 +53,10 @@
   const DETAIL = { namespace: "namespace", class: "class", function: "function" };
   const BOX_PREFIX = "box:";            // a box's key: box:<qualified scope name>, or box:file:<path> for a file's box
   const NAMESPACE_KIND = "namespace";   // a scope's kind in the call graph's scope table (DEC-TRC-019)
+  const CLASS_KIND = "class";
   const FILE_BOX = "file";              // the kind of the box of a file's functions without scope
+  const BOX_KINDS = [NAMESPACE_KIND, CLASS_KIND, FILE_BOX];
+  const SEPARATOR_RE = /^[:.]+/;        // what joins a scope's name to an inner name (C++ "::", others ".")
   const SCOPE_FIELD = 7;                // a function row's scope index (-1: none)
 
   // ---- DOM helpers (text only) --------------------------------------------------------------------------------
@@ -244,7 +247,11 @@
       while (level === DETAIL.namespace && scope >= 0 && scopes[scope][1] !== NAMESPACE_KIND) scope = scopes[scope][2];
       return scope >= 0 ? scopeKey(scope) : fileBox(nodes.get(fnKeys[i]).path);
     };
-    return { get: (key) => found.get(key), of };
+    const scopeOf = (i) => {                       // the key of a function's own scope box, null when it has none
+      const scope = CALL_GRAPH.functions[i][SCOPE_FIELD];
+      return scope >= 0 ? scopeKey(scope) : null;
+    };
+    return { get: (key) => found.get(key), of, scopeOf };
   }
 
   // ---- state --------------------------------------------------------------------------------------------------
@@ -292,8 +299,16 @@
   const graph = createGraph();
 
   function shortLabel(n) {
-    const text = n.type === "FILE" || n.box === FILE_BOX ? n.label.split("/").pop() : n.label;
+    return clip(n.type === "FILE" || n.box === FILE_BOX ? n.label.split("/").pop() : n.label);
+  }
+
+  function clip(text) {
     return text.length > LABEL_MAX_CHARS ? `${text.slice(0, LABEL_MAX_CHARS - 1)}…` : text;
+  }
+
+  // A name drawn inside its box, without the box's own name: "send" in net::Port, "Port" in net (DEC-TRC-020).
+  function nameIn(name, outer) {
+    return outer && name.startsWith(outer) ? name.slice(outer.length).replace(SEPARATOR_RE, "") || name : name;
   }
 
   // The nearest levels of a walk (its Map's first entries), the last one cut where MAX_DRAWN falls.
@@ -311,6 +326,42 @@
     data.ambiguous = (data.ambiguous ?? true) && call.ambiguous;
     if (!sites.has(data.id)) sites.set(data.id, new Set());
     for (const line of call.lines) sites.get(data.id).add(caller + line);
+  }
+
+  // The callers and callees of a selected function (DEC-TRC-017), or null when the selection is no function.
+  function callSplit(selected) {
+    const index = calls?.index.get(selected);
+    if (index === undefined) return null;
+    return { callers: new Set(calls.callers(index).map((c) => c.key)), callees: new Set(calls.callees(index).map((c) => c.key)) };
+  }
+
+  // The same split by box (DEC-TRC-020): the boxes calling the selection's box, and those it calls, among the walk's.
+  function boxSplit(members, drawnOf, centre) {
+    if (!boxes.get(centre)) return null;
+    const split = { callers: new Set(), callees: new Set() };
+    for (const key of members.keys()) {
+      const index = calls.index.get(key);
+      if (index === undefined || drawnOf(key) !== centre) continue;
+      for (const c of calls.callers(index)) if (members.has(c.key)) split.callers.add(drawnOf(c.key));
+      for (const c of calls.callees(index)) if (members.has(c.key)) split.callees.add(drawnOf(c.key));
+    }
+    return split;
+  }
+
+  // The order of a boxed column: box by box, the selection's own boxes first at each depth, then by name.
+  function chainOrder(chains, selected) {
+    const mine = chains.get(selected) || [];
+    const byName = (a, b) => nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true });
+    return (a, b) => {
+      const x = chains.get(a);
+      const y = chains.get(b);
+      for (let d = 0; d < Math.max(x.length, y.length); d += 1) {
+        if (x[d] === y[d]) continue;
+        if (x[d] === undefined || y[d] === undefined) return x.length - y.length;
+        return (y[d] === mine[d]) - (x[d] === mine[d]) || byName(x[d], y[d]);
+      }
+      return (b === selected) - (a === selected) || byName(a, b);
+    };
   }
 
   // The calls of one function to the kept nodes, as graph edges.
@@ -334,6 +385,7 @@
     let whole = false;
     let depth = 1;
     let detail = DETAIL.function;       // RQ-TRC-047: the level of detail, the function level by default
+    let enclosing = true;               // RQ-TRC-047: the enclosing boxes drawn around the level's own
     let centre = null;                  // the drawn node standing for the selection: itself, or its box
     let dirty = true;
     const prop = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -361,6 +413,17 @@
           "min-zoomed-font-size": num("--s-space-xs") } },
         ...typeStyles,
         { selector: 'node.item[type = "UNDEFINED"]', style: { "border-style": "dashed" } },
+        // RQ-TRC-047, DEC-TRC-020: a box in the colour of its kind, as a pill or as the frame around its contents.
+        ...BOX_KINDS.map((kind) => ({ selector: `node.box-${kind}`, style: { "border-color": prop(`--c-graph-box-${kind}`) } })),
+        { selector: "node:parent", style: {
+          shape: "round-rectangle", "background-fill": "solid", "background-opacity": num("--c-graph-box-fill-opacity"),
+          "border-width": num("--c-graph-box-border-width"), padding: num("--c-graph-box-padding"), label: "data(label)",
+          "font-family": prop("--s-font-mono"), "font-size": num("--c-graph-box-label-size"),
+          "font-weight": prop("--s-weight-strong"), "text-valign": "top", "text-halign": "center",
+          "text-margin-y": -num("--c-graph-box-label-gap") } },
+        ...BOX_KINDS.map((kind) => ({ selector: `node:parent.box-${kind}`,
+          style: { "background-color": prop(`--c-graph-box-${kind}`), color: prop(`--c-graph-box-${kind}`) } })),
+        { selector: `node:parent.box-${NAMESPACE_KIND}`, style: { "border-style": "dashed" } },
         { selector: "node.header", style: {
           shape: "rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
           "background-opacity": 0, "border-width": 0, color: prop("--c-graph-header-color"),
@@ -482,7 +545,7 @@
     // RQ-TRC-047, DEC-TRC-021: the walk's functions replaced by the boxes standing for them at the level of detail,
     // each box at the nearest level of its functions, in the walk's order; the other nodes stay themselves.
     function detailView(levels) {
-      if (detail === DETAIL.function) return { levels, drawnOf: (key) => key, edges: edgesAmong };
+      if (detail === DETAIL.function) return { levels, drawnOf: (key) => key, edges: edgesAmong, split: callSplit };
       const drawnOf = (key) => {
         const index = calls.index.get(key);
         return index === undefined ? key : boxes.of(index, detail);
@@ -492,7 +555,20 @@
         const box = drawnOf(key);
         if (!mapped.has(box)) mapped.set(box, level);
       }
-      return { levels: mapped, drawnOf, edges: (keys, positions) => boxEdges({ members: levels, drawnOf, keys, positions }) };
+      return { levels: mapped, drawnOf, edges: (keys, positions) => boxEdges({ members: levels, drawnOf, keys, positions }),
+        split: (centre) => boxSplit(levels, drawnOf, centre) };
+    }
+
+    // RQ-TRC-047, DEC-TRC-020: the boxes drawn around a node, outermost first. At the function level, a function's own
+    // scope, and with enclosing boxes its outer scopes; at the class level, with enclosing boxes, a box's outer scopes.
+    function enclosingChain(key) {
+      const index = calls?.index.get(key);
+      let inner = null;
+      if (index !== undefined && detail === DETAIL.function) inner = boxes.scopeOf(index);
+      else if (boxes.get(key) && detail === DETAIL.class && enclosing) inner = boxes.get(key).parent;
+      const chain = [];
+      for (let box = inner; box; box = enclosing ? boxes.get(box).parent : null) chain.unshift(box);
+      return chain;
     }
 
     // The links among the drawn boxes and nodes, one per relation and ordered pair, nothing inside one box. A link
@@ -533,12 +609,10 @@
 
     // The flow's columns. Around a selected function, its column splits in three — callers, the function, callees —
     // so that calls run left to right, never along one column (DEC-TRC-017).
-    function flowColumns(selected) {
+    function flowColumns(selected, split) {
       const base = COLUMNS.map((types, c) => ({ name: COLUMN_NAME[c], has: (key) => types.includes(nodeOf(key).type) }));
-      const index = calls?.index.get(selected);
-      if (index === undefined) return base;
-      const callers = new Set(calls.callers(index).map((c) => c.key));
-      const callees = new Set(calls.callees(index).map((c) => c.key));
+      if (!split) return base;
+      const { callers, callees } = split;
       const isCall = (key, set) => key !== selected && nodeOf(key).type === "FN" && set.has(key);
       const at = columnOf("FN");
       return [...base.slice(0, at),
@@ -549,47 +623,95 @@
     }
 
     // The flow layout: columns left to right, each as wide as its widest pill, the selection first in its column.
-    function flowElements(levels, selected, edgesOf) {
-      const columnGap = num("--c-graph-column-gap");
-      const subGap = num("--c-graph-sub-gap");
-      const rowGap = num("--c-graph-row-gap");
-      const columns = flowColumns(selected);
+    function flowElements(levels, selected, view) {
+      const columns = flowColumns(selected, view.split(selected));
       const byColumn = columns.map(() => []);
       for (const key of levels.keys()) byColumn[columns.findIndex((column) => column.has(key))].push(key);
-      const elements = [];
-      const drawn = [];
-      const positions = new Map();
-      let left = 0;
-      byColumn.forEach((keys, c) => {
-        if (!keys.length) return;
-        keys.sort((a, b) => (a === selected ? -1 : 0) - (b === selected ? -1 : 0)
-          || nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true }));
-        const shown = keys.slice(0, MAX_PER_COLUMN);
-        const labels = shown.map((key) => shortLabel(nodeOf(key)));
-        const widest = Math.max(...labels.map(pillWidth));
-        const subColumns = Math.ceil(shown.length / MAX_ROWS);
-        const rows = Math.ceil(shown.length / subColumns);
-        const step = widest + subGap;
-        const span = (subColumns - 1) * step + widest;
-        const centre = left + span / 2;
-        const header = `${columns[c].name} · ${keys.length}`;
-        elements.push({ group: "nodes", classes: "header", data: { id: `header:${c}`, label: header, width: pillWidth(header) },
-          position: { x: centre, y: -num("--c-graph-header-gap") } });
-        shown.forEach((key, i) => {
-          const position = { x: left + widest / 2 + Math.floor(i / rows) * step, y: (i % rows) * rowGap };
-          elements.push({ group: "nodes", classes: "item", data: { id: key, type: nodeOf(key).type, label: labels[i],
-            width: pillWidth(labels[i]), level: levels.get(key) }, position });
-          positions.set(key, position);
-          drawn.push(key);
-        });
-        if (keys.length > shown.length) {
-          const more = `+${keys.length - shown.length} more`;
-          elements.push({ group: "nodes", classes: "header", data: { id: `more:${c}`, label: more, width: pillWidth(more) },
-            position: { x: centre, y: rows * rowGap } });
-        }
-        left += Math.max(span, pillWidth(header)) + columnGap;
+      const flow = { levels, selected, elements: [], drawn: [], positions: new Map(), left: 0 };
+      byColumn.forEach((keys, c) => { if (keys.length) placeColumn(flow, keys, c, columns[c].name); });
+      return { elements: [...flow.elements, ...view.edges(flow.drawn, flow.positions)], drawn: flow.drawn.length,
+        total: levels.size };
+    }
+
+    // One column: its header, its pills — in rows, or one under the other in their boxes (DEC-TRC-020) — and its note.
+    function placeColumn(flow, keys, c, name) {
+      const chains = new Map(keys.map((key) => [key, enclosingChain(key)]));
+      const boxed = [...chains.values()].some((chain) => chain.length);
+      keys.sort(boxed ? chainOrder(chains, flow.selected) : (a, b) => (b === flow.selected) - (a === flow.selected)
+        || nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true }));
+      const shown = keys.slice(0, MAX_PER_COLUMN);
+      const boxName = (box) => (box ? boxes.get(box).label : null);
+      const labels = shown.map((key) => (chains.get(key).length ? clip(nameIn(nodeOf(key).label, boxName(chains.get(key).at(-1))))
+        : shortLabel(nodeOf(key))));
+      const widest = Math.max(...labels.map(pillWidth));
+      const placed = boxed ? boxedRows(shown, chains, flow.left, widest, c) : gridRows(shown, flow.left, widest);
+      const centre = flow.left + placed.span / 2;
+      const header = `${name} · ${keys.length}`;
+      flow.elements.push({ group: "nodes", classes: "header", data: { id: `header:${c}`, label: header, width: pillWidth(header) },
+        position: { x: centre, y: -num("--c-graph-header-gap") } });
+      for (const [id, frame] of placed.frames) {
+        const box = boxes.get(frame.box);
+        const label = frame.parent ? clip(nameIn(box.label, boxName(frame.outer))) : shortLabel(box);
+        flow.elements.push({ group: "nodes", classes: `box box-${box.box}`, data: { id, label, name: box.label, box: box.box,
+          ...(frame.parent ? { parent: frame.parent } : {}) } });
+      }
+      shown.forEach((key, i) => {
+        const n = nodeOf(key);
+        const position = placed.points[i];
+        const parent = placed.parents[i];
+        flow.elements.push({ group: "nodes", classes: n.box ? `item box box-${n.box}` : "item", data: { id: key, type: n.type,
+          label: labels[i], name: n.label, width: pillWidth(labels[i]), level: flow.levels.get(key),
+          ...(n.box ? { box: n.box } : {}), ...(parent ? { parent } : {}) }, position });
+        flow.positions.set(key, position);
+        flow.drawn.push(key);
       });
-      return { elements: [...elements, ...edgesOf(drawn, positions)], drawn: drawn.length, total: levels.size };
+      if (keys.length > shown.length) {
+        const more = `+${keys.length - shown.length} more`;
+        flow.elements.push({ group: "nodes", classes: "header", data: { id: `more:${c}`, label: more, width: pillWidth(more) },
+          position: { x: centre, y: placed.bottom } });
+      }
+      flow.left += Math.max(placed.span, pillWidth(header)) + num("--c-graph-column-gap");
+    }
+
+    // Pills in rows, a taller column wrapping into sub-columns.
+    function gridRows(shown, left, widest) {
+      const rowGap = num("--c-graph-row-gap");
+      const subColumns = Math.ceil(shown.length / MAX_ROWS);
+      const rows = Math.ceil(shown.length / subColumns);
+      const step = widest + num("--c-graph-sub-gap");
+      const points = shown.map((_, i) => ({ x: left + widest / 2 + Math.floor(i / rows) * step, y: (i % rows) * rowGap }));
+      return { points, parents: [], frames: new Map(), span: (subColumns - 1) * step + widest, bottom: rows * rowGap };
+    }
+
+    // Pills one under the other, each run of one box kept together, room left for the frames that close and open
+    // between two pills; a box drawn as a pill of this column is its own frame, the others get one per column.
+    function boxedRows(shown, chains, left, widest, c) {
+      const rowGap = num("--c-graph-row-gap");
+      const pad = num("--c-graph-box-padding");
+      const open = pad + num("--c-graph-box-label-size") + num("--c-graph-box-label-gap");
+      const depth = Math.max(...shown.map((key) => chains.get(key).length));
+      const items = new Set(shown);
+      const frameId = (box) => (items.has(box) ? box : `${box}@${c}`);
+      const placed = { points: [], parents: [], frames: new Map(), span: widest + 2 * depth * pad, bottom: 0 };
+      let previous = [];
+      let y = 0;
+      shown.forEach((key, i) => {
+        const chain = chains.get(key);
+        let common = 0;
+        while (common < chain.length && chain[common] === previous[common]) common += 1;
+        y += (i ? rowGap + (previous.length - common) * pad : 0) + (chain.length - common) * open;
+        placed.points.push({ x: left + depth * pad + widest / 2, y });
+        const ids = chain.map(frameId);
+        ids.forEach((id, d) => {
+          if (!items.has(chain[d]) && !placed.frames.has(id)) {
+            placed.frames.set(id, { box: chain[d], parent: ids[d - 1], outer: chain[d - 1] });
+          }
+        });
+        placed.parents.push(ids.at(-1));
+        previous = chain;
+      });
+      placed.bottom = y + rowGap + previous.length * pad;
+      return placed;
     }
 
     function wholeElements() {
@@ -682,7 +804,7 @@
       else if (key) {
         const view = detailView(neighbourhood(key));      // the 400-node limit applies to what the level draws
         centre = view.drawnOf(key);
-        built = { ...flowElements(nearest(view.levels), centre, view.edges), total: view.levels.size };
+        built = { ...flowElements(nearest(view.levels), centre, view), total: view.levels.size };
       }
       cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
       if (whole) cy.layout({ name: "cose", animate: false, numIter: COSE_ITERATIONS }).run();
@@ -771,6 +893,12 @@
       // RQ-TRC-047: the level of detail, one of DETAIL's values.
       setDetail(level) {
         detail = level;
+        dirty = true;
+        if (visible()) draw();
+      },
+      // RQ-TRC-047: the enclosing boxes drawn or left out.
+      setEnclosing(on) {
+        enclosing = on;
         dirty = true;
         if (visible()) draw();
       },

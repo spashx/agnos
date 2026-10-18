@@ -476,7 +476,55 @@ class DetailLevelTest(unittest.TestCase):
         after = drawing(self.path, "agnosTrace.graph.setDetail('namespace');" + show
                         + "agnosTrace.graph.setDetail('function');")
         self.assertEqual(before, after)
-        self.assertEqual(4, len(before[0]) - len([k for k in before[0] if k.startswith("header:")]))
+        self.assertEqual(4, len([k for k in before[0] if not k.startswith(("header:", "box:"))]))
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class BoxDrawingTest(unittest.TestCase):
+    """TASK-TRC-025: RQ-TRC-047, RQ-TRC-018 (DEC-TRC-020), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+        cls.show_relay = f"agnosTrace.select('{cls.keys['relay']}'); agnosTrace.showView('graph');"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_047_given_the_function_level_with_enclosing_boxes_then_a_method_is_in_its_class_in_its_namespace(
+            self):
+        nodes, _ = drawing(self.path, self.show_relay)
+        send = nodes[self.keys["net::Port::send"]]
+        port = nodes[send["parent"]]
+        self.assertEqual(("net::Port", "class", "Port"), (port["name"], port["box"], port["label"]))
+        self.assertEqual("send", send["label"])                                # named inside its box
+        space = nodes[port["parent"]]
+        self.assertEqual(("net", "namespace"), (space["name"], space["box"]))
+        self.assertNotIn("parent", nodes[self.keys["relay"]])                 # no scope: no box at the function level
+
+    def test_RQ_TRC_047_given_enclosing_boxes_off_then_the_class_box_stands_alone(self):
+        nodes, _ = drawing(self.path, "agnosTrace.graph.setEnclosing(false);" + self.show_relay)
+        port = nodes[nodes[self.keys["net::Port::send"]]["parent"]]
+        self.assertEqual(("net::Port", "net::Port"), (port["name"], port["label"]))     # alone: its whole name
+        self.assertNotIn("parent", port)
+        self.assertFalse([n for n in nodes.values() if n.get("box") == "namespace"])
+
+    def test_RQ_TRC_047_given_the_class_level_with_enclosing_boxes_then_class_boxes_are_in_their_namespace(self):
+        nodes, _ = drawing(self.path, "agnosTrace.graph.setDetail('class');" + self.show_relay)
+        self.assertIn("box:net::Port", nodes)
+        space = nodes[nodes["box:net::Port"]["parent"]]
+        self.assertEqual(("net", "namespace"), (space["name"], space["box"]))
+
+    def test_RQ_TRC_018_given_the_box_kinds_then_each_has_its_colour_token(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)["component"]
+        for kind in ("namespace", "class", "file"):
+            self.assertIn(f"graph-box-{kind}", tokens)
 
 
 READ_LEGEND = """
@@ -583,17 +631,32 @@ class FunctionMatrixTest(unittest.TestCase):
 PERF_FILES = 2000
 PERF_PER_FILE = 10
 PERF_CALLEES = ((1, 0), (7, 1), (13, 3), (29, 7))           # (file step, function step) of each function's callees
+PERF_NAMESPACES = 20                                         # file i holds class C<i> in namespace ns<i % 20>
 
 
 def write_large_tree(root):
-    """2,000 C++ files of 10 functions; each function calls hub() and four others: 20,001 functions, 100,000 calls."""
+    """2,000 C++ files of one class of 10 methods, in 20 namespaces; each method calls hub() and four others: 20,001
+    functions, 100,000 calls."""
     (root / "hub.cpp").write_text("int hub()\n{\n    return 0;\n}\n", encoding="utf-8")
     for i in range(PERF_FILES):
         body = []
         for j in range(PERF_PER_FILE):
             callees = " + ".join(f"f_{(i + di) % PERF_FILES}_{(j + dj) % PERF_PER_FILE}()" for di, dj in PERF_CALLEES)
             body.append(f"int f_{i}_{j}()\n{{\n    return hub() + {callees};\n}}\n")
-        (root / f"m{i:04d}.cpp").write_text("\n".join(body), encoding="utf-8")
+        text = f"namespace ns{i % PERF_NAMESPACES} {{\nstruct C{i} {{\n" + "\n".join(body) + "};\n}\n"
+        (root / f"m{i:04d}.cpp").write_text(text, encoding="utf-8")
+
+
+# RQ-TRC-047, RQ-TRC-037: the drawing of the selection at each level of detail, timed by the page.
+READ_LEVELS = """
+const levels = {};
+for (const level of ["function", "class", "namespace"]) {
+  agnosTrace.graph.setDetail(level);
+  const graph = document.getElementById("cy").dataset;
+  levels[level] = [Number(graph.graphNodes), Number(graph.graphMs)];
+}
+document.documentElement.dataset.levels = JSON.stringify(levels);
+"""
 
 
 def rendered_dom_live(page_path, script):
@@ -630,14 +693,19 @@ class LargeCallGraphTest(unittest.TestCase):
             dom = rendered_dom_live(Path(tmp) / "with.html", TURN_FUNCTIONS_ON +
                                     "document.querySelector('#depth button[data-depth=\"2\"]').click();"
                                     "agnosTrace.select([...agnosTrace.nodes.values()].find((n) => n.label === 'hub').key);"
-                                    "agnosTrace.showView('graph');")
+                                    "agnosTrace.showView('graph');" + READ_LEVELS)
         added_time = timings["with"][0] - timings["without"][0]
         added_bytes = timings["with"][1] - timings["without"][1]
         attributes = graph_attributes(dom)
         ready = int(re.search(r'data-ready-ms="(\d+)"', dom).group(1))
+        levels = json.loads(__import__("html").unescape(re.search(r'data-levels="([^"]*)"', dom).group(1)))
         print(f"\n  run {timings['without'][0]:.1f} s, with the call graph {timings['with'][0]:.1f} s (+{added_time:.1f} s), "
               f"page +{added_bytes} bytes, interactive {ready} ms, "
-              f"graph {attributes['nodes']} nodes in {attributes['ms']} ms: {attributes['status']}")
+              f"graph {attributes['nodes']} nodes in {attributes['ms']} ms: {attributes['status']}; "
+              f"levels (nodes, ms): {levels}")
+        for level, (drawn, ms) in levels.items():                                         # RQ-TRC-047, TASK-TRC-025
+            self.assertLessEqual(drawn, 400, level)
+            self.assertLess(ms, 500, level)
         self.assertEqual((20002, 100000), (counts["functions"], counts["calls"]))   # + indirect() of the fixture's src/
         self.assertLess(added_time, 30)                                                       # RQ-TRC-036
         self.assertLessEqual(added_bytes, 120 * counts["functions"] + 16 * counts["calls"])   # RQ-TRC-038
