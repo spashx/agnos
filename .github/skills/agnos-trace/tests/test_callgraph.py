@@ -527,6 +527,85 @@ class BoxDrawingTest(unittest.TestCase):
             self.assertIn(f"graph-box-{kind}", tokens)
 
 
+CLICK_DETAIL = "document.querySelector('#detail-level button[data-detail=\"{}\"]').click();"
+READ_CONTROLS = """
+const out = document.documentElement.dataset;
+out.pressed = document.querySelector('#detail-level button[aria-pressed="true"]').dataset.detail;
+out.enclosingDisabled = String(document.getElementById("show-enclosing").disabled);
+"""
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class DetailControlsTest(unittest.TestCase):
+    """TASK-TRC-026: RQ-TRC-047, RQ-TRC-013, RQ-TRC-016, RQ-TRC-045, RQ-TRC-046 (DEC-TRC-022), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        cls.paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{cls.paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+        cls.show_relay = f"agnosTrace.select('{cls.keys['relay']}'); agnosTrace.showView('graph');"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def controls(self, script):
+        import re
+        dom = rendered_dom_after(self.path, TURN_FUNCTIONS_ON + script + READ_CONTROLS + READ_DRAWING)
+        return dict(re.findall(r'data-(pressed|enclosing-disabled)="([^"]*)"', dom)), dom
+
+    def test_RQ_TRC_047_given_the_detail_choice_when_class_is_chosen_then_the_graph_is_drawn_by_class_boxes(self):
+        found, dom = self.controls(self.show_relay + CLICK_DETAIL.format("class"))
+        self.assertEqual({"pressed": "class", "enclosing-disabled": "false"}, found)
+        self.assertIn("box:net::Port", dom)
+
+    def test_RQ_TRC_047_given_the_detail_choice_when_namespace_is_chosen_then_the_enclosing_switch_is_disabled(self):
+        found, _ = self.controls(self.show_relay + CLICK_DETAIL.format("namespace"))
+        self.assertEqual({"pressed": "namespace", "enclosing-disabled": "true"}, found)
+
+    def test_RQ_TRC_045_given_the_controls_then_each_has_a_tooltip(self):
+        _, dom = self.controls("")
+        self.assertRegex(dom, r'<fieldset class="segmented" id="detail-level"[^>]* title="[^"]+"')
+        for level in ("namespace", "class", "function"):
+            self.assertRegex(dom, rf'data-detail="{level}"[^>]* title="[^"]+"|title="[^"]+"[^>]* data-detail="{level}"')
+        self.assertRegex(dom, r'<label class="toggle[^"]*" title="[^"]+"><input type="checkbox" id="show-enclosing"')
+
+    def test_RQ_TRC_016_given_a_class_box_when_selected_then_its_panel_lists_its_methods_and_their_requirement(self):
+        dom = rendered_dom(self.path, fragment("box:net::Port"))
+        self.assertIn('<h2 class="detail-id">net::Port</h2>', dom)
+        self.assertIn("Class box", dom)
+        for name in ("net::Port::send", "net::Port::write", "RQ-DEM-001", "net"):
+            self.assertIn(f'<span class="id">{name}</span>', dom)
+        panel = dom[dom.index('id="detail"'):]
+        self.assertNotIn("null", panel[:panel.index("</aside>")] if "</aside>" in panel else panel)
+
+    def test_RQ_TRC_046_given_a_link_merging_calls_when_its_tooltip_is_asked_then_it_gives_their_count(self):
+        import html
+        import re
+        main = "box:file:" + next(p for p in self.paths if p.endswith("calls/app/main.cpp"))
+        dom = rendered_dom_after(self.path, TURN_FUNCTIONS_ON + "agnosTrace.graph.setDetail('namespace');" + self.show_relay
+                                 + f"document.documentElement.dataset.tip = agnosTrace.graph.tipFor('{main}>box:net>calls');")
+        tip = html.unescape(re.search(r'data-tip="([^"]*)"', dom).group(1))
+        self.assertIn("ambiguous call", tip)
+        self.assertIn("2 call sites", tip)
+
+    def test_RQ_TRC_047_given_the_legend_then_it_shows_the_box_kinds(self):
+        dom = rendered_dom(self.path)
+        for kind in ("namespace", "class", "file"):
+            self.assertIn(f'<span class="legend-box box-{kind}"></span>', dom)
+
+    def test_RQ_TRC_047_given_a_page_without_call_graph_then_neither_control_appears(self):
+        dom = rendered_dom(self.plain)
+        for absent in ('id="detail-level"', 'id="show-enclosing"', 'class="legend-box'):     # the page's script names them
+            self.assertNotIn(absent, dom)
+
+
 READ_LEGEND = """
 const out = document.documentElement.dataset;
 out.looks = JSON.stringify(agnosTrace.EDGE_LOOK);

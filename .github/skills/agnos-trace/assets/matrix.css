@@ -432,6 +432,8 @@ button, input, select { font: inherit; color: inherit; }
 
 .toggle { display: inline-flex; align-items: center; gap: var(--s-space-xs); color: var(--s-text-muted); font-size: var(--s-text-small); cursor: pointer; }
 .toggle input { accent-color: var(--s-accent); }
+/* RQ-TRC-047: the enclosing-boxes switch has no meaning at the namespace level */
+.toggle.is-disabled { color: var(--s-text-subtle); cursor: default; }
 
 .graph-status { color: var(--s-text-subtle); font-size: var(--s-text-small); font-variant-numeric: tabular-nums; }
 
@@ -787,6 +789,11 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .graph-tip[hidden] { display: none; }
 /* RQ-TRC-044: a relation's sample, drawn like the graph draws it */
 .legend-edge { flex: none; width: var(--s-space-2xl); height: var(--s-space-md); }   /* opaque, like the selection's links */
+/* RQ-TRC-047, DEC-TRC-022: a box kind's sample, its frame as the graph draws it */
+.legend-box { display: inline-block; width: var(--s-space-xl); height: var(--s-space-md); border: var(--c-graph-box-border-width) solid var(--box-color); border-radius: var(--s-radius-sm); }
+.legend-box.box-namespace { --box-color: var(--c-graph-box-namespace); border-style: dashed; }
+.legend-box.box-class { --box-color: var(--c-graph-box-class); }
+.legend-box.box-file { --box-color: var(--c-graph-box-file); }
 .legend-shape { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); background: var(--type-color); }
 .legend-shape.t-UNDEFINED { background: var(--type-color); }
 .shape-FTR { border-radius: var(--s-radius-pill); }

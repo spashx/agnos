@@ -92,7 +92,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-026: Detail choice, enclosing-boxes switch and the box's panel
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add, with a call graph only, the toolbar's "Detail" choice (Namespace · Class · Function, Function
   by default) and its "Enclosing boxes" switch (on, disabled at the namespace level), both with tooltips; make a box
   selectable, with a deep link and a detail panel (kind, qualified name, enclosing box, classes and functions, calls in
@@ -105,8 +105,17 @@ This plan implements the tasks in the format specified below.
   control appears.
 - **Dependencies**: TASK-TRC-025
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `DetailControlsTest` 7/7 OK in headless Edge: "Class" pressed, switch enabled, `box:net::Port` drawn;
+  "Namespace" pressed, switch disabled; tooltips on the choice, its three buttons and the switch; the deep link
+  `#box:net::Port` opens a "Class box" panel listing `net::Port::send`, `net::Port::write`, the fixture's demo
+  requirement and the enclosing `net`, no stray text; the merged link `main.cpp` → `net` tip "ambiguous call … · 2 call
+  sites"; three box kinds in the legend; without call graph no choice, switch or box sample. Whole suite 94 OK, 1
+  skipped. Screenshot on a C++ code base (class level, `core::ByteWriter` selected): 13 functions, callers by box with call
+  sites. Sonar: no finding.
+- **Assumptions**: the choice is `#detail-level` (`#detail` is the panel); a box's calls by box are counted at its own
+  level (class for a class box, namespace for a namespace or file box); a file box holds its file's functions standing
+  outside any namespace; a selected box is drawn from all its functions at level 0, highlighted as its frames; the
+  panel lists the requirements only among the IDs its functions cite.
 
 ### TASK-TRC-027: Documentation and run on this repository
 - **Tier**: M

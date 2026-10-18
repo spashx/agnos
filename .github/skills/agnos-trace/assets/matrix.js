@@ -57,6 +57,19 @@
   const FILE_BOX = "file";              // the kind of the box of a file's functions without scope
   const BOX_KINDS = [NAMESPACE_KIND, CLASS_KIND, FILE_BOX];
   const SEPARATOR_RE = /^[:.]+/;        // what joins a scope's name to an inner name (C++ "::", others ".")
+  const BOX_NAME = { [NAMESPACE_KIND]: "Namespace box", [CLASS_KIND]: "Class box", [FILE_BOX]: "File box" };
+  const DETAIL_CHOICES = [
+    [DETAIL.namespace, "Namespace", "Namespaces only, the calls merged between them; a file's other functions in its box"],
+    [DETAIL.class, "Class", "Classes, the calls merged between them; a namespace's free functions in its box"],
+    [DETAIL.function, "Function", "Every function, in the box of its class or namespace"],
+  ];
+  const ENCLOSING_HINT = "Draw the boxes around the level's own: the namespaces around classes, and around a function's "
+    + "class; off, each box stands alone (not at the namespace level)";
+  const BOX_HINT = {
+    [NAMESPACE_KIND]: "a namespace: its classes and functions (dashed frame)",
+    [CLASS_KIND]: "a class or struct: its methods",
+    [FILE_BOX]: "the functions of a file outside any namespace or class",
+  };
   const SCOPE_FIELD = 7;                // a function row's scope index (-1: none)
 
   // ---- DOM helpers (text only) --------------------------------------------------------------------------------
@@ -106,6 +119,7 @@
   const calls = buildCalls();
   const boxes = buildBoxes();
   const nodeOf = (key) => nodes.get(key) || boxes.get(key);
+  const byKeyLabel = (a, b) => nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true });
   indexSearch();
 
   function addEdges() {
@@ -251,7 +265,28 @@
       const scope = CALL_GRAPH.functions[i][SCOPE_FIELD];
       return scope >= 0 ? scopeKey(scope) : null;
     };
-    return { get: (key) => found.get(key), of, scopeOf };
+    // A box by key; a file's box, named by a deep link, is made then (DEC-TRC-022).
+    const get = (key) => {
+      const path = key?.startsWith(BOX_PREFIX + FILE_PREFIX) ? key.slice(BOX_PREFIX.length + FILE_PREFIX.length) : null;
+      if (!found.has(key) && path && nodes.has(FILE_PREFIX + path)) fileBox(path);
+      return found.get(key);
+    };
+    // The functions a box holds, directly or through its inner boxes: those of a scope and its inner scopes, or, for a
+    // file's box, those of the file standing in it at the namespace level.
+    const members = new Map();
+    const within = (i, key) => {
+      if (found.get(key).box === FILE_BOX) return of(i, DETAIL.namespace) === key;
+      for (let scope = CALL_GRAPH.functions[i][SCOPE_FIELD]; scope >= 0; scope = scopes[scope][2]) {
+        if (scopeKey(scope) === key) return true;
+      }
+      return false;
+    };
+    const membersOf = (key) => {
+      if (!members.has(key)) members.set(key, fnKeys.map((_, i) => i).filter((i) => within(i, key)));
+      return members.get(key);
+    };
+    const innerOf = (key) => [...found.values()].filter((box) => box.parent === key).map((box) => box.key);
+    return { get, of, scopeOf, membersOf, innerOf };
   }
 
   // ---- state --------------------------------------------------------------------------------------------------
@@ -348,6 +383,11 @@
     return split;
   }
 
+  // Where the walk starts: the selection itself, or the functions of a selected box.
+  function boxStarts(start) {
+    return boxes.get(start) ? boxes.membersOf(start).map((i) => fnKeys[i]) : [start];
+  }
+
   // The order of a boxed column: box by box, the selection's own boxes first at each depth, then by name.
   function chainOrder(chains, selected) {
     const mine = chains.get(selected) || [];
@@ -424,6 +464,8 @@
         ...BOX_KINDS.map((kind) => ({ selector: `node:parent.box-${kind}`,
           style: { "background-color": prop(`--c-graph-box-${kind}`), color: prop(`--c-graph-box-${kind}`) } })),
         { selector: `node:parent.box-${NAMESPACE_KIND}`, style: { "border-style": "dashed" } },
+        { selector: "node:parent.selected", style: { "border-width": num("--c-graph-selected-border-width"),
+          "border-color": prop("--c-graph-selected-border") } },
         { selector: "node.header", style: {
           shape: "rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
           "background-opacity": 0, "border-width": 0, color: prop("--c-graph-header-color"),
@@ -502,8 +544,9 @@
     // The levels around the start, nearest first: the Map's order is the walk's, so its first MAX_DRAWN entries are
     // the nearest levels, the last one cut where the limit falls.
     function neighbourhood(start) {
-      const seen = new Map([[start, 0]]);
-      let frontier = [start];
+      const starts = boxStarts(start);              // a selected box: its functions, all at level 0 (DEC-TRC-022)
+      const seen = new Map(starts.map((key) => [key, 0]));
+      let frontier = starts;
       for (let level = 1; level <= depth && frontier.length; level += 1) {
         const next = [];
         for (const key of frontier) {
@@ -653,7 +696,7 @@
         const box = boxes.get(frame.box);
         const label = frame.parent ? clip(nameIn(box.label, boxName(frame.outer))) : shortLabel(box);
         flow.elements.push({ group: "nodes", classes: `box box-${box.box}`, data: { id, label, name: box.label, box: box.box,
-          ...(frame.parent ? { parent: frame.parent } : {}) } });
+          boxKey: frame.box, ...(frame.parent ? { parent: frame.parent } : {}) } });
       }
       shown.forEach((key, i) => {
         const n = nodeOf(key);
@@ -725,7 +768,9 @@
       if (cy) return cy;
       cy = cytoscape({ container, style: style(), minZoom: num("--c-graph-zoom-min"), maxZoom: num("--c-graph-zoom-max"),
         boxSelectionEnabled: false, autoungrabify: true, hideEdgesOnViewport: Boolean(CALL_GRAPH) });   // DEC-TRC-017
-      cy.on("tap", "node.item", (event) => select(event.target.id()));
+      // A pill selects its element; a frame selects its box (DEC-TRC-022). A tap bubbles to the frames around its
+      // target, which keeps the target: one selection.
+      cy.on("tap", "node.item, node.box", (event) => select(event.target.data("boxKey") || event.target.id()));
       cy.on("mouseover", "node.item", (event) => {
         const n = nodeOf(event.target.id());
         event.target.addClass("hover");
@@ -763,7 +808,8 @@
         proofs = links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
           .reduce((sum, l) => sum + l.lines.length, 0);
       }
-      const unit = proofs === 1 ? "line" : "lines";
+      let unit = proofs === 1 ? "line" : "lines";
+      if (merged !== undefined) unit = proofs === 1 ? "call site" : "call sites";      // RQ-TRC-046: the merged count
       const lines = proofs ? ` · ${proofs} ${unit}` : "";
       return `${look.meaning}: ${nodeOf(source).label} → ${nodeOf(target).label}${lines}`;
     }
@@ -783,12 +829,15 @@
 
     function highlight(key) {
       cy.elements().removeClass("selected near faded dim");
-      const centre = key ? cy.getElementById(key) : cy.collection();
+      // The drawn node, or the frames of a selected box with what they hold (DEC-TRC-022).
+      const frames = key ? cy.nodes().filter((n) => n.data("boxKey") === key && !n.hasClass("item")) : cy.collection();
+      const own = key ? cy.getElementById(key).union(frames) : cy.collection();
+      const centre = own.union(frames.descendants());
       if (centre.empty()) return;
       const near = centre.closedNeighborhood();
       cy.nodes(".item").not(near).addClass(whole ? "faded" : "dim");
       cy.edges().not(centre.connectedEdges()).addClass("faded");
-      centre.addClass("selected");
+      own.addClass("selected");
       centre.connectedEdges().addClass("near");
     }
 
@@ -803,7 +852,8 @@
       if (whole) built = wholeElements();
       else if (key) {
         const view = detailView(neighbourhood(key));      // the 400-node limit applies to what the level draws
-        centre = view.drawnOf(key);
+        const drawnFor = new Set(boxStarts(key).map(view.drawnOf));   // a box whose functions the level draws as one
+        centre = drawnFor.size === 1 ? [...drawnFor][0] : key;
         built = { ...flowElements(nearest(view.levels), centre, view), total: view.levels.size };
       }
       cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
@@ -870,6 +920,42 @@
       $("show-files").closest("label").after(el("label", { class: "toggle",
         title: "Draw the functions citing the elements, and their calls (solid arrows: caller → callee)" }, toggle, " Functions"));
     }
+    if (CALL_GRAPH) {       // RQ-TRC-047, DEC-TRC-022: the level of detail and the enclosing boxes
+      const choice = el("fieldset", { class: "segmented", id: "detail-level", "aria-label": "Detail",
+        title: "How finely functions are drawn: by namespace, by class, or one by one in their boxes" },
+      el("span", { class: "segmented-label", text: "Detail" }),
+      ...DETAIL_CHOICES.map(([level, label, hint]) => el("button", { type: "button", "data-detail": level,
+        "aria-pressed": String(level === detail), title: hint, text: label })));
+      choice.addEventListener("click", (event) => {
+        const b = event.target.closest("button");
+        if (b) applyDetail(b.dataset.detail);
+      });
+      const box = el("input", { type: "checkbox", id: "show-enclosing", checked: true });
+      box.addEventListener("change", () => applyEnclosing(box.checked));
+      $("depth").after(choice);
+      $("show-containment").closest("label").after(el("label", { class: "toggle", title: ENCLOSING_HINT }, box,
+        " Enclosing boxes"));
+    }
+
+    // The level of detail, its button pressed; the enclosing boxes have no meaning at the namespace level.
+    function applyDetail(level) {
+      detail = level;
+      for (const b of document.querySelectorAll("#detail-level button")) b.setAttribute("aria-pressed", String(b.dataset.detail === level));
+      const box = $("show-enclosing");
+      if (box) {
+        box.disabled = level === DETAIL.namespace;
+        box.closest("label").classList.toggle("is-disabled", box.disabled);
+      }
+      dirty = true;
+      if (visible()) draw();
+    }
+
+    function applyEnclosing(on) {
+      enclosing = on;
+      if ($("show-enclosing")) $("show-enclosing").checked = on;
+      dirty = true;
+      if (visible()) draw();
+    }
     $("show-containment").addEventListener("change", () => draw());
     $("fit").addEventListener("click", () => {          // the whole drawing in the frame, any zoom
       if (!cy) return;
@@ -886,22 +972,14 @@
     clear($("legend")).append(...NODE_TYPES.map((t) => el("span", { class: "legend-item" },
       el("span", { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
     ...Object.values(EDGE_LOOK).map((look) => el("span", { class: "legend-item", title: look.meaning },
-      edgeSample(look), look.meaning)));
+      edgeSample(look), look.meaning)),
+    ...(CALL_GRAPH ? BOX_KINDS.map((kind) => el("span", { class: "legend-item", title: BOX_HINT[kind] },   // RQ-TRC-047
+      el("span", { class: `legend-box box-${kind}` }), BOX_NAME[kind])) : []));
 
     return {
       tipFor,
-      // RQ-TRC-047: the level of detail, one of DETAIL's values.
-      setDetail(level) {
-        detail = level;
-        dirty = true;
-        if (visible()) draw();
-      },
-      // RQ-TRC-047: the enclosing boxes drawn or left out.
-      setEnclosing(on) {
-        enclosing = on;
-        dirty = true;
-        if (visible()) draw();
-      },
+      setDetail: applyDetail,           // RQ-TRC-047: the level of detail, one of DETAIL's values
+      setEnclosing: applyEnclosing,     // RQ-TRC-047: the enclosing boxes drawn or left out
       elements() { return cy ? cy.elements().map((e) => e.data()) : []; },
       show() { if (dirty || !cy) draw(); else cy.resize(); },
       select(key) {
@@ -1195,7 +1273,7 @@
   }
 
   function idButton(key, short) {
-    const n = nodes.get(key);
+    const n = nodeOf(key);
     const label = n.type === "FILE" && short ? n.label.split("/").pop() : n.label;
     return el("button", { class: `id-link t-${n.type}`, type: "button", title: n.title || n.label,
       on: { click: (event) => { event.stopPropagation(); select(key); } } },
@@ -1401,6 +1479,10 @@
         el("span", { text: "Search an ID, a title or a file, or click any element of the matrix, the gaps or the graph: its links appear here, grouped by type." })));
       return;
     }
+    if (boxes.get(key)) {
+      renderBoxDetail(panel, boxes.get(key));
+      return;
+    }
     const n = nodes.get(key);
     const head = el("div", { class: `detail-head t-${n.type}` },
       el("div", { class: "detail-kind" }, el("span", { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
@@ -1458,11 +1540,16 @@
   }
 
   function callGroup(title, rel, list) {
+    return listGroup(title, list, (c) => callItem(c, rel));
+  }
+
+  // A titled list, the first CALLS_SHOWN items at first, more on request (DEC-TRC-017).
+  function listGroup(title, list, item, type = "FN") {
     const items = el("ul", { class: "group-items" });
     const more = el("button", { class: "link-button", type: "button" });
     let shown = 0;
     const next = () => {
-      items.append(...list.slice(shown, shown + CALLS_SHOWN).map((c) => callItem(c, rel)));
+      items.append(...list.slice(shown, shown + CALLS_SHOWN).map(item));
       shown = Math.min(list.length, shown + CALLS_SHOWN);
       more.hidden = shown >= list.length;
       more.textContent = `Show ${Math.min(CALLS_SHOWN, list.length - shown)} more of ${list.length - shown}`;
@@ -1470,9 +1557,64 @@
     more.addEventListener("click", next);
     next();
     return el("section", { class: "group" },
-      el("div", { class: "group-head" }, el("h3", { class: "group-title" }, el("span", { class: "dot t-FN" }), title),
+      el("div", { class: "group-head" }, el("h3", { class: "group-title" }, el("span", { class: `dot t-${type}` }), title),
         el("span", { class: "group-count", text: list.length })),
       items, more);
+  }
+
+  // ---- a box's panel (TASK-TRC-026: RQ-TRC-047, RQ-TRC-016; DEC-TRC-022) ---------------------------------------
+  // Its kind and name, the box around it, its inner boxes and own functions, its calls in and out by box at its own
+  // level, and the requirements its functions cite.
+  function renderBoxDetail(panel, box) {
+    const members = boxes.membersOf(box.key);
+    const inner = boxes.innerOf(box.key).sort(byKeyLabel);
+    const own = (box.box === FILE_BOX ? members : members.filter((i) => boxes.scopeOf(i) === box.key)).map((i) => fnKeys[i]);
+    const cited = unique(members.flatMap((i) => links.get(fnKeys[i]).filter((l) => l.kind === "code" && l.dir === "out"
+      && nodes.get(l.key).type === "RQ").map((l) => l.key))).sort(byKeyLabel);
+    const { callers, callees } = boxCalls(box, members);
+    const keyItem = (key) => el("li", { class: "link-item" }, idButton(key));
+    const head = el("div", { class: "detail-head t-FN" },
+      el("div", { class: "detail-kind" }, el("span", { class: "dot t-FN" }), BOX_NAME[box.box]),
+      el("h2", { class: "detail-id", text: box.label }),
+      el("div", { class: "detail-actions" },
+        el("button", { class: "button button-primary", type: "button", text: "Show in graph",
+          title: "Open the graph on this box, its functions and their links", on: { click: () => showView("graph") } }),
+        el("button", { class: "button", type: "button", text: "Copy name",
+          title: "Copy the box's name to the clipboard", on: { click: () => copy(box.label) } })));
+    const badge = (type, text) => el("span", { class: `badge badge-neutral t-${type}` }, el("span", { class: `dot t-${type}` }), text);
+    const summary = el("div", { class: "detail-summary" }, badge("FN", `Inner boxes ${inner.length}`),
+      badge("FN", `${plural("FN", members.length)} ${members.length}`), badge("RQ", `${plural("RQ", cited.length)} ${cited.length}`),
+      badge("FN", `Callers ${callers.length}`), badge("FN", `Callees ${callees.length}`));
+    panel.append(...[head, summary,
+      box.parent ? listGroup("Enclosing box", [box.parent], keyItem) : null,
+      inner.length ? listGroup("Inner boxes", inner, keyItem) : null,
+      listGroup(plural("FN", own.length), own.sort(byKeyLabel), keyItem),
+      listGroup("Callers by box", callers, boxCallItem("called by")),
+      listGroup("Callees by box", callees, boxCallItem("calls")),
+      listGroup(plural("RQ", cited.length), cited, keyItem, "RQ")].filter(Boolean));
+  }
+
+  // The calls into and out of a box's functions, by the box of the other end at the box's own level, with their
+  // call-site counts; calls among its own functions are left out.
+  function boxCalls(box, members) {
+    const level = box.box === CLASS_KIND ? DETAIL.class : DETAIL.namespace;
+    const inside = new Set(members);
+    const tally = (list) => {
+      const counts = new Map();
+      for (const c of list) {
+        const other = calls.index.get(c.key);
+        if (inside.has(other)) continue;
+        const key = boxes.of(other, level);
+        counts.set(key, (counts.get(key) || 0) + c.lines.length);
+      }
+      return [...counts].map(([key, count]) => ({ key, count })).sort((a, b) => byKeyLabel(a.key, b.key));
+    };
+    return { callers: tally(members.flatMap((i) => calls.callers(i))), callees: tally(members.flatMap((i) => calls.callees(i))) };
+  }
+
+  function boxCallItem(rel) {
+    return ({ key, count }) => el("li", { class: "link-item" }, idButton(key),
+      el("span", { class: "link-rel", text: `${rel} · ${count} ${count === 1 ? "call site" : "call sites"}` }));
   }
 
   function callItem(c, rel) {
@@ -1517,13 +1659,16 @@
   }
 
   // ---- selection, views, history ------------------------------------------------------------------------------
+  // An element, file or function of the model, or a box of the call graph (DEC-TRC-022).
+  const isKey = (key) => nodes.has(key) || Boolean(boxes.get(key));
+
   function hashKey() {
     const raw = decodeURIComponent(location.hash.slice(1));
-    return nodes.has(raw) ? raw : null;
+    return isKey(raw) ? raw : null;
   }
 
   function select(key, options) {
-    if (!nodes.has(key)) return;
+    if (!isKey(key)) return;
     const fromHistory = options?.fromHistory;
     state.selected = key;
     renderDetail();
