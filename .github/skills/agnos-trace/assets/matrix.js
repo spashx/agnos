@@ -528,6 +528,15 @@
       draw();
     });
     $("show-files").addEventListener("change", () => draw());
+    if (CALL_GRAPH) {       // RQ-TRC-041: the Function type filter, at hand in the graph's own toolbar
+      const toggle = el("input", { type: "checkbox", id: "show-functions" });
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) state.types.add("FN"); else state.types.delete("FN");
+        renderFilters();
+        filtersChanged();
+      });
+      $("show-files").closest("label").after(el("label", { class: "toggle" }, toggle, " Functions"));
+    }
     $("show-containment").addEventListener("change", () => draw());
     $("fit").addEventListener("click", () => cy?.fit(undefined, num("--s-space-xl")));  // the whole drawing, any zoom
     $("whole").addEventListener("click", () => {
@@ -656,6 +665,7 @@
   }
 
   function renderFilters() {
+    if (CALL_GRAPH) $("show-functions").checked = state.types.has("FN");
     clear($("type-filters")).append(...NODE_TYPES.map((t) => chip(plural(t, 2), counts[t], state.types.has(t), () => {
       toggle(state.types, t); renderFilters(); filtersChanged();
     }, `t-${t}`)));
@@ -781,8 +791,15 @@
       feature: all.filter((l) => l.kind === "contains" && l.dir === "in").map((l) => l.key),
       decisions: unique(ofTypes(["ADR", "DEC"], ["in", "out"])),
       tasks: unique(ofTypes(["TASK", "PLAN"], ["in"])),
+      functions: functionsCiting(rq.key),
       files: unique(files), lines, coverage: DATA.coverage[rq.key],
     };
+  }
+
+  // RQ-TRC-041: the functions citing an element, in their lines or the comment just above them.
+  function functionsCiting(key) {
+    return unique(links.get(key).filter((l) => l.kind === "code" && l.dir === "in" && nodes.get(l.key).type === "FN")
+      .map((l) => l.key));
   }
 
   function unique(list) { return [...new Set(list)]; }
@@ -793,6 +810,7 @@
     { key: "feature", label: "Feature", value: (r) => r.feature.join(" ") },
     { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length, num: true },
     { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, num: true },
+    ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length, num: true }] : []),
     { key: "files", label: "Source files", value: (r) => r.files.length, num: true },
     { key: "lines", label: "Lines", value: (r) => r.lines, num: true },
   ];
@@ -803,7 +821,8 @@
     if (state.coverage !== "all" && r.coverage !== state.coverage) return false;
     const q = state.search;
     if (!q) return true;
-    return [r.id, r.title, ...r.feature, ...r.decisions, ...r.tasks, ...r.files.map((f) => nodes.get(f).label)]
+    return [r.id, r.title, ...r.feature, ...r.decisions, ...r.tasks, ...r.functions.map((f) => nodes.get(f).label),
+      ...r.files.map((f) => nodes.get(f).label)]
       .some((v) => v.toLowerCase().includes(q));
   }
 
@@ -845,7 +864,9 @@
         r.status ? el("span", { class: "badge badge-neutral", text: r.status }) : null),
       el("td", {}, coverageBadge(r.coverage)),
       el("td", {}, idList(r.feature)), el("td", {}, idList(r.decisions)), el("td", {}, idList(r.tasks)),
+      CALL_GRAPH ? el("td", {}, idList(r.functions)) : null,
       el("td", {}, idList(r.files)), el("td", { class: "num", text: r.lines || "—" })));
+    $("matrix-table").classList.toggle("with-functions", Boolean(CALL_GRAPH));
     clear($("matrix-table")).append(el("thead", {}, head), el("tbody", {}, body));
     $("matrix-status").textContent = `${rows.length} of ${matrixRows.length} requirements`;
   }
@@ -871,15 +892,21 @@
     return /[",\n;]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
   }
 
-  function exportCsv() {
-    const header = ["Requirement", "Title", "Status", "Feature", "ADRs / decisions", "Plans / tasks", "Source files",
-      "Source lines", "Coverage"];
-    const lines = matrixRows.filter(rowMatches).map((r) => [r.id, r.title, r.status, r.feature.join(" "),
-      r.decisions.join(" "), r.tasks.join(" "), r.files.map((f) => nodes.get(f).label).join(" "),
+  // The matrix rows shown, as CSV; with a call graph, a Functions column of qualified names (RQ-TRC-041).
+  function csvText() {
+    const withFunctions = (row, functions) => (CALL_GRAPH ? [...row, functions] : row);
+    const header = [...withFunctions(["Requirement", "Title", "Status", "Feature", "ADRs / decisions", "Plans / tasks"],
+      "Functions"), "Source files", "Source lines", "Coverage"];
+    const lines = matrixRows.filter(rowMatches).map((r) => [...withFunctions([r.id, r.title, r.status, r.feature.join(" "),
+      r.decisions.join(" "), r.tasks.join(" ")], r.functions.map((f) => nodes.get(f).label).join(" ")),
+      r.files.map((f) => nodes.get(f).label).join(" "),
       fileCitations(r.id).flatMap((l) => l.lines.map((line) => `${nodes.get(l.key).label}:${line[0]}`)).join(" "),
       r.coverage]);
-    const text = [header, ...lines].map((row) => row.map(csvCell).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob(["﻿", text], { type: "text/csv;charset=utf-8" }));
+    return [header, ...lines].map((row) => row.map(csvCell).join(",")).join("\r\n");
+  }
+
+  function exportCsv() {
+    const url = URL.createObjectURL(new Blob(["﻿", csvText()], { type: "text/csv;charset=utf-8" }));
     const a = el("a", { href: url, download: `traceability-${DATA.meta.title}.csv` });
     document.body.append(a);
     a.click();
@@ -942,22 +969,34 @@
       el("div", { class: "detail-actions" },
         el("button", { class: "button button-primary", type: "button", text: "Show in graph", on: { click: () => showView("graph") } }),
         el("button", { class: "button", type: "button", text: "Copy ID", on: { click: () => copy(n.label) } })));
-    const all = links.get(key);
-    const groups = new Map();
-    for (const l of all) {
-      const type = nodes.get(l.key).type;
-      if (!groups.has(type)) groups.set(type, new Map());
-      const byKey = groups.get(type);
-      if (!byKey.has(l.key)) byKey.set(l.key, []);
-      byKey.get(l.key).push(l);
-    }
+    const groups = linksByType(key);
     const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
     const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
       el("span", { class: `badge badge-neutral t-${t}` }, el("span", { class: `dot t-${t}` }), `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
       : el("span", { class: "badge badge-error", text: "No link" }));
     const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
     summary.append(...callSections.map((s) => s.badge));
+    if (CALL_GRAPH && n.type === "RQ" && !groups.has("FN")) summary.append(noFunctionBadge(key));   // RQ-TRC-041
     panel.append(head, summary, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t))));
+  }
+
+  // {type: {linked key: [links]}} of an element's links.
+  function linksByType(key) {
+    const groups = new Map();
+    for (const l of links.get(key)) {
+      const type = nodes.get(l.key).type;
+      if (!groups.has(type)) groups.set(type, new Map());
+      const byKey = groups.get(type);
+      if (!byKey.has(l.key)) byKey.set(l.key, []);
+      byKey.get(l.key).push(l);
+    }
+    return groups;
+  }
+
+  function noFunctionBadge(key) {
+    const note = fileCitations(key).length ? "cited at file level only" : "no function cites it";
+    return el("span", { class: "badge badge-warn t-FN", title: note }, el("span", { class: "dot t-FN" }),
+      `${plural("FN", 0)} 0 · ${note}`);
   }
 
   // RQ-TRC-033: a function's callers and callees, the first CALLS_SHOWN of each, more on request (DEC-TRC-017).
@@ -1165,7 +1204,7 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => graph.restyle());
 
   // ---- start --------------------------------------------------------------------------------------------------
-  window.agnosTrace = { nodes, links, calls, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
+  window.agnosTrace = { nodes, links, calls, csvText, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
     FILE_PREFIX };
   renderHeader();
   renderFilters();

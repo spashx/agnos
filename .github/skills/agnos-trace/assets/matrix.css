@@ -596,6 +596,14 @@ table.matrix th:nth-child(3) { width: 12%; }
 table.matrix th:nth-child(4), table.matrix th:nth-child(5) { width: 14%; }
 table.matrix th:nth-child(6) { width: 16%; }
 table.matrix th:nth-child(7) { width: 7%; }
+/* RQ-TRC-041: with a call graph, a Functions column before the source files */
+table.matrix.with-functions th:nth-child(1) { width: 21%; }
+table.matrix.with-functions th:nth-child(2) { width: 9%; }
+table.matrix.with-functions th:nth-child(3) { width: 10%; }
+table.matrix.with-functions th:nth-child(4), table.matrix.with-functions th:nth-child(5) { width: 12%; }
+table.matrix.with-functions th:nth-child(6) { width: 16%; }
+table.matrix.with-functions th:nth-child(7) { width: 14%; }
+table.matrix.with-functions th:nth-child(8) { width: 6%; }
 table.matrix td { overflow: hidden; }
 .cell-list .id-link { max-width: var(--c-cell-chip-max-width); }
 .cell-list .id { overflow: hidden; text-overflow: ellipsis; }

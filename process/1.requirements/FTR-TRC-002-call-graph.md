@@ -138,6 +138,21 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   the gap list "Untraced functions" holds its untraced functions without changing the Gaps tab's count.
 - **Dependencies**: RQ-TRC-009, RQ-TRC-015
 
+### RQ-TRC-041: Functions in the matrix, the graph toolbar and every requirement's panel
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the page holds a call graph, the matrix SHALL have a "Functions" column (the functions citing each
+  requirement, sortable by their count, exported in the CSV), the graph toolbar SHALL have a "Functions" switch bound
+  to the Function type filter, and a requirement's panel SHALL always show its function count, saying when the
+  requirement is cited at file level only.
+- **Rationale**: a traceability matrix that hides the function level of a requirement hides what the call graph is for.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the fixture page with the call graph, When the matrix opens, Then the row of the
+  requirement cited by `net::Port::send` lists that function under "Functions" and the CSV has a "Functions" column;
+  When the toolbar's "Functions" switch is turned on, Then the type filter is on too; When a requirement cited by no
+  function is selected, Then its panel shows "Functions 0"; Given a page without call graph, Then none of these appear.
+- **Dependencies**: RQ-TRC-014, RQ-TRC-033, RQ-TRC-034
+
 ---
 
 ## Non-Functional Requirements

@@ -367,6 +367,51 @@ class FunctionGraphTest(unittest.TestCase):
         self.assertIn("4 elements · 5 links", attributes["status"])
 
 
+SHOW_CSV = ("document.body.append(Object.assign(document.createElement('pre'), "
+            "{ id: 'csv-text', textContent: agnosTrace.csvText() }));")
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class FunctionMatrixTest(unittest.TestCase):
+    """TASK-TRC-015: RQ-TRC-041 (DEC-TRC-017, DEC-TRC-007), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        call_graph_page(cls.path)
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_041_given_the_call_graph_when_the_matrix_opens_then_each_row_lists_its_functions_and_the_csv_too(self):
+        import re
+        dom = rendered_dom_after(self.path, "agnosTrace.showView('matrix');" + SHOW_CSV)
+        self.assertIn('scope="col">Functions</th>', dom)
+        row = re.search(r'<tr[^>]*data-key="RQ-DEM-001".*?</tr>', dom, re.S).group(0)
+        self.assertIn('<span class="id">net::Port::send</span>', row)
+        csv = re.search(r'<pre id="csv-text">(.*?)</pre>', dom, re.S).group(1)
+        header, *rows = csv.splitlines()
+        self.assertIn(",Functions,", header)
+        self.assertIn("net::Port::send", next(r for r in rows if r.startswith("RQ-DEM-001,")))
+
+    def test_RQ_TRC_041_given_the_toolbar_switch_when_turned_on_then_the_function_type_filter_is_on(self):
+        dom = rendered_dom_after(self.path, "document.getElementById('show-functions').click();")
+        self.assertRegex(dom, r'<button class="chip t-FN" type="button" aria-pressed="true">')
+
+    def test_RQ_TRC_041_given_a_requirement_no_function_cites_when_selected_then_its_panel_says_functions_0(self):
+        dom = rendered_dom(self.path, "#RQ-DEM-003")
+        self.assertIn("Functions 0", dom)
+
+    def test_RQ_TRC_041_given_a_page_without_call_graph_then_no_function_column_switch_or_count_appears(self):
+        dom = rendered_dom_after(self.plain, "agnosTrace.showView('matrix'); agnosTrace.select('RQ-DEM-003');")
+        for absent in ('scope="col">Functions</th>', 'id="show-functions"', "Functions 0"):
+            self.assertNotIn(absent, dom)
+
+
 PERF_FILES = 2000
 PERF_PER_FILE = 10
 PERF_CALLEES = ((1, 0), (7, 1), (13, 3), (29, 7))           # (file step, function step) of each function's callees

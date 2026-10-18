@@ -141,3 +141,20 @@ This plan implements the tasks in the format specified below.
   undefined TRC ID. `unittest discover` 65 tests OK (1 skipped: the large measure), the independence test included.
 - **Assumptions**: only a C++ code base gets functions here: the skill's own sources are Python and JavaScript, languages with no
   entry in the table yet.
+
+### TASK-TRC-015: Functions in the matrix, the graph toolbar and the requirement panel
+- **Tier**: M
+- **Status**: Done
+- **Description**: Add the matrix's "Functions" column (cells, sort, CSV), the graph toolbar's "Functions" switch bound to
+  the type filter, and "Functions 0" with its file-level note in a requirement's panel; nothing of it without call graph.
+- **Requirement refs**: RQ-TRC-041, RQ-TRC-014, RQ-TRC-033, RQ-TRC-034
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-017), ADR-TRC-003 (DEC-TRC-007), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: as RQ-TRC-041.
+- **Dependencies**: TASK-TRC-014
+- **Assignee**: AI
+- **Verification**: `unittest discover` 69 tests OK (1 skipped: the large measure). `FunctionMatrixTest` in headless Edge:
+  "Functions" column header, the function listed in its requirement's row, CSV header and row with it; the toolbar
+  switch turns the type filter's chip on; an uncited requirement shows "Functions 0"; a page without call graph shows
+  none of the three. Screenshot of the matrix on a C++ code base checked. IDE SonarQube: no finding.
+- **Assumptions**: added after the owner's review of the page (the plan had left the matrix out); the panel's note says
+  "cited at file level only" when a source file cites the requirement, else "no function cites it".
