@@ -18,7 +18,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-023: Scopes and their kinds in the call graph data
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the `scopes` map to each entry of `languages.json` (C++: namespace and class kinds; C: none),
   record every scope the analysis reads with its qualified name, kind and parent, guess the kind of a qualifier part no
   scanned file declares (innermost part of a method's qualifier: class; else namespace), and embed the `scopes` table
@@ -32,8 +32,13 @@ This plan implements the tasks in the format specified below.
   at most one integer per function and one row per scope.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `ScopesTest` 6/6 OK (scopes `net` namespace, `net::Port` and `net::Session` class with parent 0;
+  `Session::send` and the constructor in `net::Session`; `relay`, `log`, `operator==` and the C functions none; guessed
+  `ui` namespace and `ui::Widget` class; 8-field rows, one scope row each); whole suite 80 OK, 1 skipped, the golden
+  page without call graph and the two identical runs included. On a C++ code base: 124 scopes (108 class, 16 namespace), 1584
+  of 1908 functions in a scope, 4806 bytes of scope table; Sonar: no finding.
+- **Assumptions**: the table keeps only the scopes that hold a function, directly or through an inner scope (a declared
+  scope without function body would be an empty box); the first declaration in file order gives a scope's kind.
 
 ### TASK-TRC-024: Functions mapped to boxes at a level of detail
 - **Tier**: M

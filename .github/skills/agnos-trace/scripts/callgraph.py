@@ -25,6 +25,8 @@ CALL, CALL_NAME = "call", "call.name"
 COMMENT = "comment"
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
 MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
+NAMESPACE_KIND, CLASS_KIND = "namespace", "class"  # the box kinds of a scope (DEC-TRC-019)
+NO_SCOPE = -1                                      # the scope index of a function without box (DEC-TRC-019)
 FOLDER_SEPARATOR = "/"                             # in the shown paths of the files
 TEMPLATE_ARGS_RE = re.compile(r"<[^<>]*>")         # innermost template or generic arguments, removed until none is left
 MEMBER_RE = re.compile(r"::|\.|->")                # what separates a called name from its receiver or qualifier
@@ -57,17 +59,19 @@ class TreeSitter:
 # ---- languages ---------------------------------------------------------------------------------------------------
 # RQ-TRC-032, DEC-TRC-014
 class Grammar:
-    """One language of the table, loaded: its name, tree-sitter language, compiled query and scope separator."""
+    """One language of the table, loaded: its name, tree-sitter language, compiled query, scope separator and the box
+    kind of each scope node type (RQ-TRC-047, DEC-TRC-019)."""
 
     def __init__(self, name, entry, language, query):
         self.name = name
         self.language = language
         self.query = query
         self.separator = entry["separator"]
+        self.scopes = entry.get("scopes", {})
 
 
 def load_table(path=LANGUAGES_PATH):
-    """The language table: {language: {extensions, package, module, query, separator[, function]}}."""
+    """The language table: {language: {extensions, package, module, query, separator[, scopes][, function]}}."""
     table = json.loads(Path(path).read_text(encoding="utf-8"))
     return {name: entry for name, entry in table.items() if not name.startswith(TABLE_NOTE_PREFIX)}
 
@@ -176,7 +180,14 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           "name": qualified.split(separator)[-1], "scope": separator.join(qualified.split(separator)[:-1]),
                           "language": grammar.name, "text": evidence(first, lines[first - 1])[1], "ids": ids,
                           "node": node})
-    return functions, caps[CALL]
+    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE])
+
+
+# RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
+def declared_scopes(grammar, scopes):
+    """{qualified name: kind} of the scopes of one file whose node type has a box kind in the language table."""
+    return {grammar.separator.join(scope_names(node, scopes)): grammar.scopes[node.type]
+            for node, _ in scopes if node.type in grammar.scopes}
 
 
 def call_sites(functions, calls):
@@ -264,6 +275,30 @@ def assign_keys(functions):
         function["dup"] = n if n > 1 else 0
 
 
+# RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
+def assign_scopes(graph, declared, grammars):
+    """graph.scopes, [qualified name, kind, parent index] of each scope holding a function, in name order, and each
+    function's scope_index (NO_SCOPE: none, or a language without scopes). A part of a function's scope that no scanned
+    file declares is a class when it is the innermost part, else a namespace; a class guess wins over a namespace one."""
+    kinds = {}
+    for function in graph.functions:
+        grammar = grammars[function["language"]]
+        if not (grammar.scopes and function["scope"]):
+            continue
+        parts = function["scope"].split(grammar.separator)
+        for n in range(len(parts)):
+            name = grammar.separator.join(parts[:n + 1])
+            was_class = kinds.get(name, (None,))[0] == CLASS_KIND
+            guessed = CLASS_KIND if was_class or n == len(parts) - 1 else NAMESPACE_KIND
+            kinds[name] = (declared.get(name, guessed), grammar.separator)
+    index = {name: n for n, name in enumerate(sorted(kinds))}
+    graph.scopes = [[name, kind, index.get(name.rpartition(separator)[0], NO_SCOPE)]
+                    for name, (kind, separator) in sorted(kinds.items())]
+    for function in graph.functions:
+        scoped = grammars[function["language"]].scopes
+        function["scope_index"] = index.get(function["scope"], NO_SCOPE) if scoped else NO_SCOPE
+
+
 # ---- the call graph ----------------------------------------------------------------------------------------------
 class CallGraph:
     """The functions and calls found, the ambiguous and external call counts, and the packages that were missing."""
@@ -271,6 +306,7 @@ class CallGraph:
     def __init__(self):
         self.functions = []
         self.calls = []
+        self.scopes = []
         self.ambiguous = 0
         self.external = 0
         self.core_missing = False
@@ -289,13 +325,14 @@ class CallGraph:
     # RQ-TRC-038, DEC-TRC-016 (TASK-TRC-012)
     def page_data(self, file_index):
         """The call graph as the page reads it, names stored once:
-        functions [file index, first, last, qualified name, language index, first-line text, key suffix (0: none)];
+        functions [file index, first, last, qualified name, language index, first-line text, key suffix (0: none),
+        scope index (-1: none)]; scopes [qualified name, kind, parent index (-1: none)] (RQ-TRC-047, DEC-TRC-019);
         calls, one flat list of integers per caller in function order: caller - previous caller, callee count, then per
         callee: callee - caller, ambiguous + 2 * line count, each call-site line - the caller's first line;
         ids [function index, ID, [lines]] (the proofs' texts are the file's); untraced: functions citing no ID."""
         languages = sorted({f["language"] for f in self.functions})
         functions = [[file_index[f["file"]], f["first"], f["last"], f["qualified"], languages.index(f["language"]),
-                      f["text"], f["dup"]] for f in self.functions]
+                      f["text"], f["dup"], f["scope_index"]] for f in self.functions]
         by_caller = {}
         for caller, callee, ambiguous, lines in self.calls:
             by_caller.setdefault(caller, []).append((callee, ambiguous, lines))
@@ -308,7 +345,7 @@ class CallGraph:
             previous = caller
         ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
                for target, proofs in sorted(f["ids"].items())]
-        return {"functions": functions, "languages": languages, "calls": calls, "ids": ids,
+        return {"functions": functions, "languages": languages, "scopes": self.scopes, "calls": calls, "ids": ids,
                 "untraced": [n for n, f in enumerate(self.functions) if not f["ids"]],
                 "counts": {"functions": len(self.functions), "calls": len(self.calls), "ambiguous": self.ambiguous,
                            "external": self.external}}
@@ -326,14 +363,17 @@ def analyse(files, cited, evidence, table=None):
         graph.core_missing = True
         return graph
     grammars, graph.missing = load_grammars(load_table() if table is None else table, api)
-    sites = []
+    sites, declared = [], {}
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
-            functions, calls = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            functions, calls, scopes = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
             graph.functions += functions
             sites += call_sites(functions, calls)
+            for name, kind in scopes.items():
+                declared.setdefault(name, kind)
     assign_keys(graph.functions)
+    assign_scopes(graph, declared, {g.name: g for g in grammars.values()})
     resolve(graph, sites, {g.name: g.separator for g in grammars.values()})
     for function in graph.functions:
         del function["node"]

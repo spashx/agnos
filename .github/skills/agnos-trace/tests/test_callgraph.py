@@ -272,6 +272,56 @@ class PageDataTest(unittest.TestCase):
         self.assertNotIn("untraced-functions", self.data["gapKinds"])
 
 
+def scope_of(graph, qualified):
+    """The qualified name of the function's scope in the graph's scope table, None when it has none."""
+    index = by_name(graph)[qualified]["scope_index"]
+    return graph.scopes[index][0] if index >= 0 else None
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class ScopesTest(unittest.TestCase):
+    """TASK-TRC-023: RQ-TRC-047, RQ-TRC-032, RQ-TRC-038, RQ-TRC-040 (DEC-TRC-019)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = fixture_call_graph()[1]
+
+    def test_RQ_TRC_047_given_the_language_table_then_cpp_maps_its_scope_nodes_to_kinds_and_c_has_none(self):
+        table = cg.load_table()
+        self.assertEqual({"namespace_definition": "namespace", "class_specifier": "class",
+                          "struct_specifier": "class", "union_specifier": "class"}, table["cpp"]["scopes"])
+        self.assertEqual({}, table["c"].get("scopes", {}))
+
+    def test_RQ_TRC_047_given_the_fixture_when_analysed_then_the_scopes_are_net_and_its_two_classes(self):
+        self.assertEqual([["net", "namespace", -1], ["net::Port", "class", 0], ["net::Session", "class", 0]],
+                         self.graph.scopes)
+
+    def test_RQ_TRC_047_given_functions_in_and_out_of_their_class_when_analysed_then_each_has_its_class_scope(self):
+        self.assertEqual("net::Port", scope_of(self.graph, "net::Port::send"))
+        self.assertEqual("net::Session", scope_of(self.graph, "net::Session::send"))      # defined out of its class
+        self.assertEqual("net::Session", scope_of(self.graph, "net::Session::Session"))
+
+    def test_RQ_TRC_047_given_functions_outside_any_scope_or_in_c_when_analysed_then_they_have_none(self):
+        for name in ("relay", "log", "operator==", "helper", "table", "run"):
+            self.assertIsNone(scope_of(self.graph, name), name)
+
+    def test_RQ_TRC_047_given_a_method_of_a_class_declared_in_no_scanned_file_then_its_kinds_are_guessed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "widget.cpp"
+            path.write_text("int ui::Widget::paint() { return 0; }\n", encoding="utf-8")
+            graph = cg.analyse([("widget.cpp", path)], {}, tm.evidence)
+        self.assertEqual([["ui", "namespace", -1], ["ui::Widget", "class", 0]], graph.scopes)
+        self.assertEqual("ui::Widget", scope_of(graph, "ui::Widget::paint"))
+
+    def test_RQ_TRC_038_given_the_page_data_then_it_adds_one_scope_index_per_function_and_one_row_per_scope(self):
+        data = self.graph.page_data({f["file"]: n for n, f in enumerate(self.graph.functions)})
+        self.assertEqual(self.graph.scopes, data["scopes"])
+        rows = {row[3]: row for row in data["functions"]}
+        self.assertEqual({8}, {len(row) for row in rows.values()})
+        self.assertEqual(1, rows["net::Port::send"][7])
+        self.assertEqual(-1, rows["relay"][7])
+
+
 @unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
 class FunctionPanelTest(unittest.TestCase):
     """TASK-TRC-012: RQ-TRC-033, RQ-TRC-035 (DEC-TRC-016, DEC-TRC-018), in a real browser."""
