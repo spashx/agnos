@@ -2,3 +2,6 @@
 process/INDEX.idx.md text eol=lf
 .github/skills/agnos-index/scripts/*.sh text eol=lf
 .github/skills/agnos-index/tests/** -text
+
+# RQ-TRC-024 / DEC-TRC-006: the vendored graph library is compared with its recorded SHA-256, so it stays byte-exact
+.github/skills/agnos-trace/scripts/vendor/** -text

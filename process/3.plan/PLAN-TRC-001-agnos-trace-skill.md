@@ -139,7 +139,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-007: Skill packaging and run on this repository
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `SKILL.md` and its Claude Code pointer, the independence test, link the skill from AGENTS.md,
   ignore the generated page in this repository, and run the skill on `process/` and a C++ code base.
 - **Requirement refs**: RQ-TRC-017, RQ-TRC-019, RQ-TRC-020, RQ-TRC-021
@@ -148,5 +148,10 @@ This plan implements the tasks in the format specified below.
   10 s, the summary line gives the gap counts, and the independence test finds no product term in the skill.
 - **Dependencies**: TASK-TRC-006
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: unittest: 36 tests OK, 2 new (no host-project term anywhere in the skill folder — the terms are
+  base64 in the test; the generator imports the standard library only). On this repository, with the AGENTS.md command:
+  "544 elements, 324 files; RQ 209: covered 190, indirect 16, uncovered 3; gaps: … empty 3, isolated 0, undefined 94,
+  untraced-files 53", 0.60 s, 2.2 MB page, ignored by git. `git check-attr text` on the vendored library: unset.
+- **Assumptions**: The tests need Python 3.10 (`sys.stdlib_module_names`); the generator keeps to 3.9. The repository's
+  command scans the skill's own scripts and assets so that FTR-TRC-001 is traced; it leaves out the skill's tests, whose
+  fixture IDs would be counted as undefined.

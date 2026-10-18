@@ -395,5 +395,30 @@ class GraphViewTest(unittest.TestCase):
         self.assertIn("<canvas", dom)
 
 
+HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
+                  "eHBsb3Jlcg==")   # the host project's names and domain terms, encoded so that this file holds none
+
+
+class IndependenceTest(unittest.TestCase):
+    """TASK-TRC-007: RQ-TRC-019, RQ-TRC-021 (DEC-TRC-001)."""
+
+    def test_RQ_TRC_019_given_the_skill_folder_when_scanned_then_it_names_nothing_of_the_host_project(self):
+        import base64
+        terms = [base64.b64decode(t).decode() for t in HOST_TERMS_B64]
+        found = []
+        for path in SKILL.rglob("*"):
+            if path.is_file() and "__pycache__" not in path.parts:
+                text = path.read_text(encoding="utf-8", errors="replace").lower()
+                found += [f"{path.relative_to(SKILL)}: {t}" for t in terms if t in text]
+        self.assertEqual([], found)
+
+    def test_RQ_TRC_021_given_the_generator_when_its_imports_are_read_then_they_are_all_standard_library(self):
+        import ast
+        tree = ast.parse((SKILL / "scripts" / "trace_matrix.py").read_text(encoding="utf-8"))
+        imported = {alias.name.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
+        imported |= {node.module.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module}
+        self.assertEqual(set(), imported - set(sys.stdlib_module_names))
+
+
 if __name__ == "__main__":
     unittest.main()
