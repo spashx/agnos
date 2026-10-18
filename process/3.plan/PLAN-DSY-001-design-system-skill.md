@@ -35,3 +35,21 @@ former template path.
   documentation and a file move (`unit_tests=true` but nothing executable to test). The
   agnos-index test fixture `design-system-template.md` is left as is (tests the `template.md`
   exclusion).
+
+### TASK-DSY-002: README and GETTING_STARTED aligned with the current process and skills
+- **Tier**: S
+- **Status**: Done
+- **Description**: Rewrite README.md (positioning, components, tiers) and update GETTING_STARTED.MD
+  (agnos-index at session start, DEC headings, commit-time index refresh, new agnos-trace stage,
+  agnos-design-system skill).
+- **Requirement refs**: RQ-DSY-001
+- **ADR refs**: ADR-DSY-001 (DEC-DSY-001)
+- **Acceptance Criteria** (Gherkin):
+  - **Given** README.md and GETTING_STARTED.MD
+  - **When** they are compared with the instructions file and the skills
+  - **Then** they describe the four skills and the current procedures without contradiction
+- **Dependencies**: TASK-DSY-001
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: Documentation-only task, traced to RQ-DSY-001 since it documents the new skill;
+  approved by the user. Tier S kept as no code, no new file, no API.
