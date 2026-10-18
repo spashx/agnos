@@ -1,7 +1,7 @@
 # ADR-TRC-005: Namespace and Class Boxes in the Graph
 
 ## Status
-Proposed — owner request of 2026-10-18 (functions in nested namespace and class boxes, three levels of detail, the
+Accepted — reviewed and accepted by the owner on 2026-10-18. Implemented by PLAN-TRC-003. Owner request of 2026-10-18 (functions in nested namespace and class boxes, three levels of detail, the
 enclosing boxes shown or not), reformulated and confirmed as RQ-TRC-047 (FTR-TRC-002). Extends ADR-TRC-004 (the call
 graph's data and its place in the graph) and ADR-TRC-003 (the flow graph, DEC-TRC-006); styled through ADR-TRC-002.
 
