@@ -35,7 +35,8 @@
     <div class="search">
       <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
       <input id="search" type="search" placeholder="Search ID, title or file…" autocomplete="off" spellcheck="false"
-             aria-label="Search" aria-controls="search-results" aria-expanded="false" role="combobox">
+             aria-label="Search" aria-controls="search-results" aria-expanded="false" role="combobox"
+             title="Find an element by its ID, title, file path or function name; it also filters the matrix · shortcut: /">
       <kbd class="search-key">/</kbd>
       <ul class="search-results" id="search-results" role="listbox" hidden></ul>
     </div>
@@ -59,10 +60,14 @@
 
   <main class="main">
     <nav class="tabs" role="tablist" aria-label="Views">
-      <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true">Overview</button>
-      <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false">Graph</button>
-      <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false">Matrix</button>
-      <button class="tab" role="tab" type="button" data-view="gaps" aria-selected="false">Gaps <span class="tab-count" id="gaps-count"></span></button>
+      <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true"
+              title="Counts, requirement coverage, gaps and coverage per trigram">Overview</button>
+      <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false"
+              title="The selected element and its links, drawn as a flow of columns">Graph</button>
+      <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false"
+              title="One row per requirement: what contains, decides, plans, implements and cites it">Matrix</button>
+      <button class="tab" role="tab" type="button" data-view="gaps" aria-selected="false"
+              title="Breaches of the traceability rules, list by list; the count is their total">Gaps <span class="tab-count" id="gaps-count"></span></button>
     </nav>
 
     <section class="view" id="view-overview" role="tabpanel">
@@ -85,18 +90,19 @@
 
     <section class="view" id="view-graph" role="tabpanel" hidden>
       <div class="toolbar">
-        <div class="segmented" id="depth" role="group" aria-label="Depth">
+        <fieldset class="segmented" id="depth" aria-label="Depth"
+                  title="How many links away from the selection the graph goes">
           <span class="segmented-label">Depth</span>
-          <button type="button" data-depth="1" aria-pressed="true">1</button>
-          <button type="button" data-depth="2">2</button>
-          <button type="button" data-depth="3">3</button>
-        </div>
-        <label class="toggle"><input type="checkbox" id="show-files" checked> Source files</label>
-        <label class="toggle"><input type="checkbox" id="show-containment" checked> Containment</label>
+          <button type="button" data-depth="1" aria-pressed="true" title="The selection's direct links only">1</button>
+          <button type="button" data-depth="2" title="Also the links of those elements">2</button>
+          <button type="button" data-depth="3" title="Three links away: large; at most 400 elements are drawn">3</button>
+        </fieldset>
+        <label class="toggle" title="Draw the source files citing the elements (dotted links); off, only process elements remain"><input type="checkbox" id="show-files" checked> Source files</label>
+        <label class="toggle" title="Draw what contains what: feature → requirement, ADR → decision, plan → task, file → function (dashed links)"><input type="checkbox" id="show-containment" checked> Containment</label>
         <span class="toolbar-spacer"></span>
-        <span class="graph-status" id="graph-status"></span>
-        <button class="button" type="button" id="fit">Fit</button>
-        <button class="button" type="button" id="whole">Whole graph</button>
+        <span class="graph-status" id="graph-status" title="Elements and links drawn, depth, elements left out by the limits, drawing time"></span>
+        <button class="button" type="button" id="fit" title="Zoom out so that the whole drawing fits the frame">Fit</button>
+        <button class="button" type="button" id="whole" title="Draw every element shown by the filters, as dots, whatever the selection (asks first above 1,500)">Whole graph</button>
       </div>
       <div class="graph-frame">
         <div class="graph-scroll" id="graph-scroll"><div class="graph" id="cy" aria-label="Traceability graph"></div></div>
@@ -107,15 +113,15 @@
 
     <section class="view" id="view-matrix" role="tabpanel" hidden>
       <div class="toolbar">
-        <div class="segmented" id="coverage-filter" role="group" aria-label="Coverage">
-          <button type="button" data-coverage="all" aria-pressed="true">All</button>
-          <button type="button" data-coverage="covered">Covered</button>
-          <button type="button" data-coverage="indirect">Indirect</button>
-          <button type="button" data-coverage="uncovered">Uncovered</button>
-        </div>
+        <fieldset class="segmented" id="coverage-filter" aria-label="Coverage" title="Show the requirements of one coverage only">
+          <button type="button" data-coverage="all" aria-pressed="true" title="Every requirement">All</button>
+          <button type="button" data-coverage="covered" title="A source file cites the requirement">Covered</button>
+          <button type="button" data-coverage="indirect" title="A source file cites a decision, task, ADR, plan or feature linked to it">Indirect</button>
+          <button type="button" data-coverage="uncovered" title="No source file cites it, directly or indirectly">Uncovered</button>
+        </fieldset>
         <span class="toolbar-spacer"></span>
-        <span class="graph-status" id="matrix-status"></span>
-        <button class="button" type="button" id="export-csv">Export CSV</button>
+        <span class="graph-status" id="matrix-status" title="Rows shown by the search, the trigrams and the coverage filter"></span>
+        <button class="button" type="button" id="export-csv" title="Download the rows shown as a CSV file (UTF-8, comma-separated)">Export CSV</button>
       </div>
       <div class="table-frame"><table class="matrix" id="matrix-table"></table></div>
     </section>

@@ -265,6 +265,30 @@ ADR-TRC-003).
   unchanged; When the grip is double-clicked, Then the default widths come back.
 - **Dependencies**: RQ-TRC-014, RQ-TRC-018, RQ-TRC-025, RQ-TRC-042, DEC-TRC-012
 
+### RQ-TRC-044: Readable relations in the graph
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The graph SHALL draw each relation (contains, cites, cited in code, calls, ambiguous call) with a line
+  style and colour pair of its own, an arrow from the container to the contained, from the citing to the cited and from
+  the caller to the callee, and SHALL show in its legend a drawn sample of each line with its arrow and its meaning.
+- **Rationale**: two relations drawn alike, or a call without direction, cannot be read.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the page, When the graph's look of the relations is read, Then no two relations share
+  a line style and colour and every relation has an arrow; When the legend is shown, Then it has one drawn sample per
+  relation, with no line-style word.
+- **Dependencies**: RQ-TRC-012, RQ-TRC-018, RQ-TRC-034, DEC-TRC-006, DEC-TRC-017
+
+### RQ-TRC-045: Explanatory tooltips
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The page SHALL give every control (view tabs, type and trigram filters, gap shortcuts, the graph
+  toolbar's depth, switches, Fit and Whole graph, the coverage filter, Export CSV, the matrix headers, the detail panel's
+  buttons, the overview tiles) a tooltip that says what it does or what it counts.
+- **Rationale**: a reader new to the page learns it by pointing, not by reading a manual.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the page, When its controls are read, Then each one listed has a non-empty title.
+- **Dependencies**: RQ-TRC-010 to RQ-TRC-016
+
 ---
 
 ## Non-Functional Requirements

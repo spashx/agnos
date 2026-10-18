@@ -57,8 +57,10 @@ page builds its adjacency lists from the arrays at load, once, without objects p
 - The flow graph (DEC-TRC-006) gains a "Functions" column and a hard limit of 400 drawn nodes: levels are added nearest
   first and the last level is cut when the limit is reached, the status line saying how many are left out (RQ-TRC-037);
   column caps (72) and sub-columns stay.
-- Call edges use Cytoscape's cheapest edge style (`haystack`, no arrow, no bow) and are hidden while the graph is panned
-  or zoomed (`hideEdgesOnViewport`); ambiguous calls are dashed. A straight edge cannot bow round a column, so around a
+- Call edges are hidden while the graph is panned or zoomed (`hideEdgesOnViewport`). They were first drawn in
+  Cytoscape's cheapest style (`haystack`), which has no arrow; on the owner's review (RQ-TRC-044, TASK-TRC-019) they are
+  `straight` edges with an arrow, caller → callee, the next cheapest style, and the 400-node limit bounds their number.
+  Ambiguous calls take the warning colour. A straight edge cannot bow round a column, so around a
   selected function its column splits in three, callers · the function · callees, and calls run left to right
   (added at implementation, TASK-TRC-013).
 - "Whole graph" leaves functions out unless their filter is on, and then asks first above 1,500 nodes, as today.

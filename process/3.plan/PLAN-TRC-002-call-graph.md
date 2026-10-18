@@ -207,3 +207,24 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: the first resize freezes every column at its drawn width and the table becomes as wide as its
   columns (the frame scrolls, RQ-TRC-042); an ID in a cell now takes its column's width, so the unused chip-max tokens
   are removed; the TASK-TRC-015 header assertions follow the header's new grip.
+
+### TASK-TRC-019: Readable relations and explanatory tooltips
+- **Tier**: M
+- **Status**: Done
+- **Description**: One look per relation (line style, colour, arrow) from a single table that also draws the legend's
+  samples; calls drawn as straight edges with an arrow (a haystack edge has none), ambiguous ones in the warning colour;
+  tooltips on every control of the page.
+- **Requirement refs**: RQ-TRC-044, RQ-TRC-045, RQ-TRC-012, RQ-TRC-034
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-017), ADR-TRC-003 (DEC-TRC-006), ADR-TRC-002 (DEC-TRC-010, DEC-TRC-011)
+- **Acceptance Criteria**: as RQ-TRC-044 and RQ-TRC-045.
+- **Dependencies**: TASK-TRC-018
+- **Assignee**: AI
+- **Verification**: `unittest discover` 73 tests OK (1 skipped: the large measure). `RelationLookTest`: five relations,
+  five distinct dash and colour pairs, an arrow each, five drawn samples, no line-style word in the legend.
+  `TooltipTest`: every listed control has a title. Screenshots on a C++ code base checked: a function's calls in indigo,
+  ambiguous ones in amber, arrows caller → callee; a depth-2 requirement graph with the links away from the selection
+  as a faint trace. IDE SonarQube: no finding.
+- **Assumptions**: owner reviews during the task: thinner links (0.75 px, 1.5 px highlighted) and finer arrow heads
+  (scale 0.6), a highlighted link keeps its relation's colour, links away from the selection at the ghost opacity
+  without arrow; the grey relations use the strong edge colour; the two segmented groups became fieldsets (Sonar
+  S6819); the unused highlight colour token is removed.

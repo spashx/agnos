@@ -228,8 +228,24 @@
   const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FN"], ["FILE"], ["UNDEFINED"]];
   const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Functions", "Source files",
     "Undefined IDs"];
-  const EDGE_LINE = { contains: "dashed", refs: "solid", code: "dotted", ...(CALL_GRAPH ? { calls: "straight" } : {}) };
-  const EDGE_MEANING = { contains: "contains", refs: "cites", code: "cited in code", calls: "calls, dashed when ambiguous" };
+  // RQ-TRC-044: one look per relation — dash pattern token (none: solid), colour token, arrow at the target — read by
+  // the graph's style and by the legend's drawn samples alike. No two relations share a dash and a colour.
+  const EDGE_LOOK = {
+    contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-relation", arrow: "vee",
+      meaning: "contains (container → contained)" },
+    refs: { dash: "", colour: "--c-graph-edge-relation", arrow: "triangle", meaning: "cites (citing → cited)" },
+    code: { dash: "--c-graph-dash-code", colour: "--c-graph-edge-relation", arrow: "triangle",
+      meaning: "cited in code (file or function → ID)" },
+    ...(CALL_GRAPH ? {
+      calls: { dash: "", colour: "--c-graph-edge-call", arrow: "triangle", meaning: "calls (caller → callee)" },
+      ambiguous: { dash: "", colour: "--c-graph-edge-ambiguous", arrow: "triangle",
+        meaning: "ambiguous call (the name matches several definitions)" },
+    } : {}),
+  };
+  const EDGE_SELECTOR = { ambiguous: 'edge[kind = "calls"][?ambiguous]' };
+  const SAMPLE_WIDTH = 32;              // the legend's line sample, in its own SVG units
+  const SAMPLE_HEIGHT = 10;
+  const SAMPLE_ARROW = 7;
   const MAX_DRAWN = 400;                // nodes drawn at most, nearest levels first (RQ-TRC-037, DEC-TRC-017)
   const MAX_ROWS = 18;                  // a taller column wraps into sub-columns
   const MAX_PER_COLUMN = 72;            // beyond this, the column ends with a "+n more" note
@@ -256,7 +272,7 @@
   function callEdges(index, key, kept) {
     const edges = [];
     calls.each(index, (other, ambiguous, dir) => {
-      if (dir === "out" && other !== key && kept.has(other)) {       // a haystack edge cannot loop: recursion not drawn
+      if (dir === "out" && other !== key && kept.has(other)) {       // a recursive call is not drawn
         edges.push({ group: "edges", data: { id: `${key}>${other}>calls`, source: key, target: other, kind: "calls",
           ambiguous: ambiguous === 1, curve: 0 } });
       }
@@ -307,20 +323,57 @@
         { selector: "edge", style: {
           width: num("--c-graph-edge-width"), "line-color": prop("--c-graph-edge"), "curve-style": "unbundled-bezier",
           "control-point-distances": "data(curve)", "control-point-weights": BOW_WEIGHT, opacity: num("--s-opacity-muted") } },
-        ...Object.entries(EDGE_LINE).filter(([kind]) => kind !== "calls")
-          .map(([kind, line]) => ({ selector: `edge[kind = "${kind}"]`, style: { "line-style": line } })),
-        // Calls: the cheapest edges Cytoscape draws, straight, in the function colour (DEC-TRC-017).
-        { selector: 'edge[kind = "calls"]', style: { "curve-style": "haystack", "haystack-radius": 0,
-          "line-color": prop("--s-type-fn"), "line-style": "solid" } },
-        { selector: 'edge[kind = "calls"][?ambiguous]', style: { "line-style": "dashed" } },
+        ...Object.entries(EDGE_LOOK).map(([kind, look]) => ({ selector: EDGE_SELECTOR[kind] || `edge[kind = "${kind}"]`,
+          style: edgeLook(look) })),
+        // Calls: straight, the cheapest edge that still carries an arrow (DEC-TRC-017).
+        { selector: 'edge[kind = "calls"]', style: { "curve-style": "straight" } },
         { selector: ".dim", style: { opacity: num("--c-graph-dim") } },
         { selector: ".faded", style: { opacity: num("--c-graph-faded") } },
-        { selector: "edge.near", style: { width: num("--c-graph-edge-width-highlight"), opacity: 1,
-          "line-color": prop("--c-graph-edge-highlight") } },
+        // A link away from the selection is a faint trace without arrow: only the selection's links stand out.
+        { selector: "edge.faded", style: { opacity: num("--c-graph-edge-faded"), "target-arrow-shape": "none" } },
+        // A highlighted link keeps its relation's colour (RQ-TRC-044): wider and opaque only.
+        { selector: "edge.near", style: { width: num("--c-graph-edge-width-highlight"), opacity: 1 } },
         { selector: "node.item.selected", style: { "border-width": num("--c-graph-selected-border-width"),
           "border-color": prop("--c-graph-selected-border"), "font-weight": prop("--s-weight-bold") } },
         { selector: "node.item.hover", style: { "border-width": num("--c-graph-node-border-width") } },
       ];
+    }
+
+    const dashOf = (look) => (look.dash ? prop(look.dash).split(/\s+/).map(Number) : []);
+
+    function edgeLook(look) {
+      const colour = prop(look.colour);
+      return { "line-style": look.dash ? "dashed" : "solid", ...(look.dash ? { "line-dash-pattern": dashOf(look) } : {}),
+        "line-cap": look.dash === EDGE_LOOK.code.dash ? "round" : "butt", "line-color": colour,
+        "target-arrow-shape": look.arrow, "target-arrow-color": colour, "arrow-scale": num("--c-graph-arrow-scale") };
+    }
+
+    // The legend's sample of a relation: the same dash, colour, width, opacity and arrow as the graph draws it.
+    function edgeSample(look) {
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = (tag, attributes) => {
+        const node = document.createElementNS(ns, tag);
+        Object.entries(attributes).forEach(([k, v]) => node.setAttribute(k, String(v)));
+        return node;
+      };
+      const scale = num("--c-graph-arrow-scale");          // the graph's arrow size, so the sample's matches it
+      const middle = SAMPLE_HEIGHT / 2;
+      const half = middle * scale;
+      const length = SAMPLE_ARROW * scale;
+      const tip = SAMPLE_WIDTH;
+      const base = SAMPLE_WIDTH - length;
+      const head = look.arrow === "vee"
+        ? `${base},${middle - half} ${tip},${middle} ${base},${middle + half} ${base + length / 2},${middle}`
+        : `${base},${middle - half} ${tip},${middle} ${base},${middle + half}`;
+      const line = svg("line", { x1: 0, y1: middle, x2: base, y2: middle, "stroke-width": num("--c-graph-edge-width"),
+        "stroke-dasharray": dashOf(look).join(" ") || "none",
+        "stroke-linecap": look.dash === EDGE_LOOK.code.dash ? "round" : "butt" });
+      line.style.stroke = `var(${look.colour})`;
+      const arrow = svg("polygon", { points: head });
+      arrow.style.fill = `var(${look.colour})`;
+      const box = svg("svg", { class: "legend-edge", viewBox: `0 0 ${SAMPLE_WIDTH} ${SAMPLE_HEIGHT}`, "aria-hidden": "true" });
+      box.append(line, arrow);
+      return box;
     }
 
     function edgeAllowed(l) { return l.kind !== "contains" || showContainment(); }
@@ -552,7 +605,8 @@
         renderFilters();
         filtersChanged();
       });
-      $("show-files").closest("label").after(el("label", { class: "toggle" }, toggle, " Functions"));
+      $("show-files").closest("label").after(el("label", { class: "toggle",
+        title: "Draw the functions citing the elements, and their calls (solid arrows: caller → callee)" }, toggle, " Functions"));
     }
     $("show-containment").addEventListener("change", () => draw());
     $("fit").addEventListener("click", () => {          // the whole drawing in the frame, any zoom
@@ -569,8 +623,8 @@
 
     clear($("legend")).append(...NODE_TYPES.map((t) => el("span", { class: "legend-item" },
       el("span", { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
-    ...Object.entries(EDGE_LINE).map(([kind, line]) => el("span", { class: "legend-item",
-      text: line + " — " + EDGE_MEANING[kind] })));
+    ...Object.values(EDGE_LOOK).map((look) => el("span", { class: "legend-item", title: look.meaning },
+      edgeSample(look), look.meaning)));
 
     return {
       show() { if (dirty || !cy) draw(); else cy.resize(); },
@@ -680,22 +734,28 @@
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------
-  function chip(label, count, pressed, onClick, cls) {
-    return el("button", { class: `chip ${cls || ""}`, type: "button", "aria-pressed": String(pressed), on: { click: onClick } },
-      cls ? el("span", { class: `dot ${cls}` }) : null, label, el("span", { class: "chip-count", text: count }));
+  function chip(label, count, pressed, onClick, cls, title) {
+    return el("button", { class: `chip ${cls || ""}`, type: "button", "aria-pressed": String(pressed), title,
+      on: { click: onClick } },
+    cls ? el("span", { class: `dot ${cls}` }) : null, label, el("span", { class: "chip-count", text: count }));
   }
+
+  // RQ-TRC-045: what a filter does, said where it is.
+  const typeHint = (t) => (t === "FN"
+    ? "Show or hide functions in the graph (the search finds them either way)"
+    : `Show or hide ${plural(t, 2).toLowerCase()} in the search and the graph`);
 
   function renderFilters() {
     if (CALL_GRAPH) $("show-functions").checked = state.types.has("FN");
     clear($("type-filters")).append(...NODE_TYPES.map((t) => chip(plural(t, 2), counts[t], state.types.has(t), () => {
       toggle(state.types, t); renderFilters(); filtersChanged();
-    }, `t-${t}`)));
+    }, `t-${t}`, typeHint(t))));
     const triCount = (tri) => DATA.elements.filter((e) => e.kind === "element" && e.tri === tri).length;
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
-    })));
+    }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
     clear($("gap-shortcuts")).append(...gapKinds.map((g) => el("li", {}, el("button", { class: "gap-shortcut", type: "button",
-      on: { click: () => openGap(g) } }, el("span", { text: GAP[g][0] }),
+      title: GAP[g][1], on: { click: () => openGap(g) } }, el("span", { text: GAP[g][0] }),
       el("span", { class: gapBadgeClass(g, gapItems(g).length), text: gapItems(g).length })))));
   }
 
@@ -826,15 +886,18 @@
   function unique(list) { return [...new Set(list)]; }
 
   const MATRIX_COLUMNS = [
-    { key: "id", label: "Requirement", value: (r) => r.id },
-    { key: "coverage", label: "Coverage", value: (r) => ["covered", "indirect", "uncovered"].indexOf(r.coverage) },
-    { key: "feature", label: "Feature", value: (r) => r.feature.join(" ") },
+    { key: "id", label: "Requirement", value: (r) => r.id, hint: "The requirement, its title and status" },
+    { key: "coverage", label: "Coverage", value: (r) => ["covered", "indirect", "uncovered"].indexOf(r.coverage),
+      hint: "Covered: a source file cites it · Indirect: through a linked decision, task, ADR or plan · Uncovered: neither" },
+    { key: "feature", label: "Feature", value: (r) => r.feature.join(" "), hint: "The feature that contains it" },
     // A list column sorts by its count but shows IDs: its header aligns left, like its cells (only "Lines" is a number).
-    { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length },
-    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length },
-    ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length }] : []),
-    { key: "files", label: "Source files", value: (r) => r.files.length },
-    { key: "lines", label: "Lines", value: (r) => r.lines, num: true },
+    { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length,
+      hint: "ADRs and decisions citing it or cited by it" },
+    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, hint: "Plans and tasks citing it" },
+    ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length,
+      hint: "Functions citing it in their lines or the comment just above them" }] : []),
+    { key: "files", label: "Source files", value: (r) => r.files.length, hint: "Source files citing it" },
+    { key: "lines", label: "Lines", value: (r) => r.lines, num: true, hint: "Source lines citing it, all files together" },
   ];
   const matrixRows = requirements.map(matrixRow);
 
@@ -877,6 +940,7 @@
     });
     const head = el("tr", {}, ...MATRIX_COLUMNS.map((c) => el("th", {
       class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
+      title: `${c.hint} · click to sort`,
       on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
     c.label, columnGrip(c))));
     const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
@@ -1072,8 +1136,10 @@
         n.kind === "undefined" ? el("span", { class: "badge badge-error", text: "Not in the index" }) : null),
       n.doc ? el("div", { class: "detail-location", text: `${n.doc}:${n.first}-${n.last}` }) : null,
       el("div", { class: "detail-actions" },
-        el("button", { class: "button button-primary", type: "button", text: "Show in graph", on: { click: () => showView("graph") } }),
-        el("button", { class: "button", type: "button", text: "Copy ID", on: { click: () => copy(n.label) } })));
+        el("button", { class: "button button-primary", type: "button", text: "Show in graph",
+          title: "Open the graph on this element and its links", on: { click: () => showView("graph") } }),
+        el("button", { class: "button", type: "button", text: "Copy ID",
+          title: "Copy this ID (or name) to the clipboard", on: { click: () => copy(n.label) } })));
     const groups = linksByType(key);
     const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
     const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
@@ -1309,7 +1375,7 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => graph.restyle());
 
   // ---- start --------------------------------------------------------------------------------------------------
-  window.agnosTrace = { nodes, links, calls, csvText, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
+  window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
     FILE_PREFIX };
   renderHeader();
   renderFilters();

@@ -405,6 +405,8 @@ button, input, select { font: inherit; color: inherit; }
 .segmented {
   display: inline-flex;
   align-items: center;
+  min-width: var(--s-space-none);     /* a fieldset: no default width, margin or inner padding */
+  margin: var(--s-space-none);
   height: var(--c-control-height);
   padding: var(--s-space-hair);
   border: var(--s-stroke-hairline) solid var(--c-control-border);
@@ -767,6 +769,8 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 }
 
 .legend-item { display: inline-flex; align-items: center; gap: var(--s-space-xs); }
+/* RQ-TRC-044: a relation's sample, drawn like the graph draws it */
+.legend-edge { flex: none; width: var(--s-space-2xl); height: var(--s-space-md); opacity: var(--s-opacity-muted); }
 .legend-shape { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); background: var(--type-color); }
 .legend-shape.t-UNDEFINED { background: var(--type-color); }
 .shape-FTR { border-radius: var(--s-radius-pill); }

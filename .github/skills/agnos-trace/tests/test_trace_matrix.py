@@ -511,6 +511,39 @@ class ColumnResizeTest(unittest.TestCase):
         self.assertEqual(found["before"], found["reset"])
 
 
+TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
+                   "#show-files", "#show-containment", "#fit", "#whole", "#coverage-filter button", "#export-csv",
+                   "#matrix-table th", ".kpi-type", "#search")
+READ_TOOLTIPS = """
+agnosTrace.select("RQ-DEM-002");
+const untitled = [];
+for (const selector of %s) {
+  const found = [...document.querySelectorAll(selector)];
+  if (!found.length) untitled.push(selector + " (none)");
+  for (const node of found) {
+    const titled = node.title || node.closest("label")?.title;
+    if (!titled) untitled.push(selector);
+  }
+}
+for (const button of document.querySelectorAll(".detail-actions button")) if (!button.title) untitled.push("detail button");
+document.documentElement.dataset.untitled = [...new Set(untitled)].join(",");
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class TooltipTest(unittest.TestCase):
+    """TASK-TRC-019: RQ-TRC-045."""
+
+    def test_RQ_TRC_045_given_the_page_then_every_control_has_an_explanatory_tooltip(self):
+        import json
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            dom = rendered_dom_after(path, READ_TOOLTIPS % json.dumps(list(TOOLTIP_TARGETS)))
+        self.assertEqual("", re.search(r'data-untitled="([^"]*)"', dom).group(1))
+
+
 HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
                   "eHBsb3Jlcg==")   # the host project's names and domain terms, encoded so that this file holds none
 

@@ -328,7 +328,7 @@ TURN_FUNCTIONS_ON = ("[...document.querySelectorAll('#type-filters .chip')]"
 def graph_attributes(dom):
     import re
     found = dict(re.findall(r'data-graph-(\w+)="([^"]*)"', dom))
-    status = re.search(r'id="graph-status">([^<]*)<', dom)
+    status = re.search(r'id="graph-status"[^>]*>([^<]*)<', dom)
     found["status"] = status.group(1) if status else ""
     return found
 
@@ -367,6 +367,36 @@ class FunctionGraphTest(unittest.TestCase):
         self.assertIn("4 elements · 5 links", attributes["status"])
 
 
+READ_LEGEND = """
+const out = document.documentElement.dataset;
+out.looks = JSON.stringify(agnosTrace.EDGE_LOOK);
+out.samples = String(document.querySelectorAll("#legend svg.legend-edge").length);
+out.legendText = document.getElementById("legend").textContent;
+"""
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class RelationLookTest(unittest.TestCase):
+    """TASK-TRC-019: RQ-TRC-044 (DEC-TRC-006, DEC-TRC-017), in a real browser."""
+
+    def test_RQ_TRC_044_given_the_relations_then_each_has_its_own_line_and_colour_an_arrow_and_a_drawn_sample(self):
+        import html
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            call_graph_page(path)
+            found = dict(re.findall(r'data-(looks|samples|legend-text)="([^"]*)"', rendered_dom_after(path, READ_LEGEND)))
+        looks = json.loads(html.unescape(found["looks"]))
+        self.assertEqual({"contains", "refs", "code", "calls", "ambiguous"}, set(looks))
+        pairs = [(look["dash"], look["colour"]) for look in looks.values()]
+        self.assertEqual(len(pairs), len(set(pairs)))
+        self.assertTrue(all(look["arrow"] and look["arrow"] != "none" for look in looks.values()))
+        self.assertEqual(str(len(looks)), found["samples"])
+        legend = html.unescape(found["legend-text"])
+        self.assertNotRegex(legend, r"\b(dashed|solid|dotted|straight)\b")
+        self.assertIn("caller → callee", legend)
+
+
 SHOW_CSV = ("document.body.append(Object.assign(document.createElement('pre'), "
             "{ id: 'csv-text', textContent: agnosTrace.csvText() }));")
 
@@ -390,7 +420,7 @@ class FunctionMatrixTest(unittest.TestCase):
     def test_RQ_TRC_041_given_the_call_graph_when_the_matrix_opens_then_each_row_lists_its_functions_and_the_csv_too(self):
         import re
         dom = rendered_dom_after(self.path, "agnosTrace.showView('matrix');" + SHOW_CSV)
-        self.assertIn('data-column="functions">Functions<span class="col-grip"', dom)   # the grip of RQ-TRC-043
+        self.assertRegex(dom, r'data-column="functions"[^>]*>Functions<span class="col-grip"')   # the grip: RQ-TRC-043
         for label in ("ADRs / decisions", "Plans / tasks", "Functions", "Source files"):    # aligned with their cells
             self.assertRegex(dom, rf'<th class="sortable *"[^>]*>{re.escape(label)}<span class="col-grip"')
         self.assertRegex(dom, r'<th class="sortable num"[^>]*>Lines<span class="col-grip"')
@@ -403,7 +433,7 @@ class FunctionMatrixTest(unittest.TestCase):
 
     def test_RQ_TRC_041_given_the_toolbar_switch_when_turned_on_then_the_function_type_filter_is_on(self):
         dom = rendered_dom_after(self.path, "document.getElementById('show-functions').click();")
-        self.assertRegex(dom, r'<button class="chip t-FN" type="button" aria-pressed="true">')
+        self.assertRegex(dom, r'<button class="chip t-FN" type="button" aria-pressed="true"[ >]')   # then its tooltip
 
     def test_RQ_TRC_041_given_a_requirement_no_function_cites_when_selected_then_its_panel_says_functions_0(self):
         dom = rendered_dom(self.path, "#RQ-DEM-003")
