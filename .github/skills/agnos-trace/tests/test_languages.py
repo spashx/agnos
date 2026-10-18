@@ -68,5 +68,32 @@ class CSharpTest(unittest.TestCase):
                           "Demo.Data.Store": ("class", "Demo.Data")}, scopes_of(self.graph))
 
 
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class JavaTest(unittest.TestCase):
+    """TASK-TRC-033: RQ-TRC-050, RQ-TRC-032, RQ-TRC-047 (DEC-TRC-025, DEC-TRC-026)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = language_graph("java")
+        cls.functions = by_name(cls.graph)
+
+    def test_RQ_TRC_050_given_a_java_file_when_analysed_then_methods_and_constructors_with_a_body_are_functions(self):
+        self.assertEqual({"demo.shapes.Greeter.toString", "demo.shapes.Greeter.name", "demo.shapes.Greeter.Greeter"},
+                         set(self.functions))                                                # not area()
+        self.assertEqual({"java"}, {f["language"] for f in self.graph.functions})
+
+    def test_RQ_TRC_050_given_java_calls_when_analysed_then_they_are_linked_and_the_library_call_is_external(self):
+        self.assertEqual({("demo.shapes.Greeter.toString", "demo.shapes.Greeter.name"): (False, [8, 9])},
+                         calls_of(self.graph))
+        self.assertEqual((0, 1), (self.graph.ambiguous, self.graph.external))
+
+    def test_RQ_TRC_050_given_an_id_above_an_annotated_java_method_when_analysed_then_the_method_cites_it(self):
+        self.assertEqual({CITED}, set(self.functions["demo.shapes.Greeter.toString"]["ids"]))
+
+    def test_RQ_TRC_050_given_a_java_package_when_analysed_then_it_is_the_namespace_of_the_files_classes(self):
+        self.assertEqual({"demo": ("namespace", None), "demo.shapes": ("namespace", "demo"),
+                          "demo.shapes.Greeter": ("class", "demo.shapes")}, scopes_of(self.graph))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -36,5 +36,19 @@
       "interface_declaration": "class",
       "record_declaration": "class"
     }
+  },
+  "java": {
+    "extensions": [".java"],
+    "package": "tree-sitter-java",
+    "module": "tree_sitter_java",
+    "query": "java.scm",
+    "separator": ".",
+    "scopes": {
+      "program": "namespace",
+      "class_declaration": "class",
+      "interface_declaration": "class",
+      "enum_declaration": "class",
+      "record_declaration": "class"
+    }
   }
 }

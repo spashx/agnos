@@ -38,7 +38,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-033: Java
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the `java` entry (`.java`, `tree-sitter-java`, separator `.`, scopes), `java.scm` and the pinned
   wheel; methods and constructors with a body (no interface or abstract method); the package as the file's namespace.
 - **Requirement refs**: RQ-TRC-050, RQ-TRC-032, RQ-TRC-047
@@ -49,8 +49,11 @@ This plan implements the tasks in the format specified below.
   external, `m` is linked to the ID, and the scopes are `a`, `a.b` and `a.b.C`.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: —
-- **Assumptions**: —
+- **Verification**: `JavaTest` 4/4 OK: `demo.shapes.Greeter.toString`, `.name`, `.Greeter` (constructor), not the
+  interface's `area()`; `toString → name` on lines 8 and 9, external 1 (`println`); `toString` cites the ID above
+  `@Override`; scopes `demo`, `demo.shapes` (the package) and `demo.shapes.Greeter`. Whole suite 118 OK, 1 skipped;
+  Sonar: no finding.
+- **Assumptions**: None
 
 ### TASK-TRC-034: JavaScript and Node.js
 - **Tier**: L
