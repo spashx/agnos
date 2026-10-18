@@ -201,10 +201,16 @@
       for (let j = r.start[i]; j < r.start[i + 1]; j += 1) found.push(call(r.order[j], other[r.order[j]]));
       return found;
     };
+    // The graph's walk: visit(other key, ambiguous, direction) per call of the function, with no object per call.
+    const each = (i, visit) => {
+      for (let j = out.start[i]; j < out.start[i + 1]; j += 1) visit(fnKeys[to[out.order[j]]], ambiguous[out.order[j]], "out");
+      for (let j = into.start[i]; j < into.start[i + 1]; j += 1) visit(fnKeys[from[into.order[j]]], ambiguous[into.order[j]], "in");
+    };
     return {
       index: new Map(fnKeys.map((key, i) => [key, i])),
       callees: (i) => list(out, i, to),
       callers: (i) => list(into, i, from),
+      each,
     };
   }
 
@@ -222,8 +228,9 @@
   const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FN"], ["FILE"], ["UNDEFINED"]];
   const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Functions", "Source files",
     "Undefined IDs"];
-  const EDGE_LINE = { contains: "dashed", refs: "solid", code: "dotted" };
-  const EDGE_MEANING = { contains: "contains", refs: "cites", code: "cited in code" };
+  const EDGE_LINE = { contains: "dashed", refs: "solid", code: "dotted", ...(CALL_GRAPH ? { calls: "straight" } : {}) };
+  const EDGE_MEANING = { contains: "contains", refs: "cites", code: "cited in code", calls: "calls, dashed when ambiguous" };
+  const MAX_DRAWN = 400;                // nodes drawn at most, nearest levels first (RQ-TRC-037, DEC-TRC-017)
   const MAX_ROWS = 18;                  // a taller column wraps into sub-columns
   const MAX_PER_COLUMN = 72;            // beyond this, the column ends with a "+n more" note
   const MONO_CHAR_RATIO = 0.62;         // width of a monospace character, as a share of the font size
@@ -238,6 +245,23 @@
   function shortLabel(n) {
     const text = n.type === "FILE" ? n.label.split("/").pop() : n.label;
     return text.length > LABEL_MAX_CHARS ? `${text.slice(0, LABEL_MAX_CHARS - 1)}…` : text;
+  }
+
+  // The nearest levels of a walk (its Map's first entries), the last one cut where MAX_DRAWN falls.
+  function nearest(levels) {
+    return levels.size > MAX_DRAWN ? new Map([...levels].slice(0, MAX_DRAWN)) : levels;
+  }
+
+  // The calls of one function to the kept nodes, as graph edges.
+  function callEdges(index, key, kept) {
+    const edges = [];
+    calls.each(index, (other, ambiguous, dir) => {
+      if (dir === "out" && other !== key && kept.has(other)) {       // a haystack edge cannot loop: recursion not drawn
+        edges.push({ group: "edges", data: { id: `${key}>${other}>calls`, source: key, target: other, kind: "calls",
+          ambiguous: ambiguous === 1, curve: 0 } });
+      }
+    });
+    return edges;
   }
 
   function createGraph() {
@@ -283,7 +307,12 @@
         { selector: "edge", style: {
           width: num("--c-graph-edge-width"), "line-color": prop("--c-graph-edge"), "curve-style": "unbundled-bezier",
           "control-point-distances": "data(curve)", "control-point-weights": BOW_WEIGHT, opacity: num("--s-opacity-muted") } },
-        ...Object.entries(EDGE_LINE).map(([kind, line]) => ({ selector: `edge[kind = "${kind}"]`, style: { "line-style": line } })),
+        ...Object.entries(EDGE_LINE).filter(([kind]) => kind !== "calls")
+          .map(([kind, line]) => ({ selector: `edge[kind = "${kind}"]`, style: { "line-style": line } })),
+        // Calls: the cheapest edges Cytoscape draws, straight, in the function colour (DEC-TRC-017).
+        { selector: 'edge[kind = "calls"]', style: { "curve-style": "haystack", "haystack-radius": 0,
+          "line-color": prop("--s-type-fn"), "line-style": "solid" } },
+        { selector: 'edge[kind = "calls"][?ambiguous]', style: { "line-style": "dashed" } },
         { selector: ".dim", style: { opacity: num("--c-graph-dim") } },
         { selector: ".faded", style: { opacity: num("--c-graph-faded") } },
         { selector: "edge.near", style: { width: num("--c-graph-edge-width-highlight"), opacity: 1,
@@ -297,17 +326,26 @@
     function edgeAllowed(l) { return l.kind !== "contains" || showContainment(); }
     function nodeAllowed(node) { return isVisible(node) && (node.type !== "FILE" || showFiles()); }
 
+    // Every neighbour of a node: its links, and for a function its calls (from the typed arrays).
+    function eachNeighbour(key, visit) {
+      for (const l of links.get(key)) if (edgeAllowed(l)) visit(l.key);
+      const index = calls?.index.get(key);
+      if (index !== undefined) calls.each(index, (other) => visit(other));
+    }
+
+    // The levels around the start, nearest first: the Map's order is the walk's, so its first MAX_DRAWN entries are
+    // the nearest levels, the last one cut where the limit falls.
     function neighbourhood(start) {
       const seen = new Map([[start, 0]]);
       let frontier = [start];
       for (let level = 1; level <= depth && frontier.length; level += 1) {
         const next = [];
         for (const key of frontier) {
-          for (const l of links.get(key)) {
-            if (seen.has(l.key) || !edgeAllowed(l) || !nodeAllowed(nodes.get(l.key))) continue;
-            seen.set(l.key, level);
-            next.push(l.key);
-          }
+          eachNeighbour(key, (other) => {
+            if (seen.has(other) || !nodeAllowed(nodes.get(other))) return;
+            seen.set(other, level);
+            next.push(other);
+          });
         }
         frontier = next;
       }
@@ -332,6 +370,8 @@
               curve } });
           }
         }
+        const index = calls?.index.get(key);
+        if (index !== undefined) edges.push(...callEdges(index, key, kept));
       }
       return edges;
     }
@@ -340,13 +380,31 @@
       return label.length * num("--c-graph-label-size") * MONO_CHAR_RATIO + 2 * num("--c-graph-node-padding");
     }
 
+    // The flow's columns. Around a selected function, its column splits in three — callers, the function, callees —
+    // so that calls run left to right, never along one column (DEC-TRC-017).
+    function flowColumns(selected) {
+      const base = COLUMNS.map((types, c) => ({ name: COLUMN_NAME[c], has: (key) => types.includes(nodes.get(key).type) }));
+      const index = calls?.index.get(selected);
+      if (index === undefined) return base;
+      const callers = new Set(calls.callers(index).map((c) => c.key));
+      const callees = new Set(calls.callees(index).map((c) => c.key));
+      const isCall = (key, set) => key !== selected && nodes.get(key).type === "FN" && set.has(key);
+      const at = columnOf("FN");
+      return [...base.slice(0, at),
+        { name: "Callers", has: (key) => isCall(key, callers) },
+        { name: COLUMN_NAME[at], has: (key) => base[at].has(key) && !isCall(key, callers) && !isCall(key, callees) },
+        { name: "Callees", has: (key) => isCall(key, callees) && !callers.has(key) },
+        ...base.slice(at + 1)];
+    }
+
     // The flow layout: columns left to right, each as wide as its widest pill, the selection first in its column.
     function flowElements(levels, selected) {
       const columnGap = num("--c-graph-column-gap");
       const subGap = num("--c-graph-sub-gap");
       const rowGap = num("--c-graph-row-gap");
-      const byColumn = COLUMNS.map(() => []);
-      for (const key of levels.keys()) byColumn[columnOf(nodes.get(key).type)].push(key);
+      const columns = flowColumns(selected);
+      const byColumn = columns.map(() => []);
+      for (const key of levels.keys()) byColumn[columns.findIndex((column) => column.has(key))].push(key);
       const elements = [];
       const drawn = [];
       const positions = new Map();
@@ -363,7 +421,7 @@
         const step = widest + subGap;
         const span = (subColumns - 1) * step + widest;
         const centre = left + span / 2;
-        const header = `${COLUMN_NAME[c]} · ${keys.length}`;
+        const header = `${columns[c].name} · ${keys.length}`;
         elements.push({ group: "nodes", classes: "header", data: { id: `header:${c}`, label: header, width: pillWidth(header) },
           position: { x: centre, y: -num("--c-graph-header-gap") } });
         shown.forEach((key, i) => {
@@ -393,7 +451,7 @@
     function ensure() {
       if (cy) return cy;
       cy = cytoscape({ container, style: style(), minZoom: num("--c-graph-zoom-min"), maxZoom: num("--c-graph-zoom-max"),
-        boxSelectionEnabled: false, autoungrabify: true });
+        boxSelectionEnabled: false, autoungrabify: true, hideEdgesOnViewport: Boolean(CALL_GRAPH) });   // DEC-TRC-017
       cy.on("tap", "node.item", (event) => select(event.target.id()));
       cy.on("mouseover", "node.item", (event) => {
         const n = nodes.get(event.target.id());
@@ -429,7 +487,10 @@
       cy.resize();
       let built = { elements: [], drawn: 0, total: 0 };
       if (whole) built = wholeElements();
-      else if (key) built = flowElements(neighbourhood(key), key);
+      else if (key) {
+        const levels = neighbourhood(key);
+        built = { ...flowElements(nearest(levels), key), total: levels.size };
+      }
       cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
       if (whole) cy.layout({ name: "cose", animate: false, numIter: COSE_ITERATIONS }).run();
       else cy.layout({ name: "preset" }).run();
@@ -1115,6 +1176,7 @@
   setupPanels();
   const initial = hashKey();
   if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
-  document.documentElement.dataset.ready = "true";
-  console.info(`agnos-trace: interactive in ${Math.round(performance.now() - STARTED)} ms`);
+  const readyMs = Math.round(performance.now());   // since the navigation started, the page's parsing included
+  Object.assign(document.documentElement.dataset, { ready: "true", readyMs: String(readyMs) });   // RQ-TRC-037
+  console.info(`agnos-trace: interactive ${readyMs} ms after opening, script ${Math.round(readyMs - STARTED)} ms`);
 })();

@@ -321,5 +321,118 @@ class FunctionPanelTest(unittest.TestCase):
         self.assertIn(f'<span class="tab-count" id="gaps-count">{total}</span>', dom)
 
 
+TURN_FUNCTIONS_ON = ("[...document.querySelectorAll('#type-filters .chip')]"
+                     ".find((b) => b.textContent.startsWith('Functions')).click();")
+
+
+def graph_attributes(dom):
+    import re
+    found = dict(re.findall(r'data-graph-(\w+)="([^"]*)"', dom))
+    status = re.search(r'id="graph-status">([^<]*)<', dom)
+    found["status"] = status.group(1) if status else ""
+    return found
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class FunctionGraphTest(unittest.TestCase):
+    """TASK-TRC-013: RQ-TRC-034 (DEC-TRC-017, DEC-TRC-006), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_034_given_the_page_just_opened_when_a_requirement_is_drawn_then_functions_appear_only_once_turned_on(
+            self):
+        show = "agnosTrace.select('RQ-DEM-001'); agnosTrace.showView('graph');"
+        before = graph_attributes(rendered_dom_after(self.path, show))
+        after = graph_attributes(rendered_dom_after(self.path, TURN_FUNCTIONS_ON + show))
+        self.assertEqual("RQ-DEM-001", before["selected"])
+        self.assertEqual(int(before["nodes"]) + 1, int(after["nodes"]))        # net::Port::send cites it
+
+    def test_RQ_TRC_034_given_functions_on_when_a_function_is_drawn_then_its_calls_are_links_of_the_graph(self):
+        dom = rendered_dom_after(self.path, TURN_FUNCTIONS_ON + f"agnosTrace.select('{self.keys['net::Port::write']}');"
+                                                                "agnosTrace.showView('graph');")
+        attributes = graph_attributes(dom)
+        self.assertEqual("4", attributes["nodes"])           # itself, its file, net::Port::send and relay
+        # links: the file contains both methods; send -> write, relay -> write and relay -> send (x.send()) are calls
+        self.assertIn("4 elements · 5 links", attributes["status"])
+
+
+PERF_FILES = 2000
+PERF_PER_FILE = 10
+PERF_CALLEES = ((1, 0), (7, 1), (13, 3), (29, 7))           # (file step, function step) of each function's callees
+
+
+def write_large_tree(root):
+    """2,000 C++ files of 10 functions; each function calls hub() and four others: 20,001 functions, 100,000 calls."""
+    (root / "hub.cpp").write_text("int hub()\n{\n    return 0;\n}\n", encoding="utf-8")
+    for i in range(PERF_FILES):
+        body = []
+        for j in range(PERF_PER_FILE):
+            callees = " + ".join(f"f_{(i + di) % PERF_FILES}_{(j + dj) % PERF_PER_FILE}()" for di, dj in PERF_CALLEES)
+            body.append(f"int f_{i}_{j}()\n{{\n    return hub() + {callees};\n}}\n")
+        (root / f"m{i:04d}.cpp").write_text("\n".join(body), encoding="utf-8")
+
+
+def rendered_dom_live(page_path, script):
+    """Like rendered_dom_after, without virtual time: the page's own timings are real."""
+    copy = page_path.with_name("live-" + page_path.name)
+    copy.write_text(page_path.read_text(encoding="utf-8").replace("</body>", f"<script>{script}</script></body>"),
+                    encoding="utf-8")
+    with tempfile.TemporaryDirectory() as profile:
+        done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+                               f"--user-data-dir={profile}", "--window-size=1600,1000", "--dump-dom", copy.resolve().as_uri()],
+                              capture_output=True, timeout=300, check=False)
+    return done.stdout.decode("utf-8", errors="replace")
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER and __import__("os").environ.get("AGNOS_TRACE_PERF"),
+                     "set AGNOS_TRACE_PERF=1 (needs tree-sitter and a Chromium-family browser): about a minute")
+class LargeCallGraphTest(unittest.TestCase):
+    """TASK-TRC-013: RQ-TRC-036, RQ-TRC-037, RQ-TRC-038 (DEC-TRC-016, DEC-TRC-017), on a generated tree."""
+
+    def test_RQ_TRC_036_to_038_given_20000_functions_and_100000_calls_then_time_size_and_drawing_stay_in_their_limits(
+            self):
+        import re
+        import time
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "src"
+            root.mkdir()
+            write_large_tree(root)
+            timings = {}
+            for name, extra in (("warm-up", ()), ("without", ()), ("with", ("--call-graph",))):   # warm disk cache first
+                started = time.perf_counter()
+                page, out = generate(Path(tmp) / f"{name}.html", "--sources", str(root), *extra)
+                timings[name] = (time.perf_counter() - started, len(page.encode("utf-8")))
+            counts = json.loads(data_block(page))["callGraph"]["counts"]
+            dom = rendered_dom_live(Path(tmp) / "with.html", TURN_FUNCTIONS_ON +
+                                    "document.querySelector('#depth button[data-depth=\"2\"]').click();"
+                                    "agnosTrace.select([...agnosTrace.nodes.values()].find((n) => n.label === 'hub').key);"
+                                    "agnosTrace.showView('graph');")
+        added_time = timings["with"][0] - timings["without"][0]
+        added_bytes = timings["with"][1] - timings["without"][1]
+        attributes = graph_attributes(dom)
+        ready = int(re.search(r'data-ready-ms="(\d+)"', dom).group(1))
+        print(f"\n  run {timings['without'][0]:.1f} s, with the call graph {timings['with'][0]:.1f} s (+{added_time:.1f} s), "
+              f"page +{added_bytes} bytes, interactive {ready} ms, "
+              f"graph {attributes['nodes']} nodes in {attributes['ms']} ms: {attributes['status']}")
+        self.assertEqual((20002, 100000), (counts["functions"], counts["calls"]))   # + indirect() of the fixture's src/
+        self.assertLess(added_time, 30)                                                       # RQ-TRC-036
+        self.assertLessEqual(added_bytes, 120 * counts["functions"] + 16 * counts["calls"])   # RQ-TRC-038
+        self.assertLess(ready, 3000)                                                          # RQ-TRC-037
+        self.assertLessEqual(int(attributes["nodes"]), 400)
+        self.assertLess(int(attributes["ms"]), 500)
+        self.assertRegex(attributes["status"], r"\d+ not drawn")
+
+
 if __name__ == "__main__":
     unittest.main()

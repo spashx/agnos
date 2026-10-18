@@ -104,7 +104,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-013: Functions in the graph, within its limits
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the "Functions" column (type filter off at load), call edges in `haystack` style hidden while
   panning, ambiguous calls dashed, the 400-node cap with its status message; measure on a generated 20,000-function,
   100,000-call page.
@@ -115,8 +115,14 @@ This plan implements the tasks in the format specified below.
   within 3 s; the analysis adds at most 30 s on 2,000 files.
 - **Dependencies**: TASK-TRC-012
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` with `AGNOS_TRACE_PERF=1`: 65 tests OK. `FunctionGraphTest`: RQ-DEM-001 drawn
+  with one node more once Functions is on; `net::Port::write` with functions on: "4 elements · 5 links". Generated tree
+  (2,000 files, 20,002 functions, 100,000 calls): run 1.5 s, with the call graph 3.6 s (+2.1 s, limit 30 s); page +1,858,549
+  bytes (limit 4.0 MB); interactive 177 ms after opening (limit 3 s); `hub` at depth 2: 74 nodes in 106 ms, "21928 not
+  drawn". Screenshots of a function's and a requirement's graph on a C++ code base checked. IDE SonarQube: no finding.
+- **Assumptions**: the 400-node limit is applied before the column cap of 72, which stays (DEC-TRC-017); a recursive call
+  is not drawn (a haystack edge cannot loop); the large test runs only with `AGNOS_TRACE_PERF=1` (about a minute); around
+  a selected function its column splits into callers, function, callees (recorded in DEC-TRC-017).
 
 ### TASK-TRC-014: Documentation and run on this repository
 - **Tier**: S

@@ -89,13 +89,13 @@ DEC-TRC-007|37-43||One page, four views, one selection
 DEC-TRC-008|44-49||Skill packaging
 DEC-TRC-012|50-57||Splitter bars between the three panels
 @process/2.architecture/ADR-TRC-004-call-graph-analysis.md
-ADR-TRC-004|1-102|Accepted — reviewed and accepted by the owner on 2026-10-18, with the defaults proposed for the function key|Call-Graph Analysis with Tree-sitter
+ADR-TRC-004|1-105|Accepted — reviewed and accepted by the owner on 2026-10-18, with the defaults proposed for the function key|Call-Graph Analysis with Tree-sitter
 DEC-TRC-013|22-30||An optional module, imported only on demand
 DEC-TRC-014|31-38||Languages as data — a table and one query file each
 DEC-TRC-015|39-45||Resolution by name, with preferences and visible ambiguity
 DEC-TRC-016|46-54||Functions in the link model, in a compact encoding
-DEC-TRC-017|55-65||Keeping the central graph fast
-DEC-TRC-018|66-71||What the call graph does not change
+DEC-TRC-017|55-68||Keeping the central graph fast
+DEC-TRC-018|69-74||What the call graph does not change
 @process/3.plan/PLAN-IDX-001.md
 PLAN-IDX-001|1-53||Process artifact index
 TASK-IDX-001|15-35|Done|Index generators and tests
@@ -111,10 +111,10 @@ TASK-TRC-006|120-139|Done|Interactive graph
 TASK-TRC-007|140-158|Done|Skill packaging and run on this repository
 TASK-TRC-008|159-177|Done|Resizable panels
 @process/3.plan/PLAN-TRC-002-call-graph.md
-PLAN-TRC-002|1-133||Call Graph in agnos-trace
+PLAN-TRC-002|1-139||Call Graph in agnos-trace
 TASK-TRC-009|17-39|Done|Optional call-graph module and language table
 TASK-TRC-010|40-60|Done|C and C++ functions and their IDs
 TASK-TRC-011|61-81|Done|Call resolution
 TASK-TRC-012|82-104|Done|Functions in the page — data, panel, search, overview
-TASK-TRC-013|105-120|Not Started|Functions in the graph, within its limits
-TASK-TRC-014|121-133|Not Started|Documentation and run on this repository
+TASK-TRC-013|105-126|Done|Functions in the graph, within its limits
+TASK-TRC-014|127-139|Not Started|Documentation and run on this repository

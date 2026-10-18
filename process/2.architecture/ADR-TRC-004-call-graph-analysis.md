@@ -58,10 +58,13 @@ page builds its adjacency lists from the arrays at load, once, without objects p
   first and the last level is cut when the limit is reached, the status line saying how many are left out (RQ-TRC-037);
   column caps (72) and sub-columns stay.
 - Call edges use Cytoscape's cheapest edge style (`haystack`, no arrow, no bow) and are hidden while the graph is panned
-  or zoomed (`hideEdgesOnViewport`); ambiguous calls are dashed.
+  or zoomed (`hideEdgesOnViewport`); ambiguous calls are dashed. A straight edge cannot bow round a column, so around a
+  selected function its column splits in three, callers · the function · callees, and calls run left to right
+  (added at implementation, TASK-TRC-013).
 - "Whole graph" leaves functions out unless their filter is on, and then asks first above 1,500 nodes, as today.
 - The detail panel lists the first 50 callers and callees and loads the rest on request.
-- Search indexes function names once at load; results stay capped at 60.
+- Search indexes function names once at load; results stay capped at 60. It finds functions even while their type
+  filter is off: that filter keeps them out of the graph only (TASK-TRC-012).
 
 ### DEC-TRC-018: What the call graph does not change
 Requirement coverage, the eight gaps of DEC-TRC-004 and their total stay file-based: a requirement cited only in a file
