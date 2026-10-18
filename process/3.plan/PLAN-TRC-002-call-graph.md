@@ -158,3 +158,20 @@ This plan implements the tasks in the format specified below.
   none of the three. Screenshot of the matrix on a C++ code base checked. IDE SonarQube: no finding.
 - **Assumptions**: added after the owner's review of the page (the plan had left the matrix out); the panel's note says
   "cited at file level only" when a source file cites the requirement, else "no function cites it".
+
+### TASK-TRC-016: Scrollbars for the matrix and the graph
+- **Tier**: M
+- **Status**: Done
+- **Description**: Give the matrix a token minimum width, so that its frame scrolls instead of cutting IDs, and put the
+  graph in a scrolling frame whose canvas grows to the flow drawn at its readable zoom.
+- **Requirement refs**: RQ-TRC-042, RQ-TRC-012, RQ-TRC-014, RQ-TRC-018
+- **ADR refs**: ADR-TRC-003 (DEC-TRC-006, DEC-TRC-012), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: as RQ-TRC-042.
+- **Dependencies**: TASK-TRC-015
+- **Assignee**: AI
+- **Verification**: `unittest discover` 70 tests OK (1 skipped: the large measure). `ScrollTest`, side panels at their
+  maximum, headless Edge: matrix frame scrolls, table 1180 px (its token minimum); depth-3 graph: canvas 1031 px in a
+  430 px frame that scrolls, zoom 0.80 (the readable floor). Screenshots of the matrix and a depth-2 graph on a C++ code base
+  checked. IDE SonarQube: no finding.
+- **Assumptions**: asked by the owner during the session; vertical scrolling comes with it; the depth buttons now
+  redraw only a visible graph (drawing into the hidden frame left the zoom unfitted, found by this task's test).

@@ -237,6 +237,20 @@ ADR-TRC-003).
   the detail panel stops at its maximum width; When the page is reopened, Then the widths are the ones left.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, DEC-TRC-012
 
+### RQ-TRC-042: Scrolling the central views
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the matrix or the drawn graph is wider (or taller) than the central area, the page SHALL keep the
+  matrix columns at their minimum width from the design tokens and the graph at its readable zoom, and SHALL show a
+  scrollbar on that area to reach the rest.
+- **Rationale**: an ID cut to "ADR-AK" or a graph column out of reach cannot be read; the reader scrolls rather than
+  guesses.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the side panels at their maximum widths, When the matrix is shown, Then its frame
+  scrolls horizontally and the table is not narrower than its token minimum; When a graph wider than the area is drawn,
+  Then its frame scrolls horizontally and the zoom is not below the readable zoom.
+- **Dependencies**: RQ-TRC-012, RQ-TRC-014, RQ-TRC-018, RQ-TRC-025, DEC-TRC-006, DEC-TRC-012
+
 ---
 
 ## Non-Functional Requirements

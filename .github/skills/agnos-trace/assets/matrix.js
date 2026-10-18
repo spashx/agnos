@@ -506,15 +506,31 @@
       dirty = false;
     }
 
-    // Fit the drawing; in the flow view never below a readable zoom, then show its top-left corner.
+    // Fit the drawing; in the flow view never below a readable zoom: the canvas then grows to the whole flow at that
+    // zoom and the frame scrolls to its top-left corner (RQ-TRC-042).
     function frame() {
       const padding = num("--s-space-xl");
+      fitCanvas();
       cy.fit(undefined, padding);
       const floor = num("--c-graph-flow-min-zoom");
-      if (whole || cy.zoom() >= floor) return;
-      const box = cy.elements().boundingBox();
-      cy.zoom(floor);
-      cy.pan({ x: padding - box.x1 * floor, y: padding - box.y1 * floor });
+      if (!whole && cy.zoom() < floor) {
+        const box = cy.elements().boundingBox();
+        const scroller = $("graph-scroll");
+        container.style.width = `${Math.ceil(Math.max(scroller.clientWidth, box.w * floor + 2 * padding))}px`;
+        container.style.height = `${Math.ceil(Math.max(scroller.clientHeight, box.h * floor + 2 * padding))}px`;
+        cy.resize();
+        cy.zoom(floor);
+        cy.pan({ x: padding - box.x1 * floor, y: padding - box.y1 * floor });
+        scroller.scrollTo(0, 0);
+      }
+      container.dataset.graphZoom = cy.zoom().toFixed(2);
+    }
+
+    // The canvas back to the frame's size.
+    function fitCanvas() {
+      container.style.removeProperty("width");
+      container.style.removeProperty("height");
+      cy.resize();
     }
 
     const visible = () => state.view === "graph";
@@ -525,7 +541,8 @@
       depth = Number(b.dataset.depth);
       for (const other of $("depth").querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === b));
       whole = false;
-      draw();
+      dirty = true;
+      if (visible()) draw();          // a hidden frame has no size: drawn when the view is shown
     });
     $("show-files").addEventListener("change", () => draw());
     if (CALL_GRAPH) {       // RQ-TRC-041: the Function type filter, at hand in the graph's own toolbar
@@ -538,7 +555,11 @@
       $("show-files").closest("label").after(el("label", { class: "toggle" }, toggle, " Functions"));
     }
     $("show-containment").addEventListener("change", () => draw());
-    $("fit").addEventListener("click", () => cy?.fit(undefined, num("--s-space-xl")));  // the whole drawing, any zoom
+    $("fit").addEventListener("click", () => {          // the whole drawing in the frame, any zoom
+      if (!cy) return;
+      fitCanvas();
+      cy.fit(undefined, num("--s-space-xl"));
+    });
     $("whole").addEventListener("click", () => {
       const count = [...nodes.values()].filter(nodeAllowed).length;
       if (count > WHOLE_GRAPH_WARN && !window.confirm(`Draw all ${count} elements? The layout may take a while.`)) return;

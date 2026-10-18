@@ -441,6 +441,42 @@ class SplitterTest(unittest.TestCase):
                                   rf'<div[^>]*role="separator"[^>]*id="{bar}"')
 
 
+NARROW_AND_MEASURE = """
+const press = (id, key, times) => { const bar = document.getElementById(id);
+  for (let i = 0; i < times; i += 1) bar.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })); };
+press("split-left", "ArrowRight", 50);
+press("split-right", "ArrowLeft", 50);
+const out = document.documentElement.dataset;
+agnosTrace.showView("matrix");
+const table = document.querySelector(".table-frame");
+out.matrixScrolls = String(table.scrollWidth > table.clientWidth);
+out.matrixWidth = String(document.getElementById("matrix-table").offsetWidth);
+agnosTrace.select("RQ-DEM-002");
+document.querySelector('#depth button[data-depth="3"]').click();
+agnosTrace.showView("graph");
+const scroller = document.getElementById("graph-scroll");
+out.graphScrolls = String(scroller.scrollWidth > scroller.clientWidth);
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class ScrollTest(unittest.TestCase):
+    """TASK-TRC-016: RQ-TRC-042, RQ-TRC-018 (DEC-TRC-006, DEC-TRC-012)."""
+
+    def test_RQ_TRC_042_given_narrow_central_views_then_matrix_and_graph_scroll_at_their_minimum_width_and_zoom(self):
+        import re
+        tokens = tm.load_tokens(tm.TOKENS_PATH)["global"]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            dom = rendered_dom_after(path, NARROW_AND_MEASURE)
+        found = dict(re.findall(r'data-(matrix-scrolls|matrix-width|graph-scrolls|graph-zoom)="([^"]*)"', dom))
+        self.assertEqual("true", found.get("matrix-scrolls"))
+        self.assertGreaterEqual(int(found["matrix-width"]), int(tokens["dimension.matrix-min"].removesuffix("px")))
+        self.assertEqual("true", found.get("graph-scrolls"))
+        self.assertGreaterEqual(float(found["graph-zoom"]), float(tokens["dimension.graph-flow-min-zoom"]))
+
+
 HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
                   "eHBsb3Jlcg==")   # the host project's names and domain terms, encoded so that this file holds none
 

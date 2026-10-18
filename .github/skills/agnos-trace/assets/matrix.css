@@ -589,7 +589,8 @@ tbody tr:hover td { background: var(--c-table-row-hover); }
 tbody tr.selected td { background: var(--c-table-row-selected); }
 tbody tr:last-child td { border-bottom: none; }
 
-table.matrix { table-layout: fixed; }
+table.matrix { table-layout: fixed; min-width: var(--c-matrix-min-width); }   /* RQ-TRC-042: the frame scrolls */
+table.matrix.with-functions { min-width: var(--c-matrix-min-width-functions); }
 table.matrix th:nth-child(1) { width: 27%; }
 table.matrix th:nth-child(2) { width: 10%; }
 table.matrix th:nth-child(3) { width: 12%; }
@@ -722,7 +723,9 @@ table.matrix td { overflow: hidden; }
   border-radius: var(--c-card-radius);
 }
 
-.graph { position: absolute; inset: 0; }
+/* RQ-TRC-042: the canvas grows to a flow wider or taller than the frame, which then scrolls; the legend stays put */
+.graph-scroll { position: absolute; inset: 0; overflow: auto; }
+.graph { position: relative; width: 100%; height: 100%; }
 
 .graph-empty {
   position: absolute;
