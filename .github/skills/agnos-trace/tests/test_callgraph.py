@@ -391,6 +391,9 @@ class FunctionMatrixTest(unittest.TestCase):
         import re
         dom = rendered_dom_after(self.path, "agnosTrace.showView('matrix');" + SHOW_CSV)
         self.assertIn('scope="col">Functions</th>', dom)
+        for label in ("ADRs / decisions", "Plans / tasks", "Functions", "Source files"):    # aligned with their cells
+            self.assertRegex(dom, rf'<th class="sortable *"[^>]*>{re.escape(label)}</th>')
+        self.assertRegex(dom, r'<th class="sortable num"[^>]*>Lines</th>')
         row = re.search(r'<tr[^>]*data-key="RQ-DEM-001".*?</tr>', dom, re.S).group(0)
         self.assertIn('<span class="id">net::Port::send</span>', row)
         csv = re.search(r'<pre id="csv-text">(.*?)</pre>', dom, re.S).group(1)

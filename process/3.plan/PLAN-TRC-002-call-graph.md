@@ -175,3 +175,17 @@ This plan implements the tasks in the format specified below.
   checked. IDE SonarQube: no finding.
 - **Assumptions**: asked by the owner during the session; vertical scrolling comes with it; the depth buttons now
   redraw only a visible graph (drawing into the hidden frame left the zoom unfitted, found by this task's test).
+
+### TASK-TRC-017: Matrix headers aligned with their cells
+- **Tier**: S
+- **Status**: Done
+- **Description**: The list columns (ADRs / decisions, Plans / tasks, Functions, Source files) sort by count but show
+  IDs: their headers align left like their cells; only Lines stays right-aligned (owner review of the page).
+- **Requirement refs**: RQ-TRC-014, RQ-TRC-041, RQ-TRC-018
+- **ADR refs**: ADR-TRC-002 (DEC-TRC-011)
+- **Acceptance Criteria**: Given the matrix, Then each list column's header starts above its cells' IDs and "Lines"
+  stays right-aligned.
+- **Dependencies**: TASK-TRC-016
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None

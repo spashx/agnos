@@ -829,10 +829,11 @@
     { key: "id", label: "Requirement", value: (r) => r.id },
     { key: "coverage", label: "Coverage", value: (r) => ["covered", "indirect", "uncovered"].indexOf(r.coverage) },
     { key: "feature", label: "Feature", value: (r) => r.feature.join(" ") },
-    { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length, num: true },
-    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, num: true },
-    ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length, num: true }] : []),
-    { key: "files", label: "Source files", value: (r) => r.files.length, num: true },
+    // A list column sorts by its count but shows IDs: its header aligns left, like its cells (only "Lines" is a number).
+    { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length },
+    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length },
+    ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length }] : []),
+    { key: "files", label: "Source files", value: (r) => r.files.length },
     { key: "lines", label: "Lines", value: (r) => r.lines, num: true },
   ];
   const matrixRows = requirements.map(matrixRow);
