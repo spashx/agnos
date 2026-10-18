@@ -208,7 +208,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .search-result {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);   /* a long function name ends in an ellipsis */
   gap: var(--s-space-hair) var(--s-space-sm);
   align-items: baseline;
   padding: var(--s-space-sm);
@@ -217,6 +217,8 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 .search-result[aria-selected="true"], .search-result:hover { background: var(--c-table-row-hover); }
+.search-result .id-link { min-width: var(--s-space-none); }
+.search-result .id { overflow: hidden; text-overflow: ellipsis; }
 .search-result-title { grid-column: 2; color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search-empty { padding: var(--s-space-sm); color: var(--s-text-subtle); font-size: var(--s-text-small); }
 
@@ -280,6 +282,7 @@ button, input, select { font: inherit; color: inherit; }
 .t-DEC { --type-color: var(--s-type-dec); }
 .t-PLAN { --type-color: var(--s-type-plan); }
 .t-TASK { --type-color: var(--s-type-task); }
+.t-FN { --type-color: var(--s-type-fn); }
 .t-FILE { --type-color: var(--s-type-file); }
 .t-UNDEFINED { --type-color: var(--s-type-undefined); }
 
@@ -492,6 +495,9 @@ button, input, select { font: inherit; color: inherit; }
 .stack-uncovered { background: var(--s-status-error); }
 
 .coverage-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-space-md); margin-top: var(--s-space-lg); }
+/* RQ-TRC-035: the call graph's counts; a count that leads nowhere is a plain box, not a button */
+.call-graph-legend { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: var(--s-space-none); }
+div.coverage-item, div.coverage-item:hover { background: transparent; cursor: default; }
 
 .coverage-item {
   display: flex;

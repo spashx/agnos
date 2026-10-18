@@ -20,7 +20,8 @@ sys.path.insert(0, str(HERE))
 
 import callgraph as cg  # noqa: E402
 import trace_matrix as tm  # noqa: E402
-from test_trace_matrix import FIXTURE, PROCESS, SKILL, SOURCES, data_block, generate, run_main  # noqa: E402
+from test_trace_matrix import (BROWSER, FIXTURE, PROCESS, SKILL, SOURCES, data_block, generate,  # noqa: E402
+                               rendered_dom, rendered_dom_after, run_main)
 
 CALLS = FIXTURE / "calls"
 
@@ -219,6 +220,105 @@ class CallResolutionTest(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertIn("call graph: ", summary_line(out))
         self.assertEqual(calls_of(fixture_call_graph()[1]), self.calls)
+
+
+def call_graph_page(out):
+    """The fixture page with tests/fixtures/repo/calls scanned too and the call graph on."""
+    return generate(out, "--sources", str(CALLS), "--call-graph")
+
+
+def fragment(key):
+    import urllib.parse
+    return "#" + urllib.parse.quote(key, safe="")
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class PageDataTest(unittest.TestCase):
+    """TASK-TRC-012: RQ-TRC-033, RQ-TRC-035, RQ-TRC-038 (DEC-TRC-016)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.page, _ = call_graph_page(Path(cls.tmp.name) / "page.html")
+        cls.data = json.loads(data_block(cls.page))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_functions_are_a_table_and_calls_a_flat_integer_list(self):
+        graph = self.data["callGraph"]
+        self.assertEqual(12, len(graph["functions"]))           # the 11 of calls/ and src/lib/b.cpp's indirect()
+        paths = [f["path"] for f in self.data["files"]]
+        file_index, first, last, name, language = graph["functions"][1][:5]
+        self.assertTrue(paths[file_index].endswith("/calls/net/port.hpp"), paths[file_index])   # shown from the cwd
+        self.assertEqual((7, 7, "net::Port::send"), (first, last, name))
+        self.assertEqual("cpp", graph["languages"][language])
+        self.assertTrue(all(isinstance(n, int) for n in graph["calls"]))
+        self.assertEqual({"functions": 12, "calls": 8, "ambiguous": 2, "external": 2}, graph["counts"])
+
+    def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_it_adds_at_most_120_bytes_per_function_and_16_per_call(
+            self):
+        without, _ = generate(Path(self.tmp.name) / "without.html", "--sources", str(CALLS))
+        counts = self.data["callGraph"]["counts"]
+        added = len(self.page.encode("utf-8")) - len(without.encode("utf-8"))
+        self.assertLessEqual(added, 120 * counts["functions"] + 16 * counts["calls"])
+
+    def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_listed_outside_the_gaps(self):
+        graph = self.data["callGraph"]
+        names = [graph["functions"][i][3] for i in graph["untraced"]]
+        self.assertEqual(8, len(names))
+        self.assertNotIn("net::Port::send", names)
+        self.assertNotIn("untraced-functions", self.data["gapKinds"])
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class FunctionPanelTest(unittest.TestCase):
+    """TASK-TRC-012: RQ-TRC-033, RQ-TRC-035 (DEC-TRC-016, DEC-TRC-018), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}   # no key suffix here
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_033_given_a_function_when_selected_then_the_panel_shows_its_callers_callees_and_ids(self):
+        dom = rendered_dom(self.path, fragment(self.keys["net::Port::write"]))
+        self.assertIn('<h2 class="detail-id">net::Port::write</h2>', dom)
+        self.assertIn("Callers 2", dom)
+        self.assertIn("Callees 0", dom)
+        self.assertIn('<span class="id">net::Port::send</span>', dom)
+        self.assertIn('<span class="id">relay</span>', dom)
+        self.assertIn("ambiguous", dom)
+        dom = rendered_dom(self.path, fragment(self.keys["net::Port::send"]))
+        self.assertIn('<span class="id">RQ-DEM-001</span>', dom)
+        self.assertIn("calls/net/port.hpp:7-7", dom)
+
+    def test_RQ_TRC_033_given_a_requirement_cited_by_a_function_when_selected_then_the_function_is_listed(self):
+        dom = rendered_dom(self.path, "#RQ-DEM-001")
+        self.assertIn("Function 1", dom)
+        self.assertIn('<span class="id">net::Port::send</span>', dom)
+
+    def test_RQ_TRC_033_given_a_function_name_when_searched_then_the_function_is_found(self):
+        dom = rendered_dom_after(self.path, "const s = document.getElementById('search'); s.value = 'port::wr';"
+                                            "s.dispatchEvent(new Event('input'));")
+        self.assertRegex(dom, r'<li class="search-result t-FN"[^>]*>.*?net::Port::write')
+
+    def test_RQ_TRC_035_given_the_call_graph_when_the_page_opens_then_the_overview_and_gaps_show_it_uninflated(self):
+        data = json.loads(data_block(self.path.read_text(encoding="utf-8")))
+        total = sum(len(data["gaps"][g]) for g in data["gapKinds"])
+        dom = rendered_dom(self.path)
+        self.assertIn('<h2 class="card-title">Call graph</h2>', dom)
+        self.assertIn("8 call links", dom)
+        self.assertIn("Untraced functions", dom)
+        self.assertIn(f'<span class="tab-count" id="gaps-count">{total}</span>', dom)
 
 
 if __name__ == "__main__":

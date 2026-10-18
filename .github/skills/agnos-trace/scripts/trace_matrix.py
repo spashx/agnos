@@ -409,19 +409,23 @@ def library_label():
 
 
 # DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
-def page_data(model, analysis, meta):
+def page_data(model, analysis, meta, call_graph=None):
     defined = [e for e in model.elements.values() if e["kind"] == "element"]
     undefined = sorted((e for e in model.elements.values() if e["kind"] == "undefined"), key=lambda e: e["id"])
     fields = ("id", "kind", "type", "tri", "doc", "first", "last", "status", "title")
-    return {
+    paths = sorted(model.files)
+    data = {
         "meta": meta,
         "elements": [{f: e[f] for f in fields} for e in defined + undefined],
-        "files": [model.files[p] for p in sorted(model.files)],
+        "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         "coverage": analysis["coverage"],
         "gaps": analysis["gaps"],
         "gapKinds": list(GAP_KINDS),
     }
+    if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
+        data["callGraph"] = call_graph.page_data({p: n for n, p in enumerate(paths)})
+    return data
 
 
 def embed_json(data):
@@ -491,12 +495,13 @@ def main(argv=None):
                                excludes=args.exclude or DEFAULT_EXCLUDES)
         analysis = analyse(model)
         line = summary(model, analysis)
+        graph = None
         if args.call_graph:
             graph = load_call_graph_module().analyse(scanned, code_citations(model), evidence)
             line += "; " + graph.summary()
         meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
-        page = render_page(page_data(model, analysis, meta), title)
+        page = render_page(page_data(model, analysis, meta, graph), title)
     except InputError as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1

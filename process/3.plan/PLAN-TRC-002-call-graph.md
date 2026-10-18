@@ -81,7 +81,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-012: Functions in the page — data, panel, search, overview
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Embed functions and calls in the compact arrays of DEC-TRC-016, build their adjacency at load, show
   callers, callees and IDs in the detail panel (first 50, more on request), the functions of a requirement, function
   search, the overview counts and the informational "Untraced functions" list.
@@ -92,8 +92,15 @@ This plan implements the tasks in the format specified below.
   call graph adds at most 120 bytes per function and 16 per call.
 - **Dependencies**: TASK-TRC-011
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` 62 tests OK; headless Edge: `net::Port::write` selected shows "Callers 2" (`relay`
+  ambiguous, `net::Port::send`) and "Callees 0", `net::Port::send` its RQ-DEM-001 and location; RQ-DEM-001 selected
+  lists "Function 1"; searching "port::wr" finds the function; overview "Call graph" card ("8 call links"), "Untraced
+  functions" listed, Gaps tab count = sum of the counted gaps. Size: fixture within 120 B/function + 16 B/call; a C++ code base
+  +331,839 bytes for 1,908 functions and 7,745 calls (budget 352,880). Screenshots light/dark checked. IDE SonarQube: no
+  finding.
+- **Assumptions**: the Functions column and its filter off at load are done here (a Function type without its column
+  would break the graph), TASK-TRC-013 keeps the call edges and the limits; the search finds functions even while
+  their type filter is off (that filter keeps them out of the graph only); a function's ID proofs are its file's.
 
 ### TASK-TRC-013: Functions in the graph, within its limits
 - **Tier**: M

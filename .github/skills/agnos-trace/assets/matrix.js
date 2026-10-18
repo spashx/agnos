@@ -2,6 +2,7 @@
    Views (TASK-TRC-005): overview, search, filters, matrix, gaps, detail panel, deep links.
    Panels (TASK-TRC-008): splitter bars, see the "resizable panels" section.
    Graph (TASK-TRC-006): see the "graph" section — the selection's neighbourhood as a traceability flow, columns by type.
+   Call graph (FTR-TRC-002, ADR-TRC-004; TASK-TRC-012): functions as nodes, calls in typed arrays, see "call graph".
    Every text taken from the data is inserted with textContent, never as HTML (RQ-TRC-022); every visual value comes
    from the design tokens' custom properties (RQ-TRC-018). */
 "use strict";
@@ -12,16 +13,18 @@
 
   // ---- vocabulary ---------------------------------------------------------------------------------------------
   const TYPES = ["FTR", "RQ", "ADR", "DEC", "PLAN", "TASK"];
-  const NODE_TYPES = [...TYPES, "FILE", "UNDEFINED"];
+  const CALL_GRAPH = DATA.callGraph || null;     // only in a page generated with --call-graph (RQ-TRC-026)
+  const NODE_TYPES = [...TYPES, ...(CALL_GRAPH ? ["FN"] : []), "FILE", "UNDEFINED"];
   const TYPE_NAME = {
     FTR: ["Feature", "Features"], RQ: ["Requirement", "Requirements"], ADR: ["ADR", "ADRs"],
-    DEC: ["Decision", "Decisions"], PLAN: ["Plan", "Plans"], TASK: ["Task", "Tasks"],
+    DEC: ["Decision", "Decisions"], PLAN: ["Plan", "Plans"], TASK: ["Task", "Tasks"], FN: ["Function", "Functions"],
     FILE: ["Source file", "Source files"], UNDEFINED: ["Undefined ID", "Undefined IDs"],
   };
   const RELATION = {
     "contains:out": "contains", "contains:in": "part of", "refs:out": "cites", "refs:in": "cited by",
     "code:out": "cites", "code:in": "cited in",
   };
+  const UNTRACED = "untraced-functions";     // an informational list, never counted as a gap (RQ-TRC-035, DEC-TRC-018)
   const COVERAGE = {
     covered: ["Covered", "a source file cites the requirement"],
     indirect: ["Indirect", "a source file cites a decision, task or ADR linked to it"],
@@ -36,6 +39,7 @@
     "isolated": ["Isolated elements", "Nothing cites them and they cite nothing, nor does anything they contain.", "warn"],
     "undefined": ["Undefined IDs", "Cited by the process or the sources, but defined nowhere in the index.", "error"],
     "untraced-files": ["Untraced source files", "Scanned files that cite no ID at all.", "warn"],
+    [UNTRACED]: ["Untraced functions", "Functions citing no ID in their lines or the comment just above. Informational: not counted as a gap.", "neutral"],
   };
   const SEARCH_LIMIT = 60;
   const CELL_LIMIT = 3;
@@ -43,6 +47,8 @@
   const EVIDENCE_SHOWN = 3;
   const PERCENT = 100;
   const FILE_PREFIX = "file:";
+  const FN_PREFIX = "fn:";
+  const CALLS_SHOWN = 50;               // callers or callees listed at first, and added per "more" (DEC-TRC-017)
 
   // ---- DOM helpers (text only) --------------------------------------------------------------------------------
   const isAbsent = (value) => value === undefined || value === null || value === false;
@@ -80,12 +86,29 @@
     const key = FILE_PREFIX + f.path;
     nodes.set(key, { key, label: f.path, type: "FILE", kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
   }
+  const fnKeys = addFunctions();
   for (const key of nodes.keys()) links.set(key, []);
-  for (const [source, target, kind, lines] of DATA.edges) {
-    const from = kind === "code" ? FILE_PREFIX + source : source;
-    if (!nodes.has(from) || !nodes.has(target)) continue;
-    links.get(from).push({ key: target, kind, dir: "out", lines });
-    links.get(target).push({ key: from, kind, dir: "in", lines });
+  const addLink = (from, to, kind, lines) => {
+    links.get(from).push({ key: to, kind, dir: "out", lines });
+    links.get(to).push({ key: from, kind, dir: "in", lines });
+  };
+  addEdges();
+  addFunctionLinks();
+  const calls = buildCalls();
+  indexSearch();
+
+  function addEdges() {
+    for (const [source, target, kind, lines] of DATA.edges) {
+      const from = kind === "code" ? FILE_PREFIX + source : source;
+      if (nodes.has(from) && nodes.has(target)) addLink(from, target, kind, lines);
+    }
+  }
+
+  function indexSearch() {              // the search's index, made once (DEC-TRC-017)
+    for (const n of nodes.values()) {
+      n.find = n.label.toLowerCase();
+      n.findTitle = (n.title || "").toLowerCase();
+    }
   }
   const keyOf = (gapKind, item) => (gapKind === "untraced-files" ? FILE_PREFIX + item : item);
   const typeOrder = (type) => NODE_TYPES.indexOf(type);
@@ -95,19 +118,110 @@
   const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === "element").map((e) => e.tri))]
     .sort((a, b) => a.localeCompare(b));
   const gapBadgeClass = (gapKind, count) => "badge badge-" + (count ? GAP[gapKind][2] : "ok");
+  const gapKinds = [...DATA.gapKinds, ...(CALL_GRAPH ? [UNTRACED] : [])];
+  const gapItems = (gapKind) => (gapKind === UNTRACED ? CALL_GRAPH.untraced.map((i) => fnKeys[i]) : DATA.gaps[gapKind]);
+
+  // ---- call graph (TASK-TRC-012: RQ-TRC-033, RQ-TRC-038; DEC-TRC-016) -------------------------------------------
+  // Functions are nodes like the others, contained by their file and citing the IDs of their lines. Their calls stay
+  // in typed arrays, compressed rows per caller and per callee, built once: a view asks callers(i) or callees(i) and
+  // gets objects for those calls only, never one object per call of the whole graph.
+  function addFunctions() {
+    if (!CALL_GRAPH) return [];
+    return CALL_GRAPH.functions.map(([file, first, last, name, language, text, dup]) => {
+      const path = DATA.files[file].path;
+      const suffix = dup ? "." + dup : "";
+      const key = `${FN_PREFIX}${path}:${first}${suffix}`;
+      nodes.set(key, { key, label: name, type: "FN", kind: "function", title: text, tri: "", doc: path, path, first, last,
+        file: FILE_PREFIX + path, language: CALL_GRAPH.languages[language] });
+      return key;
+    });
+  }
+
+  // A function's IDs carry the lines of its file's own citations: the proofs are stored once, in the file's links.
+  function addFunctionLinks() {
+    for (const key of fnKeys) addLink(nodes.get(key).file, key, "contains", []);
+    const proofs = new Map();
+    const proofsOf = (fileKey, id) => {
+      if (!proofs.has(fileKey)) {
+        proofs.set(fileKey, new Map(links.get(fileKey).filter((l) => l.kind === "code" && l.dir === "out")
+          .map((l) => [l.key, l.lines])));
+      }
+      return proofs.get(fileKey).get(id) || [];
+    };
+    for (const [index, id, lineNumbers] of CALL_GRAPH?.ids || []) {
+      const key = fnKeys[index];
+      if (!nodes.has(id)) continue;
+      const wanted = new Set(lineNumbers);
+      addLink(key, id, "code", proofsOf(nodes.get(key).file, id).filter(([no]) => wanted.has(no)));
+    }
+  }
+
+  function buildCalls() {
+    if (!CALL_GRAPH) return null;
+    const flat = CALL_GRAPH.calls;
+    const n = fnKeys.length;
+    const m = CALL_GRAPH.counts.calls;
+    const from = new Int32Array(m);
+    const to = new Int32Array(m);
+    const ambiguous = new Uint8Array(m);
+    const lineStart = new Int32Array(m + 1);
+    const lines = new Int32Array(flat.length);
+    let p = 0;
+    let caller = 0;
+    let c = 0;
+    let l = 0;
+    while (p < flat.length) {
+      caller += flat[p++];
+      const first = CALL_GRAPH.functions[caller][1];
+      for (let k = flat[p++]; k > 0; k -= 1, c += 1) {
+        from[c] = caller;
+        to[c] = caller + flat[p++];
+        const word = flat[p++];
+        ambiguous[c] = word % 2;
+        lineStart[c] = l;
+        for (let count = Math.floor(word / 2); count > 0; count -= 1) lines[l++] = first + flat[p++];
+      }
+    }
+    lineStart[c] = l;
+    const rows = (ends) => {
+      const start = new Int32Array(n + 1);
+      for (let i = 0; i < m; i += 1) start[ends[i] + 1] += 1;
+      for (let i = 0; i < n; i += 1) start[i + 1] += start[i];
+      const order = new Int32Array(m);
+      const fill = start.slice(0, n);
+      for (let i = 0; i < m; i += 1) order[fill[ends[i]]++] = i;
+      return { start, order };
+    };
+    const out = rows(from);
+    const into = rows(to);
+    const call = (i, other) => ({ key: fnKeys[other], ambiguous: ambiguous[i] === 1,
+      lines: Array.from(lines.subarray(lineStart[i], lineStart[i + 1])) });
+    const list = (r, i, other) => {
+      const found = [];
+      for (let j = r.start[i]; j < r.start[i + 1]; j += 1) found.push(call(r.order[j], other[r.order[j]]));
+      return found;
+    };
+    return {
+      index: new Map(fnKeys.map((key, i) => [key, i])),
+      callees: (i) => list(out, i, to),
+      callers: (i) => list(into, i, from),
+    };
+  }
 
   // ---- state --------------------------------------------------------------------------------------------------
   const state = {
     selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
-    types: new Set(NODE_TYPES), tris: new Set(trigrams), expandedGaps: new Set(),
+    types: new Set(NODE_TYPES.filter((t) => t !== "FN")),   // functions off at load (RQ-TRC-034, DEC-TRC-017)
+    tris: new Set(trigrams), expandedGaps: new Set(),
   };
   const isVisible = (node) => state.types.has(node.type) && (!node.tri || state.tris.has(node.tri));
 
   // ---- graph (TASK-TRC-006: RQ-TRC-012, RQ-TRC-020; DEC-TRC-006) ------------------------------------------------
   // The neighbourhood of the selection is laid out as a traceability flow: one column per element family, left to
   // right, each node a labelled pill tinted with its type colour. The whole graph uses a force layout of small dots.
-  const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FILE"], ["UNDEFINED"]];
-  const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Source files", "Undefined IDs"];
+  const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FN"], ["FILE"], ["UNDEFINED"]];
+  const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Functions", "Source files",
+    "Undefined IDs"];
   const EDGE_LINE = { contains: "dashed", refs: "solid", code: "dotted" };
   const EDGE_MEANING = { contains: "contains", refs: "cites", code: "cited in code" };
   const MAX_ROWS = 18;                  // a taller column wraps into sub-columns
@@ -407,7 +521,7 @@
 
   function searchPrefix(type) {
     if (type === "FILE") return FILE_PREFIX;
-    if (type === "UNDEFINED") return "";
+    if (type === "UNDEFINED" || type === "FN") return "";
     return `${type}-`;
   }
 
@@ -431,8 +545,8 @@
         el("span", { class: "coverage-item-value", text: `${c[k]}` }),
         el("span", { class: "kpi-sub", text: `${pct(c[k], total)} % of ${total}` })))));
 
-    clear($("gap-summary")).append(el("div", { class: "gap-rows" }, ...DATA.gapKinds.map((g) => {
-      const n = DATA.gaps[g].length;
+    clear($("gap-summary")).append(el("div", { class: "gap-rows" }, ...gapKinds.map((g) => {
+      const n = gapItems(g).length;
       return el("button", { class: "gap-row", type: "button", on: { click: () => openGap(g) } },
         el("span", { class: "gap-row-label", text: GAP[g][0] }),
         el("span", { class: "gap-row-hint", text: GAP[g][1] }),
@@ -453,6 +567,25 @@
       el("thead", {}, el("tr", {}, ...["Trigram", "Requirements", "Covered", "Indirect", "Uncovered", "Coverage", ""].map(
         (h, i) => el("th", { class: i > 0 && i < 6 ? "num" : null, text: h })))),
       el("tbody", {}, rows)));
+    if (CALL_GRAPH) $("tri-table").closest(".card").before(callGraphCard());
+  }
+
+  // RQ-TRC-035: the call graph's counts; the untraced functions are listed, not counted among the gaps.
+  function callGraphCard() {
+    const c = CALL_GRAPH.counts;
+    const item = (label, value, hint, onClick) => el(onClick ? "button" : "div",
+      { class: "coverage-item", type: onClick ? "button" : null, title: hint, on: onClick ? { click: onClick } : null },
+      el("span", { class: "coverage-item-label", text: label }), el("span", { class: "coverage-item-value", text: value }),
+      el("span", { class: "kpi-sub", text: hint }));
+    return el("article", { class: "card card-wide" },
+      el("header", { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
+        el("span", { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
+      el("div", { class: "coverage-legend call-graph-legend" },
+        item("Functions", c.functions, "search them by name", () => searchFor("", "FN")),
+        item("Call links", c.calls, "one per caller and callee"),
+        item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
+        item("External calls", c.external, "a name defined in no scanned file"),
+        item("Untraced functions", CALL_GRAPH.untraced.length, "citing no ID · informational", () => openGap(UNTRACED))));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------
@@ -469,9 +602,9 @@
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     })));
-    clear($("gap-shortcuts")).append(...DATA.gapKinds.map((g) => el("li", {}, el("button", { class: "gap-shortcut", type: "button",
+    clear($("gap-shortcuts")).append(...gapKinds.map((g) => el("li", {}, el("button", { class: "gap-shortcut", type: "button",
       on: { click: () => openGap(g) } }, el("span", { text: GAP[g][0] }),
-      el("span", { class: gapBadgeClass(g, DATA.gaps[g].length), text: DATA.gaps[g].length })))));
+      el("span", { class: gapBadgeClass(g, gapItems(g).length), text: gapItems(g).length })))));
   }
 
   function toggle(set, value) { if (set.has(value)) set.delete(value); else set.add(value); }
@@ -492,17 +625,19 @@
   let active = -1;
 
   function rank(node, q) {
-    const label = node.label.toLowerCase();
-    if (label === q) return 0;
-    if (label.startsWith(q)) return 1;
-    if (label.includes(q)) return 2;
-    return node.title?.toLowerCase().includes(q) ? 3 : -1;
+    if (node.find === q) return 0;
+    if (node.find.startsWith(q)) return 1;
+    if (node.find.includes(q)) return 2;
+    return node.findTitle.includes(q) ? 3 : -1;
   }
+
+  // Functions are searched even while their type is off: that filter only keeps them out of the graph (RQ-TRC-033).
+  const searchable = (node, onlyType) => (onlyType ? node.type === onlyType : node.type === "FN" || isVisible(node));
 
   function matches(q, onlyType) {
     const found = [];
     for (const node of nodes.values()) {
-      if (onlyType ? node.type !== onlyType : !isVisible(node)) continue;
+      if (!searchable(node, onlyType)) continue;
       const r = q ? rank(node, q) : 0;
       if (r >= 0) found.push([r, typeOrder(node.type), node.label, node]);
     }
@@ -554,6 +689,7 @@
     renderResults(type);
   }
 
+  if (CALL_GRAPH) search.placeholder = "Search ID, title, file or function…";
   search.addEventListener("input", () => renderResults());
   search.addEventListener("focus", () => { if (search.value.trim()) renderResults(); });
   search.addEventListener("blur", closeResults);
@@ -569,12 +705,16 @@
   });
 
   // ---- matrix -------------------------------------------------------------------------------------------------
+  // The source files citing an element; a function's citation is one of its file's, not one more (DEC-TRC-018).
+  const fileCitations = (key) => links.get(key).filter((l) => l.kind === "code" && nodes.get(l.key).type === "FILE");
+
   function matrixRow(rq) {
     const all = links.get(rq.key);
     const ofTypes = (types, dirs) => all.filter((l) => types.includes(nodes.get(l.key).type) && dirs.includes(l.dir)
       && l.kind !== "code").map((l) => l.key);
-    const files = all.filter((l) => l.kind === "code").map((l) => l.key);
-    const lines = all.filter((l) => l.kind === "code").reduce((sum, l) => sum + l.lines.length, 0);
+    const cited = fileCitations(rq.key);
+    const files = cited.map((l) => l.key);
+    const lines = cited.reduce((sum, l) => sum + l.lines.length, 0);
     return {
       node: rq, id: rq.key, title: rq.title, status: rq.status,
       feature: all.filter((l) => l.kind === "contains" && l.dir === "in").map((l) => l.key),
@@ -675,7 +815,7 @@
       "Source lines", "Coverage"];
     const lines = matrixRows.filter(rowMatches).map((r) => [r.id, r.title, r.status, r.feature.join(" "),
       r.decisions.join(" "), r.tasks.join(" "), r.files.map((f) => nodes.get(f).label).join(" "),
-      links.get(r.id).filter((l) => l.kind === "code").flatMap((l) => l.lines.map((line) => `${nodes.get(l.key).label}:${line[0]}`)).join(" "),
+      fileCitations(r.id).flatMap((l) => l.lines.map((line) => `${nodes.get(l.key).label}:${line[0]}`)).join(" "),
       r.coverage]);
     const text = [header, ...lines].map((row) => row.map(csvCell).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob(["﻿", text], { type: "text/csv;charset=utf-8" }));
@@ -692,8 +832,8 @@
   function renderGaps() {
     const total = DATA.gapKinds.reduce((sum, g) => sum + DATA.gaps[g].length, 0);
     $("gaps-count").textContent = total ? String(total) : "";
-    clear($("gaps-list")).append(...DATA.gapKinds.map((g) => {
-      const items = DATA.gaps[g];
+    clear($("gaps-list")).append(...gapKinds.map((g) => {
+      const items = gapItems(g);
       const shown = state.expandedGaps.has(g) ? items : items.slice(0, GAP_ITEMS_SHOWN);
       return el("article", { class: "card gap-card", id: `gap-${g}` },
         el("header", { class: "card-header" },
@@ -754,7 +894,46 @@
     const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
       el("span", { class: `badge badge-neutral t-${t}` }, el("span", { class: `dot t-${t}` }), `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
       : el("span", { class: "badge badge-error", text: "No link" }));
-    panel.append(head, summary, ...ordered.map((t) => linkGroup(t, groups.get(t))));
+    const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
+    summary.append(...callSections.map((s) => s.badge));
+    panel.append(head, summary, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t))));
+  }
+
+  // RQ-TRC-033: a function's callers and callees, the first CALLS_SHOWN of each, more on request (DEC-TRC-017).
+  function callGroups(index) {
+    const byLabel = (a, b) => nodes.get(a.key).label.localeCompare(nodes.get(b.key).label, undefined, { numeric: true });
+    return [{ title: "Callers", rel: "called by", list: calls.callers(index) },
+      { title: "Callees", rel: "calls", list: calls.callees(index) }]
+      .map(({ title, rel, list }) => ({
+        badge: el("span", { class: "badge badge-neutral t-FN" }, el("span", { class: "dot t-FN" }), `${title} ${list.length}`),
+        section: callGroup(title, rel, list.toSorted(byLabel)),
+      }));
+  }
+
+  function callGroup(title, rel, list) {
+    const items = el("ul", { class: "group-items" });
+    const more = el("button", { class: "link-button", type: "button" });
+    let shown = 0;
+    const next = () => {
+      items.append(...list.slice(shown, shown + CALLS_SHOWN).map((c) => callItem(c, rel)));
+      shown = Math.min(list.length, shown + CALLS_SHOWN);
+      more.hidden = shown >= list.length;
+      more.textContent = `Show ${Math.min(CALLS_SHOWN, list.length - shown)} more of ${list.length - shown}`;
+    };
+    more.addEventListener("click", next);
+    next();
+    return el("section", { class: "group" },
+      el("div", { class: "group-head" }, el("h3", { class: "group-title" }, el("span", { class: "dot t-FN" }), title),
+        el("span", { class: "group-count", text: list.length })),
+      items, more);
+  }
+
+  function callItem(c, rel) {
+    const sites = c.lines.map((line) => `L${line}`).join(" · ");
+    return el("li", { class: "link-item" }, idButton(c.key),
+      el("span", { class: "link-rel", title: `call sites in the caller: ${sites}` }, `${rel} · ${sites} `,
+        c.ambiguous ? el("span", { class: "badge badge-warn", text: "ambiguous",
+          title: "the name matches several definitions; the analysis cannot tell which one is called" }) : null));
   }
 
   function linkGroup(type, byKey) {
@@ -925,7 +1104,8 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => graph.restyle());
 
   // ---- start --------------------------------------------------------------------------------------------------
-  window.agnosTrace = { nodes, links, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES, FILE_PREFIX };
+  window.agnosTrace = { nodes, links, calls, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
+    FILE_PREFIX };
   renderHeader();
   renderFilters();
   renderOverview();

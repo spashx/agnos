@@ -261,6 +261,7 @@ def assign_keys(functions):
             candidate = f"{key}.{n}"
         taken.add(candidate)
         function["key"] = candidate
+        function["dup"] = n if n > 1 else 0
 
 
 # ---- the call graph ----------------------------------------------------------------------------------------------
@@ -284,6 +285,33 @@ class CallGraph:
         if self.missing:
             line += f"; skipped: {', '.join(self.missing)} not installed, run: {install_command()}"
         return line
+
+    # RQ-TRC-038, DEC-TRC-016 (TASK-TRC-012)
+    def page_data(self, file_index):
+        """The call graph as the page reads it, names stored once:
+        functions [file index, first, last, qualified name, language index, first-line text, key suffix (0: none)];
+        calls, one flat list of integers per caller in function order: caller - previous caller, callee count, then per
+        callee: callee - caller, ambiguous + 2 * line count, each call-site line - the caller's first line;
+        ids [function index, ID, [lines]] (the proofs' texts are the file's); untraced: functions citing no ID."""
+        languages = sorted({f["language"] for f in self.functions})
+        functions = [[file_index[f["file"]], f["first"], f["last"], f["qualified"], languages.index(f["language"]),
+                      f["text"], f["dup"]] for f in self.functions]
+        by_caller = {}
+        for caller, callee, ambiguous, lines in self.calls:
+            by_caller.setdefault(caller, []).append((callee, ambiguous, lines))
+        calls, previous = [], 0
+        for caller, callees in by_caller.items():
+            first = self.functions[caller]["first"]
+            calls += [caller - previous, len(callees)]
+            for callee, ambiguous, lines in callees:
+                calls += [callee - caller, int(ambiguous) + 2 * len(lines), *(line - first for line in lines)]
+            previous = caller
+        ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
+               for target, proofs in sorted(f["ids"].items())]
+        return {"functions": functions, "languages": languages, "calls": calls, "ids": ids,
+                "untraced": [n for n, f in enumerate(self.functions) if not f["ids"]],
+                "counts": {"functions": len(self.functions), "calls": len(self.calls), "ambiguous": self.ambiguous,
+                           "external": self.external}}
 
 
 # RQ-TRC-026, RQ-TRC-027, RQ-TRC-040 (TASK-TRC-009, TASK-TRC-010)
