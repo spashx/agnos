@@ -251,6 +251,20 @@ ADR-TRC-003).
   Then its frame scrolls horizontally and the zoom is not below the readable zoom.
 - **Dependencies**: RQ-TRC-012, RQ-TRC-014, RQ-TRC-018, RQ-TRC-025, DEC-TRC-006, DEC-TRC-012
 
+### RQ-TRC-043: Resizable matrix columns
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the user drags the grip at the right edge of a matrix column header (or presses the left or right
+  arrow key on a focused grip), the page SHALL change that column's width by the pointer's move or one keyboard step,
+  never below the minimum column width of the design tokens, leave the other columns as they are, remember the widths in
+  the browser, and restore the default widths when a grip is double-clicked; a grip SHALL never sort the column.
+- **Rationale**: a long title, qualified function names or deep paths need room the default widths give elsewhere.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the matrix at its default widths, When the first column's grip is focused and the right
+  arrow pressed three times, Then that column is three keyboard steps wider, the second keeps its width and the sort is
+  unchanged; When the grip is double-clicked, Then the default widths come back.
+- **Dependencies**: RQ-TRC-014, RQ-TRC-018, RQ-TRC-025, RQ-TRC-042, DEC-TRC-012
+
 ---
 
 ## Non-Functional Requirements

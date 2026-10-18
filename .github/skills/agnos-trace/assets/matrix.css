@@ -605,8 +605,19 @@ table.matrix.with-functions th:nth-child(4), table.matrix.with-functions th:nth-
 table.matrix.with-functions th:nth-child(6) { width: 16%; }
 table.matrix.with-functions th:nth-child(7) { width: 14%; }
 table.matrix.with-functions th:nth-child(8) { width: 6%; }
-table.matrix td { overflow: hidden; }
-.cell-list .id-link { max-width: var(--c-cell-chip-max-width); }
+table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is its header's (RQ-TRC-043) */
+/* RQ-TRC-043: the grip at a header's right edge resizes its column */
+.col-grip {
+  position: absolute;
+  top: var(--s-space-none);
+  right: var(--s-space-none);
+  bottom: var(--s-space-none);
+  width: var(--c-splitter-width);
+  cursor: col-resize;
+  touch-action: none;
+}
+.col-grip:hover, .col-grip:focus-visible { background: var(--c-splitter-hover); outline: none; }
+.cell-list .id-link { max-width: 100%; }   /* RQ-TRC-043: an ID shows as much as its column allows */
 .cell-list .id { overflow: hidden; text-overflow: ellipsis; }
 .cell-requirement .cell-title { padding-left: var(--s-space-xs); }
 .cell-title { color: var(--s-text-muted); overflow: hidden; text-overflow: ellipsis; }

@@ -390,10 +390,10 @@ class FunctionMatrixTest(unittest.TestCase):
     def test_RQ_TRC_041_given_the_call_graph_when_the_matrix_opens_then_each_row_lists_its_functions_and_the_csv_too(self):
         import re
         dom = rendered_dom_after(self.path, "agnosTrace.showView('matrix');" + SHOW_CSV)
-        self.assertIn('scope="col">Functions</th>', dom)
+        self.assertIn('data-column="functions">Functions<span class="col-grip"', dom)   # the grip of RQ-TRC-043
         for label in ("ADRs / decisions", "Plans / tasks", "Functions", "Source files"):    # aligned with their cells
-            self.assertRegex(dom, rf'<th class="sortable *"[^>]*>{re.escape(label)}</th>')
-        self.assertRegex(dom, r'<th class="sortable num"[^>]*>Lines</th>')
+            self.assertRegex(dom, rf'<th class="sortable *"[^>]*>{re.escape(label)}<span class="col-grip"')
+        self.assertRegex(dom, r'<th class="sortable num"[^>]*>Lines<span class="col-grip"')
         row = re.search(r'<tr[^>]*data-key="RQ-DEM-001".*?</tr>', dom, re.S).group(0)
         self.assertIn('<span class="id">net::Port::send</span>', row)
         csv = re.search(r'<pre id="csv-text">(.*?)</pre>', dom, re.S).group(1)
@@ -411,7 +411,7 @@ class FunctionMatrixTest(unittest.TestCase):
 
     def test_RQ_TRC_041_given_a_page_without_call_graph_then_no_function_column_switch_or_count_appears(self):
         dom = rendered_dom_after(self.plain, "agnosTrace.showView('matrix'); agnosTrace.select('RQ-DEM-003');")
-        for absent in ('scope="col">Functions</th>', 'id="show-functions"', "Functions 0"):
+        for absent in ('data-column="functions"', 'id="show-functions"', "Functions 0"):
             self.assertNotIn(absent, dom)
 
 

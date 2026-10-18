@@ -189,3 +189,16 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
+
+### TASK-TRC-018: Resizable matrix columns
+- **Tier**: M
+- **Status**: In Progress
+- **Description**: A focusable grip at the right edge of each matrix header: drag or arrow keys change that column's width
+  (token minimum, token step), widths kept in the browser, double-click restores the defaults, the grip never sorts.
+- **Requirement refs**: RQ-TRC-043, RQ-TRC-014, RQ-TRC-018
+- **ADR refs**: ADR-TRC-003 (DEC-TRC-012), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: as RQ-TRC-043.
+- **Dependencies**: TASK-TRC-017
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:

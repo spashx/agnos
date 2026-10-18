@@ -876,9 +876,9 @@
       return order * state.sort.dir || a.id.localeCompare(b.id);
     });
     const head = el("tr", {}, ...MATRIX_COLUMNS.map((c) => el("th", {
-      class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key),
-      on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } },
-      text: c.label })));
+      class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
+      on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
+    c.label, columnGrip(c))));
     const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
       on: { click: () => select(r.id) } },
       el("td", { class: "cell-requirement" }, idButton(r.id),
@@ -890,7 +890,90 @@
       el("td", {}, idList(r.files)), el("td", { class: "num", text: r.lines || "—" })));
     $("matrix-table").classList.toggle("with-functions", Boolean(CALL_GRAPH));
     clear($("matrix-table")).append(el("thead", {}, head), el("tbody", {}, body));
+    applyColumnWidths();
     $("matrix-status").textContent = `${rows.length} of ${matrixRows.length} requirements`;
+  }
+
+  // ---- column widths (TASK-TRC-018: RQ-TRC-043; DEC-TRC-012) ---------------------------------------------------
+  // The first resize freezes every column at its drawn width, so that one column grows or shrinks and the others stay;
+  // the table is then as wide as its columns and the frame scrolls (RQ-TRC-042).
+  const COLUMNS_KEY = "agnos-trace-columns";
+  const columnWidths = loadColumnWidths();
+  const cssNumber = (name) => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  const headers = () => [...$("matrix-table").querySelectorAll("th[data-column]")];
+
+  function applyColumnWidths() {
+    const table = $("matrix-table");
+    const custom = Object.keys(columnWidths).length > 0;
+    for (const th of headers()) {
+      if (!custom) {
+        th.style.removeProperty("width");
+        continue;
+      }
+      columnWidths[th.dataset.column] ??= th.offsetWidth;         // a column not kept yet: as drawn
+      th.style.width = `${columnWidths[th.dataset.column]}px`;
+    }
+    if (custom) {
+      table.style.width = `${headers().reduce((sum, th) => sum + (columnWidths[th.dataset.column] || 0), 0)}px`;
+      table.style.minWidth = "auto";
+    } else {
+      table.style.removeProperty("width");
+      table.style.removeProperty("min-width");
+    }
+  }
+
+  function loadColumnWidths() {
+    try { return JSON.parse(localStorage.getItem(COLUMNS_KEY) || "{}"); } catch (error) { return {}; }   // no storage
+  }
+
+  function saveColumnWidths() {
+    try { localStorage.setItem(COLUMNS_KEY, JSON.stringify(columnWidths)); } catch (error) { /* the widths last this visit */ }
+  }
+
+  function setColumnWidth(key, width) {
+    if (!Object.keys(columnWidths).length) for (const th of headers()) columnWidths[th.dataset.column] = th.offsetWidth;
+    columnWidths[key] = Math.round(Math.max(cssNumber("--c-column-min-width"), width));
+    applyColumnWidths();
+    saveColumnWidths();
+  }
+
+  function resetColumnWidths() {
+    for (const key of Object.keys(columnWidths)) delete columnWidths[key];
+    applyColumnWidths();
+    saveColumnWidths();
+  }
+
+  function dragColumn(key, grip, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    grip.setPointerCapture(event.pointerId);
+    const start = event.clientX;
+    const width = grip.parentElement.offsetWidth;
+    const move = (e) => setColumnWidth(key, width + e.clientX - start);
+    const end = () => {
+      grip.removeEventListener("pointermove", move);
+      grip.removeEventListener("pointerup", end);
+      grip.removeEventListener("pointercancel", end);
+    };
+    grip.addEventListener("pointermove", move);
+    grip.addEventListener("pointerup", end);
+    grip.addEventListener("pointercancel", end);
+  }
+
+  function columnGrip(c) {
+    const grip = el("span", { class: "col-grip", role: "separator", tabindex: "0", "aria-orientation": "vertical",
+      "aria-label": `Resize the ${c.label} column`, title: "Drag, or use the arrow keys, to resize · double-click to reset" });
+    grip.addEventListener("click", (event) => event.stopPropagation());          // a grip never sorts
+    grip.addEventListener("dblclick", (event) => { event.stopPropagation(); resetColumnWidths(); });
+    grip.addEventListener("pointerdown", (event) => dragColumn(c.key, grip, event));
+    grip.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      event.stopPropagation();
+      const step = cssNumber("--c-splitter-step");
+      setColumnWidth(c.key, grip.parentElement.offsetWidth + (event.key === "ArrowRight" ? step : -step));
+    });
+    return grip;
   }
 
   function ariaSort(columnKey) {

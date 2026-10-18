@@ -477,6 +477,40 @@ class ScrollTest(unittest.TestCase):
         self.assertGreaterEqual(float(found["graph-zoom"]), float(tokens["dimension.graph-flow-min-zoom"]))
 
 
+RESIZE_FIRST_COLUMN = """
+agnosTrace.showView("matrix");
+const heads = () => [...document.querySelectorAll("#matrix-table th")];
+const out = document.documentElement.dataset;
+out.before = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+const grip = heads()[0].querySelector(".col-grip");
+for (let i = 0; i < 3; i += 1) grip.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+grip.click();
+out.after = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+out.sort = heads()[0].getAttribute("aria-sort");
+heads()[0].querySelector(".col-grip").dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+out.reset = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class ColumnResizeTest(unittest.TestCase):
+    """TASK-TRC-018: RQ-TRC-043, RQ-TRC-018 (DEC-TRC-012)."""
+
+    def test_RQ_TRC_043_given_a_column_grip_when_moved_by_keyboard_then_only_that_column_widens_and_reset_restores(self):
+        import re
+        step = int(tm.load_tokens(tm.TOKENS_PATH)["global"]["space.16"].removesuffix("px"))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(before|after|sort|reset)="([^"]*)"', rendered_dom_after(path, RESIZE_FIRST_COLUMN)))
+        before = [int(w) for w in found["before"].split(",")]
+        after = [int(w) for w in found["after"].split(",")]
+        self.assertEqual(before[0] + 3 * step, after[0])
+        self.assertEqual(before[1], after[1])
+        self.assertEqual("ascending", found["sort"])
+        self.assertEqual(found["before"], found["reset"])
+
+
 HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
                   "eHBsb3Jlcg==")   # the host project's names and domain terms, encoded so that this file holds none
 
