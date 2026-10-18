@@ -164,5 +164,62 @@ class FunctionsTest(unittest.TestCase):
         self.assertIn(("calls/net/port.hpp", "RQ-DEM-001", "code"), self.model.edges)
 
 
+def calls_of(graph):
+    """{(caller, callee): (ambiguous, call-site lines)}, by qualified names."""
+    names = [f["qualified"] for f in graph.functions]
+    return {(names[caller], names[callee]): (ambiguous, lines) for caller, callee, ambiguous, lines in graph.calls}
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class CallResolutionTest(unittest.TestCase):
+    """TASK-TRC-011: RQ-TRC-029, RQ-TRC-030, RQ-TRC-040 (DEC-TRC-015)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = fixture_call_graph()[1]
+        cls.calls = calls_of(cls.graph)
+
+    def test_RQ_TRC_029_given_a_name_with_one_definition_when_called_twice_then_one_link_holds_both_lines(self):
+        self.assertEqual((False, [8, 9]), self.calls[("relay", "log")])
+        self.assertEqual((False, [9]), self.calls[("run", "helper")])
+
+    def test_RQ_TRC_029_given_definitions_in_the_callers_class_and_another_when_called_then_its_class_wins(self):
+        self.assertEqual((False, [7]), self.calls[("net::Port::send", "net::Port::write")])
+        self.assertNotIn(("net::Port::send", "net::Session::write"), self.calls)
+
+    def test_RQ_TRC_030_given_a_receiver_call_with_two_candidates_outside_both_classes_then_both_links_are_ambiguous(
+            self):
+        for callee in ("net::Port::send", "net::Session::send"):
+            self.assertEqual((True, [6]), self.calls[("relay", callee)])
+        for callee in ("net::Port::write", "net::Session::write"):
+            self.assertEqual((True, [7]), self.calls[("relay", callee)])
+
+    def test_RQ_TRC_030_given_library_calls_and_a_pointer_call_then_two_are_external_and_the_pointer_is_not_followed(
+            self):
+        self.assertEqual(8, len(self.calls))
+        self.assertEqual((2, 2), (self.graph.ambiguous, self.graph.external))
+        self.assertIn("call graph: 11 functions, 8 calls, ambiguous 2, external 2", self.graph.summary())
+
+    def test_RQ_TRC_030_given_more_than_five_candidates_when_called_then_no_link_is_made_and_it_counts_as_ambiguous(
+            self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for n in range(cg.MAX_AMBIGUOUS + 1):
+                (root / f"d{n}").mkdir()
+                (root / f"d{n}" / "f.cpp").write_text("int f() { return 0; }\n", encoding="utf-8")
+            (root / "main.cpp").write_text("int g() { return f(); }\n", encoding="utf-8")
+            files = sorted((p.relative_to(root).as_posix(), p) for p in root.rglob("*.cpp"))
+            graph = cg.analyse(files, {}, tm.evidence)
+        self.assertEqual(([], 1, 0), (graph.calls, graph.ambiguous, graph.external))
+
+    def test_RQ_TRC_040_given_the_fixture_when_the_page_is_generated_twice_with_the_call_graph_then_it_is_identical(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first, out = generate(Path(tmp) / "one.html", "--call-graph")
+            second, _ = generate(Path(tmp) / "two.html", "--call-graph")
+        self.assertEqual(first, second)
+        self.assertIn("call graph: ", summary_line(out))
+        self.assertEqual(calls_of(fixture_call_graph()[1]), self.calls)
+
+
 if __name__ == "__main__":
     unittest.main()

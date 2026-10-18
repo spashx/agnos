@@ -60,7 +60,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-011: Call resolution
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Find the call sites and resolve each called name with the preferences of DEC-TRC-015: one link, up to
   five ambiguous links, or an ambiguous / external count; the same order on every run.
 - **Requirement refs**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-040
@@ -70,8 +70,14 @@ This plan implements the tasks in the format specified below.
   same page.
 - **Dependencies**: TASK-TRC-010
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` 55 tests OK; `CallResolutionTest`: `relay`→`log` one link lines 8, 9; `Port::send`→
+  `Port::write` (its class) and not `Session::write`; `x.send()` / `port.write()` from `relay` two ambiguous links each;
+  `printf` and `puts` external, `(*fp)()` not followed: "call graph: 11 functions, 8 calls, ambiguous 2, external 2"; six
+  `f` in six folders: no link, ambiguous 1; two `--call-graph` pages identical. On a C++ code base: 1,908
+  functions, 7,745 calls, +1.0 s. IDE SonarQube (checked live on a canary): no finding.
+- **Assumptions**: candidates are taken in the caller's language only (cross-language calls are out of scope); a free
+  function's "class" level is its namespace and the global scope is no level; ambiguous and external counts are per
+  (caller, called name), as links are per callee.
 
 ### TASK-TRC-012: Functions in the page — data, panel, search, overview
 - **Tier**: M

@@ -24,6 +24,8 @@ SCOPE, SCOPE_NAME = "scope", "scope.name"
 CALL, CALL_NAME = "call", "call.name"
 COMMENT = "comment"
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
+MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
+FOLDER_SEPARATOR = "/"                             # in the shown paths of the files
 TEMPLATE_ARGS_RE = re.compile(r"<[^<>]*>")         # innermost template or generic arguments, removed until none is left
 MEMBER_RE = re.compile(r"::|\.|->")                # what separates a called name from its receiver or qualifier
 NAME_RE = re.compile(r"^~?[A-Za-z_]\w*$|^operator\W")  # a name a call can be resolved by; "(*fp)" is not one
@@ -177,6 +179,77 @@ def file_functions(shown, grammar, api, data, cited, evidence):
     return functions, caps[CALL]
 
 
+def call_sites(functions, calls):
+    """(caller, called name, line) of each call whose name can be resolved, the caller being the innermost function
+    holding the call; nodes in start order, one sweep with a stack of the open functions."""
+    sites, stack, pending = [], [], list(reversed(functions))
+    for call, expression in calls:
+        while pending and pending[-1]["node"].start_byte <= call.start_byte:
+            function = pending.pop()
+            while stack and stack[-1]["node"].end_byte <= function["node"].start_byte:
+                stack.pop()
+            stack.append(function)
+        while stack and stack[-1]["node"].end_byte <= call.start_byte:
+            stack.pop()
+        name = last_part(plain_name(text_of(expression)))
+        if stack and NAME_RE.match(name):
+            sites.append((stack[-1], name, call.start_point[0] + 1))
+    return sites
+
+
+# ---- resolution --------------------------------------------------------------------------------------------------
+def folder_of(path):
+    return path.rpartition(FOLDER_SEPARATOR)[0]
+
+
+def preferred(caller, candidates, separator):
+    """The candidates of the first non-empty level: the caller's class, its namespace, its file, its folder, the
+    project (DEC-TRC-015, RQ-TRC-029)."""
+    scope = caller["scope"]
+    namespace = scope.rpartition(separator)[0]
+    levels = (
+        lambda f: scope and f["scope"] == scope,
+        lambda f: namespace and f["scope"] == namespace,
+        lambda f: f["file"] == caller["file"],
+        lambda f: folder_of(f["file"]) == folder_of(caller["file"]),
+    )
+    for level in levels:
+        chosen = [f for f in candidates if level(f)]
+        if chosen:
+            return chosen
+    return candidates
+
+
+# RQ-TRC-029, RQ-TRC-030, RQ-TRC-040 (TASK-TRC-011)
+def resolve(graph, sites, separators):
+    """Links each (caller, called name) to its definitions, in the caller's language: one plain link, two to five
+    ambiguous ones, else none and counted as ambiguous; no definition counts as external."""
+    index = {id(f): n for n, f in enumerate(graph.functions)}
+    definitions = {}
+    for function in graph.functions:
+        definitions.setdefault((function["language"], function["name"]), []).append(function)
+    grouped = {}
+    for caller, name, line in sites:
+        grouped.setdefault((index[id(caller)], name), []).append(line)
+    links = {}
+    for (caller_index, name), lines in grouped.items():
+        caller = graph.functions[caller_index]
+        candidates = definitions.get((caller["language"], name), [])
+        chosen = preferred(caller, candidates, separators[caller["language"]]) if candidates else []
+        if not chosen:
+            graph.external += 1
+        elif len(chosen) > MAX_AMBIGUOUS:
+            graph.ambiguous += 1
+        else:
+            ambiguous = len(chosen) > 1
+            graph.ambiguous += int(ambiguous)
+            for callee in chosen:
+                link = links.setdefault((caller_index, index[id(callee)]), [ambiguous, set()])
+                link[1].update(lines)
+    graph.calls = [[caller, callee, ambiguous, sorted(lines)] for (caller, callee), (ambiguous, lines)
+                   in sorted(links.items())]
+
+
 def assign_keys(functions):
     """fn:<file>:<first line>, made unique by '.<n>' when two definitions start on one line (DEC-TRC-016)."""
     taken = set()
@@ -225,10 +298,15 @@ def analyse(files, cited, evidence, table=None):
         graph.core_missing = True
         return graph
     grammars, graph.missing = load_grammars(load_table() if table is None else table, api)
+    sites = []
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
-            functions, _ = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            functions, calls = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
             graph.functions += functions
+            sites += call_sites(functions, calls)
     assign_keys(graph.functions)
+    resolve(graph, sites, {g.name: g.separator for g in grammars.values()})
+    for function in graph.functions:
+        del function["node"]
     return graph
