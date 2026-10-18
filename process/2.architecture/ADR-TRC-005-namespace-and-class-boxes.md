@@ -65,7 +65,20 @@ always walked, so drawn whenever files are (the "Source files" switch). The four
 "Display", styled like the "Depth" group; "Implementation" and "Enclosing scopes" are added there by the page only with
 a call graph. "Scope" is the word every language parsed by tree-sitter uses for a namespace, module, package or class;
 the switch's tooltip says that blocks and functions, scopes too, are not drawn. The global box's label becomes
-`(global namespace)`; its key stays `box:(global)`.
+`(global namespace)`; its key stays `box:(global)`. Amended on 2026-10-18 after a second review: the groups stand
+Depth, Display, Implementation detail (the reading order: how far, what, how finely); the "Implementation detail"
+`fieldset` and the "Enclosing scopes" switch are disabled while the implementation is off, whichever of the switch
+or the Functions type filter turned it off (one function syncs them, called by the graph's `refresh`); each group's
+label has a background from the accent-subtle role, as the selected fill, with the accent colour for its text.
+
+### DEC-TRC-024: A search result's tooltip is the page's own
+RQ-TRC-049. The browser's `title` shows after about a second and cannot be set shorter, and the list's popup cuts names
+and titles to its width. A result gets a tooltip of the page's own, a fixed-position element beside the list (so that
+the sidebar's overflow does not cut it), shown after the quick delay token (`duration.quick`, 300 ms, `--c-search-tip-delay`)
+when the pointer enters a result or the keyboard moves onto one, hidden when the pointer leaves the list, the search
+closes, a result is picked or the list scrolls. It holds the element's type, its whole name, its whole title and its
+location (`file:lines`, which tells apart the same name in two places). The element's colours, border, shadow and
+size come from the tooltip tokens of RQ-TRC-046's graph tooltip.
 
 ## Consequences
 **Easier.** A large code base is read from the top: which namespace calls which, which classes carry a requirement,

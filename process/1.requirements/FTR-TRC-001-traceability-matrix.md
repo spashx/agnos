@@ -303,6 +303,21 @@ ADR-TRC-003).
   order; Given the tokens, Then the delay is 2 s.
 - **Dependencies**: RQ-TRC-012, RQ-TRC-044, RQ-TRC-045
 
+### RQ-TRC-049: A search result's full text
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the pointer rests on a result of the search list, or the keyboard moves onto one, for the quick
+  delay of the design tokens (300 ms), the page SHALL show beside the list the result's type, its whole name, its whole
+  title and its location, wrapped and not truncated, and SHALL hide it when the pointer leaves the list, the keyboard
+  moves again, the search closes or a result is picked.
+- **Rationale**: names and titles are cut to the list's width; a long function name or a title is read in full without
+  selecting it.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a search whose result's name is longer than the list, When the result is pointed at,
+  Then, after the delay, a tooltip holds its type, whole name, whole title and location; When the pointer leaves the
+  list, Then it is gone; Given the tokens, Then the delay is 300 ms.
+- **Dependencies**: RQ-TRC-011, RQ-TRC-045
+
 ---
 
 ## Non-Functional Requirements

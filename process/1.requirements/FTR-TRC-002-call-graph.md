@@ -192,15 +192,20 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   "defines", with its own look, drawn and walked with the source files ("Source files" switch). The toolbar's switches
   (Source files, Implementation, Specification hierarchy, Enclosing scopes) SHALL stand in one labelled "Display" group,
   like the "Depth" and "Implementation detail" groups. Without call graph, only "Source files" and "Specification
-  hierarchy" remain in the group.
+  hierarchy" remain in the group. The groups SHALL stand in the order of reading, "Depth", then "Display", then
+  "Implementation detail", each label on the accent-subtle background of the design system. WHILE the "Implementation"
+  switch is off (the Functions type filter too), the "Implementation detail" choice and the "Enclosing scopes" switch
+  SHALL be disabled, and enabled again when it is turned on.
 - **Rationale**: owner review of 2026-10-18: "Functions" named classes and namespaces too; "Containment" mixed the
   specification's structure with the code's and its effect on the graph was not understood; "Enclosing boxes" was not
   a professional term (a namespace, module, package or class is a scope in every language tree-sitter parses; blocks
   and functions, scopes too, are never drawn).
 - **Priority**: Should
 - **Acceptance Criteria**: Given the fixture page with the call graph, When the graph opens, Then the toolbar shows the
-  groups "Depth", "Implementation detail" and "Display", the last holding "Source files", "Implementation",
-  "Specification hierarchy" and "Enclosing scopes"; When functions are drawn, Then their column is "Implementation";
+  groups "Depth", "Display" and "Implementation detail" in that order, "Display" holding "Source files",
+  "Implementation", "Specification hierarchy" and "Enclosing scopes", and the choice and the last switch are disabled
+  (the implementation is off); When "Implementation" is turned on, Then they are enabled; When it is turned off again,
+  Then they are disabled; Given the tokens, Then the group labels have a background token; When functions are drawn, Then their column is "Implementation";
   When "Specification hierarchy" is off and a requirement is drawn, Then its feature is not drawn, and a function is
   still linked to its file by "defines"; When "Source files" is off, Then no file and no "defines" link is drawn; Given
   a page without call graph, Then "Display" holds "Source files" and "Specification hierarchy" only.

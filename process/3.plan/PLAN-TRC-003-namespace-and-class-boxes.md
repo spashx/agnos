@@ -187,3 +187,19 @@ This plan implements the tasks in the format specified below.
   rather than "part of", the arrow running from the container; the panel's groups read "Enclosing scope", "Inner
   scopes", "Callers / Callees by scope"; the global box's key stays `box:(global)` so deep links keep working; at 1600 px
   the toolbar now wraps onto a second line.
+
+### TASK-TRC-030: A search result's tooltip, the detail choice following "Implementation", toolbar order and labels
+- **Tier**: M
+- **Status**: In Progress
+- **Description**: Second owner review of the page. (1) A result of the search list gets a tooltip of the page's own
+  (type, whole name, whole title, location) after the quick delay token, on hover and on keyboard move. (2) The
+  "Implementation detail" choice and "Enclosing scopes" are disabled while "Implementation" is off, from the switch or
+  the Functions type filter, and enabled again when it is on. (3) The groups stand Depth, Display, Implementation
+  detail. (4) Each group label gets a background from the design system (accent-subtle) with the accent text.
+- **Requirement refs**: RQ-TRC-049, RQ-TRC-048, RQ-TRC-045, RQ-TRC-018
+- **ADR refs**: ADR-TRC-005 (DEC-TRC-023 as amended, DEC-TRC-024), ADR-TRC-002 (DEC-TRC-010, DEC-TRC-011)
+- **Acceptance Criteria**: those of RQ-TRC-049 and RQ-TRC-048.
+- **Dependencies**: TASK-TRC-029
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
