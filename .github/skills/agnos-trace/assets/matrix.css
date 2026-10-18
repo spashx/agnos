@@ -741,8 +741,19 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 
 .group { padding: var(--s-space-md) var(--s-space-xl); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
 .group:last-child { border-bottom: none; }
-.group-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-space-sm); margin-bottom: var(--s-space-sm); }
-.group-title { display: flex; align-items: center; gap: var(--s-space-sm); margin: var(--s-space-none); font-size: var(--s-text-small); font-weight: var(--s-weight-strong); }
+/* RQ-TRC-016: a group's head is a band, its type in capitals, so that the eye finds it above its items */
+.group-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-space-sm);
+  margin: var(--s-space-none) calc(-1 * var(--s-space-sm)) var(--s-space-sm);
+  padding: var(--s-space-xs) var(--s-space-sm);
+  border-radius: var(--s-radius-sm);
+  background: var(--s-surface-hover);
+}
+.group-title {
+  display: flex; align-items: center; gap: var(--s-space-sm); margin: var(--s-space-none);
+  font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); letter-spacing: var(--s-tracking-caps);
+  text-transform: uppercase;
+}
 .group-count { color: var(--s-text-subtle); font-variant-numeric: tabular-nums; }
 .group-items { display: flex; flex-direction: column; gap: var(--s-space-xs); margin: var(--s-space-none); padding: var(--s-space-none); list-style: none; }
 
