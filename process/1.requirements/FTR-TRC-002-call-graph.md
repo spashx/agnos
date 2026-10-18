@@ -193,7 +193,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   (Source files, Implementation, Specification hierarchy, Enclosing scopes) SHALL stand in one labelled "Display" group,
   like the "Depth" and "Implementation detail" groups. Without call graph, only "Source files" and "Specification
   hierarchy" remain in the group. The groups SHALL stand in the order of reading, "Depth", then "Display", then
-  "Implementation detail", each label on the accent-subtle background of the design system. WHILE the "Implementation"
+  "Implementation detail", each label on a solid neutral background no element type of the graph uses, with the on-accent text. WHILE the "Implementation"
   switch is off (the Functions type filter too), the "Implementation detail" choice and the "Enclosing scopes" switch
   SHALL be disabled, and enabled again when it is turned on.
 - **Rationale**: owner review of 2026-10-18: "Functions" named classes and namespaces too; "Containment" mixed the

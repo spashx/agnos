@@ -435,7 +435,7 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--s-surface-subtle);
 }
 
-/* RQ-TRC-048: a group's label stands out on the accent-subtle background of the design system */
+/* RQ-TRC-048: a group's label stands out on a solid neutral that no element type of the graph uses */
 .segmented-label {
   align-self: stretch;
   display: inline-flex;
@@ -446,7 +446,7 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--c-group-label-bg);
   color: var(--c-group-label-text);
   font-size: var(--s-text-small);
-  font-weight: var(--s-weight-medium);
+  font-weight: var(--s-weight-strong);
 }
 /* RQ-TRC-048: a group of controls that mean nothing for now */
 .segmented:disabled { opacity: var(--s-opacity-muted); }
