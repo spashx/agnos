@@ -192,7 +192,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-018: Resizable matrix columns
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: A focusable grip at the right edge of each matrix header: drag or arrow keys change that column's width
   (token minimum, token step), widths kept in the browser, double-click restores the defaults, the grip never sorts.
 - **Requirement refs**: RQ-TRC-043, RQ-TRC-014, RQ-TRC-018
@@ -200,5 +200,10 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**: as RQ-TRC-043.
 - **Dependencies**: TASK-TRC-017
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `unittest discover` 71 tests OK (1 skipped: the large measure). `ColumnResizeTest`, headless Edge:
+  three right-arrow presses on the first grip widen that column by three 16 px steps, the second keeps its width, a
+  click on the grip leaves the sort ascending, a double-click restores the default widths. Screenshot on a C++ code base:
+  Functions widened shows the full qualified names. IDE SonarQube: no finding.
+- **Assumptions**: the first resize freezes every column at its drawn width and the table becomes as wide as its
+  columns (the frame scrolls, RQ-TRC-042); an ID in a cell now takes its column's width, so the unused chip-max tokens
+  are removed; the TASK-TRC-015 header assertions follow the header's new grip.

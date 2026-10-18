@@ -114,7 +114,7 @@ TASK-TRC-006|120-139|Done|Interactive graph
 TASK-TRC-007|140-158|Done|Skill packaging and run on this repository
 TASK-TRC-008|159-177|Done|Resizable panels
 @process/3.plan/PLAN-TRC-002-call-graph.md
-PLAN-TRC-002|1-204||Call Graph in agnos-trace
+PLAN-TRC-002|1-209||Call Graph in agnos-trace
 TASK-TRC-009|17-39|Done|Optional call-graph module and language table
 TASK-TRC-010|40-60|Done|C and C++ functions and their IDs
 TASK-TRC-011|61-81|Done|Call resolution
@@ -124,4 +124,4 @@ TASK-TRC-014|127-144|Done|Documentation and run on this repository
 TASK-TRC-015|145-161|Done|Functions in the matrix, the graph toolbar and the requirement panel
 TASK-TRC-016|162-178|Done|Scrollbars for the matrix and the graph
 TASK-TRC-017|179-192|Done|Matrix headers aligned with their cells
-TASK-TRC-018|193-204|In Progress|Resizable matrix columns
+TASK-TRC-018|193-209|Done|Resizable matrix columns
