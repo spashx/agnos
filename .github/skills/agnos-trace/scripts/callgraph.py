@@ -106,12 +106,13 @@ def install_command():
 
 # ---- functions ---------------------------------------------------------------------------------------------------
 def plain_name(text):
-    """A declared or called name without its template arguments and spaces: 'h<int>' -> 'h'."""
+    """A declared or called name without its template arguments and spaces: 'h<int>' -> 'h'; the '::' a removed
+    argument leaves at the end goes too, Rust's 'f::<u8>' -> 'f' (DEC-TRC-026)."""
     text = SPACE_RE.sub("", text)
     while True:
         stripped = TEMPLATE_ARGS_RE.sub("", text)
         if stripped == text:
-            return text.lstrip(":")
+            return text.strip(":")
         text = stripped
 
 
@@ -134,13 +135,17 @@ def captures_of(grammar, api, root):
 
 
 def comment_tops(comments, lines):
-    """{last row of a comment that starts its line: first row of the comment block ending there} (rows from 0)."""
+    """{last row of a comment that starts its line: first row of the comment block ending there} (rows from 0). A
+    comment that holds its line's end, as Rust's line comments do, ends at column 0 of the next row: its last row is the
+    one before (DEC-TRC-026)."""
     tops = {}
     for node, _ in comments:
         row, column = node.start_point
         if lines[row][:column].strip():
             continue                       # a comment after code on its line ends no block above a definition
-        tops[node.end_point[0]] = tops.get(row - 1, row)
+        end_row, end_column = node.end_point
+        last = end_row - 1 if end_column == 0 and end_row > row else end_row
+        tops[last] = tops.get(row - 1, row)
     return tops
 
 

@@ -98,7 +98,8 @@ publishes (`tree-sitter-c-sharp`, `tree-sitter-java`, `tree-sitter-javascript`, 
   type to `namespace`.
 - **Attributes, annotations, decorators.** Java and C# keep them inside the definition; Python's decorators and Rust's
   `#[...]` stand between the doc comment and the definition: the query captures them as `@comment`, so the comment block
-  above them reaches the definition (RQ-TRC-031).
+  above them reaches the definition (RQ-TRC-031). A comment node that holds its line's end (Rust's line comments end
+  at column 0 of the next row) ends on the row before (found at implementation, TASK-TRC-036).
 - **Names.** Two rules of the script, valid for every language: a trailing `::` left by a removed generic argument (Rust's
   `f::<T>()`) is dropped, and a called name may hold `$` and start with `#` (JavaScript's `$()`, `this.#p()`).
 - Modules that are only files (Python, JavaScript, Rust's `mod x;`) give no box: their classes are in `(global)`

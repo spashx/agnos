@@ -102,7 +102,7 @@ class LanguageTableTest(unittest.TestCase):
 
     def test_RQ_TRC_032_given_the_language_table_then_each_entry_names_its_extensions_package_module_and_query(self):
         table = cg.load_table()
-        self.assertEqual({"c", "cpp", "csharp", "java", "javascript", "python"}, set(table))                # RQ-TRC-050
+        self.assertEqual({"c", "cpp", "csharp", "java", "javascript", "python", "rust"}, set(table))                # RQ-TRC-050
         seen = []
         for name, entry in table.items():
             self.assertTrue(entry["extensions"] and all(x.startswith(".") for x in entry["extensions"]), name)

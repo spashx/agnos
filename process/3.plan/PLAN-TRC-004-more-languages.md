@@ -98,7 +98,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-036: Rust
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the `rust` entry (`.rs`, `tree-sitter-rust`, separator `::`, scopes), `rust.scm` and the pinned
   wheel; `fn` with a body, inline `mod` as namespace, `impl` blocks (by their type) and traits as classes, attributes
   captured as `@comment`; the trailing `::` of a turbofish dropped (DEC-TRC-026).
@@ -110,8 +110,13 @@ This plan implements the tasks in the format specified below.
   test is linked to the ID, and the scopes are `a` (namespace) and `a::S` (class).
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: —
-- **Assumptions**: —
+- **Verification**: `RustTest` 4/4 OK: `shapes::Square::new` (in `impl<T> Square<T>`), `shapes::convert`,
+  `shapes::Area::area` (a trait's default method), `shapes::builds`, not `name()`; `builds → Square::new` and
+  `builds → convert` (`convert::<u8>()`), no external, `println!` not a call; `builds` cites the `///` ID above
+  `#[test]`, after a fix found by the test (Error Recovery, one attempt): a Rust line comment ends at column 0 of the
+  next row, `comment_tops` now takes the row before; scopes `shapes` (namespace), `shapes::Square`, `shapes::Area`.
+  Whole suite 130 OK, 1 skipped; Sonar on `callgraph.py`: no finding.
+- **Assumptions**: a trait's default method is a function in the trait's box, its declaration without body is not.
 
 ### TASK-TRC-037: Documentation and a run on this repository
 - **Tier**: M

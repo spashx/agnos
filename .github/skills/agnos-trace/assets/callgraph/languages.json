@@ -70,5 +70,17 @@
     "scopes": {
       "class_definition": "class"
     }
+  },
+  "rust": {
+    "extensions": [".rs"],
+    "package": "tree-sitter-rust",
+    "module": "tree_sitter_rust",
+    "query": "rust.scm",
+    "separator": "::",
+    "scopes": {
+      "mod_item": "namespace",
+      "impl_item": "class",
+      "trait_item": "class"
+    }
   }
 }

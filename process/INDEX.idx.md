@@ -99,7 +99,7 @@ DEC-TRC-007|43-49||One page, four views, one selection
 DEC-TRC-008|50-55||Skill packaging
 DEC-TRC-012|56-63||Splitter bars between the three panels
 @process/2.architecture/ADR-TRC-004-call-graph-analysis.md
-ADR-TRC-004|1-140|Accepted — reviewed and accepted by the owner on 2026-10-18, with the defaults proposed for the function key|Call-Graph Analysis with Tree-sitter
+ADR-TRC-004|1-141|Accepted — reviewed and accepted by the owner on 2026-10-18, with the defaults proposed for the function key|Call-Graph Analysis with Tree-sitter
 DEC-TRC-013|24-32||An optional module, imported only on demand
 DEC-TRC-014|33-40||Languages as data — a table and one query file each
 DEC-TRC-015|41-47||Resolution by name, with preferences and visible ambiguity
@@ -107,7 +107,7 @@ DEC-TRC-016|48-56||Functions in the link model, in a compact encoding
 DEC-TRC-017|57-72||Keeping the central graph fast
 DEC-TRC-018|73-78||What the call graph does not change
 DEC-TRC-025|79-94||C#, Java, JavaScript, Python and Rust from the tree-sitter project's own grammars
-DEC-TRC-026|95-107||The syntax that differs, settled in the query files
+DEC-TRC-026|95-108||The syntax that differs, settled in the query files
 @process/2.architecture/ADR-TRC-005-namespace-and-class-boxes.md
 ADR-TRC-005|1-116|Accepted — reviewed and accepted by the owner on 2026-10-18. Implemented by PLAN-TRC-003. Owner request of 2026-10-18 (functions in nested namespace and class boxes, three levels of detail, the|Namespace and Class Boxes in the Graph
 DEC-TRC-019|18-32||Scopes as data, their kind from the language table
@@ -158,10 +158,10 @@ TASK-TRC-029|164-190|Done|Implementation words, a Display group, the specificati
 TASK-TRC-030|191-217|Done|A search result's tooltip, the detail choice following "Implementation", toolbar order and labels
 TASK-TRC-031|218-237|Done|The page's data in two files beside it
 @process/3.plan/PLAN-TRC-004-more-languages.md
-PLAN-TRC-004|1-129||C#, Java, JavaScript, Python and Rust in the Call Graph
+PLAN-TRC-004|1-134||C#, Java, JavaScript, Python and Rust in the Call Graph
 TASK-TRC-032|19-38|Done|C#
 TASK-TRC-033|39-57|Done|Java
 TASK-TRC-034|58-78|Done|JavaScript and Node.js
 TASK-TRC-035|79-98|Done|Python
-TASK-TRC-036|99-115|Not Started|Rust
-TASK-TRC-037|116-129|Not Started|Documentation and a run on this repository
+TASK-TRC-036|99-120|Done|Rust
+TASK-TRC-037|121-134|Not Started|Documentation and a run on this repository

@@ -147,5 +147,33 @@ class PythonTest(unittest.TestCase):
         self.assertEqual({"Greeter": ("class", None)}, scopes_of(self.graph))
 
 
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class RustTest(unittest.TestCase):
+    """TASK-TRC-036: RQ-TRC-050, RQ-TRC-031, RQ-TRC-032, RQ-TRC-047 (DEC-TRC-025, DEC-TRC-026)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = language_graph("rust")
+        cls.functions = by_name(cls.graph)
+
+    def test_RQ_TRC_050_given_a_rust_file_when_analysed_then_every_fn_with_a_body_is_a_function(self):
+        self.assertEqual({"shapes::Square::new", "shapes::convert", "shapes::Area::area", "shapes::builds"},
+                         set(self.functions))                                                # not name()
+        self.assertEqual({"rust"}, {f["language"] for f in self.graph.functions})
+
+    def test_RQ_TRC_050_given_a_path_call_and_a_turbofish_when_analysed_then_both_are_linked_and_a_macro_is_no_call(
+            self):
+        self.assertEqual({("shapes::builds", "shapes::Square::new"): False,
+                          ("shapes::builds", "shapes::convert"): False}, call_links(self.graph))
+        self.assertEqual((0, 0), (self.graph.ambiguous, self.graph.external))    # println! is not a call
+
+    def test_RQ_TRC_031_given_a_doc_comment_above_an_attribute_when_analysed_then_the_function_cites_its_id(self):
+        self.assertEqual({CITED}, set(self.functions["shapes::builds"]["ids"]))
+
+    def test_RQ_TRC_050_given_a_module_an_impl_block_and_a_trait_when_analysed_then_they_are_the_scopes(self):
+        self.assertEqual({"shapes": ("namespace", None), "shapes::Square": ("class", "shapes"),
+                          "shapes::Area": ("class", "shapes")}, scopes_of(self.graph))
+
+
 if __name__ == "__main__":
     unittest.main()
