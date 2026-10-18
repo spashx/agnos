@@ -93,8 +93,8 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-TRC-011
 - **Assignee**: AI
 - **Verification**: `unittest discover` 62 tests OK; headless Edge: `net::Port::write` selected shows "Callers 2" (`relay`
-  ambiguous, `net::Port::send`) and "Callees 0", `net::Port::send` its RQ-DEM-001 and location; RQ-DEM-001 selected
-  lists "Function 1"; searching "port::wr" finds the function; overview "Call graph" card ("8 call links"), "Untraced
+  ambiguous, `net::Port::send`) and "Callees 0", `net::Port::send` its requirement and location; that requirement
+  selected lists "Function 1"; searching "port::wr" finds the function; overview "Call graph" card ("8 call links"), "Untraced
   functions" listed, Gaps tab count = sum of the counted gaps. Size: fixture within 120 B/function + 16 B/call; a C++ code base
   +331,839 bytes for 1,908 functions and 7,745 calls (budget 352,880). Screenshots light/dark checked. IDE SonarQube: no
   finding.
@@ -115,8 +115,8 @@ This plan implements the tasks in the format specified below.
   within 3 s; the analysis adds at most 30 s on 2,000 files.
 - **Dependencies**: TASK-TRC-012
 - **Assignee**: AI
-- **Verification**: `unittest discover` with `AGNOS_TRACE_PERF=1`: 65 tests OK. `FunctionGraphTest`: RQ-DEM-001 drawn
-  with one node more once Functions is on; `net::Port::write` with functions on: "4 elements · 5 links". Generated tree
+- **Verification**: `unittest discover` with `AGNOS_TRACE_PERF=1`: 65 tests OK. `FunctionGraphTest`: the fixture's first requirement
+  drawn with one node more once Functions is on; `net::Port::write` with functions on: "4 elements · 5 links". Generated tree
   (2,000 files, 20,002 functions, 100,000 calls): run 1.5 s, with the call graph 3.6 s (+2.1 s, limit 30 s); page +1,858,549
   bytes (limit 4.0 MB); interactive 177 ms after opening (limit 3 s); `hub` at depth 2: 74 nodes in 106 ms, "21928 not
   drawn". Screenshots of a function's and a requirement's graph on a C++ code base checked. IDE SonarQube: no finding.
@@ -125,8 +125,8 @@ This plan implements the tasks in the format specified below.
   a selected function its column splits into callers, function, callees (recorded in DEC-TRC-017).
 
 ### TASK-TRC-014: Documentation and run on this repository
-- **Tier**: S
-- **Status**: Not Started
+- **Tier**: M
+- **Status**: Done
 - **Description**: Document `--call-graph`, the requirements file and the language table in SKILL.md and AGENTS.md, and
   run the skill with the call graph on this repository.
 - **Requirement refs**: RQ-TRC-017, RQ-TRC-026
@@ -135,5 +135,9 @@ This plan implements the tasks in the format specified below.
   the call graph of a C++ code base and the summary line gives its counts.
 - **Dependencies**: TASK-TRC-013
 - **Assignee**: AI
-- **Verification**: N/A (Tier S)
-- **Assumptions**:
+- **Verification**: re-tiered S to M (documentation beyond 5 lines). The AGENTS.md command with `--call-graph` exits 0:
+  "577 elements, 325 files; RQ 225: covered 205, indirect 17, uncovered 3 (three product coverage items, outside this
+  plan); … call graph: 1908 functions, 7745 calls, ambiguous 1242, external 2806"; no TRC requirement uncovered, no
+  undefined TRC ID. `unittest discover` 65 tests OK (1 skipped: the large measure), the independence test included.
+- **Assumptions**: only a C++ code base gets functions here: the skill's own sources are Python and JavaScript, languages with no
+  entry in the table yet.

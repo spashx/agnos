@@ -1,13 +1,14 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes one self-contained HTML page: every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, the gaps (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'. Independent of the product developed."
-argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>]"
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes one self-contained HTML page: every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, the gaps (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
+argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph]"
 ---
 
 # AGNOS Traceability Matrix
 
 <!-- FTR-TRC-001; ADR-TRC-001 (DEC-TRC-001 to DEC-TRC-004), ADR-TRC-002 (DEC-TRC-009 to DEC-TRC-011),
-     ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. -->
+     ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
+     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -30,10 +31,16 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      file and folder names) replaces the excluded names (`.git`, `node_modules`, `build*`, `dist`, `out`, `_deps`,
      `.venv`, `__pycache__`, `target`, `bin`, `obj`…).
    - `--generated-at <text>` fixes the timestamp shown, which makes the page byte-identical from run to run.
+   - `--call-graph` adds the functions of the scanned files and their calls, parsed with tree-sitter (see "Call graph"
+     below). It needs the packages pinned in `requirements-callgraph.txt`, installed once with
+     `pip install -r .github/skills/agnos-trace/requirements-callgraph.txt` (prebuilt wheels, no compiler); without them
+     the page is written all the same, without functions.
 3. Check the exit code:
    - `0`: written. The last line gives the counts:
      `agnos-trace: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>; gaps: uncovered <n>,
      untasked <n>, task-no-rq <n>, adr-no-rq <n>, empty <n>, isolated <n>, undefined <n>, untraced-files <n>; <page> written`.
+     With `--call-graph`, `; call graph: <n> functions, <n> calls, ambiguous <n>, external <n>` comes before the page, or
+     `; call graph skipped: tree-sitter not installed, run: pip install -r …` when the packages are missing.
      Report it to the user as it is, with the gaps that are not 0.
    - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token), printed on the error stream;
      nothing is written. Apply the Error Recovery Protocol.
@@ -50,6 +57,24 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 - **Gaps**: the lists below, each element a link to its detail.
 - **Detail panel**: the selection's type, title, status, location, and its links grouped by type with their count, IDs and
   the lines that make them. `#<ID>` in the URL selects an element; back and forward follow the selections.
+- With `--call-graph`: functions are one more element type, found by the search; a function's panel lists its callers
+  and callees (ambiguous ones marked, 50 at a time) and the IDs it cites; a requirement's panel lists its functions. The
+  Functions filter is off when the page opens: turn it on to draw functions in the graph, where a selected function's
+  callers stand on its left and its callees on its right; at most 400 nodes are drawn, the status line says how many
+  are left out. The overview has a "Call graph" card and the gaps an informational "Untraced functions" list.
+
+## Call graph (DEC-TRC-013 to DEC-TRC-018)
+
+- A function is a definition with a body; its key is `fn:<file>:<first line>`. It cites the IDs of its lines and of the
+  comment block just above it. Coverage and the gap counts stay file-based: the call graph changes none of them.
+- Calls are resolved by name: among the definitions of that name in the caller's language, the first non-empty set of
+  the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
+  each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function
+  pointers and callbacks are not followed.
+- Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
+  separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
+  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. C and C++ are delivered (`.h` read as C++). To add a
+  language: one table entry, one query file, its grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 
@@ -68,7 +93,9 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 
 `python -m unittest discover -s .github/skills/agnos-trace/tests -v` from the repository root: a synthetic process in
 `tests/fixtures/repo` plants one element of every gap. The page tests run in a headless Chromium-family browser (Edge,
-Chrome, Chromium; `AGNOS_TRACE_BROWSER=<path>` to choose) and are skipped when none is found.
+Chrome, Chromium; `AGNOS_TRACE_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
+(`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_TRACE_PERF=1` adds the measure on a
+generated tree of 20,000 functions and 100,000 calls (about a minute).
 
 ## Updating the graph library
 
