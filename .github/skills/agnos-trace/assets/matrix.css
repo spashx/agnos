@@ -25,6 +25,9 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- layout ------------------------------------------------------------------------------------------------- */
 /* DEC-TRC-012: --sidebar-size and --detail-size are set by the splitters; the tokens give their defaults. */
+/* RQ-TRC-010: the page opened without its data files */
+.data-missing { margin: var(--s-space-3xl); color: var(--s-status-error); font-size: var(--s-text-heading); }
+
 .app {
   display: grid;
   grid-template-columns: var(--sidebar-size, var(--c-sidebar-width)) var(--c-splitter-width)

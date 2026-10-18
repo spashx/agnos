@@ -188,18 +188,35 @@ SKILL = HERE.parent
 RAW_VISUAL_RE = r"#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(|\b\d+(?:\.\d+)?(?:px|ms)\b"
 
 
+class PageText(str):
+    """A generated page's text, and the path it was written to: its data files stand beside it (RQ-TRC-010)."""
+    path = None
+
+
 def generate(out, *extra):
     code, stdout, stderr = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(out),
                                      "--generated-at", GENERATED_AT, *extra])
     if code:
         raise AssertionError(stderr)
-    return out.read_text(encoding="utf-8"), stdout
+    page = PageText(out.read_text(encoding="utf-8"))
+    page.path = out
+    return page, stdout
 
 
 def data_block(page):
-    start = page.index('<script type="application/json" id="trace-data">') + len(
-        '<script type="application/json" id="trace-data">')
-    return page[start:page.index("</script>", start)]
+    """The JSON of a generated page, read from its <page>.json (a PageText from generate, or the page's path)."""
+    path = page if isinstance(page, Path) else page.path
+    return tm.data_paths(path)[0].read_text(encoding="utf-8").strip()
+
+
+def comparable(page):
+    """A page and its data with the data file's own name blanked: what two runs to two names must share."""
+    return page.replace(page.path.stem + tm.DATA_SCRIPT_SUFFIX, "@") + data_block(page)
+
+
+def output_bytes(page):
+    """The size of a page and of its data, the part loaded by the browser (RQ-TRC-038)."""
+    return len(page.encode("utf-8")) + tm.data_paths(page.path)[1].stat().st_size
 
 
 class PageAssemblyTest(unittest.TestCase):
@@ -215,16 +232,35 @@ class PageAssemblyTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
-    def test_RQ_TRC_010_given_a_generated_page_when_searched_then_it_references_nothing_outside_itself(self):
+    def test_RQ_TRC_010_given_a_generated_page_when_searched_then_it_loads_only_its_data_script_beside_it(self):
+        import json
+        import re
         lowered = self.page.lower()
-        for needle in ("<script src", "<link", "url(http", "@import", 'src="http', "href=\"http"):
+        self.assertEqual(['<script src="page.data.js">'], re.findall(r"<script src=[^>]*>", lowered))
+        for needle in ("<link", "url(http", "@import", 'src="http', "href=\"http"):
             self.assertNotIn(needle, lowered)
+        json_path, script_path = tm.data_paths(self.page.path)
+        script = script_path.read_text(encoding="utf-8")
+        self.assertTrue(script.startswith(tm.DATA_GLOBAL + " = "))
+        self.assertEqual(json.loads(json_path.read_text(encoding="utf-8")),
+                         json.loads(script[len(tm.DATA_GLOBAL + " = "):].rstrip().rstrip(";")))
+
+    def test_RQ_TRC_010_given_the_data_script_missing_when_the_page_opens_then_it_names_the_file(self):
+        import shutil
+        if not BROWSER:
+            self.skipTest("no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+        lonely = Path(self.tmp.name) / "alone" / "page.html"
+        lonely.parent.mkdir(exist_ok=True)
+        shutil.copy(self.page.path, lonely)
+        dom = rendered_dom(lonely)
+        self.assertIn('class="data-missing"', dom)
+        self.assertIn("page.data.js", dom)
 
     def test_RQ_TRC_023_given_one_generated_at_when_generated_twice_then_the_pages_are_identical_and_in_lf(self):
         again, _ = generate(Path(self.tmp.name) / "again.html")
-        self.assertEqual(self.page, again)
-        raw = (Path(self.tmp.name) / "again.html").read_bytes()
-        self.assertNotIn(b"\r", raw)
+        self.assertEqual(comparable(self.page), comparable(again))
+        for path in (again.path, *tm.data_paths(again.path)):
+            self.assertNotIn(b"\r", path.read_bytes(), path.name)
 
     def test_RQ_TRC_024_given_the_vendored_library_when_hashed_then_it_matches_the_recorded_sha256(self):
         import hashlib

@@ -18,6 +18,12 @@ inlines `matrix.css`, the vendored library and `matrix.js`, and the data as `<sc
 id="trace-data">` whose JSON has every `<` written `<`, so no file content can close the block (RQ-TRC-022). The
 page script builds the DOM with `createElement`/`textContent` only, never `innerHTML` with data. No `src`, `href` or
 `url()` points outside the file (RQ-TRC-010).
+Amended by the owner on 2026-10-18 (RQ-TRC-010): the data leave the page. The generator writes `<page>.json` (the
+data, the same escaped JSON, for other tools) and `<page>.data.js` (`window.AGNOS_TRACE_DATA = <the same JSON>;`), and the
+template's data block becomes `<script src="<page>.data.js">`, before the page script. A `.js` twin, because a browser
+refuses `fetch` of a sibling file to a page opened from `file://`, while it runs a sibling script. The page script reads
+`window.AGNOS_TRACE_DATA` and, when it is missing, says which file it lacks. The three files are written together and
+must travel together; a page mailed alone no longer works.
 
 ### DEC-TRC-006: Cytoscape.js, pinned and vendored, drawing neighbourhoods first
 `scripts/vendor/cytoscape.min.js` at one pinned version, with `LICENSE` (MIT) and `VENDOR.md` (version, source URL,

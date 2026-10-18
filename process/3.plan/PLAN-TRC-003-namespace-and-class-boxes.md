@@ -214,3 +214,24 @@ This plan implements the tasks in the format specified below.
   it is positioned beside the list (fixed), clamped to the window; the group labels use accent-subtle / accent, the
   fill and colour of a selected item; "Implementation detail" shows muted (`opacity.muted`) when disabled; at 1600 px
   the third group wraps onto a second line.
+
+### TASK-TRC-031: The page's data in two files beside it
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner decision: write the data as `<page>.json` and `<page>.data.js` beside the page, load the latter
+  with `<script src>`, read `window.AGNOS_TRACE_DATA`, say which file is missing when it is; tests read the `.json`;
+  SKILL.md and `.gitignore` follow.
+- **Requirement refs**: RQ-TRC-010, RQ-TRC-022, RQ-TRC-023, RQ-TRC-038
+- **ADR refs**: ADR-TRC-003 (DEC-TRC-005 as amended)
+- **Acceptance Criteria**: those of RQ-TRC-010; two runs give identical pages and data files (RQ-TRC-023); the call
+  graph's added size is measured on the data files (RQ-TRC-038).
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: whole suite 110 OK, 1 skipped: the page's only `<script src>` is `page.data.js`; `.json` and `.js`
+  hold the same data; the page copied alone says `page.data.js` is missing; two runs to two names give the same page
+  (data file name blanked) and the same data, all in LF; the golden data hash before PLAN-TRC-002 unchanged; the call
+  graph's added size measured on page + data script. On a C++ code base: TRACEABILITY.html 529,642 bytes, .json 2,106,188,
+  .data.js 2,106,215; opened from disk in headless Edge, the panel drawn as before.
+- **Assumptions**: the `.json` holds the same escaped JSON as the script (`<` as `<`, still valid JSON); the data
+  script is loaded by a relative name, so the three files move together; the generator's last line still names the
+  page only.

@@ -1,6 +1,7 @@
 <!doctype html>
 <!-- agnos-trace page skeleton (RQ-TRC-010, DEC-TRC-005, DEC-TRC-007). The generator replaces each marker once:
-     tokens, page styles, the vendored graph library, the page script and the escaped JSON data. -->
+     tokens, page styles, the vendored graph library, the page script and the name of the data script written beside
+     the page (RQ-TRC-010 as amended: the data live in <page>.json and <page>.data.js). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -142,7 +143,7 @@
 
   <aside class="detail" id="detail" aria-label="Selected element" aria-live="polite"></aside>
 </div>
-<script type="application/json" id="trace-data">@DATA@</script>
+<script src="@DATA_SCRIPT@"></script>
 <script>
 /*@LIBRARY@*/
 </script>

@@ -47,7 +47,10 @@ TOKENS_PATH = ASSETS_DIR / "tokens.json"
 LIBRARY_FILE = "cytoscape.min.js"
 CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
 CALLGRAPH_MODULE = "agnos_trace_callgraph"
-MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA)@")
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT)@")
+DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
+DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk cannot fetch a file)
+DATA_GLOBAL = "window.AGNOS_TRACE_DATA"
 SCRIPT_END_RE = re.compile(r"</(script)", re.IGNORECASE)
 TOKEN_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 THEMES = ("light", "dark")
@@ -437,24 +440,35 @@ def embed_script(code):
     return SCRIPT_END_RE.sub(r"<\\/\1", code)
 
 
-# RQ-TRC-010 (TASK-TRC-004)
-def render_page(data, title):
-    """The page: the template with its markers replaced in one pass, so inserted text is never scanned again."""
+# RQ-TRC-010 (TASK-TRC-004, TASK-TRC-031)
+def render_page(title, data_script):
+    """The page: the template with its markers replaced in one pass, so inserted text is never scanned again;
+    data_script is the file name of the data script written beside it."""
     parts = {
         "TOKENS": tokens_css(load_tokens(TOKENS_PATH)),
         "CSS": (ASSETS_DIR / "matrix.css").read_text(encoding="utf-8"),
         "LIBRARY": embed_script((VENDOR_DIR / LIBRARY_FILE).read_text(encoding="utf-8")),
         "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding="utf-8")),
         "TITLE": html.escape(title),
-        "DATA": embed_json(data),
+        "DATA_SCRIPT": html.escape(data_script),
     }
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], template)
 
 
-def write_page(path, page):
+def data_paths(page_path):
+    """(<page>.json, <page>.data.js) beside the page (RQ-TRC-010, DEC-TRC-005 as amended)."""
+    return page_path.with_name(page_path.stem + DATA_JSON_SUFFIX), page_path.with_name(page_path.stem + DATA_SCRIPT_SUFFIX)
+
+
+def write_outputs(path, data, title):
+    """The page and its two data files, the same JSON in both."""
+    json_path, script_path = data_paths(path)
+    text = embed_json(data)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(page, encoding="utf-8", newline="\n")
+    path.write_text(render_page(title, script_path.name), encoding="utf-8", newline="\n")
+    json_path.write_text(text + "\n", encoding="utf-8", newline="\n")
+    script_path.write_text(f"{DATA_GLOBAL} = {text};\n", encoding="utf-8", newline="\n")
 
 
 # ---- command line ------------------------------------------------------------------------------------------------
@@ -501,11 +515,11 @@ def main(argv=None):
             line += "; " + graph.summary()
         meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
-        page = render_page(page_data(model, analysis, meta, graph), title)
+        data = page_data(model, analysis, meta, graph)
     except InputError as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1
-    write_page(out, page)
+    write_outputs(out, data, title)
     print(f"{line}; {out.as_posix()} written")
     return 0
 

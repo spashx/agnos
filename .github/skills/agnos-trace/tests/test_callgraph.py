@@ -20,8 +20,8 @@ sys.path.insert(0, str(HERE))
 
 import callgraph as cg  # noqa: E402
 import trace_matrix as tm  # noqa: E402
-from test_trace_matrix import (BROWSER, FIXTURE, PROCESS, SKILL, SOURCES, data_block, generate,  # noqa: E402
-                               rendered_dom, rendered_dom_after, run_main)
+from test_trace_matrix import (BROWSER, FIXTURE, PROCESS, SKILL, SOURCES, comparable, data_block,  # noqa: E402
+                               generate, output_bytes, rendered_dom, rendered_dom_after, run_main)
 
 CALLS = FIXTURE / "calls"
 
@@ -47,7 +47,7 @@ class OptionalModuleTest(unittest.TestCase):
     def test_RQ_TRC_026_given_no_call_graph_option_when_generated_then_the_data_is_the_one_before_this_feature(self):
         with tempfile.TemporaryDirectory() as tmp:
             page, _ = generate(Path(tmp) / "page.html")
-        self.assertEqual(DATA_BEFORE_PLAN_SHA256, location_free_sha256(page))
+            self.assertEqual(DATA_BEFORE_PLAN_SHA256, location_free_sha256(page))     # its data file, beside it
 
     def test_RQ_TRC_039_given_no_call_graph_option_when_the_generator_runs_then_no_tree_sitter_module_is_imported(self):
         probe = ("import sys, tempfile, pathlib; sys.path.insert(0, sys.argv[1]); import trace_matrix as tm\n"
@@ -217,7 +217,7 @@ class CallResolutionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             first, out = generate(Path(tmp) / "one.html", "--call-graph")
             second, _ = generate(Path(tmp) / "two.html", "--call-graph")
-        self.assertEqual(first, second)
+            self.assertEqual(comparable(first), comparable(second))
         self.assertIn("call graph: ", summary_line(out))
         self.assertEqual(calls_of(fixture_call_graph()[1]), self.calls)
 
@@ -261,7 +261,7 @@ class PageDataTest(unittest.TestCase):
             self):
         without, _ = generate(Path(self.tmp.name) / "without.html", "--sources", str(CALLS))
         counts = self.data["callGraph"]["counts"]
-        added = len(self.page.encode("utf-8")) - len(without.encode("utf-8"))
+        added = output_bytes(self.page) - output_bytes(without)
         self.assertLessEqual(added, 120 * counts["functions"] + 16 * counts["calls"])
 
     def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_listed_outside_the_gaps(self):
@@ -362,7 +362,7 @@ class FunctionPanelTest(unittest.TestCase):
         self.assertRegex(dom, r'<li class="search-result t-FN"[^>]*>.*?net::Port::write')
 
     def test_RQ_TRC_035_given_the_call_graph_when_the_page_opens_then_the_overview_and_gaps_show_it_uninflated(self):
-        data = json.loads(data_block(self.path.read_text(encoding="utf-8")))
+        data = json.loads(data_block(self.path))
         total = sum(len(data["gaps"][g]) for g in data["gapKinds"])
         dom = rendered_dom(self.path)
         self.assertIn('<h2 class="card-title">Call graph</h2>', dom)
@@ -871,7 +871,7 @@ class LargeCallGraphTest(unittest.TestCase):
             for name, extra in (("warm-up", ()), ("without", ()), ("with", ("--call-graph",))):   # warm disk cache first
                 started = time.perf_counter()
                 page, out = generate(Path(tmp) / f"{name}.html", "--sources", str(root), *extra)
-                timings[name] = (time.perf_counter() - started, len(page.encode("utf-8")))
+                timings[name] = (time.perf_counter() - started, output_bytes(page))
             counts = json.loads(data_block(page))["callGraph"]["counts"]
             dom = rendered_dom_live(Path(tmp) / "with.html", TURN_FUNCTIONS_ON +
                                     "document.querySelector('#depth button[data-depth=\"2\"]').click();"

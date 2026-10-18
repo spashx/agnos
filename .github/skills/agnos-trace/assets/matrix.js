@@ -9,7 +9,15 @@
 
 (function () {
   const STARTED = performance.now();
-  const DATA = JSON.parse(document.getElementById("trace-data").textContent);
+  // RQ-TRC-010, DEC-TRC-005 as amended: the data come from <page>.data.js, written beside the page.
+  const DATA = window.AGNOS_TRACE_DATA;
+  if (!DATA) {
+    const missing = document.querySelector("script[src]")?.getAttribute("src") || "the data script";
+    document.body.replaceChildren(Object.assign(document.createElement("p"), { className: "data-missing",
+      textContent: `The traceability data are missing: ${missing} must stand beside this page (with its .json twin). `
+        + "Generate them again with the agnos-trace skill." }));
+    return;
+  }
 
   // ---- vocabulary ---------------------------------------------------------------------------------------------
   const TYPES = ["FTR", "RQ", "ADR", "DEC", "PLAN", "TASK"];

@@ -2,7 +2,7 @@
 
 ## Overview
 A skill, `agnos-trace`, that reads an AGNOS process folder (the one holding `INDEX.idx.md`) and one or more source
-folders, and writes a self-contained HTML page: the complete traceability matrix of the requirements, ADRs, decisions,
+folders, and writes an offline HTML page, its data beside it (RQ-TRC-010): the complete traceability matrix of the requirements, ADRs, decisions,
 plans and tasks of the process, and of the source files and lines that reference them. The page searches, navigates and
 highlights an element and its linked elements through an interactive graph, and lists the elements that are not linked
 (a requirement that no source file references, a task that implements no requirement…). The skill knows the AGNOS ID
@@ -121,15 +121,20 @@ ADR-TRC-003).
   holds exactly that element.
 - **Dependencies**: DEC-TRC-004
 
-### RQ-TRC-010: Self-contained page
+### RQ-TRC-010: Offline page, its data beside it
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The trace generator SHALL write one HTML file that holds all its data, styles, scripts and graph library
-  inline, and that requests nothing over the network when it is opened.
-- **Rationale**: the page is mailed, attached and opened offline.
+- **Statement**: The trace generator SHALL write the HTML page with its styles, scripts and graph library inline, and its
+  data beside it in two files of the same name: `<page>.json`, the data alone, for any other tool, and `<page>.data.js`,
+  the same data loaded by the page. The page SHALL load nothing but that sibling script, SHALL request nothing over the
+  network, and SHALL work when opened from disk.
+- **Rationale**: the page is opened offline and from disk; owner decision of 2026-10-18: the data out of the page is
+  easier to maintain and lets the graph be used outside the page (a browser does not let a page opened from disk read a
+  `.json` file, hence the `.js` twin).
 - **Priority**: Must
-- **Acceptance Criteria**: Given a generated page, When it is searched for `<script src`, `<link` and `url(http`, Then none is
-  found, and the page works with the network off.
+- **Acceptance Criteria**: Given a generated page, When it is searched for `<script src`, `<link` and `url(http`, Then the
+  only one found is `<script src="<page>.data.js">`; the `.json` file and the `.js` file hold the same data; the page
+  works from disk with the network off; When the data script is missing, Then the page says which file it lacks.
 - **Dependencies**: DEC-TRC-005, DEC-TRC-006
 
 ### RQ-TRC-011: Search

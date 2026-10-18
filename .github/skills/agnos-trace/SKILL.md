@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes one self-contained HTML page: every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, the gaps (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, the gaps (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph]"
 ---
 
@@ -25,8 +25,9 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 
    - `--sources` is repeatable: give every folder whose files should carry requirement IDs (code, tests, build files,
      CI workflows). Do not give a folder of documentation that quotes IDs as examples: its IDs would be counted.
-   - `--out <file>`: default `<process>/TRACEABILITY.html`. The page is generated: never edit it; the project decides
-     whether to commit or ignore it.
+   - `--out <file>`: default `<process>/TRACEABILITY.html`. Its data are written beside it (RQ-TRC-010):
+     `<page>.json`, the data alone, for any other tool, and `<page>.data.js`, the same data, which the page loads. The
+     three files are generated: never edit them; the project decides whether to commit or ignore them.
    - `--ext .x` (repeatable) replaces the list of scanned extensions; `--exclude <pattern>` (repeatable, `fnmatch` on
      file and folder names) replaces the excluded names (`.git`, `node_modules`, `build*`, `dist`, `out`, `_deps`,
      `.venv`, `__pycache__`, `target`, `bin`, `obj`…).
@@ -44,7 +45,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      Report it to the user as it is, with the gaps that are not 0.
    - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token), printed on the error stream;
      nothing is written. Apply the Error Recovery Protocol.
-4. Give the user the path of the page. It opens offline in any current browser, from disk or as a mail attachment.
+4. Give the user the path of the page. It opens offline in any current browser, from disk, as long as its
+   `<page>.data.js` stands beside it (share the three files together; alone, the page says which file it lacks).
 
 ## What the page shows
 
