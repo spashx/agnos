@@ -104,13 +104,13 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
   is considered incomplete and SHALL NOT be delivered (same rule as missing requirement IDs).
 - Deviations from a reference or mockup value SHALL be recorded in the design-system source of
   truth with a rationale note — never as an inline literal in code.
-- As a starting point, a design-system template is available in `process/1.requirements/design-system-template.md`
+- To create it, invoke the `agnos-design-system` skill: it provides the template and the procedure to instantiate it. <!-- RQ-DSY-001 -->
 
 ## CONTEXT MANAGEMENT
 
 Long sessions risk filling the AI's context window, causing lost context and degraded output quality. Follow these rules:
 
-1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest starting a new session.
+1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest compacting the chat and starting a new session.
 2. **Summarize before continuing.** When resuming after a checkpoint, read the latest checkpoint summary before proceeding.
 3. **Limit task batch size.** Do not plan more than 10 tasks in a single session. If a plan exceeds this, split it across sessions with explicit handoff notes.
 4. **Prune intermediate context.** After a task is marked complete and verified, avoid re-reading its implementation details unless debugging a regression.
@@ -119,7 +119,6 @@ Long sessions risk filling the AI's context window, causing lost context and deg
 
 WHILE a session explicitly runs numbered iterations to improve this instructions file itself, apply
 these on top of the normal process:
-
 
 1. **Tag every commit.** See the `agnos-git-workflow` skill's `commit-task` procedure for the exact
    commit-message format, including the `Iteration: k/N` trailer it appends during this kind of session.
@@ -231,7 +230,7 @@ Brief description of the feature's purpose and scope.
   ## Alternatives Considered
   What other options were evaluated? Why were they rejected?
   ## Diagram
-  [Mermaid diagram -- required]
+  [Mermaid diagrams -- required]
   ```
 - Every decision in ADR SHALL have a unique identifier in the format `DEC-<TRI>-<NNN>` (e.g., `DEC-USR-001`), consistent with the universal ID schema, that can be referenced in plans, tasks, and source code. Each decision SHALL be declared as a `### DEC-<TRI>-<NNN>: <title>` heading under `## Decision`, so that it is indexed. <!-- RQ-IDX-014 -->
 - The design system itself SHALL be captured as an ADR (token structure, tiers, generation/verification mechanism). Every subsequent UI-affecting ADR SHALL reference it.
@@ -258,7 +257,7 @@ Brief description of the feature's purpose and scope.
 - Everything else: decide and proceed.
 
 5. **No scope creep.** Implement ONLY what was explicitly requested. Do NOT add features, refactor surrounding code, or introduce new abstractions beyond the task scope.
-6. **Self-check before declaring done.** Before ending a task, verify every item in the Delivery Checklist below. For Tier M/L tasks, populate the task's `Verification` field from real tool output re-produced in the current session (a re-run test, a re-read file, a re-run command) for each acceptance criterion — never from recollection of an earlier pass. Record any inference made under rule 4 ("Infer and proceed") in the task's `Assumptions` field, or the literal value `None` if no inference was made. 
+6. **Self-check before declaring done.** Before ending a task, verify every item in the Delivery Checklist below. For Tier M/L tasks, populate ULTRA CONCISELY the task's `Verification` field from real tool output re-produced in the current session (a re-run test, a re-read file, a re-run command) for each acceptance criterion — never from recollection of an earlier pass. Record ULTRA CONCISELY any inference made under rule 4 ("Infer and proceed") in the task's `Assumptions` field, or the literal value `None` if no inference was made. 
 
 ### DEFINITION OF READY - DoR (Planning Checklist)
 Before marking any task Ready, confirm ALL of the following:
@@ -338,7 +337,7 @@ This plan implements the tasks in the format specified below.
 - ALL generated code SHALL comply with **SOLID** principles (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion).
 - **No duplicated/magic literals (strings or numbers).** EVERY constant SHALL be declared as a named class-level or method-level constant. 
 - **UI code**: EVERY visual constant (color, spacing, size, alpha, font metric) SHALL be initialized from design-system tokens. Local named constants MAY alias a token for readability, but SHALL NOT hold a raw visual value.
-- Code SHALL contains traceable references to the requirement ID(s) and ADR decisions ID(s) it implements in the form of comments or docstrings.
+- Code SHALL contains traceable references to the requirement ID(s) and ADR decisions ID(s) it implements in the form of comments or docstrings. for C/C++ add references into the implementation file instead of header file.
 
 
 ### Testing

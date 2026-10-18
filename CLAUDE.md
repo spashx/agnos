@@ -15,3 +15,7 @@ worth calling out explicitly :
 - **Index skill**: use the skill named `agnos-index`. Under Claude Code it is discovered at
   `.claude/skills/agnos-index/SKILL.md`, which points to the canonical procedure at
   `.github/skills/agnos-index/SKILL.md` — read and follow that procedure. <!-- RQ-IDX-010 -->
+- **Design-system skill**: use the skill named `agnos-design-system`. Under Claude Code it is
+  discovered at `.claude/skills/agnos-design-system/SKILL.md`, which points to the canonical
+  procedure and template under `.github/skills/agnos-design-system/` — read and follow that
+  procedure. <!-- RQ-DSY-001 -->

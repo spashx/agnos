@@ -693,7 +693,7 @@ Concretely, before Stage 5 on any UI work:
 
 1. The design system gets **its own requirement and its own ADR**, with normal IDs — so it is
    referenceable like anything else. Start from
-   [`process/1.requirements/design-system-template.md`](process/1.requirements/design-system-template.md).
+   [`.github/skills/agnos-design-system/assets/design-system-template.md`](.github/skills/agnos-design-system/assets/design-system-template.md).
 2. Every UI requirement, ADR and task lists those design-system IDs in its **Dependencies** /
    **refs** fields.
 3. UI code initialises every visual constant from a token. A local named constant may *alias* a
@@ -725,5 +725,5 @@ artifact with no requirement ID.
 - **The rules themselves** — [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md) (normative)
 - **Reference sheet** — [`README.md`](README.md): ID schema, tiers, DoD, session variables
 - **Templates** — the file templates in the instruction file's sections 1, 2 and 3
-- **Design system** — [`process/1.requirements/design-system-template.md`](process/1.requirements/design-system-template.md)
+- **Design system** — [`.github/skills/agnos-design-system/assets/design-system-template.md`](.github/skills/agnos-design-system/assets/design-system-template.md)
 - **Git workflow** — [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md)
