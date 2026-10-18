@@ -268,13 +268,13 @@ ADR-TRC-003).
 ### RQ-TRC-044: Readable relations in the graph
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The graph SHALL draw each relation (contains, cites, cited in code, calls, ambiguous call) with a line
-  style and colour pair of its own, an arrow from the container to the contained, from the citing to the cited and from
+- **Statement**: The graph SHALL draw each relation (contains, cites, cited in code, calls, ambiguous call) with a colour
+  of its own and a line style, an arrow from the container to the contained, from the citing to the cited and from
   the caller to the callee, and SHALL show in its legend a drawn sample of each line with its arrow and its meaning.
 - **Rationale**: two relations drawn alike, or a call without direction, cannot be read.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the page, When the graph's look of the relations is read, Then no two relations share
-  a line style and colour and every relation has an arrow; When the legend is shown, Then it has one drawn sample per
+  a colour and every relation has an arrow; When the legend is shown, Then it has one drawn sample per
   relation, with no line-style word.
 - **Dependencies**: RQ-TRC-012, RQ-TRC-018, RQ-TRC-034, DEC-TRC-006, DEC-TRC-017
 
@@ -288,6 +288,19 @@ ADR-TRC-003).
 - **Priority**: Should
 - **Acceptance Criteria**: Given the page, When its controls are read, Then each one listed has a non-empty title.
 - **Dependencies**: RQ-TRC-010 to RQ-TRC-016
+
+### RQ-TRC-046: A relation's tooltip
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the pointer rests on a link of the graph for the delay of the design tokens (2 s), the page SHALL
+  show next to it the relation's meaning, its two ends in their direction, and its count of proof lines, and SHALL hide
+  it when the pointer leaves the link or the graph moves.
+- **Rationale**: a link in a dense graph is told apart by pointing at it, not by following it.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a function's graph with functions on, When the tooltip of the call from
+  `net::Port::send` to `net::Port::write` is asked, Then it says "calls (caller → callee)" with both names in that
+  order; Given the tokens, Then the delay is 2 s.
+- **Dependencies**: RQ-TRC-012, RQ-TRC-044, RQ-TRC-045
 
 ---
 

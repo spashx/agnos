@@ -388,13 +388,36 @@ class RelationLookTest(unittest.TestCase):
             found = dict(re.findall(r'data-(looks|samples|legend-text)="([^"]*)"', rendered_dom_after(path, READ_LEGEND)))
         looks = json.loads(html.unescape(found["looks"]))
         self.assertEqual({"contains", "refs", "code", "calls", "ambiguous"}, set(looks))
-        pairs = [(look["dash"], look["colour"]) for look in looks.values()]
-        self.assertEqual(len(pairs), len(set(pairs)))
+        colours = [look["colour"] for look in looks.values()]
+        self.assertEqual(len(colours), len(set(colours)))                    # a colour of its own each
         self.assertTrue(all(look["arrow"] and look["arrow"] != "none" for look in looks.values()))
         self.assertEqual(str(len(looks)), found["samples"])
         legend = html.unescape(found["legend-text"])
         self.assertNotRegex(legend, r"\b(dashed|solid|dotted|straight)\b")
         self.assertIn("caller → callee", legend)
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class RelationTooltipTest(unittest.TestCase):
+    """TASK-TRC-020: RQ-TRC-046 (DEC-TRC-006), in a real browser."""
+
+    def test_RQ_TRC_046_given_a_call_link_when_its_tooltip_is_asked_then_it_says_the_relation_and_its_ends_in_order(self):
+        import html
+        import re
+        self.assertEqual("2000ms", tm.load_tokens(tm.TOKENS_PATH)["global"]["duration.tooltip"])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            page, _ = call_graph_page(path)
+            data = json.loads(data_block(page))
+            paths = [f["path"] for f in data["files"]]
+            keys = {f[3]: f"fn:{paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+            edge = f"{keys['net::Port::send']}>{keys['net::Port::write']}>calls"
+            dom = rendered_dom_after(path, TURN_FUNCTIONS_ON + f"agnosTrace.select('{keys['net::Port::write']}');"
+                                     f"agnosTrace.showView('graph');"
+                                     f"document.documentElement.dataset.tip = agnosTrace.graph.tipFor('{edge}');")
+        tip = html.unescape(re.search(r'data-tip="([^"]*)"', dom).group(1))
+        self.assertIn("calls (caller → callee)", tip)
+        self.assertLess(tip.index("net::Port::send"), tip.index("net::Port::write"))
 
 
 SHOW_CSV = ("document.body.append(Object.assign(document.createElement('pre'), "

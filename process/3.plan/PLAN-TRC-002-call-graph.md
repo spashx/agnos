@@ -228,3 +228,21 @@ This plan implements the tasks in the format specified below.
   (scale 0.6), a highlighted link keeps its relation's colour, links away from the selection at the ghost opacity
   without arrow; the grey relations use the strong edge colour; the two segmented groups became fieldsets (Sonar
   S6819); the unused highlight colour token is removed.
+
+### TASK-TRC-020: Relation colours, finer strokes and a relation's tooltip
+- **Tier**: M
+- **Status**: Done
+- **Description**: A colour of its own for contains, cites and cited in code (the legend follows, same table); finer
+  links and selection frame; a tooltip on a link after the token delay, saying the relation, its ends and its lines.
+- **Requirement refs**: RQ-TRC-044, RQ-TRC-046, RQ-TRC-018
+- **ADR refs**: ADR-TRC-002 (DEC-TRC-010, DEC-TRC-011), ADR-TRC-003 (DEC-TRC-006)
+- **Acceptance Criteria**: as RQ-TRC-044 and RQ-TRC-046.
+- **Dependencies**: TASK-TRC-019
+- **Assignee**: AI
+- **Verification**: `unittest discover` 74 tests OK (1 skipped: the large measure). `RelationLookTest`: five relations,
+  five distinct colours, arrows, five drawn samples; `RelationTooltipTest`: the call link's tooltip reads "calls (caller
+  → callee)" with `net::Port::send` before `net::Port::write`, delay token 2000ms. Screenshots on a C++ code base: contains
+  teal, cites slate, cited in code fuchsia, calls indigo, ambiguous amber, legend alike, light and dark; a hovered
+  ambiguous call's tooltip after the delay. IDE SonarQube: no finding.
+- **Assumptions**: links 0.6 px (1.2 px highlighted), selection frame 3 px instead of 4; the tooltip hides when the
+  pointer leaves or the graph pans or zooms.

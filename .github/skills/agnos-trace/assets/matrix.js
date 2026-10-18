@@ -229,12 +229,12 @@
   const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Functions", "Source files",
     "Undefined IDs"];
   // RQ-TRC-044: one look per relation — dash pattern token (none: solid), colour token, arrow at the target — read by
-  // the graph's style and by the legend's drawn samples alike. No two relations share a dash and a colour.
+  // the graph's style and by the legend's drawn samples alike. Each relation has a colour of its own.
   const EDGE_LOOK = {
-    contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-relation", arrow: "vee",
+    contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-contains", arrow: "vee",
       meaning: "contains (container → contained)" },
-    refs: { dash: "", colour: "--c-graph-edge-relation", arrow: "triangle", meaning: "cites (citing → cited)" },
-    code: { dash: "--c-graph-dash-code", colour: "--c-graph-edge-relation", arrow: "triangle",
+    refs: { dash: "", colour: "--c-graph-edge-cites", arrow: "triangle", meaning: "cites (citing → cited)" },
+    code: { dash: "--c-graph-dash-code", colour: "--c-graph-edge-code", arrow: "triangle",
       meaning: "cited in code (file or function → ID)" },
     ...(CALL_GRAPH ? {
       calls: { dash: "", colour: "--c-graph-edge-call", arrow: "triangle", meaning: "calls (caller → callee)" },
@@ -268,6 +268,11 @@
     return levels.size > MAX_DRAWN ? new Map([...levels].slice(0, MAX_DRAWN)) : levels;
   }
 
+  // The call-site count of one call link (RQ-TRC-046).
+  function callSites(caller, callee) {
+    return calls.callees(calls.index.get(caller)).find((c) => c.key === callee)?.lines.length || 0;
+  }
+
   // The calls of one function to the kept nodes, as graph edges.
   function callEdges(index, key, kept) {
     const edges = [];
@@ -282,6 +287,9 @@
 
   function createGraph() {
     const container = $("cy");
+    const tip = el("div", { class: "graph-tip", role: "tooltip", hidden: true });
+    $("graph-scroll").after(tip);
+    let tipTimer = null;
     let cy = null;
     let whole = false;
     let depth = 1;
@@ -518,7 +526,43 @@
         highlight(state.selected);
         container.title = "";
       });
+      // RQ-TRC-046: a link's tooltip once the pointer rests on it for the token delay.
+      cy.on("mouseover", "edge", (event) => {
+        clearTimeout(tipTimer);
+        const at = event.renderedPosition;
+        tipTimer = setTimeout(() => showTip(event.target.id(), at), num("--c-graph-tip-delay"));
+      });
+      cy.on("mouseout", "edge", hideTip);
+      cy.on("viewport", hideTip);
       return cy;
+    }
+
+    // The relation of a drawn link, its two ends in their direction, and its proof lines.
+    function tipFor(edgeId) {
+      const edge = cy.getElementById(edgeId);
+      const kind = edge.data("kind");
+      const look = kind === "calls" && edge.data("ambiguous") ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind];
+      const source = edge.data("source");
+      const target = edge.data("target");
+      const proofs = kind === "calls" ? callSites(source, target)
+        : links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
+          .reduce((sum, l) => sum + l.lines.length, 0);
+      const unit = proofs === 1 ? "line" : "lines";
+      const lines = proofs ? ` · ${proofs} ${unit}` : "";
+      return `${look.meaning}: ${nodes.get(source).label} → ${nodes.get(target).label}${lines}`;
+    }
+
+    function showTip(edgeId, at) {
+      const scroller = $("graph-scroll");
+      tip.textContent = tipFor(edgeId);
+      tip.style.left = `${at.x - scroller.scrollLeft}px`;
+      tip.style.top = `${at.y - scroller.scrollTop}px`;
+      tip.hidden = false;
+    }
+
+    function hideTip() {
+      clearTimeout(tipTimer);
+      tip.hidden = true;
     }
 
     function highlight(key) {
@@ -627,6 +671,7 @@
       edgeSample(look), look.meaning)));
 
     return {
+      tipFor,
       show() { if (dirty || !cy) draw(); else cy.resize(); },
       select(key) {
         if (whole && cy) { highlight(key); return; }

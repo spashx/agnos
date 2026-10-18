@@ -769,6 +769,22 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 }
 
 .legend-item { display: inline-flex; align-items: center; gap: var(--s-space-xs); }
+/* RQ-TRC-046: a link's tooltip, beside the pointer */
+.graph-tip {
+  position: absolute;
+  z-index: 3;
+  max-width: var(--c-popup-height);
+  margin: var(--s-space-md) var(--s-space-none) var(--s-space-none) var(--s-space-md);
+  padding: var(--s-space-xs) var(--s-space-sm);
+  background: var(--c-card-bg);
+  border: var(--s-stroke-hairline) solid var(--c-card-border);
+  border-radius: var(--s-radius-md);
+  box-shadow: var(--c-overlay-shadow);
+  color: var(--s-text);
+  font-size: var(--s-text-small);
+  pointer-events: none;
+}
+.graph-tip[hidden] { display: none; }
 /* RQ-TRC-044: a relation's sample, drawn like the graph draws it */
 .legend-edge { flex: none; width: var(--s-space-2xl); height: var(--s-space-md); opacity: var(--s-opacity-muted); }
 .legend-shape { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); background: var(--type-color); }
