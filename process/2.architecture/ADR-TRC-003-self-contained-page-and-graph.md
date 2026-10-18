@@ -47,6 +47,14 @@ view and written to the URL fragment; `hashchange` and `popstate` restore it (RQ
 it, as for the other AGNOS skills. The generated page is not committed by the skill; a project that does not want it in
 its working tree ignores the output path.
 
+### DEC-TRC-012: Splitter bars between the three panels
+Owner request after the first review (RQ-TRC-025). The page grid gets two columns of its own between the sidebar, the
+main area and the detail panel, each holding a vertical bar (`role="separator"`, focusable). Dragging a bar (pointer
+capture) or pressing ←/→ on it (one keyboard step, a token) sets the side panel's width as a custom property of the grid;
+the width is clamped to the panel's minimum and maximum (tokens), and to what leaves the main area its minimum width.
+Widths are kept in `localStorage` (a missing or refused storage only loses the memory); a double-click removes them and
+the defaults of the tokens apply again. The graph is resized, not redrawn, after a change.
+
 ## Consequences
 **Easier.** The page opens anywhere, offline, without a server; a reviewer goes from a requirement to the lines that
 implement it in two clicks; a link to one element can be shared.

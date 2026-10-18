@@ -5,7 +5,7 @@ Build the `agnos-trace` skill of FTR-TRC-001: the generator (link model, coverag
 self-contained page with its interactive graph, then package and run it on this repository.
 
 ## References
-- **Requirements**: RQ-TRC-001 to RQ-TRC-024 (FTR-TRC-001)
+- **Requirements**: RQ-TRC-001 to RQ-TRC-025 (FTR-TRC-001)
 - **ADRs**: ADR-TRC-001, ADR-TRC-002, ADR-TRC-003
 
 This plan implements the tasks in the format specified below.
@@ -155,3 +155,23 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: The tests need Python 3.10 (`sys.stdlib_module_names`); the generator keeps to 3.9. The repository's
   command scans the skill's own scripts and assets so that FTR-TRC-001 is traced; it leaves out the skill's tests, whose
   fixture IDs would be counted as undefined.
+
+### TASK-TRC-008: Resizable panels
+- **Tier**: M
+- **Status**: Done
+- **Description**: Add the two splitter bars of DEC-TRC-012 between the filters panel, the views and the detail panel:
+  drag and arrow keys, minimum and maximum widths from the tokens, widths remembered, double-click to reset.
+- **Requirement refs**: RQ-TRC-025, RQ-TRC-018
+- **ADR refs**: ADR-TRC-003 (DEC-TRC-012), ADR-TRC-002 (DEC-TRC-010)
+- **Acceptance Criteria**: Given the fixture page in a headless browser, When the left bar gets three right-arrow presses
+  and the right bar fifty left-arrow presses, Then the filters panel is three steps wider and the detail panel at its
+  maximum width; the CSS and script still hold no raw visual value.
+- **Dependencies**: TASK-TRC-007
+- **Assignee**: AI
+- **Verification**: unittest: 38 tests OK, 2 new, written first and failing first (in headless Edge at 1600×1000: default
+  widths 264/360 from the tokens; three right-arrow presses on the left bar give 264 + 3 × 16; fifty left-arrow presses on
+  the right bar stop at the 640 maximum; both bars are focusable separators). Screenshot of this repository's page with
+  both panels moved checked by eye. SonarQube for IDE: 0 finding on matrix.js (941 lines) and matrix.css (754 lines).
+- **Assumptions**: "régler la taille verticalement" read as vertical splitter bars that set the panels' widths (the three
+  panels are side by side, full height); confirmed by the owner's approval of the task. The panel borders are now drawn by
+  the splitter bars.

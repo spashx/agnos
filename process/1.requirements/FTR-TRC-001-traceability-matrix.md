@@ -223,6 +223,20 @@ ADR-TRC-003).
   numeric `px` literals, Then none is found outside the token file.
 - **Dependencies**: ADR-TRC-002
 
+### RQ-TRC-025: Resizable panels
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the user drags one of the two splitter bars between the filters panel, the central views and the
+  detail panel (or presses the left or right arrow key on a focused bar), the page SHALL change the width of that side
+  panel, keep each panel between its minimum and maximum width from the design tokens, remember the widths in the browser,
+  and restore the default widths when the bar is double-clicked.
+- **Rationale**: a long title, a deep path or a wide graph needs room the default layout gives elsewhere.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the page at its default widths, When the left bar is focused and the right arrow pressed
+  three times, Then the filters panel is three keyboard steps wider; When the right bar is moved far past its limit, Then
+  the detail panel stops at its maximum width; When the page is reopened, Then the widths are the ones left.
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, DEC-TRC-012
+
 ---
 
 ## Non-Functional Requirements

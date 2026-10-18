@@ -1,5 +1,6 @@
-/* agnos-trace page script (FTR-TRC-001; ADR-TRC-003: DEC-TRC-005, DEC-TRC-007; ADR-TRC-002: DEC-TRC-010).
+/* agnos-trace page script (FTR-TRC-001; ADR-TRC-003: DEC-TRC-005, DEC-TRC-007, DEC-TRC-012; ADR-TRC-002: DEC-TRC-010).
    Views (TASK-TRC-005): overview, search, filters, matrix, gaps, detail panel, deep links.
+   Panels (TASK-TRC-008): splitter bars, see the "resizable panels" section.
    Graph (TASK-TRC-006): see the "graph" section — the selection's neighbourhood as a traceability flow, columns by type.
    Every text taken from the data is inserted with textContent, never as HTML (RQ-TRC-022); every visual value comes
    from the design tokens' custom properties (RQ-TRC-018). */
@@ -375,6 +376,7 @@
       },
       refresh() { dirty = true; if (visible()) draw(); },
       restyle() { if (cy) cy.style(style()); },
+      resize() { cy?.resize(); },
     };
   }
 
@@ -824,6 +826,88 @@
   window.addEventListener("popstate", followHash);
   window.addEventListener("hashchange", followHash);
 
+  // ---- resizable panels (TASK-TRC-008: RQ-TRC-025; DEC-TRC-012) ------------------------------------------------
+  const PANELS_KEY = "agnos-trace-panels";
+  const PANEL = {
+    left: { bar: "split-left", property: "--sidebar-size", data: "sidebarWidth", base: "--c-sidebar-width",
+      min: "--c-sidebar-min-width", max: "--c-sidebar-max-width", grow: "ArrowRight" },
+    right: { bar: "split-right", property: "--detail-size", data: "detailWidth", base: "--c-detail-width",
+      min: "--c-detail-min-width", max: "--c-detail-max-width", grow: "ArrowLeft" },
+  };
+
+  function setupPanels() {
+    const app = $("app");
+    const css = (name) => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+    const widths = {};
+    const current = (side) => widths[side] ?? css(PANEL[side].base);
+
+    // A panel stays between its own limits, and never takes the room the main area needs.
+    function clamp(side, value) {
+      const other = side === "left" ? "right" : "left";
+      const room = app.clientWidth - current(other) - 2 * css("--c-splitter-width") - css("--c-main-min-width");
+      return Math.round(Math.max(css(PANEL[side].min), Math.min(value, css(PANEL[side].max), room)));
+    }
+
+    function apply() {
+      for (const side of Object.keys(PANEL)) {
+        const p = PANEL[side];
+        if (widths[side] === undefined) app.style.removeProperty(p.property);
+        else app.style.setProperty(p.property, `${widths[side]}px`);
+        const width = String(Math.round(current(side)));
+        app.dataset[p.data] = width;
+        $(p.bar).setAttribute("aria-valuenow", width);
+      }
+      graph.resize();
+    }
+
+    function save() {
+      try { localStorage.setItem(PANELS_KEY, JSON.stringify(widths)); } catch (error) { /* storage unavailable: the widths last this visit */ }
+    }
+
+    function set(side, value) {
+      widths[side] = clamp(side, value);
+      apply();
+      save();
+    }
+
+    function drag(side, bar, event) {
+      event.preventDefault();
+      bar.setPointerCapture(event.pointerId);
+      bar.classList.add("dragging");
+      app.classList.add("resizing");
+      const box = app.getBoundingClientRect();
+      const move = (e) => set(side, side === "left" ? e.clientX - box.left : box.right - e.clientX);
+      const end = () => {
+        bar.removeEventListener("pointermove", move);
+        bar.removeEventListener("pointerup", end);
+        bar.removeEventListener("pointercancel", end);
+        bar.classList.remove("dragging");
+        app.classList.remove("resizing");
+      };
+      bar.addEventListener("pointermove", move);
+      bar.addEventListener("pointerup", end);
+      bar.addEventListener("pointercancel", end);
+    }
+
+    try { Object.assign(widths, JSON.parse(localStorage.getItem(PANELS_KEY) || "{}")); } catch (error) { /* no storage */ }
+    for (const side of Object.keys(PANEL)) {
+      const p = PANEL[side];
+      const bar = $(p.bar);
+      bar.setAttribute("aria-valuemin", String(css(p.min)));
+      bar.setAttribute("aria-valuemax", String(css(p.max)));
+      bar.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const step = css("--c-splitter-step");
+        set(side, current(side) + (event.key === p.grow ? step : -step));
+      });
+      bar.addEventListener("dblclick", () => { delete widths[side]; apply(); save(); });
+      bar.addEventListener("pointerdown", (event) => drag(side, bar, event));
+      if (widths[side] !== undefined) widths[side] = clamp(side, widths[side]);
+    }
+    apply();
+  }
+
   // ---- theme --------------------------------------------------------------------------------------------------
   const THEME_KEY = "agnos-trace-theme";
   function effectiveTheme() {
@@ -848,6 +932,7 @@
   renderMatrix();
   renderGaps();
   renderDetail();
+  setupPanels();
   const initial = hashKey();
   if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
   document.documentElement.dataset.ready = "true";

@@ -1,4 +1,4 @@
-/* agnos-trace page styles (RQ-TRC-018, DEC-TRC-010, DEC-TRC-011): every visual value is a var(--s-*) or var(--c-*)
+/* agnos-trace page styles (RQ-TRC-018, RQ-TRC-025; DEC-TRC-010 to DEC-TRC-012): every visual value is a var(--s-*) or var(--c-*)
    custom property written by the generator from tokens.json; this file holds no raw colour, size or duration. */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -24,16 +24,42 @@ button, input, select { font: inherit; color: inherit; }
 .graph-empty[hidden], .search-results[hidden], .view[hidden] { display: none; }
 
 /* ---- layout ------------------------------------------------------------------------------------------------- */
+/* DEC-TRC-012: --sidebar-size and --detail-size are set by the splitters; the tokens give their defaults. */
 .app {
   display: grid;
-  grid-template-columns: var(--c-sidebar-width) minmax(0, 1fr) var(--c-detail-width);
+  grid-template-columns: var(--sidebar-size, var(--c-sidebar-width)) var(--c-splitter-width)
+    minmax(var(--c-main-min-width), 1fr) var(--c-splitter-width) var(--detail-size, var(--c-detail-width));
   grid-template-rows: var(--c-header-height) minmax(0, 1fr);
-  grid-template-areas: "top top top" "side main detail";
+  grid-template-areas: "top top top top top" "side split-left main split-right detail";
   height: 100vh;
 }
 
-.app.detail-collapsed { grid-template-columns: var(--c-sidebar-width) minmax(0, 1fr) var(--s-space-none); }
-.app.detail-collapsed .detail { visibility: hidden; }
+.splitter {
+  position: relative;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  transition: background var(--s-motion-fast);
+}
+
+.splitter-left { grid-area: split-left; }
+.splitter-right { grid-area: split-right; }
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--s-stroke-hairline);
+  transform: translateX(-50%);
+  background: var(--s-border);
+}
+
+.splitter:hover, .splitter:focus-visible, .splitter.dragging { background: var(--s-accent-subtle); }
+.splitter:hover::after, .splitter:focus-visible::after, .splitter.dragging::after { width: var(--s-stroke-focus); background: var(--c-splitter-hover); }
+.splitter:focus-visible { outline: none; }
+.app.resizing, .app.resizing * { cursor: col-resize; user-select: none; }
 
 /* ---- top bar ------------------------------------------------------------------------------------------------ */
 .topbar {
@@ -120,7 +146,6 @@ button, input, select { font: inherit; color: inherit; }
   padding: var(--s-space-lg);
   overflow-y: auto;
   background: var(--c-sidebar-bg);
-  border-right: var(--s-stroke-hairline) solid var(--c-sidebar-border);
 }
 
 .search { position: relative; }
@@ -627,7 +652,6 @@ table.matrix td { overflow: hidden; }
   grid-area: detail;
   overflow-y: auto;
   background: var(--c-detail-bg);
-  border-left: var(--s-stroke-hairline) solid var(--c-sidebar-border);
 }
 
 .detail-empty { display: flex; flex-direction: column; gap: var(--s-space-sm); padding: var(--s-space-xl); color: var(--s-text-subtle); font-size: var(--s-text-small); }
@@ -726,4 +750,4 @@ table.matrix td { overflow: hidden; }
 .shape-FILE { border-radius: var(--s-space-none); }
 .shape-UNDEFINED { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
 
-@media (prefers-reduced-motion: reduce) { .chip { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .chip, .splitter { transition: none; } }

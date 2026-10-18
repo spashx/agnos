@@ -291,6 +291,7 @@ BROWSER_CANDIDATES = (
 )
 BROWSER_NAMES = ("chromium", "chromium-browser", "google-chrome", "chrome", "msedge", "microsoft-edge")
 BROWSER_BUDGET_MS = "8000"
+BROWSER_WINDOW = "1600,1000"
 
 
 def find_browser():
@@ -311,7 +312,8 @@ def rendered_dom(page_path, fragment=""):
     import subprocess
     with tempfile.TemporaryDirectory() as profile:
         done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
-                               f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}", "--dump-dom",
+                               f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}",
+                               f"--window-size={BROWSER_WINDOW}", "--dump-dom",
                                page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False)
     return done.stdout.decode("utf-8", errors="replace")
 
@@ -393,6 +395,50 @@ class GraphViewTest(unittest.TestCase):
         self.assertEqual(str(len(expected)), attributes.get("nodes"))
         self.assertLess(int(attributes.get("ms", "99999")), 500)
         self.assertIn("<canvas", dom)
+
+
+def rendered_dom_after(page_path, script):
+    """The DOM once the page ran, then the given script (a copy of the page with the script at its end)."""
+    copy = page_path.with_name("scripted-" + page_path.name)
+    copy.write_text(page_path.read_text(encoding="utf-8").replace("</body>", f"<script>{script}</script></body>"),
+                    encoding="utf-8")
+    return rendered_dom(copy)
+
+
+KEY_PRESSES = """
+const press = (id, key, times) => { const bar = document.getElementById(id);
+  for (let i = 0; i < times; i += 1) bar.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })); };
+press("split-left", "ArrowRight", 3);
+press("split-right", "ArrowLeft", 50);
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class SplitterTest(unittest.TestCase):
+    """TASK-TRC-008: RQ-TRC-025, RQ-TRC-018 (DEC-TRC-012)."""
+
+    def test_RQ_TRC_025_given_the_splitters_when_moved_by_keyboard_then_widths_change_by_steps_and_stop_at_the_maximum(
+            self):
+        import re
+        tokens = tm.load_tokens(tm.TOKENS_PATH)["global"]
+        px = lambda name: int(tokens[name].removesuffix("px"))  # noqa: E731
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            before = dict(re.findall(r'data-(sidebar|detail)-width="(\d+)"', rendered_dom(path)))
+            after = dict(re.findall(r'data-(sidebar|detail)-width="(\d+)"', rendered_dom_after(path, KEY_PRESSES)))
+        self.assertEqual({"sidebar": str(px("dimension.sidebar")), "detail": str(px("dimension.detail"))}, before)
+        self.assertEqual(str(px("dimension.sidebar") + 3 * px("space.16")), after["sidebar"])
+        self.assertEqual(str(px("dimension.detail-max")), after["detail"])
+
+    def test_RQ_TRC_025_given_the_page_when_opened_then_the_two_bars_are_focusable_separators(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            dom = rendered_dom(path)
+        for bar in ("split-left", "split-right"):
+            self.assertRegex(dom, rf'<div[^>]*id="{bar}"[^>]*role="separator"[^>]*tabindex="0"|'
+                                  rf'<div[^>]*role="separator"[^>]*id="{bar}"')
 
 
 HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
