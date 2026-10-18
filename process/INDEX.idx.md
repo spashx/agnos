@@ -158,10 +158,10 @@ TASK-TRC-029|164-190|Done|Implementation words, a Display group, the specificati
 TASK-TRC-030|191-217|Done|A search result's tooltip, the detail choice following "Implementation", toolbar order and labels
 TASK-TRC-031|218-237|Done|The page's data in two files beside it
 @process/3.plan/PLAN-TRC-004-more-languages.md
-PLAN-TRC-004|1-134||C#, Java, JavaScript, Python and Rust in the Call Graph
+PLAN-TRC-004|1-140||C#, Java, JavaScript, Python and Rust in the Call Graph
 TASK-TRC-032|19-38|Done|C#
 TASK-TRC-033|39-57|Done|Java
 TASK-TRC-034|58-78|Done|JavaScript and Node.js
 TASK-TRC-035|79-98|Done|Python
 TASK-TRC-036|99-120|Done|Rust
-TASK-TRC-037|121-134|Not Started|Documentation and a run on this repository
+TASK-TRC-037|121-140|Done|Documentation and a run on this repository

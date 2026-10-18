@@ -120,7 +120,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-037: Documentation and a run on this repository
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Update `SKILL.md` (delivered languages, what counts in each, the file-wide namespace and decorator
   rules), then run `--call-graph` on this repository's Python (`.github/skills`, `tools/`) and report the counts.
 - **Requirement refs**: RQ-TRC-050, RQ-TRC-017, RQ-TRC-036
@@ -130,5 +130,11 @@ This plan implements the tasks in the format specified below.
   calls in its summary, and a function whose comment above cites an ID is linked to it.
 - **Dependencies**: TASK-TRC-032 to TASK-TRC-036
 - **Assignee**: AI
-- **Verification**: —
-- **Assumptions**: —
+- **Verification**: `SKILL.md` names the seven languages, what a definition is in each, their boxes and the rules of
+  DEC-TRC-026. `--sources .github/skills --sources tools --exclude fixtures --exclude __pycache__ --exclude vendor
+  --call-graph`: exit 0, about 1 s, "call graph: 568 functions, 969 calls, ambiguous 62, external 1542" (344 Python, 224
+  JavaScript); `file_functions` linked to RQ-TRC-028, RQ-TRC-031, DEC-TRC-016, TASK-TRC-010 of the comment above it,
+  `plain_name` and `comment_tops` to DEC-TRC-026 of their docstrings. Without `--exclude vendor`, the minified
+  `cytoscape.min.js` alone gives 1,369 functions and most of 1,440 ambiguous calls.
+- **Assumptions**: the run excludes the skills' fixtures (their IDs are examples) and the vendored library; the
+  worktree's `tools/` holds the four scripts of this branch.

@@ -94,12 +94,22 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   pointers and callbacks are not followed.
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
-  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. C and C++ are delivered (`.h` read as C++). To add a
-  language: one table entry, one query file, its grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
+  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. To add a language: one table entry, one query file, its
+  grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
+- Delivered, each with the grammar the tree-sitter project publishes (RQ-TRC-050, DEC-TRC-025): C (`.c`), C++ (`.h`
+  read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs
+  `.pyi` are not read) and Rust (`.rs`). A definition is a function or method with a body: in JavaScript also a function
+  or arrow given to a name, an object key or a member (`exports.f = function`); a Rust trait's default method; not an
+  interface or abstract method. `new`, macros (`println!`) and calls outside any function are not calls.
+- What differs between languages is settled in their query files (DEC-TRC-026): Java's `package a.b;` and C#'s
+  `namespace A.B;` stand before the classes, so the file's root node is captured as that namespace's scope; Python's
+  decorators and Rust's attributes are captured as `@comment`, so the comment block above them reaches the definition.
 - Boxes come from the entry's `scopes` map (DEC-TRC-019): each scope node type its query captures as `@scope`, with
   the box kind it stands for, `namespace` or `class`. C++ maps `namespace_definition` to `namespace` and
   `class_specifier`, `struct_specifier`, `union_specifier` to `class`; C has no scope (`{}`), so its functions are in
-  `(global)`. To give a new language its boxes, list its grammar's node types for packages, modules or namespaces (`namespace`)
+  `(global)`. C# and Java: namespaces (the package) and classes, structs, interfaces, enums, records; Rust: inline
+  `mod` blocks, `impl` blocks by their type and traits; JavaScript and Python: classes only, a module being a file, so
+  their classes are in `(global)`. To give a new language its boxes, list its grammar's node types for packages, modules or namespaces (`namespace`)
   and for classes, structs or interfaces (`class`). A scope whose node type is not listed, like a qualifier part no
   scanned file declares (a class declared in a header outside the sources), gets a guessed kind: the innermost part of
   a method's qualifier is a class, the outer parts namespaces. Anonymous namespaces and
