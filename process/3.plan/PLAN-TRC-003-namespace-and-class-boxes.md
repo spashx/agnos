@@ -58,7 +58,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `DetailLevelTest` 3/3 OK in headless Edge: namespace level around `relay`, no `fn:` node, `box:net`
   drawn, `main.cpp` box → `net` one link of 2 call sites, ambiguous; `main.cpp` box → `session.cpp` box 2 sites;
   `net` → `session.cpp` box 1 site (`Session::send` calls `log`); `Port::send` → `Port::write` inside `net`, not drawn;
-  class level, `box:net::Port>RQ-DEM-001>code` drawn, `net::Port::send` not; function level after namespace: same
+  class level, the code link from `box:net::Port` to the fixture's demo requirement drawn, `net::Port::send` not; function level after namespace: same
   elements as before. Whole suite 83 OK, 1 skipped. Sonar: no finding (complexity and outer-scope findings fixed).
 - **Assumptions**: an aggregated call link counts its distinct call sites (caller, line), so one ambiguous call to two
   methods of a box counts once; it is ambiguous only when every merged call is; at the class level a function with a
