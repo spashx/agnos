@@ -144,7 +144,7 @@ TASK-TRC-020|232-249|Done|Relation colours, finer strokes and a relation's toolt
 TASK-TRC-021|250-262|Done|Thicker relation samples in the legend
 TASK-TRC-022|263-275|Done|Contains arrow like the others, opaque legend samples
 @process/3.plan/PLAN-TRC-003-namespace-and-class-boxes.md
-PLAN-TRC-003|1-205||Namespace and Class Boxes in the Graph
+PLAN-TRC-003|1-216||Namespace and Class Boxes in the Graph
 TASK-TRC-023|19-42|Done|Scopes and their kinds in the call graph data
 TASK-TRC-024|43-67|Done|Functions mapped to boxes at a level of detail
 TASK-TRC-025|68-92|Done|Boxes drawn as compound nodes in the flow layout
@@ -152,4 +152,4 @@ TASK-TRC-026|93-119|Done|Detail choice, enclosing-boxes switch and the box's pan
 TASK-TRC-027|120-138|Done|Documentation and run on this repository
 TASK-TRC-028|139-163|Done|One (global) box instead of a box per file
 TASK-TRC-029|164-190|Done|Implementation words, a Display group, the specification hierarchy apart from "defines"
-TASK-TRC-030|191-205|In Progress|A search result's tooltip, the detail choice following "Implementation", toolbar order and labels
+TASK-TRC-030|191-216|Done|A search result's tooltip, the detail choice following "Implementation", toolbar order and labels

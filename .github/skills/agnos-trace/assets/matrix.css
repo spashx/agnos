@@ -221,6 +221,27 @@ button, input, select { font: inherit; color: inherit; }
 .search-result .id { overflow: hidden; text-overflow: ellipsis; }
 .search-result-title { grid-column: 2; color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search-empty { padding: var(--s-space-sm); color: var(--s-text-subtle); font-size: var(--s-text-small); }
+/* RQ-TRC-049: a result's tooltip beside the list, fixed so that the sidebar's overflow does not cut it */
+.search-tip {
+  position: fixed;
+  z-index: 30;
+  max-width: var(--c-popup-height);
+  margin: var(--s-space-none) var(--s-space-sm);
+  padding: var(--s-space-sm);
+  background: var(--c-card-bg);
+  border: var(--s-stroke-hairline) solid var(--c-card-border);
+  border-radius: var(--s-radius-md);
+  box-shadow: var(--c-overlay-shadow);
+  color: var(--s-text);
+  font-size: var(--s-text-small);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.search-tip[hidden] { display: none; }
+.search-tip-kind { display: flex; align-items: center; gap: var(--s-space-xs); color: var(--s-text-subtle); font-size: var(--s-text-caption); }
+.search-tip-name { font-family: var(--s-font-mono); font-weight: var(--s-weight-strong); }
+.search-tip-title { margin-top: var(--s-space-hair); color: var(--s-text-muted); }
+.search-tip-location { margin-top: var(--s-space-xs); color: var(--s-text-subtle); font-family: var(--s-font-mono); font-size: var(--s-text-caption); }
 
 .side-section { display: flex; flex-direction: column; gap: var(--s-space-sm); }
 
@@ -414,7 +435,22 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--s-surface-subtle);
 }
 
-.segmented-label { padding: var(--s-space-none) var(--s-space-sm); color: var(--s-text-subtle); font-size: var(--s-text-small); }
+/* RQ-TRC-048: a group's label stands out on the accent-subtle background of the design system */
+.segmented-label {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  margin-right: var(--s-space-xs);
+  padding: var(--s-space-none) var(--s-space-sm);
+  border-radius: var(--s-radius-sm);
+  background: var(--c-group-label-bg);
+  color: var(--c-group-label-text);
+  font-size: var(--s-text-small);
+  font-weight: var(--s-weight-medium);
+}
+/* RQ-TRC-048: a group of controls that mean nothing for now */
+.segmented:disabled { opacity: var(--s-opacity-muted); }
+.segmented:disabled button { cursor: default; }
 
 .segmented button {
   height: 100%;

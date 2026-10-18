@@ -63,10 +63,14 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   draw the implementation in the graph's "Implementation" column, where a selected function's callers stand on its left
   and its callees on its right; at most 400 nodes are drawn, the status line says how many are left out. The overview
   has a "Call graph" card and the gaps an informational "Untraced functions" list.
-- The graph's "Display" group (RQ-TRC-048): **Source files** draws the files, linked to the IDs they cite ("cited in
+- The search list (RQ-TRC-049): pointing at a result, or moving onto it with the arrow keys, shows after 300 ms a
+  tooltip beside the list with its type, whole name, whole title and location; the list itself cuts them to its width.
+- The graph's toolbar groups stand in the order Depth, Display, Implementation detail (RQ-TRC-048). The "Display"
+  group: **Source files** draws the files, linked to the IDs they cite ("cited in
   code") and to the functions they define ("defines"); **Specification hierarchy** draws and follows feature →
   requirement, ADR → decision, plan → task (off, a requirement no longer brings its feature); with `--call-graph`,
-  **Implementation** and **Enclosing scopes** (below).
+  **Implementation** and **Enclosing scopes** (below). While "Implementation" (or the Functions type filter) is off,
+  the "Implementation detail" choice and "Enclosing scopes" are disabled.
 - Scopes, with `--call-graph`: the "Implementation detail" choice draws the implementation at three levels.
   **Function** (the default): every function in the frame of its class or namespace. **Class**: one node per class, the
   calls between their functions merged into one link per pair with its count of call sites. **Namespace**: one node per

@@ -70,6 +70,8 @@
   const ENCLOSING_HINT = "Draw the enclosing scopes: each class inside its namespace, or the global namespace, and each "
     + "function's class inside its namespace; off, each class stands alone. Scopes drawn are namespaces, modules, "
     + "packages and classes; blocks and functions are not. Not available at the Namespace detail";
+  const DETAIL_HINT = "How finely the implementation is drawn: by namespace, by class, or function by function in their scopes";
+  const DETAIL_OFF_HINT = "Turn on Implementation (or the Functions type filter) to choose how finely it is drawn";
   const IMPLEMENTATION_HINT = "Draw the implementation: the functions, classes or namespaces citing the elements, at the "
     + "chosen detail, and their calls (caller → callee); same as the Functions type filter";
   const BOX_HINT = {
@@ -927,7 +929,7 @@
     }
     if (CALL_GRAPH) {       // RQ-TRC-047, RQ-TRC-048, DEC-TRC-022: the implementation detail and the enclosing scopes
       const choice = el("fieldset", { class: "segmented", id: "detail-level", "aria-label": "Implementation detail",
-        title: "How finely the implementation is drawn: by namespace, by class, or function by function in their scopes" },
+        title: DETAIL_HINT },
       el("span", { class: "segmented-label", text: "Implementation detail" }),
       ...DETAIL_CHOICES.map(([level, label, hint]) => el("button", { type: "button", "data-detail": level,
         "aria-pressed": String(level === detail), title: hint, text: label })));
@@ -937,20 +939,30 @@
       });
       const box = el("input", { type: "checkbox", id: "show-enclosing", checked: true });
       box.addEventListener("change", () => applyEnclosing(box.checked));
-      $("depth").after(choice);
+      $("display").after(choice);                         // Depth, Display, Implementation detail: the reading order
       $("show-hierarchy").closest("label").after(el("label", { class: "toggle", title: ENCLOSING_HINT }, box,
         " Enclosing scopes"));
+      syncImplementationControls();
     }
 
-    // The level of detail, its button pressed; the enclosing boxes have no meaning at the namespace level.
+    // RQ-TRC-048: the detail choice and the enclosing scopes mean something only while the implementation is drawn
+    // (whichever of the switch and the Functions type filter turned it off); the scopes' frames need a class level.
+    function syncImplementationControls() {
+      if (!CALL_GRAPH) return;
+      const drawn = state.types.has("FN");
+      const choice = $("detail-level");
+      choice.disabled = !drawn;
+      choice.title = drawn ? DETAIL_HINT : DETAIL_OFF_HINT;
+      const box = $("show-enclosing");
+      box.disabled = !drawn || detail === DETAIL.namespace;
+      box.closest("label").classList.toggle("is-disabled", box.disabled);
+    }
+
+    // The level of detail, its button pressed.
     function applyDetail(level) {
       detail = level;
       for (const b of document.querySelectorAll("#detail-level button")) b.setAttribute("aria-pressed", String(b.dataset.detail === level));
-      const box = $("show-enclosing");
-      if (box) {
-        box.disabled = level === DETAIL.namespace;
-        box.closest("label").classList.toggle("is-disabled", box.disabled);
-      }
+      syncImplementationControls();
       dirty = true;
       if (visible()) draw();
     }
@@ -992,7 +1004,7 @@
         dirty = true;
         if (visible()) draw();
       },
-      refresh() { dirty = true; if (visible()) draw(); },
+      refresh() { syncImplementationControls(); dirty = true; if (visible()) draw(); },
       restyle() { if (cy) cy.style(style()); },
       resize() { cy?.resize(); },
     };
@@ -1156,10 +1168,41 @@
     return found.map((f) => f[3]);
   }
 
+  // RQ-TRC-049, DEC-TRC-024: a result's tooltip, the page's own, beside the list after the quick delay.
+  const searchTip = $("search-tip");
+  let searchTipTimer = null;
+  const quickDelay = () => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--c-search-tip-delay"));
+
+  function hideSearchTip() {
+    clearTimeout(searchTipTimer);
+    searchTip.hidden = true;
+  }
+
+  function showSearchTip(item, n) {
+    clear(searchTip).append(
+      el("div", { class: "search-tip-kind" }, el("span", { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
+      el("div", { class: "search-tip-name", text: n.label }),
+      n.title ? el("div", { class: "search-tip-title", text: n.title }) : null,
+      n.doc ? el("div", { class: "search-tip-location", text: `${n.doc}:${n.first}-${n.last}` }) : null);
+    searchTip.hidden = false;
+    const row = item.getBoundingClientRect();
+    const side = results.getBoundingClientRect();
+    searchTip.style.left = `${Math.max(0, Math.min(side.right, window.innerWidth - searchTip.offsetWidth))}px`;
+    searchTip.style.top = `${Math.max(0, Math.min(row.top, window.innerHeight - searchTip.offsetHeight))}px`;
+  }
+
+  function scheduleSearchTip(item, key) {
+    hideSearchTip();
+    searchTipTimer = setTimeout(() => showSearchTip(item, nodes.get(key)), quickDelay());
+  }
+  results.addEventListener("mouseleave", hideSearchTip);
+  results.addEventListener("scroll", hideSearchTip);
+
   function renderResults(onlyType) {
     const q = search.value.trim().toLowerCase();
     state.search = q;
     renderMatrix();
+    hideSearchTip();
     if (!q && !onlyType) { closeResults(); return; }
     const found = matches(q, onlyType);
     resultKeys = found.slice(0, SEARCH_LIMIT).map((n) => n.key);
@@ -1167,7 +1210,8 @@
     clear(results).append(...(resultKeys.length ? resultKeys.map((key, i) => {
       const n = nodes.get(key);
       return el("li", { class: `search-result t-${n.type}`, role: "option", "aria-selected": String(i === active),
-        on: { mousedown: (event) => { event.preventDefault(); pick(i); } } },
+        on: { mousedown: (event) => { event.preventDefault(); pick(i); },
+          mouseenter: (event) => scheduleSearchTip(event.currentTarget, key) } },
         el("span", { class: "id-link" }, el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label })),
         n.title ? el("span", { class: "search-result-title", text: n.title }) : null);
     }) : [el("li", { class: "search-empty", text: "No element matches." })]));
@@ -1178,13 +1222,18 @@
     search.setAttribute("aria-expanded", "true");
   }
 
-  function closeResults() { results.hidden = true; search.setAttribute("aria-expanded", "false"); }
+  function closeResults() {
+    hideSearchTip();
+    results.hidden = true;
+    search.setAttribute("aria-expanded", "false");
+  }
 
   function moveActive(step) {
     if (!resultKeys.length) return;
     active = (active + step + resultKeys.length) % resultKeys.length;
     [...results.children].forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
     results.children[active].scrollIntoView({ block: "nearest" });
+    scheduleSearchTip(results.children[active], resultKeys[active]);
   }
 
   function pick(i) {

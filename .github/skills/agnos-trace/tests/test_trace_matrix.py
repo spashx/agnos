@@ -544,6 +544,64 @@ class TooltipTest(unittest.TestCase):
         self.assertEqual("", re.search(r'data-untitled="([^"]*)"', dom).group(1))
 
 
+SEARCH_FOR_COVERED = ("const s = document.getElementById('search'); s.value = 'covered';"
+                      "s.dispatchEvent(new Event('input'));"
+                      "const first = document.querySelector('#search-results .search-result');")
+READ_SEARCH_TIP = """
+const tip = document.getElementById("search-tip");
+document.documentElement.dataset.tipHidden = String(!tip || tip.hidden);
+document.documentElement.dataset.tipText = tip ? tip.textContent : "";
+document.documentElement.dataset.tipSelected = document.querySelector('#search-results [aria-selected="true"]')?.textContent || "";
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class SearchTooltipTest(unittest.TestCase):
+    """TASK-TRC-030: RQ-TRC-049 (DEC-TRC-024), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def tip_after(self, script):
+        import html
+        import re
+        dom = rendered_dom_after(self.path, SEARCH_FOR_COVERED + script + f"setTimeout(() => {{ {READ_SEARCH_TIP} }}, 1000);")
+        found = dict(re.findall(r'data-(tip-hidden|tip-text)="([^"]*)"', dom))
+        return found["tip-hidden"], html.unescape(found["tip-text"])
+
+    def test_RQ_TRC_049_given_a_result_pointed_at_when_the_delay_has_passed_then_the_tooltip_shows_its_whole_text(self):
+        hidden, text = self.tip_after("first.dispatchEvent(new MouseEvent('mouseenter'));")
+        self.assertEqual("false", hidden)
+        self.assertIn("RQ-DEM-001", text)
+        self.assertIn("Covered directly", text)
+        self.assertRegex(text, r"\.md:\d+-\d+")                                   # its location
+
+    def test_RQ_TRC_049_given_the_pointer_leaving_the_list_then_the_tooltip_is_hidden(self):
+        hidden, _ = self.tip_after("first.dispatchEvent(new MouseEvent('mouseenter'));"          # shown at 300 ms, gone at 500
+                                   "setTimeout(() => document.getElementById('search-results')"
+                                   ".dispatchEvent(new MouseEvent('mouseleave')), 500);")
+        self.assertEqual("true", hidden)
+
+    def test_RQ_TRC_049_given_the_keyboard_moving_onto_a_result_then_its_tooltip_shows(self):
+        hidden, text = self.tip_after("document.getElementById('search').dispatchEvent("
+                                      "new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));")
+        self.assertEqual("false", hidden)
+        self.assertTrue(text.strip())
+
+    def test_RQ_TRC_049_given_the_tokens_then_the_delay_is_300_ms_and_the_tooltip_has_its_own_tokens(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        self.assertEqual("300ms", tokens["global"]["duration.quick"])
+        for name in ("search-tip-delay", "group-label-bg", "group-label-text"):
+            self.assertIn(name, tokens["component"])
+
+
 HOST_TERMS_B64 = ("YWthaQ==", "czUwMDA=", "czYwMDA=", "c3lzZXg=", "anVjZQ==", "eHM1Nms=", "c2FtcGxlcg==", "a2V5Z3JvdXA=",
                   "eHBsb3Jlcg==")   # the host project's names and domain terms, encoded so that this file holds none
 

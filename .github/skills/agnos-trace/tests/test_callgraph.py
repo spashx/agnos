@@ -646,11 +646,43 @@ class ToolbarWordsTest(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_RQ_TRC_048_given_the_call_graph_page_then_the_toolbar_has_three_groups_and_display_holds_four_switches(self):
-        self.assertEqual([("depth", "Depth", []), ("detail-level", "Implementation detail", []),
+        self.assertEqual([("depth", "Depth", []),
                           ("display", "Display", [("show-files", "Source files"), ("show-functions", "Implementation"),
                                                   ("show-hierarchy", "Specification hierarchy"),
-                                                  ("show-enclosing", "Enclosing scopes")])],
+                                                  ("show-enclosing", "Enclosing scopes")]),
+                          ("detail-level", "Implementation detail", [])],           # TASK-TRC-030: the reading order
                          toolbar(rendered_dom(self.path)))
+
+    def implementation_states(self, script):
+        import re
+        dom = rendered_dom_after(self.path, script + "const out = document.documentElement.dataset;"
+                                 "out.choice = String(document.getElementById('detail-level').disabled);"
+                                 "out.enclosing = String(document.getElementById('show-enclosing').disabled);"
+                                 "out.buttons = String([...document.querySelectorAll('#detail-level button')]"
+                                 ".every((b) => b.matches(':disabled')));")           # disabled by their fieldset
+        return dict(re.findall(r'data-(choice|enclosing|buttons)="([^"]*)"', dom))
+
+    def test_RQ_TRC_048_given_implementation_off_then_the_detail_choice_and_enclosing_scopes_are_disabled(self):
+        self.assertEqual({"choice": "true", "enclosing": "true", "buttons": "true"}, self.implementation_states(""))
+
+    def test_RQ_TRC_048_given_implementation_turned_on_then_they_are_enabled_and_turned_off_again_disabled(self):
+        click = "document.getElementById('show-functions').click();"
+        self.assertEqual({"choice": "false", "enclosing": "false", "buttons": "false"}, self.implementation_states(click))
+        self.assertEqual({"choice": "true", "enclosing": "true", "buttons": "true"},
+                         self.implementation_states(click + click))
+
+    def test_RQ_TRC_048_given_the_functions_type_filter_then_the_detail_choice_follows_it(self):
+        self.assertEqual({"choice": "false", "enclosing": "false", "buttons": "false"},
+                         self.implementation_states(TURN_FUNCTIONS_ON))
+
+    def test_RQ_TRC_048_given_the_namespace_detail_with_implementation_on_then_enclosing_scopes_stay_disabled(self):
+        states = self.implementation_states(TURN_FUNCTIONS_ON + CLICK_DETAIL.format("namespace"))
+        self.assertEqual({"choice": "false", "enclosing": "true"}, {k: states[k] for k in ("choice", "enclosing")})
+
+    def test_RQ_TRC_048_given_the_tokens_then_a_group_label_has_a_background_and_a_text_token(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)["component"]
+        self.assertIn("group-label-bg", tokens)
+        self.assertIn("group-label-text", tokens)
 
     def test_RQ_TRC_048_given_a_page_without_call_graph_then_display_holds_source_files_and_the_hierarchy(self):
         self.assertEqual([("depth", "Depth", []), ("display", "Display", [("show-files", "Source files"),

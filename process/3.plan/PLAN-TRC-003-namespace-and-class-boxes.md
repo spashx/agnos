@@ -190,7 +190,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-030: A search result's tooltip, the detail choice following "Implementation", toolbar order and labels
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Second owner review of the page. (1) A result of the search list gets a tooltip of the page's own
   (type, whole name, whole title, location) after the quick delay token, on hover and on keyboard move. (2) The
   "Implementation detail" choice and "Enclosing scopes" are disabled while "Implementation" is off, from the switch or
@@ -201,5 +201,16 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**: those of RQ-TRC-049 and RQ-TRC-048.
 - **Dependencies**: TASK-TRC-029
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: whole suite 109 OK, 1 skipped. `SearchTooltipTest` 4/4 in headless Edge (virtual time): a result
+  pointed at shows, after the delay, its type, whole name, whole title and `file:lines`; the pointer leaving the list
+  at 500 ms hides it; ArrowDown shows it; tokens `duration.quick` 300ms, `search-tip-delay`, `group-label-bg`,
+  `group-label-text`. `ToolbarWordsTest` 10/10: groups in the order depth, display, detail-level; at load, with the
+  implementation off, the choice, its three buttons and Enclosing scopes are disabled; the switch on enables them, off
+  again disables them; the Functions type filter does the same; namespace detail keeps Enclosing scopes disabled.
+  Screenshots on a C++ code base (light and dark): the tooltip beside the list for `core::Session::submit` with its location;
+  the three group labels on the accent-subtle background; the choice greyed while the implementation is off. Sonar: no
+  finding.
+- **Assumptions**: the tooltip appears on hover and on arrow-key moves, not for the first result when the list opens;
+  it is positioned beside the list (fixed), clamped to the window; the group labels use accent-subtle / accent, the
+  fill and colour of a selected item; "Implementation detail" shows muted (`opacity.muted`) when disabled; at 1600 px
+  the third group wraps onto a second line.
