@@ -59,18 +59,24 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   the lines that make them. `#<ID>` in the URL selects an element; back and forward follow the selections.
 - With `--call-graph`: functions are one more element type, found by the search; a function's panel lists its callers
   and callees (ambiguous ones marked, 50 at a time) and the IDs it cites; a requirement's panel lists its functions. The
-  Functions filter is off when the page opens: turn it on to draw functions in the graph, where a selected function's
-  callers stand on its left and its callees on its right; at most 400 nodes are drawn, the status line says how many
-  are left out. The overview has a "Call graph" card and the gaps an informational "Untraced functions" list.
-- Boxes, with `--call-graph`: the graph's "Detail" choice draws the functions at three levels. **Function** (the
-  default): every function in the box of its class or namespace. **Class**: one box per class, the calls between their
-  functions merged into one link per pair of boxes with its count of call sites. **Namespace**: one box per namespace,
-  merged the same way. What stands in no named namespace (global functions, those of anonymous namespaces, classes
-  outside any namespace) is one `(global)` box at the class and namespace levels. "Enclosing boxes" draws the boxes
-  around the level's own (namespaces, or `(global)`, around classes and around a function's class) or leaves them out;
-  it has no meaning at the namespace level. A box is selected like an element (click it, or `#box:<qualified name>`,
-  `#box:(global)` in the URL): its panel lists the box around it, its inner boxes, its
-  functions, its callers and callees by box with their call sites, and the requirements its functions cite.
+  Functions filter is off when the page opens: turn it on (or the graph's "Implementation" switch, the same filter) to
+  draw the implementation in the graph's "Implementation" column, where a selected function's callers stand on its left
+  and its callees on its right; at most 400 nodes are drawn, the status line says how many are left out. The overview
+  has a "Call graph" card and the gaps an informational "Untraced functions" list.
+- The graph's "Display" group (RQ-TRC-048): **Source files** draws the files, linked to the IDs they cite ("cited in
+  code") and to the functions they define ("defines"); **Specification hierarchy** draws and follows feature →
+  requirement, ADR → decision, plan → task (off, a requirement no longer brings its feature); with `--call-graph`,
+  **Implementation** and **Enclosing scopes** (below).
+- Scopes, with `--call-graph`: the "Implementation detail" choice draws the implementation at three levels.
+  **Function** (the default): every function in the frame of its class or namespace. **Class**: one node per class, the
+  calls between their functions merged into one link per pair with its count of call sites. **Namespace**: one node per
+  namespace, merged the same way. What stands in no named namespace (global functions, those of anonymous namespaces,
+  classes outside any namespace) is the `(global namespace)` at the class and namespace levels. "Enclosing scopes"
+  draws each class inside its namespace (or the global namespace) and a function's class inside its namespace, or
+  leaves them out; it has no meaning at the namespace level. Blocks and functions, scopes too, are never drawn as
+  frames. A scope is selected like an element (click it, or `#box:<qualified name>`, `#box:(global)` in the URL): its
+  panel lists its enclosing scope, its inner scopes, its functions, its callers and callees by scope with their call
+  sites, and the requirements its functions cite.
 
 ## Call graph (DEC-TRC-013 to DEC-TRC-018)
 

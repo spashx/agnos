@@ -512,7 +512,7 @@ class ColumnResizeTest(unittest.TestCase):
 
 
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
-                   "#show-files", "#show-containment", "#fit", "#whole", "#coverage-filter button", "#export-csv",
+                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv",
                    "#matrix-table th", ".kpi-type", "#search")
 READ_TOOLTIPS = """
 agnosTrace.select("RQ-DEM-002");

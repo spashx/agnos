@@ -22,7 +22,7 @@
   };
   const RELATION = {
     "contains:out": "contains", "contains:in": "part of", "refs:out": "cites", "refs:in": "cited by",
-    "code:out": "cites", "code:in": "cited in",
+    "code:out": "cites", "code:in": "cited in", "defines:out": "defines", "defines:in": "defined in",
   };
   const UNTRACED = "untraced-functions";     // an informational list, never counted as a gap (RQ-TRC-035, DEC-TRC-018)
   const COVERAGE = {
@@ -56,20 +56,24 @@
   const CLASS_KIND = "class";
   // DEC-TRC-019 as amended (TASK-TRC-028): one box for what stands in no named namespace, anonymous ones included.
   const GLOBAL_BOX = "global";
-  const GLOBAL_LABEL = "(global)";
-  const GLOBAL_KEY = BOX_PREFIX + GLOBAL_LABEL;
+  const GLOBAL_LABEL = "(global namespace)";                   // RQ-TRC-048
+  const GLOBAL_KEY = BOX_PREFIX + "(global)";
   const BOX_KINDS = [NAMESPACE_KIND, CLASS_KIND, GLOBAL_BOX];
   const SEPARATOR_RE = /^[:.]+/;        // what joins a scope's name to an inner name (C++ "::", others ".")
-  const BOX_NAME = { [NAMESPACE_KIND]: "Namespace box", [CLASS_KIND]: "Class box", [GLOBAL_BOX]: "Global box" };
+  // RQ-TRC-048, DEC-TRC-023: the words of the toolbar, the legend and the panels.
+  const BOX_NAME = { [NAMESPACE_KIND]: "Namespace", [CLASS_KIND]: "Class", [GLOBAL_BOX]: "Global namespace" };
   const DETAIL_CHOICES = [
-    [DETAIL.namespace, "Namespace", "Namespaces only, the calls merged between them; the rest in the (global) box"],
-    [DETAIL.class, "Class", "Classes, the calls merged between them; a namespace's free functions in its box"],
-    [DETAIL.function, "Function", "Every function, in the box of its class or namespace"],
+    [DETAIL.namespace, "Namespace", "Namespaces only, the calls merged between them; the rest in the (global namespace)"],
+    [DETAIL.class, "Class", "Classes, the calls merged between them; a namespace's free functions in its own frame"],
+    [DETAIL.function, "Function", "Every function, in the frame of its class or namespace"],
   ];
-  const ENCLOSING_HINT = "Draw the boxes around the level's own: the namespaces, or (global), around classes and around "
-    + "a function's class; off, each box stands alone (not at the namespace level)";
+  const ENCLOSING_HINT = "Draw the enclosing scopes: each class inside its namespace, or the global namespace, and each "
+    + "function's class inside its namespace; off, each class stands alone. Scopes drawn are namespaces, modules, "
+    + "packages and classes; blocks and functions are not. Not available at the Namespace detail";
+  const IMPLEMENTATION_HINT = "Draw the implementation: the functions, classes or namespaces citing the elements, at the "
+    + "chosen detail, and their calls (caller → callee); same as the Functions type filter";
   const BOX_HINT = {
-    [NAMESPACE_KIND]: "a namespace: its classes and functions (dashed frame)",
+    [NAMESPACE_KIND]: "a namespace, module or package: its classes and functions (dashed frame)",
     [CLASS_KIND]: "a class or struct: its methods",
     [GLOBAL_BOX]: "what stands in no named namespace: global and anonymous-namespace functions, classes outside a namespace",
   };
@@ -167,7 +171,7 @@
 
   // A function's IDs carry the lines of its file's own citations: the proofs are stored once, in the file's links.
   function addFunctionLinks() {
-    for (const key of fnKeys) addLink(nodes.get(key).file, key, "contains", []);
+    for (const key of fnKeys) addLink(nodes.get(key).file, key, "defines", []);    // RQ-TRC-048, DEC-TRC-023
     const proofs = new Map();
     const proofsOf = (fileKey, id) => {
       if (!proofs.has(fileKey)) {
@@ -299,17 +303,19 @@
   // The neighbourhood of the selection is laid out as a traceability flow: one column per element family, left to
   // right, each node a labelled pill tinted with its type colour. The whole graph uses a force layout of small dots.
   const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FN"], ["FILE"], ["UNDEFINED"]];
-  const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Functions", "Source files",
-    "Undefined IDs"];
+  const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Implementation", "Source files",
+    "Undefined IDs"];                   // RQ-TRC-048: the code column holds functions, classes or namespaces
   // RQ-TRC-044: one look per relation — dash pattern token (none: solid), colour token, arrow at the target — read by
   // the graph's style and by the legend's drawn samples alike. Each relation has a colour of its own.
   const EDGE_LOOK = {
     contains: { dash: "--c-graph-dash-contains", colour: "--c-graph-edge-contains", arrow: "triangle",
-      meaning: "contains (container → contained)" },
+      meaning: "specification hierarchy (feature → requirement, ADR → decision, plan → task)" },
     refs: { dash: "", colour: "--c-graph-edge-cites", arrow: "triangle", meaning: "cites (citing → cited)" },
     code: { dash: "--c-graph-dash-code", colour: "--c-graph-edge-code", arrow: "triangle",
       meaning: "cited in code (file or function → ID)" },
     ...(CALL_GRAPH ? {
+      defines: { dash: "--c-graph-dash-defines", colour: "--c-graph-edge-defines", arrow: "triangle",
+        meaning: "defines (file → function)" },                // RQ-TRC-048, DEC-TRC-023
       calls: { dash: "", colour: "--c-graph-edge-call", arrow: "triangle", meaning: "calls (caller → callee)" },
       ambiguous: { dash: "", colour: "--c-graph-edge-ambiguous", arrow: "triangle",
         meaning: "ambiguous call (the name matches several definitions)" },
@@ -429,7 +435,7 @@
     const prop = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const num = (name) => Number.parseFloat(prop(name));
     const showFiles = () => $("show-files").checked;
-    const showContainment = () => $("show-containment").checked;
+    const showHierarchy = () => $("show-hierarchy").checked;
     const columnOf = (type) => COLUMNS.findIndex((c) => c.includes(type));
 
     function style() {
@@ -529,7 +535,8 @@
       return box;
     }
 
-    function edgeAllowed(l) { return l.kind !== "contains" || showContainment(); }
+    // RQ-TRC-048: the specification hierarchy only when asked; a file's "defines" goes with the file (nodeAllowed).
+    function edgeAllowed(l) { return l.kind !== "contains" || showHierarchy(); }
     function nodeAllowed(node) { return isVisible(node) && (node.type !== "FILE" || showFiles()); }
 
     // Every neighbour of a node: its links, and for a function its calls (from the typed arrays).
@@ -915,13 +922,13 @@
         renderFilters();
         filtersChanged();
       });
-      $("show-files").closest("label").after(el("label", { class: "toggle",
-        title: "Draw the functions citing the elements, and their calls (solid arrows: caller → callee)" }, toggle, " Functions"));
+      $("show-files").closest("label").after(el("label", { class: "toggle", title: IMPLEMENTATION_HINT }, toggle,
+        " Implementation"));                                   // RQ-TRC-048
     }
-    if (CALL_GRAPH) {       // RQ-TRC-047, DEC-TRC-022: the level of detail and the enclosing boxes
-      const choice = el("fieldset", { class: "segmented", id: "detail-level", "aria-label": "Detail",
-        title: "How finely functions are drawn: by namespace, by class, or one by one in their boxes" },
-      el("span", { class: "segmented-label", text: "Detail" }),
+    if (CALL_GRAPH) {       // RQ-TRC-047, RQ-TRC-048, DEC-TRC-022: the implementation detail and the enclosing scopes
+      const choice = el("fieldset", { class: "segmented", id: "detail-level", "aria-label": "Implementation detail",
+        title: "How finely the implementation is drawn: by namespace, by class, or function by function in their scopes" },
+      el("span", { class: "segmented-label", text: "Implementation detail" }),
       ...DETAIL_CHOICES.map(([level, label, hint]) => el("button", { type: "button", "data-detail": level,
         "aria-pressed": String(level === detail), title: hint, text: label })));
       choice.addEventListener("click", (event) => {
@@ -931,8 +938,8 @@
       const box = el("input", { type: "checkbox", id: "show-enclosing", checked: true });
       box.addEventListener("change", () => applyEnclosing(box.checked));
       $("depth").after(choice);
-      $("show-containment").closest("label").after(el("label", { class: "toggle", title: ENCLOSING_HINT }, box,
-        " Enclosing boxes"));
+      $("show-hierarchy").closest("label").after(el("label", { class: "toggle", title: ENCLOSING_HINT }, box,
+        " Enclosing scopes"));
     }
 
     // The level of detail, its button pressed; the enclosing boxes have no meaning at the namespace level.
@@ -954,7 +961,7 @@
       dirty = true;
       if (visible()) draw();
     }
-    $("show-containment").addEventListener("change", () => draw());
+    $("show-hierarchy").addEventListener("change", () => draw());
     $("fit").addEventListener("click", () => {          // the whole drawing in the frame, any zoom
       if (!cy) return;
       fitCanvas();
@@ -1580,15 +1587,15 @@
         el("button", { class: "button", type: "button", text: "Copy name",
           title: "Copy the box's name to the clipboard", on: { click: () => copy(box.label) } })));
     const badge = (type, text) => el("span", { class: `badge badge-neutral t-${type}` }, el("span", { class: `dot t-${type}` }), text);
-    const summary = el("div", { class: "detail-summary" }, badge("FN", `Inner boxes ${inner.length}`),
+    const summary = el("div", { class: "detail-summary" }, badge("FN", `Inner scopes ${inner.length}`),
       badge("FN", `${plural("FN", members.length)} ${members.length}`), badge("RQ", `${plural("RQ", cited.length)} ${cited.length}`),
       badge("FN", `Callers ${callers.length}`), badge("FN", `Callees ${callees.length}`));
     panel.append(...[head, summary,
-      box.parent ? listGroup("Enclosing box", [box.parent], keyItem) : null,
-      inner.length ? listGroup("Inner boxes", inner, keyItem) : null,
+      box.parent ? listGroup("Enclosing scope", [box.parent], keyItem) : null,              // RQ-TRC-048
+      inner.length ? listGroup("Inner scopes", inner, keyItem) : null,
       listGroup(plural("FN", own.length), own.sort(byKeyLabel), keyItem),
-      listGroup("Callers by box", callers, boxCallItem("called by")),
-      listGroup("Callees by box", callees, boxCallItem("calls")),
+      listGroup("Callers by scope", callers, boxCallItem("called by")),
+      listGroup("Callees by scope", callees, boxCallItem("calls")),
       listGroup(plural("RQ", cited.length), cited, keyItem, "RQ")].filter(Boolean));
   }
 

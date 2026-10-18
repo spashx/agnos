@@ -432,7 +432,9 @@ button, input, select { font: inherit; color: inherit; }
 
 .toggle { display: inline-flex; align-items: center; gap: var(--s-space-xs); color: var(--s-text-muted); font-size: var(--s-text-small); cursor: pointer; }
 .toggle input { accent-color: var(--s-accent); }
-/* RQ-TRC-047: the enclosing-boxes switch has no meaning at the namespace level */
+/* RQ-TRC-048: the switches of the graph in one "Display" group, spaced like the group's buttons */
+.display .toggle { padding: var(--s-space-none) var(--s-space-sm); }
+/* RQ-TRC-047: the enclosing-scopes switch has no meaning at the namespace level */
 .toggle.is-disabled { color: var(--s-text-subtle); cursor: default; }
 
 .graph-status { color: var(--s-text-subtle); font-size: var(--s-text-small); font-variant-numeric: tabular-nums; }

@@ -163,7 +163,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-029: Implementation words, a Display group, the specification hierarchy apart from "defines"
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Owner review of the toolbar: name the code column, its split and its switch "Implementation", the
   choice "Implementation detail", the switch "Enclosing scopes", the box kinds "Namespace", "Class", "Global namespace"
   (label `(global namespace)`); split "Containment" into the "Specification hierarchy" switch (feature, ADR, plan
@@ -175,5 +175,15 @@ This plan implements the tasks in the format specified below.
   arrow and a legend sample (RQ-TRC-044).
 - **Dependencies**: TASK-TRC-028
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: whole suite 100 OK, 1 skipped. `ToolbarWordsTest` 5/5 in headless Edge: groups Depth, Implementation
+  detail, Display (Source files, Implementation, Specification hierarchy, Enclosing scopes); without call graph Depth
+  and Display (Source files, Specification hierarchy); the code column "Implementation · 1"; hierarchy off: the
+  fixture's feature not drawn, port.hpp → `net::Port::send` "defines" drawn, no `contains`; source files off: no file,
+  no "defines", the feature drawn. `RelationLookTest`: six looks, six colours, `defines` sampled; panels "Class",
+  "Global namespace", `(global namespace)`; tooltip targets include `#display`, `#show-hierarchy`. Screenshot on
+  a C++ code base: the three groups, "Implementation" column, legend "specification hierarchy" and "defines". Sonar: no finding
+  in matrix.js (S3776 fixed); matrix.html's earlier findings (lines 41, 58, 62, 126, 134) untouched.
+- **Assumptions**: "defines" is lime with a short dash (`dash.short`); the legend says "specification hierarchy (…)"
+  rather than "part of", the arrow running from the container; the panel's groups read "Enclosing scope", "Inner
+  scopes", "Callers / Callees by scope"; the global box's key stays `box:(global)` so deep links keep working; at 1600 px
+  the toolbar now wraps onto a second line.

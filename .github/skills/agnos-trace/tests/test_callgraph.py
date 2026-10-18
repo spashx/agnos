@@ -575,7 +575,7 @@ class DetailControlsTest(unittest.TestCase):
     def test_RQ_TRC_016_given_a_class_box_when_selected_then_its_panel_lists_its_methods_and_their_requirement(self):
         dom = rendered_dom(self.path, fragment("box:net::Port"))
         self.assertIn('<h2 class="detail-id">net::Port</h2>', dom)
-        self.assertIn("Class box", dom)
+        self.assertIn('<div class="detail-kind"><span class="dot t-FN"></span>Class</div>', dom)     # RQ-TRC-048
         for name in ("net::Port::send", "net::Port::write", "RQ-DEM-001", "net"):
             self.assertIn(f'<span class="id">{name}</span>', dom)
         panel = dom[dom.index('id="detail"'):]
@@ -600,8 +600,8 @@ class DetailControlsTest(unittest.TestCase):
         dom = rendered_dom(self.path, fragment(GLOBAL_BOX))
         panel = dom[dom.index('id="detail"'):]
         panel = panel[:panel.index("</aside>")]                                 # the matrix lists functions too
-        self.assertIn('<h2 class="detail-id">(global)</h2>', panel)
-        self.assertIn("Global box", panel)
+        self.assertIn('<h2 class="detail-id">(global namespace)</h2>', panel)                  # RQ-TRC-048
+        self.assertIn("Global namespace", panel)
         for name in ("relay", "log", "operator==", "helper", "table", "run"):
             self.assertIn(f'<span class="id">{name}</span>', panel)
         self.assertNotIn('<span class="id">net::Port::send</span>', panel)
@@ -610,6 +610,72 @@ class DetailControlsTest(unittest.TestCase):
         dom = rendered_dom(self.plain)
         for absent in ('id="detail-level"', 'id="show-enclosing"', 'class="legend-box'):     # the page's script names them
             self.assertNotIn(absent, dom)
+
+
+def toolbar(dom):
+    """The graph toolbar of a dumped page: [(fieldset id, its label, [(input id, label text)])] in their order."""
+    import re
+    bar = dom[dom.index('<div class="toolbar">', dom.index('id="view-graph"')):]
+    bar = bar[:bar.index('<span class="toolbar-spacer">')]
+    groups = []
+    for fieldset in re.findall(r"<fieldset.*?</fieldset>", bar, re.S):
+        label = re.search(r'<span class="segmented-label">([^<]*)</span>', fieldset).group(1)
+        inputs = re.findall(r'<input type="checkbox" id="([\w-]+)"[^>]*>\s*([^<]+?)\s*</label>', fieldset)
+        groups.append((re.search(r'id="([\w-]+)"', fieldset).group(1), label, inputs))
+    return groups
+
+
+@unittest.skipUnless(HAS_TREE_SITTER and BROWSER, NEEDS_TREE_SITTER + ", or no Chromium-family browser found")
+class ToolbarWordsTest(unittest.TestCase):
+    """TASK-TRC-029: RQ-TRC-048, RQ-TRC-044 (DEC-TRC-023), in a real browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        page, _ = call_graph_page(cls.path)
+        data = json.loads(data_block(page))
+        cls.paths = [f["path"] for f in data["files"]]
+        cls.keys = {f[3]: f"fn:{cls.paths[f[0]]}:{f[1]}" for f in data["callGraph"]["functions"]}
+        cls.port = "file:" + next(p for p in cls.paths if p.endswith("calls/net/port.hpp"))
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_048_given_the_call_graph_page_then_the_toolbar_has_three_groups_and_display_holds_four_switches(self):
+        self.assertEqual([("depth", "Depth", []), ("detail-level", "Implementation detail", []),
+                          ("display", "Display", [("show-files", "Source files"), ("show-functions", "Implementation"),
+                                                  ("show-hierarchy", "Specification hierarchy"),
+                                                  ("show-enclosing", "Enclosing scopes")])],
+                         toolbar(rendered_dom(self.path)))
+
+    def test_RQ_TRC_048_given_a_page_without_call_graph_then_display_holds_source_files_and_the_hierarchy(self):
+        self.assertEqual([("depth", "Depth", []), ("display", "Display", [("show-files", "Source files"),
+                                                                          ("show-hierarchy", "Specification hierarchy")])],
+                         toolbar(rendered_dom(self.plain)))
+
+    def test_RQ_TRC_048_given_functions_drawn_then_their_column_is_implementation(self):
+        nodes, _ = drawing(self.path, "agnosTrace.select('RQ-DEM-001'); agnosTrace.showView('graph');")
+        headers = [n["label"] for key, n in nodes.items() if key.startswith("header:")]
+        self.assertIn("Implementation · 1", headers)
+        self.assertFalse([h for h in headers if h.startswith("Functions")])
+
+    def test_RQ_TRC_048_given_the_hierarchy_off_then_the_feature_goes_and_the_file_still_defines_its_function(self):
+        nodes, edges = drawing(self.path, "document.getElementById('show-hierarchy').click();"
+                                          "agnosTrace.select('RQ-DEM-001'); agnosTrace.showView('graph');")
+        self.assertNotIn("FTR-DEM-001", nodes)
+        self.assertIn(f"{self.port}>{self.keys['net::Port::send']}>defines", edges)
+        self.assertFalse([e for e in edges.values() if e["kind"] == "contains"])
+
+    def test_RQ_TRC_048_given_source_files_off_then_no_file_and_no_defines_link_is_drawn(self):
+        nodes, edges = drawing(self.path, "document.getElementById('show-files').click();"
+                                          "agnosTrace.select('RQ-DEM-001'); agnosTrace.showView('graph');")
+        self.assertFalse([key for key in nodes if key.startswith("file:")])
+        self.assertFalse([e for e in edges.values() if e["kind"] == "defines"])
+        self.assertIn("FTR-DEM-001", nodes)
 
 
 READ_LEGEND = """
@@ -632,7 +698,7 @@ class RelationLookTest(unittest.TestCase):
             call_graph_page(path)
             found = dict(re.findall(r'data-(looks|samples|legend-text)="([^"]*)"', rendered_dom_after(path, READ_LEGEND)))
         looks = json.loads(html.unescape(found["looks"]))
-        self.assertEqual({"contains", "refs", "code", "calls", "ambiguous"}, set(looks))
+        self.assertEqual({"contains", "defines", "refs", "code", "calls", "ambiguous"}, set(looks))   # RQ-TRC-048
         colours = [look["colour"] for look in looks.values()]
         self.assertEqual(len(colours), len(set(colours)))                    # a colour of its own each
         self.assertTrue(all(look["arrow"] and look["arrow"] != "none" for look in looks.values()))
