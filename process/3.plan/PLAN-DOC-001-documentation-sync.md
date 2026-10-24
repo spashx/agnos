@@ -32,7 +32,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DOC-002: The skill, its pointer and the Haiku sub-agent
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The skill `agnos-docs-sync` (canonical procedure under `.github/skills/`, pointer under
   `.claude/skills/`) with the rules for each document, and the sub-agent `agnos-docs-sync` on the Haiku model under
   `.claude/agents/`.
@@ -43,5 +43,5 @@ This plan implements the tasks in the format specified below.
   cannot commit or write another file, and it follows the skill.
 - **Dependencies**: TASK-DOC-001
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s .github/skills/agnos-docs-sync/tests`: 12 tests, 0 failure. `SkillTest`: the skill is a maintainer skill whose body names the four documents, "Keep a Changelog", "Unreleased", "maintainer", `changes_since.py`, "never commit" and the ban on unsupported statements; the `.claude/skills` pointer has the same name and description and points to the canonical file; AGENTS.md and CLAUDE.md do not list it. `AgentTest`: `.claude/agents/agnos-docs-sync.md` has model haiku, tools within Read, Grep, Glob, Edit, Bash (no Write), a prompt that sends it to the skill, names the four files and says never commit, never push, only these four files. Not run end to end: the agent was not launched on the repository.
 - **Assumptions**: the skill is a maintainer skill like `agnos-demo`: not listed in `AGENTS.md` or `CLAUDE.md`.

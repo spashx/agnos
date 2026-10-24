@@ -225,7 +225,7 @@ TASK-DMO-010|190-209|Done|Build and verify the demo repository
 @process/3.plan/PLAN-DOC-001-documentation-sync.md
 PLAN-DOC-001|1-47||Documentation Sync Sub-Agent
 TASK-DOC-001|16-32|Done|Report of the changes since each document's last change
-TASK-DOC-002|33-47|Not Started|The skill, its pointer and the Haiku sub-agent
+TASK-DOC-002|33-47|Done|The skill, its pointer and the Haiku sub-agent
 @process/3.plan/PLAN-DSY-001-design-system-skill.md
 PLAN-DSY-001|1-57||Design-system template as a skill
 TASK-DSY-001|15-38|Done|agnos-design-system skill and reference updates
