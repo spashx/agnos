@@ -245,7 +245,7 @@ def commit_kind(kinds):
 def identify(repo, commits, patterns):
     """(people, commits): the identities of the non-merge commits, and those commits with their author and co-authors
     as indexes into people and their kind; a merge's committer and author are never read as contributors."""
-    authored = [c for c in commits if len(c[KEY_PARENTS]) <= 1]
+    authored = [c for c in commits if not is_merge(c)]
     mapped = map_contacts(repo, [a for c in authored for a in c[KEY_CO_AUTHORS]])
     identities = Identities(patterns)
     keys = []
@@ -463,6 +463,20 @@ def commit_groups(entries):
     return groups
 
 
+KEY_MERGE = "merge"
+
+
+def is_merge(commit):
+    """A merge, as git records it: the folders' history may show it with one parent, or none (RQ-HST-002)."""
+    return commit.get(KEY_MERGE) or len(commit[KEY_PARENTS]) > 1
+
+
+def merge_hashes(repo, since=None):
+    """The merges of HEAD's history, from their true parents: the path-limited log rewrites a merge's parents and can
+    leave it one (TASK-HST-020)."""
+    return set(git(["rev-list", "--merges", HEAD, *([f"--since={since}"] if since else [])], repo.top).split())
+
+
 def tracked_files(repo, paths):
     out = git([*QUOTE_OFF, "ls-files", "-z", "--", *paths], repo.top)
     return set(filter(None, out.split("\0")))
@@ -484,17 +498,19 @@ def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
     for _, diffs in parse_patch(git_lines([*QUOTE_OFF, "diff", *PATCH_OPTIONS, HEAD, "--", *paths], repo.top)):
         state = transform(state, diffs, None, tally)
     cutoff = author_cutoff(repo, since)
+    merges = merge_hashes(repo, since)
     groups = commit_groups(parse_patch(git_lines(log_args(since, depth, paths, PATCH_OPTIONS + WALK_OPTIONS), repo.top)))
     commits, states = [], {}
     for position, (commit, per_parent) in enumerate(groups):
         here = state if position == 0 else states.pop(commit[KEY_HASH], None)
+        commit[KEY_MERGE] = commit[KEY_HASH] in merges or len(commit[KEY_PARENTS]) > 1
         authored = authored_since(commit, cutoff)
         if authored:
             commits.append(commit)
         if here is None:
             continue                                         # reached by no commit read: nothing to carry back
         parents = commit[KEY_PARENTS]
-        credited = commit[KEY_HASH] if authored and len(parents) <= 1 else None
+        credited = commit[KEY_HASH] if authored and not commit[KEY_MERGE] else None
         if not parents:
             transform(here, per_parent[0], credited, tally)
             continue
@@ -659,7 +675,7 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
     ranges, wholes = ranges_to_track(repo.top, documents, files, functions)
     paths = sorted({p for p in (relative_to(f, repo.top) for f in scope) if p is not None}) or ["."]
     commits, tally = read_history(repo, ranges, wholes, paths, since, depth)
-    authored = sorted((c for c in commits if len(c[KEY_PARENTS]) <= 1), key=lambda c: (timestamp(c), c[KEY_HASH]))
+    authored = sorted((c for c in commits if not is_merge(c)), key=lambda c: (timestamp(c), c[KEY_HASH]))
     people, listed = identify(repo, authored, patterns or load_agent_patterns())
     position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
     interventions = {KIND_ELEMENT: {}, KIND_FILE: {}}

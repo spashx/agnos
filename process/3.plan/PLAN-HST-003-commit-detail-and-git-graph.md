@@ -159,3 +159,23 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: The tag comes first, counts the commits drawn, and takes the commit's accent colour.
+
+### TASK-HST-020: A merge left with one parent by the folders' history credits no one
+- **Tier**: M
+- **Status**: Done
+- **Description**: Fix found on the demo on 2026-10-24: git's history simplification can leave a merge with one parent
+  in the path-limited log (its other parent's side never changed the folders read), and the merge was then credited
+  as an ordinary commit of its author. The merges are now known from their true parents (`git rev-list --merges`).
+- **Requirement refs**: RQ-HST-002, RQ-HST-004
+- **ADR refs**: ADR-HST-001 (DEC-HST-002)
+- **Acceptance Criteria**: Given a branch merged into a `main` whose commits never changed the folders read, When the
+  history is built, Then the merge, shown with one parent by the folders' log, is no commit of the timeline, its author
+  no identity, and it credits no element.
+- **Dependencies**: TASK-HST-015
+- **Assignee**: AI
+- **Verification**: `test_RQ_HST_002_given_a_merge_left_with_one_parent…` failed first (`['m1', 's1', "Merge branch
+  'side'"]`), then OK: the merge has one parent in the folders' log, the commits are `m1, s1`, Dan is no identity, RQ-A
+  is credited to m1 and s1 only. Whole suite 254 tests OK, 2 skipped. The demo's page: 77 commits (78 before), no merge
+  credited, `Merge branch 'feature/BKG'` kept in the git graph as a merge with no commit index.
+- **Assumptions**: One `git rev-list --merges` with the same `--since`; the ranges are still carried through such a
+  merge to its parent, only the credit is withheld.

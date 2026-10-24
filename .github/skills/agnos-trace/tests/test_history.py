@@ -545,6 +545,30 @@ class BranchGraphTest(RepoTestCase):
         self.assertEqual(["outside"], got["m3"][1])
 
 
+class SimplifiedMergeTest(RepoTestCase):
+    """TASK-HST-020: RQ-HST-002: a merge that the folders' history shows with one parent still credits no one."""
+
+    def test_RQ_HST_002_given_a_merge_left_with_one_parent_by_the_folders_history_then_it_credits_no_one(self):
+        # main never changes the folders read (as the demo's toolkit import and README): git drops that parent
+        self.repo.commit({"toolkit.txt": "x\n"}, author=CAROL, message="import")
+        self.repo.git("checkout", "-q", "-b", "side")
+        self.repo.commit({FEATURE: "1\n"}, author=CAROL, message="m1")
+        self.repo.commit({FEATURE: "1\n2\n"}, author=BOB, message="s1")
+        self.repo.git("checkout", "-q", "main")
+        self.repo.commit({"README.txt": "x\n"}, author=CAROL, message="readme")
+        self.repo.merge("side", "Merge branch 'side'")
+        repo = history.check_repository(self.repo.top)
+        commits, _ = history.read_history(repo, {FEATURE: [("RQ-A", 1, 2)]}, {}, ["process"])
+        parents = {c["subject"]: c["parents"] for c in commits}
+        self.assertEqual(1, len(parents["Merge branch 'side'"]))                         # git's simplification
+        block = history.build(self.repo.top, {self.repo.top / FEATURE: [("RQ-A", 1, 2)]}, {}, [],
+                              [self.repo.top / "process"])
+        self.assertEqual(["m1", "s1"], [c["subject"] for c in block["commits"]])
+        self.assertNotIn("Dan", [p["name"] for p in block["people"]])
+        subjects = [c["subject"] for c in block["commits"]]
+        self.assertEqual(["m1", "s1"], sorted(subjects[i] for i, _ in block["interventions"]["elements"]["RQ-A"]))
+
+
 class IndependenceTest(unittest.TestCase):
     """TASK-HST-001: RQ-HST-015."""
 
