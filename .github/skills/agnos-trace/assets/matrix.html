@@ -45,7 +45,6 @@
              title="Find an element by its ID, title, file path or function name; it also filters the matrix · shortcut: /">
       <kbd class="search-key">/</kbd>
       <ul class="search-results" id="search-results" role="listbox" hidden></ul>
-      <div class="search-tip" id="search-tip" role="tooltip" hidden></div>
     </div>
     <section class="side-section">
       <h2 class="side-title">Element types</h2>
@@ -150,7 +149,6 @@
     <section class="view" id="view-quality" role="tabpanel" hidden>
       <section class="card report" id="quality-report" aria-label="Quality report card"></section>
       <section class="charts" id="quality-charts" aria-label="Quality charts"></section>
-      <div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
       <div class="toolbar">
         <span class="toolbar-spacer"></span>
         <button class="button" type="button" id="expand-checks" title="Open every check: its rule, its figures and its findings">Expand all</button>
@@ -193,8 +191,7 @@
         </div>
       </div>
       <div class="history-legend" id="history-legend"></div>
-      <div class="history-frame" id="history-plot" tabindex="0" aria-label="Timeline of the interventions"
-           title="Wheel over the marks: zoom · drag: pan · keys + − 0 ← →">
+      <div class="history-frame" id="history-plot" tabindex="0" aria-label="Timeline of the interventions; wheel over the marks to zoom, drag to pan, keys plus, minus, 0 and arrows">
         <div class="history-band-row"><span class="history-corner">Activity</span><svg class="history-band" id="history-band" role="img" aria-label="Commits per period, stacked by human, agent and together"></svg></div>
         <div class="history-axis-row"><span class="history-corner" id="history-limits"></span><svg class="history-axis" id="history-axis" aria-hidden="true"></svg></div>
         <div class="history-scroll" id="history-scroll"><div class="history-rows" id="history-rows"></div></div>
@@ -209,7 +206,8 @@
 
   <aside class="detail" id="detail" aria-label="Selected element" aria-live="polite"></aside>
 </div>
-<div class="chart-tip history-tip" id="history-tip" role="tooltip" hidden></div>
+<!-- RQ-HST-016, DEC-HST-007: the page's one rich tooltip -->
+<div class="tip" id="tip" role="tooltip" hidden></div>
 <script src="@DATA_SCRIPT@"></script>
 <script>
 /*@LIBRARY@*/

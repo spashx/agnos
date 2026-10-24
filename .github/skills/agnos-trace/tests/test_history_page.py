@@ -165,7 +165,7 @@ out.fit = String(Math.abs(spanSize() - w0) < 1);
         got = self.run_script("""
 const mark = document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-mark[data-commit="2"]');
 mark.dispatchEvent(new FocusEvent("focus"));
-const tip = document.getElementById("history-tip");
+const tip = document.getElementById("tip");
 out.tip = tip.hidden ? "" : tip.textContent;
 mark.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 const card = document.getElementById("history-card");
@@ -321,7 +321,7 @@ out.section = document.getElementById("side-history").hidden ? "hidden" : "shown
         got = self.run_script("""
 const item = document.querySelector('#history-shortcuts [data-person="0"]');
 item.dispatchEvent(new FocusEvent("focus"));
-const tip = document.getElementById("history-tip");
+const tip = document.getElementById("tip");
 out.tip = tip.hidden ? "" : tip.textContent;
 """, "tip")
         for text in ("Alice", "alice", "alice@example.com", "merged by e-mail"):
@@ -395,6 +395,102 @@ out.button = String(Boolean(document.querySelector('#detail [data-action="histor
 START = """
 const out = document.documentElement.dataset;
 """
+
+# RQ-HST-016: the titles an element and its containers carry, up to the page, for "one tooltip at once".
+TITLED_ANCESTORS = """
+const titledAncestors = (node) => {
+  const found = [];
+  for (let n = node; n && n.nodeType === 1; n = n.parentElement || n.parentNode) {
+    if (n.getAttribute("title")) found.push(n.id || n.className.baseVal || n.className || n.tagName);
+    if (n.querySelector && n.querySelector(":scope > title")) found.push("svg title of " + (n.id || n.tagName));
+  }
+  return found.join("|");
+};
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TooltipComponentTest(unittest.TestCase):
+    """TASK-HST-009: RQ-HST-016, RQ-HST-018, RQ-HST-010, RQ-HST-014."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, START + TITLED_ANCESTORS + script), *names)
+
+    def test_RQ_HST_016_given_a_radar_point_then_one_rich_tooltip_and_no_title_around_it(self):
+        got = self.run_script("""
+agnosTrace.showView("quality");
+const point = document.querySelector("#quality-charts .radar-point");
+point.dispatchEvent(new FocusEvent("focus"));
+const tip = document.getElementById("tip");
+out.shown = String(!tip.hidden);
+out.head = tip.firstElementChild ? getComputedStyle(tip.firstElementChild).fontWeight : "";
+out.titles = titledAncestors(point);
+out.tips = String(document.querySelectorAll('[role="tooltip"]:not([hidden])').length);
+""", "shown", "head", "titles", "tips")
+        self.assertEqual(("true", "", "1"), (got["shown"], got["titles"], got["tips"]))
+        self.assertGreaterEqual(int(got["head"]), 600)
+
+    def test_RQ_HST_016_given_a_commit_mark_then_one_rich_tooltip_and_no_title_around_it(self):
+        got = self.run_script("""
+agnosTrace.showView("history");
+const mark = document.querySelector(".history-mark");
+mark.dispatchEvent(new FocusEvent("focus"));
+const tip = document.getElementById("tip");
+out.shown = String(!tip.hidden);
+out.titles = titledAncestors(mark);
+""", "shown", "titles")
+        self.assertEqual(("true", ""), (got["shown"], got["titles"]))
+
+    def test_RQ_HST_016_given_the_charts_then_each_is_named_by_aria_label_and_described(self):
+        got = self.run_script("""
+agnosTrace.showView("quality");
+const charts = [...document.querySelectorAll("#quality-charts svg[role=img]")];
+out.named = String(charts.length === 3 && charts.every((c) => c.getAttribute("aria-label") && c.querySelector("desc")
+  && !c.querySelector(":scope > title")));
+""", "named")
+        self.assertEqual("true", got["named"])
+
+    def test_RQ_HST_010_given_identities_then_the_merge_line_shows_only_when_merged_and_the_chip_tip_is_the_sidebar_one(self):
+        got = self.run_script("""
+const tip = document.getElementById("tip");
+const read = (node) => { node.dispatchEvent(new FocusEvent("focus")); const text = tip.hidden ? "" : tip.textContent;
+  node.dispatchEvent(new FocusEvent("blur")); return text; };
+out.alice = read(document.querySelector('#history-shortcuts [data-person="0"]'));
+out.claude = read(document.querySelector('#history-shortcuts [data-person="2"]'));
+agnosTrace.showView("history");
+out.chip = read(document.querySelector('#history-people [data-person="0"]'));
+out.chiptitle = document.querySelector('#history-people [data-person="0"]').getAttribute("title") || "";
+""", "alice", "claude", "chip", "chiptitle")
+        self.assertIn("merged by e-mail", got["alice"])
+        self.assertNotIn("merge", got["claude"].lower())
+        self.assertEqual(got["alice"], got["chip"])
+        self.assertEqual("", got["chiptitle"])
+
+
+class WordingTest(unittest.TestCase):
+    """TASK-HST-009: RQ-HST-018: no ID of the skill's process in the page's own wording."""
+
+    def test_RQ_HST_018_given_the_page_script_and_skeleton_then_no_string_names_an_id_of_the_process(self):
+        id_re = re.compile(tm.ID_PATTERN)
+        script = (tm.ASSETS_DIR / "matrix.js").read_text(encoding="utf-8")
+        code = re.sub(r"/\*.*?\*/", "", script, flags=re.S)                  # block comments
+        code = re.sub(r"(^|\s)//.*$", "", code, flags=re.M)                     # line comments, not "://" in a string
+        named = [line.strip() for line in code.splitlines() if id_re.search(line)]
+        skeleton = re.sub(r"<!--.*?-->", "", (tm.ASSETS_DIR / "matrix.html").read_text(encoding="utf-8"), flags=re.S)
+        skeleton = re.sub(r"/\*.*?\*/", "", skeleton, flags=re.S)
+        self.assertEqual([], named)
+        self.assertEqual([], id_re.findall(skeleton))
 
 
 def large_process(root, count):

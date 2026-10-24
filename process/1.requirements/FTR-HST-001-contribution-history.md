@@ -194,16 +194,18 @@ of FTR-TRC-003.
 - **EARS Type**: Event-driven
 - **Statement**: WHILE the data file holds a history, the sidebar SHALL show a "History" section below the Quality
   section listing the identities, by number of commits from the highest, each with its kind marked by an icon and its
-  number of commits; WHEN the pointer rests on an identity, the page SHALL show a tooltip with its names and e-mails and
-  how they were merged into it; WHEN an identity is clicked, the page SHALL open the History tab filtered on that
+  number of commits; WHEN the pointer rests on an identity, here or in the History tab's filter bar or commit card, the
+  page SHALL show the same rich tooltip (RQ-HST-016) with its names and e-mails, and how they were merged into it only
+  when a merge took place (amended by the owner on 2026-10-24); WHEN an identity is clicked, the page SHALL open the History tab filtered on that
   identity alone.
 - **Rationale**: the people of the project are one click away from what they did, and the merging of identities is
   explained where it shows.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a history with spashx (two names merged by e-mail) and Claude Opus 5.5, When the page
   opens, Then the sidebar's History section lists both with their counts and kinds; When the pointer rests on spashx,
-  Then the tooltip lists both names and says "merged by e-mail"; When spashx is clicked, Then the History tab opens
-  filtered on spashx.
+  Then the tooltip lists both names and says "merged by e-mail"; When the pointer rests on Claude Opus 5.5, whose identity
+  merged nothing, Then its tooltip says nothing of a merge; When the pointer rests on spashx's chip in the History tab,
+  Then the tooltip is the same as in the sidebar; When spashx is clicked, Then the History tab opens filtered on spashx.
 - **Dependencies**: RQ-HST-009, RQ-TRC-015, RQ-TRC-049
 
 ### RQ-HST-011: History of the selected element
@@ -235,6 +237,52 @@ of FTR-TRC-003.
   Then it prints a warning, the page has no History tab and the exit code is 0; Given a shallow clone of depth 5, Then
   the History tab reads that the history is cut.
 - **Dependencies**: RQ-HST-001, RQ-HST-006
+
+### RQ-HST-019: Files in a folder tree
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the History tab shows the code angle by file, the page SHALL show the files in a tree of their
+  folders, each folder a row that opens and closes and that carries the interventions of the files below it, each file a
+  row under its folder named by its file name, and its functions below it; the folders SHALL be open at first, and
+  opening or closing one SHALL keep the period in view and the filters.
+- **Rationale**: a project's files are read by where they live; a flat list of paths is long and hard to scan
+  (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the files `src/a/x.py`, `src/a/y.py` and `src/b/z.py`, When the code angle by file opens,
+  Then the rows are `src`, `a`, `x.py`, `y.py`, `b`, `z.py` with the folders indented by depth; When `a` is closed, Then
+  `x.py` and `y.py` are hidden and `a` keeps the marks of their commits; When it is opened again, Then they show again.
+- **Dependencies**: RQ-HST-007
+
+### RQ-HST-020: A resizable label column
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader drags the edge between the History tab's label column and its timeline, or moves it
+  with the arrow keys, the page SHALL resize the label column between a minimum and a maximum width given by the design
+  tokens, keep that width for the viewer's next visits, and return to the default width on a double click.
+- **Rationale**: long titles and paths need room, and a wide timeline needs it back (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the History tab, When the edge is moved right by three arrow steps, Then the label
+  column is three steps wider and the axis, the band and the rows stay aligned; When it is dragged past the maximum, Then
+  it stops at the maximum; When it is double-clicked, Then it returns to the default width; Given the page reopened,
+  Then the width is the one chosen.
+- **Dependencies**: RQ-HST-007, RQ-TRC-025, RQ-TRC-018, ADR-TRC-002
+
+### RQ-HST-021: Filter on the rows
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader types in the History tab's row filter, the page SHALL keep only the rows whose ID,
+  title, file path or function name holds the text, ignoring case, with the headings and folders that lead to them; WHEN
+  the reader turns off a type among FTR, RQ, ADR, DEC, PLAN and TASK in the requirements angle, the page SHALL hide the
+  rows of that type; both SHALL combine with the filters by identity and kind and with the scope, and the figures SHALL
+  count the rows kept.
+- **Rationale**: the reader narrows a long first column to the elements or files of interest (owner request of
+  2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the requirements angle, When "HST" is typed, Then only the rows whose ID or title holds
+  "hst" stay, with their type headings; When the type TASK is turned off, Then no TASK row stays; Given the code angle
+  by file, When "trace" is typed, Then only the files whose path holds it stay, with their folders; When the text is
+  cleared, Then every row shows again.
+- **Dependencies**: RQ-HST-007, RQ-HST-009
 
 ---
 
@@ -273,7 +321,8 @@ of FTR-TRC-003.
   control and mark of the view is focusable and named.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the tokens of both themes, When the contrast of the marks and texts of the view is
-  computed, Then it meets the metric; Given 20 identities, Then they have 20 different colours, each the same in the
+  computed, Then it meets the metric; Given an identity in the sidebar and in the History tab, Then its tooltip has the
+  same form in both (amended by the owner on 2026-10-24); Given 20 identities, Then they have 20 different colours, each the same in the
   marks, the legend, the filter and the sidebar; Given a human and an agent, Then each name shows with its kind's icon
   and their marks have different shapes; Given the view, When it is driven by the keyboard only, Then the switch, the
   filters, the zoom, the pan and every mark can be reached.

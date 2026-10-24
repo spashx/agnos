@@ -88,6 +88,8 @@
   const DOM_INPUT = "input";
   const VALUE_ITEM_2 = "item";
   const EVENT_KEYDOWN = "keydown";
+  const EVENT_FOCUS = "focus";
+  const EVENT_BLUR = "blur";
   const VALUE_KPI_SUB = "kpi-sub";
   const TAG_LABEL = "label";
   const VALUE_LEGEND_ITEM = "legend-item";
@@ -227,6 +229,54 @@
   const clear = (node) => { node.replaceChildren(); return node; };
   const plural = (type, n) => TYPE_NAME[type][n === 1 ? 0 : 1];
   const pct = (part, whole) => (whole ? Math.round((PERCENT * part) / whole) : 0);
+
+  // ---- the page's rich tooltip (TASK-HST-009: RQ-HST-016; DEC-HST-007) --------------------------------------------
+  // One card for every piece of business information: a bold first line, its details below, beside its target and kept
+  // inside the window; shown on hover after a delay token and at once on keyboard focus. The browser's title is left to
+  // what a control does.
+  const TIP_ID = "tip";
+  const TIP_HEAD = "tip-head";
+  const TIP_LINE = "tip-line";
+  let richTipTimer = null;
+
+  // content: { head, type (a dot of that element type before the head), lines, mono (the lines that are code) }
+  function showRichTip(target, content) {
+    clearTimeout(richTipTimer);
+    const tip = $(TIP_ID);
+    const head = el("div", { class: TIP_HEAD }, content.type ? el("span", { class: `dot t-${content.type}` }) : null, content.head);
+    clear(tip).append(head, ...(content.lines || []).filter((line) => line !== null && line !== undefined && line !== "")
+      .map((line, i) => el("div", { class: `${TIP_LINE}${(content.mono || []).includes(i) ? " tip-mono" : ""}`, text: line })));
+    const box = target.getBoundingClientRect ? target.getBoundingClientRect() : target;
+    tip.hidden = false;
+    const size = tip.getBoundingClientRect();
+    const left = box.right + size.width > window.innerWidth ? box.left - size.width : box.right;
+    const top = box.bottom + size.height > window.innerHeight ? box.top - size.height : box.bottom;
+    tip.style.left = `${Math.max(0, left)}px`;
+    tip.style.top = `${Math.max(0, top)}px`;
+  }
+
+  function hideRichTip() {
+    clearTimeout(richTipTimer);
+    $(TIP_ID).hidden = true;
+  }
+
+  function scheduleRichTip(target, contentOf, delayToken) {
+    clearTimeout(richTipTimer);
+    if (!delayToken) { showRichTip(target, contentOf()); return; }           // no delay token: at once, as the charts
+    const delay = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(delayToken));
+    richTipTimer = setTimeout(() => showRichTip(target, contentOf()), delay);
+  }
+
+  // A node that raises a rich tooltip: never a browser title of its own (RQ-HST-016).
+  function richTip(node, contentOf, delayToken) {
+    node.removeAttribute("title");
+    node.dataset.richTip = VALUE_TRUE;
+    node.addEventListener(EVENT_MOUSEOVER, () => scheduleRichTip(node, contentOf, delayToken));
+    node.addEventListener(EVENT_MOUSEOUT, hideRichTip);
+    node.addEventListener(EVENT_FOCUS, () => showRichTip(node, contentOf()));
+    node.addEventListener(EVENT_BLUR, hideRichTip);
+    return node;
+  }
 
   // ---- model --------------------------------------------------------------------------------------------------
   const nodes = new Map();
@@ -1303,31 +1353,26 @@
   }
 
   // RQ-TRC-049, DEC-TRC-024: a result's tooltip, the page's own, beside the list after the quick delay.
-  const searchTip = $("search-tip");
-  let searchTipTimer = null;
-  const quickDelay = () => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--c-search-tip-delay"));
+  const hideSearchTip = () => hideRichTip();
 
-  function hideSearchTip() {
-    clearTimeout(searchTipTimer);
-    searchTip.hidden = true;
+  // An element as every business tooltip names it: its type, its ID or name, its title, its location, its status.
+  function elementTip(n) {
+    return { type: n.type, head: n.label, lines: [TYPE_NAME[n.type][0] + (n.status ? ` · ${n.status}` : ""), n.title,
+      n.doc ? `${n.doc}:${n.first}-${n.last}` : ""], mono: [2] };
   }
 
   function showSearchTip(item, n) {
-    clear(searchTip).append(
-      el("div", { class: "search-tip-kind" }, el(TAG_SPAN, { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
-      el("div", { class: "search-tip-name", text: n.label }),
-      n.title ? el("div", { class: "search-tip-title", text: n.title }) : null,
-      n.doc ? el("div", { class: "search-tip-location", text: `${n.doc}:${n.first}-${n.last}` }) : null);
-    searchTip.hidden = false;
     const row = item.getBoundingClientRect();
     const side = results.getBoundingClientRect();
-    searchTip.style.left = `${Math.max(0, Math.min(side.right, window.innerWidth - searchTip.offsetWidth))}px`;
-    searchTip.style.top = `${Math.max(0, Math.min(row.top, window.innerHeight - searchTip.offsetHeight))}px`;
+    showRichTip({ left: side.left, right: side.right, top: row.top, bottom: row.top }, elementTip(n));
   }
 
   function scheduleSearchTip(item, key) {
     hideSearchTip();
-    searchTipTimer = setTimeout(() => showSearchTip(item, nodes.get(key)), quickDelay());
+    const row = item.getBoundingClientRect();
+    const side = results.getBoundingClientRect();
+    scheduleRichTip({ left: side.left, right: side.right, top: row.top, bottom: row.top }, () => elementTip(nodes.get(key)),
+      "--c-search-tip-delay");
   }
   results.addEventListener("mouseleave", hideSearchTip);
   results.addEventListener("scroll", hideSearchTip);
@@ -1794,31 +1839,15 @@
   }
 
   function chartFrame(width, height, title, description, ...parts) {
-    return svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", class: "chart-svg", "aria-labelledby": `chart-${title.replaceAll(" ", "-")}` },
-      svgEl("title", { id: `chart-${title.replaceAll(" ", "-")}` }, title), svgEl("desc", {}, description), ...parts);
+    return svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", class: "chart-svg", "aria-label": title },
+      svgEl("desc", {}, description), ...parts);           // DEC-HST-007: an SVG title would raise a second tooltip
   }
-
-  const chartTip = () => $("chart-tip");
-
-  function showChartTip(target, lines) {
-    const tip = chartTip();
-    clear(tip).append(...lines.map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
-    const box = target.getBoundingClientRect();
-    tip.hidden = false;
-    tip.style.left = `${box.right}px`;
-    tip.style.top = `${box.top}px`;
-  }
-
-  function hideChartTip() { chartTip().hidden = true; }
 
   // An item of a chart: focusable, with a text label for screen readers, its tooltip on hover and on focus.
   function chartItem(node, label, lines, onActivate) {
     node.setAttribute("tabindex", "0");
     node.setAttribute("aria-label", label);
-    node.addEventListener("mouseover", () => showChartTip(node, lines));
-    node.addEventListener("mouseout", hideChartTip);
-    node.addEventListener("focus", () => showChartTip(node, lines));
-    node.addEventListener("blur", hideChartTip);
+    richTip(node, () => ({ head: lines[0], lines: lines.slice(1) }));
     if (onActivate) {
       node.addEventListener("click", onActivate);
       node.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onActivate(); } });
@@ -2019,8 +2048,6 @@
   const CLASS_SWATCH = "history-swatch";
   const IS_PINNED = "is-pinned";
   const EVENT_POINTERDOWN = "pointerdown";
-  const EVENT_FOCUS = "focus";
-  const EVENT_BLUR = "blur";
   const KEY_ENTER = "Enter";
   const CLASS_NAME = "history-name";
   const ATTR_PERSON = "data-person";
@@ -2036,7 +2063,6 @@
   const ID_HISTORY_GROUPING = "history-grouping";
   const ID_HISTORY_ANGLE = "history-angle";
   const ID_HISTORY_CARD = "history-card";
-  const ID_HISTORY_TIP = "history-tip";
   const ID_HISTORY_OVERVIEW = "history-overview";
   const CLASS_CARD_MUTED = "history-card-muted";
   const CLASS_CARD_LIST = "history-card-list";
@@ -2109,9 +2135,9 @@
   // An identity as the page names it everywhere: its colour, its kind's icon, its name (never the colour alone).
   function personTag(index) {
     const person = HISTORY.people[index];
-    return el(TAG_SPAN, { class: "history-person", title: `${person.name} (${KIND_LABEL[person.kind]})` },
+    return richTip(el(TAG_SPAN, { class: "history-person", tabindex: "0" },
       el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
-      el(TAG_SPAN, { text: person.name }));
+      el(TAG_SPAN, { text: person.name })), () => linesTip(identityLines(index)), CSS_TIP_DELAY);
   }
 
   // ---- rows: the requirements angle, the code angle by file or by requirement ----
@@ -2277,13 +2303,11 @@
   // An identity's chip: its colour, its kind's icon, its name, its commits; its tooltip tells how it was merged.
   function identityLines(index) {
     const person = HISTORY.people[index];
-    const merged = person.mergedBy.length ? `merged by ${person.mergedBy.map((how) => MERGED_TEXT[how] || how).join(" and ")}`
-      : "one name and one address, nothing merged";
+    const merged = person.mergedBy.length            // RQ-HST-010 as amended: said only when a merge took place
+      ? `Identity merged by ${person.mergedBy.map((how) => MERGED_TEXT[how] || how).join(" and ")}` : null;
     return [`${person.name} (${KIND_LABEL[person.kind]})`, `${person.commits} commits as author, ${person.coCommits} as co-author`,
-      `Names: ${person.names.join(", ")}`, `E-mails: ${person.emails.join(", ")}`, `Identity ${merged}`];
+      `Names: ${person.names.join(", ")}`, `E-mails: ${person.emails.join(", ")}`, merged].filter(Boolean);
   }
-
-  const identityTitle = (index) => identityLines(index).join("\n");
 
   // RQ-HST-010: the sidebar's History section; a click opens the History tab filtered on that identity alone.
   function renderHistorySidebar() {
@@ -2295,8 +2319,7 @@
         kindIcon(person.kind), el(TAG_SPAN, { class: CLASS_NAME, text: person.name })),
       el(TAG_SPAN, { class: "badge badge-neutral chip-count", text: person.commits + person.coCommits }));
       item.addEventListener(EVENT_MOUSEOVER, () => {
-        clearTimeout(tipTimer);
-        tipTimer = setTimeout(() => showTipLines(item, identityLines(i)), cssNumber(CSS_TIP_DELAY));
+        scheduleRichTip(item, () => linesTip(identityLines(i)), CSS_TIP_DELAY);
       });
       item.addEventListener(EVENT_MOUSEOUT, hideHistoryTip);
       item.addEventListener(EVENT_FOCUS, () => showTipLines(item, identityLines(i)));
@@ -2315,10 +2338,11 @@
 
   function personChip(index, onClick) {
     const person = HISTORY.people[index];
-    return el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, [ATTR_PERSON]: index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
-      title: identityTitle(index), on: { [EVENT_CLICK]: onClick } },
+    return richTip(el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, [ATTR_PERSON]: index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
+      [VALUE_ARIA_LABEL]: identityLines(index).join(". "), on: { [EVENT_CLICK]: onClick } },
     el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
-    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: person.commits + person.coCommits }));
+    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: person.commits + person.coCommits })),
+    () => linesTip(identityLines(index)), CSS_TIP_DELAY);
   }
 
   function renderPeopleChips() {
@@ -2585,27 +2609,12 @@
       commit.subject, `${lines} lines changed in ${row.title || row.label}`];
   }
 
-  let tipTimer = null;
+  const linesTip = (lines) => ({ head: lines[0], lines: lines.slice(1) });
+  const showTipLines = (target, lines) => showRichTip(target, linesTip(lines));
+  const hideHistoryTip = () => hideRichTip();
+
   function showHistoryTip(target, row, ci, lines) {
     showTipLines(target, tipLines(row, ci, lines));
-  }
-
-  function showTipLines(target, lines) {
-    clearTimeout(tipTimer);
-    const tip = $(ID_HISTORY_TIP);
-    clear(tip).append(...lines.map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
-    const box = target.getBoundingClientRect();
-    tip.hidden = false;
-    const size = tip.getBoundingClientRect();                  // kept inside the window, beside or above its target
-    const left = box.right + size.width > window.innerWidth ? box.left - size.width : box.right;
-    const top = box.bottom + size.height > window.innerHeight ? box.top - size.height : box.bottom;
-    tip.style.left = `${Math.max(0, left)}px`;
-    tip.style.top = `${Math.max(0, top)}px`;
-  }
-
-  function hideHistoryTip() {
-    clearTimeout(tipTimer);
-    $(ID_HISTORY_TIP).hidden = true;
   }
 
   // Every element, file and function the commit changed, from the interventions (built once, on the first pin).
@@ -2653,8 +2662,7 @@
     rowsBox.addEventListener(EVENT_MOUSEOVER, (event) => {
       const mark = event.target.closest(CLASS_MARK);
       if (!mark) return;
-      clearTimeout(tipTimer);
-      tipTimer = setTimeout(() => showHistoryTip(mark, rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines)),
+      scheduleRichTip(mark, () => linesTip(tipLines(rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines))),
         cssNumber(CSS_TIP_DELAY));
     });
     rowsBox.addEventListener(EVENT_MOUSEOUT, (event) => { if (event.target.closest(CLASS_MARK)) hideHistoryTip(); });
@@ -2814,7 +2822,7 @@
         el("button", { class: "button", type: "button", text: "Copy ID",
           title: "Copy this ID (or name) to the clipboard", on: { click: () => copy(n.label) } }),
         HISTORY && n.kind !== KIND_UNDEFINED ? el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, "data-action": HISTORY_VIEW, text: "History",
-          title: "Open the History tab on this element: who changed it, and its code, over time (RQ-HST-011)",
+          title: "Open the History tab on this element: who changed it, and its code, over time",
           on: { [EVENT_CLICK]: () => scopeHistory(key) } }) : null));
     const groups = linksByType(key);
     const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));

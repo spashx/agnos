@@ -293,14 +293,14 @@ const out = document.documentElement.dataset;
 agnosTrace.showView("quality");
 const charts = [...document.querySelectorAll("#quality-charts svg")];
 out.svgs = String(charts.length);
-out.named = String(charts.every((c) => c.getAttribute("role") === "img" && c.querySelector("title")?.textContent.trim()
+out.named = String(charts.every((c) => c.getAttribute("role") === "img" && c.getAttribute("aria-label")?.trim()   // DEC-HST-007: no SVG title
   && c.querySelector("desc")?.textContent.trim()));
 const points = [...document.querySelectorAll("#quality-charts .radar-point")];
 out.points = points.map((p) => p.dataset.check).join(",");
 out.focusable = String(points.every((p) => p.getAttribute("tabindex") === "0" && p.getAttribute("aria-label")));
 out.bars = String(document.querySelectorAll("#quality-charts .area-bar").length);
 out.shares = String(document.querySelectorAll("#quality-charts .share-part").length);
-const tip = document.getElementById("chart-tip");
+const tip = document.getElementById("tip");          // the page's one rich tooltip (DEC-HST-007)
 const covered = points.find((p) => p.dataset.check === "covered");
 out.hiddenBefore = String(tip.hidden);
 covered.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 200, clientY: 200 }));

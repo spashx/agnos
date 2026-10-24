@@ -794,7 +794,7 @@ SEARCH_FOR_COVERED = ("const s = document.getElementById('search'); s.value = 'c
                       "s.dispatchEvent(new Event('input'));"
                       "const first = document.querySelector('#search-results .search-result');")
 READ_SEARCH_TIP = """
-const tip = document.getElementById("search-tip");
+const tip = document.getElementById("tip");          // the page's one rich tooltip (DEC-HST-007)
 document.documentElement.dataset.tipHidden = String(!tip || tip.hidden);
 document.documentElement.dataset.tipText = tip ? tip.textContent : "";
 document.documentElement.dataset.tipSelected = document.querySelector('#search-results [aria-selected="true"]')?.textContent || "";

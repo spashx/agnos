@@ -89,6 +89,30 @@ button (which sets the scope: a process element and the elements it contains, or
 angle shows the code citing the scope) all write this state and redraw the view; the scope shows as a removable chip.
 Fulfils RQ-HST-009, RQ-HST-010 and RQ-HST-011.
 
+### DEC-HST-007: One rich tooltip component for business information; the browser's title for actions only
+Owner request of 2026-10-24 (FTR-HST-002). The page gets one tooltip component, a fixed card at the page's level (not
+inside a view, so that the sidebar can raise it), with a bold first line and detail lines, the card tokens, the
+tooltip delay token on hover and none on focus, placed beside its target and kept inside the window. Every business
+tooltip of RQ-HST-017 goes through it, the search's, the charts' and the History tab's included, which keep their
+content and lose their own code. A plain `title` stays only on controls, to say what they do, and is removed from every
+element that raises a rich tooltip and from its containers: the charts' accessible name moves from an SVG `<title>` to
+`aria-label`, with the description kept in `<desc>`; the timeline frame's help moves to the legend. The graph's nodes
+and relations raise it from Cytoscape's events. The page's wording holds no ID of the skill's process (RQ-HST-018),
+checked by a test on the script's string literals and the skeleton's text. Fulfils RQ-HST-016 to RQ-HST-018 and the
+amended RQ-HST-010 and RQ-HST-014.
+
+### DEC-HST-008: Files in a folder tree, a resizable label column, a filter on the rows
+Owner request of 2026-10-24. In the code angle by file, the rows are built as a tree of the files' folders: a folder row
+per path part, carrying the merged interventions of everything below it, opened by default and opened or closed by a
+click or the Enter key (the closed folders are a set of paths in the view's state, so that a redraw keeps them); a file
+row under its folder by its file name; its functions below it. The label column's width is a custom property of the
+view, set by a splitter between the labels and the timeline, as the page's side panels are (DEC-TRC-012): drag and
+arrow keys by a step token, bounds from min and max tokens, a double click back to the default token, the width kept in
+the viewer's storage; the axis, band and overview rows use the same property, so that they stay aligned. A text field
+and type chips filter the rows before the identity and kind filters: a row stays when its ID, title, path or function
+name holds the text (ignoring case), and a heading or folder stays when a row below it stays. Fulfils RQ-HST-019 to
+RQ-HST-021.
+
 ## Consequences
 - The attribution is per line, as precise as `git log -L`, for all ranges in one git process; its cost grows with the
   size of the diffs read, bounded by `--history-since` and `--history-depth`.

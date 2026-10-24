@@ -225,7 +225,7 @@ button, input, select { font: inherit; color: inherit; }
 .search-result-title { grid-column: 2; color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search-empty { padding: var(--s-space-sm); color: var(--s-text-subtle); font-size: var(--s-text-small); }
 /* RQ-TRC-049: a result's tooltip beside the list, fixed so that the sidebar's overflow does not cut it */
-.search-tip, .chart-tip {
+.tip {
   position: fixed;
   z-index: 30;
   max-width: var(--c-popup-height);
@@ -240,13 +240,11 @@ button, input, select { font: inherit; color: inherit; }
   overflow-wrap: anywhere;
   pointer-events: none;
 }
-.search-tip[hidden], .chart-tip[hidden] { display: none; }
-.chart-tip-name { font-weight: var(--s-weight-strong); }
-.chart-tip-line { color: var(--s-text-muted); }
-.search-tip-kind { display: flex; align-items: center; gap: var(--s-space-xs); color: var(--s-text-subtle); font-size: var(--s-text-caption); }
-.search-tip-name { font-family: var(--s-font-mono); font-weight: var(--s-weight-strong); }
-.search-tip-title { margin-top: var(--s-space-hair); color: var(--s-text-muted); }
-.search-tip-location { margin-top: var(--s-space-xs); color: var(--s-text-subtle); font-family: var(--s-font-mono); font-size: var(--s-text-caption); }
+.tip[hidden] { display: none; }
+/* RQ-HST-016, DEC-HST-007: a bold first line, its details below */
+.tip-head { display: flex; align-items: center; gap: var(--s-space-xs); font-weight: var(--s-weight-strong); }
+.tip-line { margin-top: var(--s-space-hair); color: var(--s-text-muted); }
+.tip-mono { color: var(--s-text-subtle); font-family: var(--s-font-mono); font-size: var(--s-text-caption); }
 
 .side-section { display: flex; flex-direction: column; gap: var(--s-space-sm); }
 
@@ -1066,7 +1064,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-ring { fill: none; stroke-width: var(--s-stroke-medium); }
 .history-mark:hover > :first-child, .history-mark:focus > :first-child, .history-mark.is-pinned > :first-child { stroke: var(--s-text); stroke-width: var(--s-stroke-focus); }
 .history-mark:focus { outline: none; }
-.history-tip { max-width: var(--c-history-card-width); }
+.tip { max-width: var(--c-history-card-width); }
 .history-card {
   position: absolute;
   top: var(--s-space-xl);

@@ -154,7 +154,7 @@ This plan implements the tasks in the format specified below.
   themes, Then the marks meet 3:1 and the texts 4.5:1; Given the view driven by the keyboard only, Then every control and
   mark is reached; Given the skill's code, Then the literal test passes; Given the demo, Then its page shows its six
   identities in the History section.
-- **Dependencies**: TASK-HST-006
+- **Dependencies**: TASK-HST-006, TASK-HST-012 (PLAN-HST-002)
 - **Assignee**: AI
 - **Verification**:
 - **Assumptions**:
