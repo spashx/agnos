@@ -278,7 +278,7 @@ TASK-HST-004|77-96|Done|History tab, timeline and overview strip
 TASK-HST-005|97-112|Done|Figures, activity band and filters
 TASK-HST-006|113-130|Done|Sidebar History section and detail panel History button
 TASK-HST-008|131-143|Done|Quality tab last
-TASK-HST-007|144-160|Not Started|Speed, accessibility, documentation and the demo's page
+TASK-HST-007|144-160|Done|Speed, accessibility, documentation and the demo's page
 @process/3.plan/PLAN-HST-002-tooltips-and-history-rows.md
 PLAN-HST-002|1-92||Consistent Tooltips, and the Rows of the History Tab
 TASK-HST-009|19-38|Done|The rich tooltip component; no double tooltip; no implementation ID

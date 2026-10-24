@@ -2618,13 +2618,18 @@
     const height = cssNumber("--c-history-overview-height");
     const [full0, full1] = hist.full;
     const at = (t) => ((t - full0) / (full1 - full0)) * width;
-    svg.setAttribute(ATTR_VIEWBOX, `0 0 ${width} ${height}`);
-    const ticks = HISTORY.commits.map((c, i) => svgEl(VALUE_LINE, { class: "history-tick", x1: at(commitTime[i]),
-      x2: at(commitTime[i]), y1: height * TICK_FROM, y2: height * TICK_TO, stroke: `var(--c-history-${c.kind})` }));
-    const inset = cssNumber(CSS_HAIRLINE);
-    const window = svgEl(SVG_RECT, { class: "history-window", x: at(hist.span[0]), y: inset, height: height - 2 * inset,
-      width: Math.max(1, at(hist.span[1]) - at(hist.span[0])) });
-    clear(svg).append(window, ...ticks);                    // the window under the ticks, which stay visible
+    const size = `${width} ${height}`;
+    if (svg.dataset.size !== size) {                       // RQ-HST-013: the ticks are drawn once per size, the window moves
+      svg.dataset.size = size;
+      svg.setAttribute(ATTR_VIEWBOX, `0 0 ${size}`);
+      const ticks = HISTORY.commits.map((c, i) => svgEl(VALUE_LINE, { class: "history-tick", x1: at(commitTime[i]),
+        x2: at(commitTime[i]), y1: height * TICK_FROM, y2: height * TICK_TO, stroke: `var(--c-history-${c.kind})` }));
+      const inset = cssNumber(CSS_HAIRLINE);
+      clear(svg).append(svgEl(SVG_RECT, { class: "history-window", y: inset, height: height - 2 * inset }), ...ticks);
+    }
+    const window = svg.firstElementChild;                  // under the ticks, which stay visible
+    window.setAttribute("x", String(at(hist.span[0])));
+    window.setAttribute(VALUE_WIDTH, String(Math.max(1, at(hist.span[1]) - at(hist.span[0]))));
   }
 
   // ---- the activity band (RQ-HST-008): commits per day, week or month of the period in view ----

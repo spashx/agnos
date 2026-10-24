@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them; with --history, who (humans and agents) changed each element and its code, and when. Independent of the product developed."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
 ---
 
@@ -77,6 +77,24 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   for the technician, the checks (see "Quality scoring") in a grid, lowest score first, each compact (title, risk, score
   bar, count of findings) and opened by its chevron to the rule, the formula, the figures and the findings, each finding a
   link to its detail ("Expand all", "Collapse all"). It fits a 1440 by 900 window without vertical scrolling.
+- **History**, with `--history` (FTR-HST-001; the tab comes before Quality): a timeline of who changed what, read from
+  two angles. **Requirements**: one row per process element, grouped by type; **Code**: the files in a tree of their
+  folders that opens and closes (their functions below them with a call graph), or the elements by the code citing
+  them. A mark is one commit on a row: its shape tells the kind (circle: human, diamond: agent, ringed circle: human
+  and agent together, the ring in the agent's colour), its colour the author (one colour per identity), its size the
+  lines changed; hover it for the commit, click it to pin its card (with every element and file it changed). The
+  figures (commits, humans, agents, share with an agent, period) and an activity band stacked by kind follow the rows
+  shown. The wheel over the marks zooms, a drag pans, `+` `-` `0` and the arrows do the same; the overview strip at
+  the bottom moves the period. Filters: identities (one or more), kind (humans, agents), a text on the rows (ID,
+  title, path, function), the element types; "Rows without changes" shows the rows a filter empties. The labels column
+  is resized by its edge (drag, arrows, double click to reset; remembered in the browser). The sidebar's **History**
+  section lists the identities (a person or an agent icon, their commits; its tooltip tells their names, e-mails and
+  how they were merged, when they were): a click opens the tab filtered on that one. The detail panel's **History**
+  button opens the tab on the selected element and what it contains (or a file and its functions), shown as a chip
+  that removes the scope.
+- **Tooltips** (FTR-HST-002): every piece of business information (an element, a file, a function, a relation, a
+  figure, a grade, an identity, a commit) has a rich tooltip, its first line bold and its details below, on hover and
+  on keyboard focus; the browser's plain tooltip only says what a control does. Never two at once.
 - **Detail panel**: the selection's type, title, status, location and tags (the count of its links by type) stand in a
   band, fixed at the top (RQ-TRC-054); below it, only the links scroll, grouped by type with their IDs and the lines that
   make them. Clicking a tag shows only its group (several tags, several groups), clicking it again shows them all, and

@@ -746,6 +746,99 @@ out.folders = String(keys().split(",").filter((k) => k.startsWith("dir:")).lengt
         self.assertEqual("true", got["folders"])
 
 
+def luminance(hex_colour):
+    def channel(c):
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (channel(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def oklch_hex(lightness, chroma, hue):
+    """An oklch colour in sRGB hex, clipped to the gamut (the page's golden-angle identity colours)."""
+    import math
+    a, b = chroma * math.cos(math.radians(hue)), chroma * math.sin(math.radians(hue))
+    l_ = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    m_ = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    s_ = (lightness - 0.0894841775 * a - 1.2914855480 * b) ** 3
+    rgb = (4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
+           -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
+           -0.0041960863 * l_ - 0.7034186147 * m_ + 1.7076147010 * s_)
+    encode = lambda x: 12.92 * x if x <= 0.0031308 else 1.055 * x ** (1 / 2.4) - 0.055  # noqa: E731
+    return "#" + "".join(f"{round(max(0.0, min(1.0, encode(max(0.0, x)))) * 255):02X}" for x in rgb)
+
+
+MARK_CONTRAST = 3.0                                   # RQ-HST-014's metric: marks 3:1, texts 4.5:1
+TEXT_CONTRAST = 4.5
+GOLDEN_SHOWN = 60                                     # the golden-angle identities checked past the twelve tokens
+
+
+class ContrastTest(unittest.TestCase):
+    """TASK-HST-007: RQ-HST-014."""
+
+    @classmethod
+    def setUpClass(cls):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        cls.g, cls.s, cls.c = tokens["global"], tokens["semantic"], tokens["component"]
+
+    def colour(self, semantic, theme):
+        ref = self.s[semantic]
+        return self.g[ref[theme] if isinstance(ref, dict) else ref]
+
+    def backgrounds(self):
+        return [self.colour(self.c["card-bg"], theme) for theme in tm.THEMES]
+
+    def test_RQ_HST_014_given_the_identity_and_kind_colours_then_each_mark_meets_3_to_1_in_both_themes(self):
+        number = lambda name: float(self.g[self.s[self.c[name]]])  # noqa: E731
+        golden = [oklch_hex(number("history-identity-lightness-alt" if turn % 2 else "history-identity-lightness"),
+                            number("history-identity-chroma"),
+                            (number("history-identity-hue-start") + turn * number("history-identity-hue-step")) % 360)
+                  for turn in range(GOLDEN_SHOWN)]
+        shared = [self.colour(f"identity-{n}", tm.THEMES[0]) for n in range(1, 13)] + golden     # one value for both themes
+        pairs = [(m, b) for m in shared for b in self.backgrounds()]
+        pairs += [(self.colour(f"kind-{k}", theme), back) for k in ("human", "agent", "together")
+                  for theme, back in zip(tm.THEMES, self.backgrounds())]                         # each theme on its own surface
+        weak = [(m, round(contrast(m, b), 2)) for m, b in pairs if contrast(m, b) < MARK_CONTRAST]
+        self.assertEqual([], weak)
+
+    def test_RQ_HST_014_given_the_texts_of_the_view_then_they_meet_4_5_to_1_and_use_no_weaker_token(self):
+        for name in ("text", "text-muted"):
+            for theme, back in zip(tm.THEMES, self.backgrounds()):
+                self.assertGreaterEqual(contrast(self.colour(name, theme), back), TEXT_CONTRAST, (name, theme))
+        css = (tm.ASSETS_DIR / "matrix.css").read_text(encoding="utf-8")
+        history_rules = [line for line in css.splitlines() if re.match(r"^\.(history|tip)", line) and "--s-text-subtle" in line]
+        self.assertEqual([], history_rules)
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class KeyboardTest(unittest.TestCase):
+    """TASK-HST-007: RQ-HST-014: every control, row and mark of the view has a keyboard path and a name."""
+
+    def test_RQ_HST_014_given_the_view_then_every_control_and_mark_is_focusable_and_named(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            generate(page)
+            add_history(page)
+            got = found(rendered_dom_after(page, START + """
+agnosTrace.showView("history");
+const view = document.getElementById("view-history");
+const items = [...view.querySelectorAll("button, input, [role=separator], .history-mark, .history-bar, #history-plot")];
+const unreachable = items.filter((n) => n.tabIndex < 0 || n.disabled).map((n) => n.id || n.className.baseVal || n.className);
+const unnamed = items.filter((n) => !(n.getAttribute("aria-label") || n.textContent.trim() || n.getAttribute("title")
+  || n.closest("label")?.textContent.trim()))
+  .map((n) => n.id || n.className.baseVal || n.className);
+out.count = String(items.length);
+out.unreachable = [...new Set(unreachable)].join(",");
+out.unnamed = [...new Set(unnamed)].join(",");
+"""), "count", "unreachable", "unnamed")
+        self.assertGreater(int(got["count"]), 20)
+        self.assertEqual(("", ""), (got["unreachable"], got["unnamed"]))
+
+
 class WordingTest(unittest.TestCase):
     """TASK-HST-009: RQ-HST-018: no ID of the skill's process in the page's own wording."""
 

@@ -143,7 +143,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-007: Speed, accessibility, documentation and the demo's page
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Measure RQ-HST-013 on a generated repository of 2,000 commits, check the contrast, keyboard paths and
   literals of RQ-HST-014 and RQ-TRC-067, complete `SKILL.md`, the README and the `.claude` pointer's description, and
   generate the demo's page with `--call-graph --history` to check it by eye.
@@ -156,5 +156,5 @@ This plan implements the tasks in the format specified below.
   identities in the History section.
 - **Dependencies**: TASK-HST-006, TASK-HST-012 (PLAN-HST-002)
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 240 tests, 0 failure, 2 skipped (the two performance measures). `AGNOS_TRACE_PERF=1` `test_history_perf.py` on a generated repository (one `git fast-import`: 2,000 commits by 10 humans and 2 agents, 300 elements, 500 files): `history: 2000 commits, 10 humans, 2 agents`; the history adds 2.15 s and 305 KiB; the History tab draws in 69 ms (302 rows); P95 of 50 zoom, pan and filter steps 46.9 ms, under 50 by a thin margin after the overview's 2,000 ticks were drawn once per size instead of at every step (51.3 ms before). `ContrastTest`: the 12 identity tokens, 60 golden-angle hues and the kind colours meet 3:1 on the raised surface of each theme; text and text-muted meet 4.5:1; no rule of the view or of the tooltip uses text-subtle (3.75:1 on the dark theme), moved to text-muted. `KeyboardTest`: every button, input, separator, mark and bar of the view is focusable and named. `test_literals.py` OK. `SKILL.md` (History and tooltips sections, description), the `.claude` pointer and the README updated. The demo's page with `--call-graph --history`: 78 commits, 7 humans (rob-ux added by the demo's UI work); its rebuild from the scenario is the DMO task that follows.
+- **Assumptions**: The dark theme's text-subtle token (3.75:1) stays as it is for the rest of the page, which is out of this plan's scope. The demo's identities are checked on its current history; its rebuild comes with the DMO task.
