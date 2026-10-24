@@ -7,6 +7,7 @@ import ast
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -46,9 +47,15 @@ class OptionalModuleTest(unittest.TestCase):
     """TASK-TRC-009: RQ-TRC-026, RQ-TRC-027, RQ-TRC-039 (DEC-TRC-013)."""
 
     def test_RQ_TRC_026_given_no_call_graph_option_when_generated_then_the_data_is_the_one_before_this_feature(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            page, _ = generate(Path(tmp) / "page.html")
-            self.assertEqual(DATA_BEFORE_PLAN_SHA256, location_free_sha256(page))     # its data file, beside it
+        # the files are shown relative to the current folder: the hash is the one of a run from the skill's folder
+        previous = os.getcwd()
+        os.chdir(SKILL)
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                page, _ = generate(Path(tmp) / "page.html")
+                self.assertEqual(DATA_BEFORE_PLAN_SHA256, location_free_sha256(page))     # its data file, beside it
+        finally:
+            os.chdir(previous)
 
     def test_RQ_TRC_039_given_no_call_graph_option_when_the_generator_runs_then_no_tree_sitter_module_is_imported(self):
         probe = ("import sys, tempfile, pathlib; sys.path.insert(0, sys.argv[1]); import trace_matrix as tm\n"

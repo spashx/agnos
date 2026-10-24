@@ -144,3 +144,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `python -m unittest discover -s tests` (skill folder): 161 tests, 0 failure, 1 skipped. `GradePaletteTest`: five distinct fills A #038141, B #85BB2F, C #FECB02, D #EE8100, E #E63E11 in both themes, green-dominant A, red-dominant E, redder at each step; every letter reaches 4.5:1 (white on A, dark text on B to D, black on E, whose first dark-slate text gave 4.30). Screenshot of the fixture's Quality view checked: report card C in yellow, scale A to E green to red, bars and radar points in the grade colours.
 - **Assumptions**: the colours are those of the Nutri-Score, taken as the code "socially understood"; the dark theme uses the same fills.
+
+### TASK-TRC-054: The RQ-TRC-026 sentinel no longer depends on the current folder
+- **Tier**: S
+- **Status**: Done
+- **Description**: The test that pins the data of a run without `--call-graph` failed when the suite ran from the repository
+  root, because the scanned files are shown relative to the current folder; it now runs from the skill's folder.
+- **Requirement refs**: RQ-TRC-026
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the suite run from the skill's folder, the repository root or its parent, Then the test
+  passes with the same hash.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S). `-k OptionalModule` from three current folders: 6 tests OK each time; before the change the repository root gave a different hash.
+- **Assumptions**: None
