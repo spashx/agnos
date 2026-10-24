@@ -69,6 +69,8 @@ NULL_PATH = "/dev/null"
 SIDE_PREFIX = 2                                    # "a/" or "b/" before a path of a patch
 NO_NEWLINE = "\\"                                  # "\ No newline at end of file", inside a hunk
 MAX_AGE = "--max-age="
+UTC_MARK = "Z"
+UTC_OFFSET = "+00:00"
 QUOTE = '"'
 ESCAPE_RE = re.compile(rb"\\([0-7]{3}|.)")
 ESCAPES = {b"t": b"\t", b"n": b"\n", b"r": b"\r", b"a": b"\a", b"b": b"\b", b"f": b"\f", b"v": b"\v"}
@@ -436,8 +438,14 @@ def author_cutoff(repo, since):
     return int(answer[len(MAX_AGE):]) if answer.startswith(MAX_AGE) else None
 
 
+def timestamp(commit):
+    """The author time stamp of a commit; git writes UTC as 'Z', which Python reads only from 3.11."""
+    date = commit[KEY_DATE]
+    return datetime.datetime.fromisoformat(date[:-1] + UTC_OFFSET if date.endswith(UTC_MARK) else date).timestamp()
+
+
 def authored_since(commit, cutoff):
-    return cutoff is None or datetime.datetime.fromisoformat(commit[KEY_DATE]).timestamp() >= cutoff
+    return cutoff is None or timestamp(commit) >= cutoff
 
 
 def commit_groups(entries):
@@ -493,3 +501,68 @@ def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
             diffs = per_parent[number] if number < len(per_parent) else []
             union(states.setdefault(parent, {}), transform(here, diffs, credited, tally))
     return commits, tally
+
+
+# ---- the history block -------------------------------------------------------------------------------------------
+# RQ-HST-006, DEC-HST-004
+KIND_ELEMENT = "elements"
+KIND_FILE = "files"
+KIND_FUNCTION = "functions"
+KEY_LIMITS = "limits"
+KEY_PEOPLE = "people"
+
+
+def relative_to(path, top):
+    """A path relative to the top of the repository, or None when it lies outside."""
+    try:
+        return Path(path).resolve().relative_to(top.resolve()).as_posix()
+    except ValueError:
+        return None
+
+
+def ranges_to_track(top, documents, files, functions):
+    """(ranges, wholes) of read_history: the process elements and the functions by their lines, the files whole; a
+    path outside the repository is left out."""
+    ranges, wholes = {}, {}
+    for path, elements in documents.items():
+        where = relative_to(path, top)
+        if where is not None:
+            ranges.setdefault(where, []).extend(((KIND_ELEMENT, i), first, last) for i, first, last in elements)
+    where_of = {shown: relative_to(path, top) for shown, path in files.items()}
+    for shown, where in where_of.items():
+        if where is not None:
+            wholes.setdefault(where, []).append((KIND_FILE, shown))
+    for number, (shown, first, last) in enumerate(functions):
+        if where_of.get(shown) is not None:
+            ranges.setdefault(where_of[shown], []).append(((KIND_FUNCTION, number), first, last))
+    return ranges, wholes
+
+
+def build(folder, documents, files, functions, scope, since=None, depth=None, patterns=None):
+    """The data file's history block, for the repository holding folder. documents is {path: [(ID, first, last)]} of
+    the process documents, files {shown path: path} of the scanned files, functions [(shown path, first, last)] of the
+    call graph in its order (empty without one), scope the folders whose history is read. HistoryUnavailable or
+    GitError when the repository cannot be read (RQ-HST-012)."""
+    repo = check_repository(folder)
+    ranges, wholes = ranges_to_track(repo.top, documents, files, functions)
+    paths = sorted({p for p in (relative_to(f, repo.top) for f in scope) if p is not None}) or ["."]
+    commits, tally = read_history(repo, ranges, wholes, paths, since, depth)
+    authored = sorted((c for c in commits if len(c[KEY_PARENTS]) <= 1), key=lambda c: (timestamp(c), c[KEY_HASH]))
+    people, listed = identify(repo, authored, patterns or load_agent_patterns())
+    position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
+    interventions = {KIND_ELEMENT: {}, KIND_FILE: {}}
+    if functions:
+        interventions[KIND_FUNCTION] = {}
+    for (kind, name), by_commit in tally.items():
+        interventions[kind][str(name)] = sorted([position[h], lines] for h, lines in by_commit.items() if h in position)
+    dates = [c[KEY_DATE] for c in listed]
+    limits = {"since": since or None, "depth": depth or None, KEY_COMMITS: len(listed),
+              "first": dates[0] if dates else None, "last": dates[-1] if dates else None, "shallow": repo.shallow}
+    return {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions}
+
+
+def summary(block):
+    """The part of the generator's last line about the history (RQ-HST-006)."""
+    kinds = Counter(p[KEY_KIND] for p in block[KEY_PEOPLE])
+    return (f"history: {block[KEY_LIMITS][KEY_COMMITS]} commits, {kinds[KIND_HUMAN]} humans, "
+            f"{kinds[KIND_AGENT]} agents")

@@ -57,7 +57,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-003: Generator options, `history` data and summary line
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add `--history`, `--history-since` and `--history-depth` to `trace_matrix.py`, load `history.py`
   only with `--history`, write the `history` block of DEC-HST-004 and the summary line part, warn and go on without
   history when the repository cannot be read, and document the options and keys in `SKILL.md`.
@@ -71,8 +71,8 @@ This plan implements the tasks in the format specified below.
   code is 0.
 - **Dependencies**: TASK-HST-002
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 197 tests, 0 failure, 1 skipped; `test_history.py`: 36 OK. `GeneratorTest` (8): `--history-depth 5` or `--history-since` without `--history` exit 1 naming `--history`; depth `0`, `-3`, `ten` exit 1 naming `--history-depth`; with `--history` the data holds `limits` (2 commits, first and last dates, not shallow), `people` (Alice, Carol, Claude Opus 5.5), `commits` (second `together`), `interventions` (RQ-ABC-001 `[[0, 6], [1, 2]]`, files keyed as the data file's files) and the line ends with `history: 2 commits, 2 humans, 1 agents`; depth 1 and since applied and written; two runs give equal bytes; without `--history` the history module is not loaded and no key is written; a process folder outside git prints `warning: no history: the process folder is not inside a git working tree`, exit 0, no key; with `--call-graph`, `g` is credited to Bob and Carol, `f` to Carol. RQ-TRC-026 sentinel unchanged (passes as pinned). This repository with `--call-graph`: 0.93 s without, 1.93 s with `--history` (100 commits, 1 human, 2 agents), data 1,029,111 to 1,112,083 bytes. Demo: 53 commits, 6 humans, interventions for 54 elements, 50 files, 219 functions. `SKILL.md`: options, exit line, History section.
+- **Assumptions**: A depth that is not a positive integer is an input error (exit 1) rather than argparse's exit 2, as RQ-HST-001 asks. The history reads the process folder and the source folders only; a source folder outside the repository is left out. git writes UTC author dates with `Z`, which `datetime.fromisoformat` reads only from Python 3.11: the date is read with `+00:00` in its place, for the skill's Python 3.9.
 
 ### TASK-HST-004: History tab, timeline and overview strip
 - **Tier**: L

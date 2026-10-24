@@ -1,7 +1,7 @@
 ---
 name: agnos-trace
 description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
-argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph]"
+argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
 ---
 
 # AGNOS Traceability Matrix
@@ -9,7 +9,8 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 <!-- FTR-TRC-001; ADR-TRC-001 (DEC-TRC-001 to DEC-TRC-004), ADR-TRC-002 (DEC-TRC-009 to DEC-TRC-011),
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
      (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052.
-     Detail band, tags, feature titles, wheel zoom: ADR-TRC-007 (DEC-TRC-029 to DEC-TRC-031), RQ-TRC-053 to RQ-TRC-056. -->
+     Detail band, tags, feature titles, wheel zoom: ADR-TRC-007 (DEC-TRC-029 to DEC-TRC-031), RQ-TRC-053 to RQ-TRC-056.
+     History: FTR-HST-001, ADR-HST-001 (DEC-HST-001 to DEC-HST-006), RQ-HST-001 to RQ-HST-015. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -37,6 +38,10 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      below). It needs the packages pinned in `requirements-callgraph.txt`, installed once with
      `pip install -r .github/skills/agnos-trace/requirements-callgraph.txt` (prebuilt wheels, no compiler); without them
      the page is written all the same, without functions.
+   - `--history` adds who worked on each element, file and function, read from git (see "History" below).
+     `--history-since <date or duration>` (a form git reads: `6.months`, `2.weeks`, `2026-01-01`) keeps the commits
+     authored since then, `--history-depth <n>` the `n` most recent; both apply together. Either one without
+     `--history`, or a depth that is not a positive integer, is an input error.
 3. Check the exit code:
    - `0`: written. The last line gives the counts and the quality score (see "Quality scoring" below):
      `agnos-trace: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>; quality: <grade> <score>/10;
@@ -44,9 +49,12 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      findings <n>; <page> written`.
      With `--call-graph`, `functions-traced <s>` joins the checks and `; call graph: <n> functions, <n> calls, ambiguous
      <n>, external <n>` comes before the page, or `; call graph skipped: tree-sitter not installed, run: pip install -r …`
-     when the packages are missing. Report it to the user as it is, with the checks scoring under 10.
-   - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token), printed on the error stream;
-     nothing is written. Apply the Error Recovery Protocol.
+     when the packages are missing. With `--history`, `; history: <n> commits, <n> humans, <n> agents` comes next, or a
+     warning `no history: <cause>` on the error stream when git is missing, the process folder is in no git working
+     tree, or the repository has no commit (the page is written without history, exit code 0). Report it to the user as
+     it is, with the checks scoring under 10.
+   - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token, a history option misused),
+     printed on the error stream; nothing is written. Apply the Error Recovery Protocol.
 4. Give the user the path of the page. It opens offline in any current browser, from disk, as long as its
    `<page>.data.js` stands beside it (share the three files together; alone, the page says which file it lacks).
 
@@ -128,6 +136,29 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   scanned file declares (a class declared in a header outside the sources), gets a guessed kind: the innermost part of
   a method's qualifier is a class, the outer parts namespaces. Anonymous namespaces and
   lambdas make no box.
+
+## History (FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004)
+
+- `scripts/history.py` is loaded only with `--history`; it runs the `git` command, nothing else beyond the standard
+  library. Without `--history`, git is not run and the data file is unchanged.
+- An **intervention** is a non-merge commit that changed lines of an element's definition (its range in
+  `INDEX.idx.md`), of a function's range (with `--call-graph`), or of a scanned file. The ranges of the working tree are
+  followed back through every earlier version, across renames and merges, from one `git log -p -U0 -M -m --parents`
+  over the process and source folders, as `git log -L` follows one range. Merge commits and uncommitted changes credit
+  no one. The changed lines are counted as git's `--numstat` counts them, a hunk's removed lines in proportion of its
+  added lines in the range.
+- An **identity** is the commit's author (never its committer, who may be the service that merged), after the
+  repository's `.mailmap`, and each `Co-Authored-By` co-author. Humans sharing an e-mail address (ignoring case) are one
+  identity, named by their most frequent name; an agent is one name and address, since the models of one vendor share a
+  no-reply address. An identity is an **agent** when its name or address matches a pattern of `assets/agents.json`
+  (edit it to class another assistant), else a **human**; a commit is `human`, `agent` or `together`.
+- The period: `--history-since` is given to git, and the author date is then checked against the same cutoff;
+  `--history-depth` is git's `--max-count`. A shallow clone is read as far as it goes and marked `shallow`.
+- Written to the data file as `history`: `limits` (`since`, `depth`, `commits`, `first`, `last`, `shallow`), `people`
+  (`name`, `names`, `emails`, `mergedBy` among `email` and `mailmap`, `kind`, `commits` as author, `coCommits`),
+  `commits` in author-date order (`hash` of 10 characters, `date`, `subject`, `author` and `coAuthors` as indexes into
+  `people`, `kind`) and `interventions`: `elements` by ID, `files` by path and, with a call graph, `functions` by index
+  into `callGraph.functions`, each a list of `[commit index, changed lines]`.
 
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 

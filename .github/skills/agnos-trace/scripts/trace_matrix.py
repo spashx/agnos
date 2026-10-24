@@ -36,6 +36,7 @@ KEY_CODE = "code"
 KEY_GLOBAL = "global"
 ENCODING = "utf-8"
 KEY_APPEND = "append"
+STORE_TRUE = "store_true"
 KEY_ELEMENT = "element"
 KEY_CONTAINS = "contains"
 KEY_REFS = "refs"
@@ -74,6 +75,8 @@ TOKENS_PATH = ASSETS_DIR / "tokens.json"
 LIBRARY_FILE = "cytoscape.min.js"
 CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
 CALLGRAPH_MODULE = "agnos_trace_callgraph"
+HISTORY_PATH = Path(__file__).resolve().parent / "history.py"        # FTR-HST-001, ADR-HST-001
+HISTORY_MODULE = "agnos_trace_history"
 MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT)@")
 DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
 DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk cannot fetch a file)
@@ -295,11 +298,50 @@ def code_citations(model):
 
 
 # RQ-TRC-026, RQ-TRC-039, DEC-TRC-013: the module, and through it tree-sitter, are loaded only when asked for.
-def load_call_graph_module():
-    spec = importlib.util.spec_from_file_location(CALLGRAPH_MODULE, CALLGRAPH_PATH)
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def load_call_graph_module():
+    return load_module(CALLGRAPH_MODULE, CALLGRAPH_PATH)
+
+
+# RQ-HST-015, DEC-HST-001: the history module, and through it git, only with --history.
+def load_history_module():
+    return load_module(HISTORY_MODULE, HISTORY_PATH)
+
+
+# RQ-HST-001
+def history_depth(text):
+    """The --history-depth value as a positive integer, or InputError."""
+    if text is None:
+        return None
+    if not text.isdigit() or int(text) == 0:
+        raise InputError(f"--history-depth must be a positive integer, not {text!r}")
+    return int(text)
+
+
+# RQ-HST-002, RQ-HST-003, RQ-HST-012 (TASK-HST-003)
+def build_history(args, process, model, scanned, graph):
+    """The data file's history block, or None with a warning when the repository cannot be read."""
+    module = load_history_module()
+    documents = {}
+    for element in model.elements.values():
+        if element[KEY_KIND] == KEY_ELEMENT:
+            path = resolve_document(process, element["doc"])
+            if path is not None:
+                documents.setdefault(path, []).append((element["id"], element[KEY_FIRST], element[KEY_LAST]))
+    functions = [] if graph is None or graph.core_missing else \
+        [(f["file"], f[KEY_FIRST], f[KEY_LAST]) for f in graph.functions]
+    try:
+        return module, module.build(process, documents, dict(scanned), functions, [process, *map(Path, args.sources)],
+                                    args.history_since, history_depth(args.history_depth))
+    except (module.HistoryUnavailable, module.GitError) as error:
+        print(f"agnos-trace: warning: no history: {error}", file=sys.stderr)
+        return module, None
 
 
 # ---- coverage and findings -------------------------------------------------------------------------------------------
@@ -438,7 +480,7 @@ def library_label():
 
 
 # DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
-def page_data(model, analysis, quality, meta, call_graph=None):
+def page_data(model, analysis, quality, meta, call_graph=None, history=None):
     defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
     undefined = sorted((e for e in model.elements.values() if e[KEY_KIND] == KEY_UNDEFINED), key=lambda e: e["id"])
     fields = ("id", KEY_KIND, KEY_TYPE, "tri", "doc", KEY_FIRST, KEY_LAST, KEY_STATUS, KEY_TITLE)
@@ -453,6 +495,8 @@ def page_data(model, analysis, quality, meta, call_graph=None):
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data["callGraph"] = call_graph.page_data({p: n for n, p in enumerate(paths)})
+    if history is not None:                                         # RQ-HST-015: no key at all without a history
+        data["history"] = history
     return data
 
 
@@ -509,8 +553,13 @@ def parse_args(argv):
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
     parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
                                                "makes the output reproducible")
-    parser.add_argument("--call-graph", action="store_true",
+    parser.add_argument("--call-graph", action=STORE_TRUE,
                         help="add the functions and calls of the sources, parsed with tree-sitter (FTR-TRC-002)")
+    parser.add_argument("--history", action=STORE_TRUE,
+                        help="add who worked on each element and on the code, read from git (FTR-HST-001)")
+    parser.add_argument("--history-since", help="with --history: only the commits authored since this date or duration "
+                                                "(a form git reads: 6.months, 2.weeks, 2026-01-01)")
+    parser.add_argument("--history-depth", help="with --history: only the N most recent commits")
     return parser.parse_args(argv)
 
 
@@ -521,6 +570,13 @@ def check_sources(sources):
         raise InputError("source folder not found: " + ", ".join(missing))
 
 
+# RQ-HST-001
+def check_history_options(args):
+    if not args.history and (args.history_since is not None or args.history_depth is not None):
+        raise InputError("--history-since and --history-depth need --history")
+    history_depth(args.history_depth)
+
+
 def main(argv=None):
     args = parse_args(argv)
     process = Path(args.process)
@@ -529,6 +585,7 @@ def main(argv=None):
     generated_at = args.generated_at or datetime.datetime.now(datetime.timezone.utc).strftime(TIMESTAMP_FORMAT)
     try:
         check_sources(args.sources)
+        check_history_options(args)
         model = build_process_model(process)
         scanned = scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
                                excludes=args.exclude or DEFAULT_EXCLUDES)
@@ -541,9 +598,14 @@ def main(argv=None):
         line = summary(model, analysis, quality)
         if graph is not None:
             line += "; " + graph.summary()
+        history = None
+        if args.history:
+            module, history = build_history(args, process, model, scanned, graph)
+            if history is not None:
+                line += "; " + module.summary(history)
         meta = {KEY_TITLE: title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
-        data = page_data(model, analysis, quality, meta, graph)
+        data = page_data(model, analysis, quality, meta, graph, history)
     except (InputError, scorecard.ScoringError) as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1
