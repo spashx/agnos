@@ -27,11 +27,19 @@
   const CSS_VAR_S_SPACE_XL = "--s-space-xl";
   const CSS_VAR_S_WEIGHT_STRONG = "--s-weight-strong";
   const VALUE_ITEM = ".item";
+  const CLASS_KPI_LABEL = "kpi-label";
+  const CLASS_KPI_VALUE = "kpi-value";
+  const CLASS_CHIP_COUNT = "chip-count";
+  const CLASS_QUALITY_SHORTCUT = "quality-shortcut";
+  const SVG_RECT = "rect";
+  const TEXT_COMMITS = "commits";
+  const TEXT_KEPT_SPACED = " kept by the filters";
   const KEY_ARROWLEFT = "ArrowLeft";
   const KEY_ARROWRIGHT = "ArrowRight";
   const TYPE_FILE = "FILE";
   const VALUE_IMPLEMENTATION_DETAIL = "Implementation detail";
   const TYPE_UNDEFINED = "UNDEFINED";
+  const KIND_UNDEFINED = "undefined";      // an ID cited but not in the index
   const VALUE_ARIA_EXPANDED = "aria-expanded";
   const VALUE_ARIA_LABEL = "aria-label";
   const VALUE_ARIA_PRESSED = "aria-pressed";
@@ -225,7 +233,7 @@
   const links = new Map();
   for (const e of DATA.elements) {
     nodes.set(e.id, {
-      key: e.id, label: e.id, type: e.kind === "undefined" ? TYPE_UNDEFINED : e.type, elementType: e.type,
+      key: e.id, label: e.id, type: e.kind === KIND_UNDEFINED ? TYPE_UNDEFINED : e.type, elementType: e.type,
       kind: e.kind, title: e.title, tri: e.tri, status: e.status, doc: e.doc, first: e.first, last: e.last,
     });
   }
@@ -1173,8 +1181,8 @@
     const c = coverageCounts(requirements);
     const total = requirements.length;
     const coverageCard = el(TAG_ARTICLE, { class: "card kpi" },
-      el(TAG_SPAN, { class: "kpi-label", text: "Requirements covered by source" }),
-      el(TAG_SPAN, { class: "kpi-value", text: `${pct(c.covered, total)} %` }),
+      el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: "Requirements covered by source" }),
+      el(TAG_SPAN, { class: CLASS_KPI_VALUE, text: `${pct(c.covered, total)} %` }),
       el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${c.covered} of ${total} cited by a source file · ${c.indirect} more indirectly` }));
     const typeTiles = el(TAG_ARTICLE, { class: "card kpis-types" },
       ...NODE_TYPES.map((t) => el(TAG_BUTTON, { class: `kpi-type t-${t}`, type: TAG_BUTTON,
@@ -1234,7 +1242,7 @@
   function chip(label, count, pressed, onClick, cls, title) {
     return el(TAG_BUTTON, { class: `chip ${cls || ""}`, type: TAG_BUTTON, [VALUE_ARIA_PRESSED]: String(pressed), title,
       on: { click: onClick } },
-    cls ? el(TAG_SPAN, { class: `dot ${cls}` }) : null, label, el(TAG_SPAN, { class: "chip-count", text: count }));
+    cls ? el(TAG_SPAN, { class: `dot ${cls}` }) : null, label, el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: count }));
   }
 
   // RQ-TRC-045: what a filter does, said where it is.
@@ -1251,7 +1259,7 @@
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
-    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el(TAG_BUTTON, { class: "quality-shortcut", type: TAG_BUTTON,
+    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON,
       title: check.rule, on: { click: () => openCheck(check.key) } }, el(TAG_SPAN, { text: check.title }),
       el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
   }
@@ -1861,8 +1869,8 @@
       const width = AREA.barWidth * ((t.score ?? 0) / SCORE_MAX);
       const group = svgEl("g", { class: `area-bar grade-${t.grade || VALUE_NONE}`, "data-tri": tri },
         svgEl("text", { class: "area-label", x: 0, y: y + AREA.barHeight, }, tri),
-        svgEl("rect", { class: "area-track", x: AREA.labelWidth, y, width: AREA.barWidth, height: AREA.barHeight }),
-        svgEl("rect", { class: "area-fill", x: AREA.labelWidth, y, width, height: AREA.barHeight }),
+        svgEl(SVG_RECT, { class: "area-track", x: AREA.labelWidth, y, width: AREA.barWidth, height: AREA.barHeight }),
+        svgEl(SVG_RECT, { class: "area-fill", x: AREA.labelWidth, y, width, height: AREA.barHeight }),
         svgEl("text", { class: "area-value", x: AREA.labelWidth + AREA.barWidth + AREA.textGap, y: y + AREA.barHeight },
           `${t.grade || "–"} ${scoreOut(t.score)}`));
       return chartItem(group, `${tri}: grade ${t.grade}, score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
@@ -1881,7 +1889,7 @@
     const parts = Object.keys(COVERAGE).map((k) => {
       const width = total ? (SHARE.width * counts[k]) / total : 0;
       const share = total ? Math.round((PERCENT * counts[k]) / total) : 0;
-      const rect = chartItem(svgEl("rect", { class: `share-part share-${k}`, x, y: 0, width, height: SHARE.height }),
+      const rect = chartItem(svgEl(SVG_RECT, { class: `share-part share-${k}`, x, y: 0, width, height: SHARE.height }),
         `${COVERAGE[k][0]}: ${counts[k]} of ${total} requirements`,
         [COVERAGE[k][0], `${counts[k]} of ${total} requirements · ${share} %`, COVERAGE[k][1]]);
       x += width;
@@ -2014,7 +2022,9 @@
   const EVENT_FOCUS = "focus";
   const EVENT_BLUR = "blur";
   const KEY_ENTER = "Enter";
-  const SVG_RECT = "rect";
+  const CLASS_NAME = "history-name";
+  const ATTR_PERSON = "data-person";
+  const CSS_TIP_DELAY = "--c-history-tip-delay";
   const TEXT_IDENTITIES = "identities";
   const ID_SHOW_EMPTY = "history-show-empty";
   const ID_HISTORY_PEOPLE = "history-people";
@@ -2072,8 +2082,9 @@
   const BAND_STACK = [KIND_HUMAN, KIND_TOGETHER, KIND_AGENT];   // from the bottom of a bar
   const hist = {
     angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, baseRows: [], rows: [], built: false,
-    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [],
+    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null,
   };
+  const MERGED_TEXT = { email: "e-mail", mailmap: ".mailmap" };
   const commitTime = HISTORY ? HISTORY.commits.map((c) => Date.parse(c.date)) : [];
   const fnIndex = new Map(fnKeys.map((key, i) => [key, i]));
   const maxLines = HISTORY ? Object.values(HISTORY.interventions).flatMap((byKey) => Object.values(byKey))
@@ -2175,8 +2186,55 @@
     });
   }
 
+  // ---- scope (TASK-HST-006: RQ-HST-011): an element and what it contains, or a file and its functions ----
+  function contained(key) {
+    const found = new Set([key]);
+    const queue = [key];
+    while (queue.length) {
+      for (const l of links.get(queue.shift())) {
+        if (l.kind === VALUE_CONTAINS && l.dir === "out" && !found.has(l.key)) { found.add(l.key); queue.push(l.key); }
+      }
+    }
+    return found;
+  }
+
+  function scopeKeys() {
+    if (!hist.scope) return null;
+    const n = nodes.get(hist.scope);
+    if (n.type === TYPE_FILE) return new Set([hist.scope, ...fnKeys.filter((key) => nodes.get(key).file === hist.scope)]);
+    if (n.type === "FN") return new Set([hist.scope]);
+    const elements = contained(hist.scope);
+    if (hist.angle === ANGLE_REQUIREMENTS || hist.grouping !== GROUPING_FILES) return elements;
+    const code = new Set();
+    for (const id of elements) {
+      for (const l of links.get(id)) {
+        if (l.kind !== LINK_KIND_CODE || l.dir !== "in") continue;
+        code.add(l.key);
+        if (l.key.startsWith(FN_PREFIX)) code.add(nodes.get(l.key).file);
+      }
+    }
+    return code;
+  }
+
+  function scopeHistory(key) {
+    const n = nodes.get(key);
+    hist.scope = key;
+    showView(HISTORY_VIEW);
+    setAngle(n.type === TYPE_FILE || n.type === "FN" ? ANGLE_CODE : ANGLE_REQUIREMENTS, GROUPING_FILES);
+  }
+
+  function renderScope() {
+    const chipNode = $("history-scope");
+    chipNode.hidden = !hist.scope;
+    if (!hist.scope) return;
+    clear(chipNode).append(el(TAG_SPAN, { text: `Scope: ${nodes.get(hist.scope).label}` }),
+      el(TAG_BUTTON, { type: TAG_BUTTON, [VALUE_ARIA_LABEL]: "Remove the scope", title: "Show every row again, the filters kept", text: "×",
+        on: { [EVENT_CLICK]: () => { hist.scope = null; applyFilters(); } } }));
+  }
+
   function shownRows() {
     const rows = [];
+    const scope = scopeKeys();
     let heading = null;
     for (const row of hist.baseRows) {
       if (row.group) {
@@ -2184,6 +2242,7 @@
         rows.push(heading);
         continue;
       }
+      if (scope && !scope.has(row.key)) continue;
       const marks = row.marks.filter(([ci]) => hist.kept[ci]);
       if (!marks.length && filtering() && !hist.showEmpty) continue;
       rows.push({ ...row, marks });
@@ -2201,9 +2260,9 @@
     }
     for (const b of $(ID_HISTORY_KIND).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.kind === hist.kind));
     const active = hist.rows.filter((row) => !row.group).length;
-    $("history-kept").textContent = `${active} ${active === 1 ? "row" : "rows"} · ${hist.shown.length} `
-      + `${hist.shown.length === 1 ? "commit" : "commits"}${filtering() ? " kept by the filters" : ""}`;
+    $("history-kept").textContent = `${rowCount(active)} · ${commitCount(hist.shown.length)}${filtering() ? TEXT_KEPT_SPACED : ""}`;
     renderFigures();
+    renderScope();
     drawHistory();
   }
 
@@ -2216,19 +2275,50 @@
   }
 
   // An identity's chip: its colour, its kind's icon, its name, its commits; its tooltip tells how it was merged.
-  function identityTitle(index) {
+  function identityLines(index) {
     const person = HISTORY.people[index];
-    const merged = person.mergedBy.length ? `merged by ${person.mergedBy.join(" and ")}` : "one name and one address";
-    return `${person.name} (${KIND_LABEL[person.kind]}): ${person.commits} commits as author, ${person.coCommits} as co-author`
-      + `\nNames: ${person.names.join(", ")}\nE-mails: ${person.emails.join(", ")}\nIdentity ${merged}`;
+    const merged = person.mergedBy.length ? `merged by ${person.mergedBy.map((how) => MERGED_TEXT[how] || how).join(" and ")}`
+      : "one name and one address, nothing merged";
+    return [`${person.name} (${KIND_LABEL[person.kind]})`, `${person.commits} commits as author, ${person.coCommits} as co-author`,
+      `Names: ${person.names.join(", ")}`, `E-mails: ${person.emails.join(", ")}`, `Identity ${merged}`];
+  }
+
+  const identityTitle = (index) => identityLines(index).join("\n");
+
+  // RQ-HST-010: the sidebar's History section; a click opens the History tab filtered on that identity alone.
+  function renderHistorySidebar() {
+    $("side-history").hidden = false;
+    clear($("history-shortcuts")).append(...HISTORY.people.map((person, i) => {
+      const item = el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON, [ATTR_PERSON]: i, [VALUE_ARIA_LABEL]: identityLines(i).join(". "),
+        on: { [EVENT_CLICK]: () => openForPerson(i) } },
+      el(TAG_SPAN, { class: "history-person-line" }, el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[i] } }),
+        kindIcon(person.kind), el(TAG_SPAN, { class: CLASS_NAME, text: person.name })),
+      el(TAG_SPAN, { class: "badge badge-neutral chip-count", text: person.commits + person.coCommits }));
+      item.addEventListener(EVENT_MOUSEOVER, () => {
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => showTipLines(item, identityLines(i)), cssNumber(CSS_TIP_DELAY));
+      });
+      item.addEventListener(EVENT_MOUSEOUT, hideHistoryTip);
+      item.addEventListener(EVENT_FOCUS, () => showTipLines(item, identityLines(i)));
+      item.addEventListener(EVENT_BLUR, hideHistoryTip);
+      return el("li", {}, item);
+    }));
+  }
+
+  function openForPerson(index) {
+    hideHistoryTip();
+    showView(HISTORY_VIEW);
+    hist.people = new Set([index]);
+    hist.kind = KIND_ALL;
+    applyFilters();
   }
 
   function personChip(index, onClick) {
     const person = HISTORY.people[index];
-    return el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, "data-person": index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
+    return el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, [ATTR_PERSON]: index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
       title: identityTitle(index), on: { [EVENT_CLICK]: onClick } },
     el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
-    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: "chip-count", text: person.commits + person.coCommits }));
+    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: person.commits + person.coCommits }));
   }
 
   function renderPeopleChips() {
@@ -2238,7 +2328,11 @@
     })));
   }
 
+  const rowCount = (n) => `${n} ${n === 1 ? "row" : "rows"}`;
+  const commitCount = (n) => `${n} ${n === 1 ? "commit" : TEXT_COMMITS}`;
+
   // ---- figures (RQ-HST-008) ----
+  const dayCount = (ms) => { const days = Math.max(1, Math.round(ms / DAY_MS)); return `${days} ${days === 1 ? "day" : "days"}`; };
   function renderFigures() {
     const shown = hist.shown.map((ci) => HISTORY.commits[ci]);
     const people = new Set(shown.flatMap((c) => [c.author, ...c.coAuthors]));
@@ -2247,14 +2341,14 @@
     const dates = hist.shown.map((ci) => commitTime[ci]);
     const period = dates.length ? `${DAY_TEXT.format(dates[0])} – ${DAY_TEXT.format(dates.at(-1))}` : "—";
     const figure = (key, label, value, sub) => el("div", { class: "kpi", "data-figure": key },
-      el(TAG_SPAN, { class: "kpi-label", text: label }), el(TAG_SPAN, { class: "kpi-value", text: value }),
+      el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }), el(TAG_SPAN, { class: CLASS_KPI_VALUE, text: value }),
       el(TAG_SPAN, { class: VALUE_KPI_SUB, text: sub }));
     clear($("history-kpis")).append(
-      figure("commits", "Commits", shown.length, filtering() ? "kept by the filters" : "on the rows shown"),
+      figure(TEXT_COMMITS, "Commits", shown.length, filtering() ? TEXT_KEPT_SPACED.trim() : "on the rows shown"),
       figure("humans", "Humans", ofKind(KIND_HUMAN), TEXT_IDENTITIES),
       figure("agents", "Agents", ofKind(KIND_AGENT), TEXT_IDENTITIES),
       figure("share", "With an agent", `${pct(withAgent, shown.length)} %`, `${withAgent} commits, alone or with a human`),
-      figure("period", "Period", dates.length ? `${Math.max(1, Math.round((dates.at(-1) - dates[0]) / DAY_MS))} days` : "—", period));
+      figure("period", "Period", dates.length ? dayCount(dates.at(-1) - dates[0]) : "—", period));
   }
 
   // ---- time scale ----
@@ -2438,7 +2532,7 @@
     }
     const label = el(TAG_BUTTON, { class: CLASS_LABEL, type: TAG_BUTTON, title: row.title || (row.name ? `${row.label} — ${row.name}` : row.label),
       style: { "--history-depth": row.depth }, on: { [EVENT_CLICK]: () => select(row.key) } },
-    el(TAG_SPAN, { class: "history-id", text: row.label }), row.name ? el(TAG_SPAN, { class: "history-name", text: row.name }) : null,
+    el(TAG_SPAN, { class: "history-id", text: row.label }), row.name ? el(TAG_SPAN, { class: CLASS_NAME, text: row.name }) : null,
     el(TAG_SPAN, { class: CLASS_COUNT, text: row.marks.length || "" }));
     const width = plotWidth();
     const strip = svgEl("svg", { class: "history-strip", [ATTR_VIEWBOX]: `0 0 ${width} ${height}` },
@@ -2465,8 +2559,8 @@
   function historyStatus() {
     const shown = hist.shown.filter((ci) => commitTime[ci] >= hist.span[0] && commitTime[ci] <= hist.span[1]).length;
     const active = hist.rows.filter((r) => !r.group && r.marks.length).length;
-    $("history-status").textContent = `${active} rows with changes · ${shown} commits in view · `
-      + `${DATE_TEXT.format(hist.span[0])} – ${DATE_TEXT.format(hist.span[1])}`;
+    $("history-status").textContent = `${rowCount(active)} with changes · ${commitCount(shown)} in view · `
+      + `${DAY_TEXT.format(hist.span[0])} – ${DAY_TEXT.format(hist.span[1])}`;
   }
 
   function drawHistory() {
@@ -2502,8 +2596,11 @@
     clear(tip).append(...lines.map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
     const box = target.getBoundingClientRect();
     tip.hidden = false;
-    tip.style.left = `${box.right}px`;
-    tip.style.top = `${box.bottom}px`;
+    const size = tip.getBoundingClientRect();                  // kept inside the window, beside or above its target
+    const left = box.right + size.width > window.innerWidth ? box.left - size.width : box.right;
+    const top = box.bottom + size.height > window.innerHeight ? box.top - size.height : box.bottom;
+    tip.style.left = `${Math.max(0, left)}px`;
+    tip.style.top = `${Math.max(0, top)}px`;
   }
 
   function hideHistoryTip() {
@@ -2558,7 +2655,7 @@
       if (!mark) return;
       clearTimeout(tipTimer);
       tipTimer = setTimeout(() => showHistoryTip(mark, rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines)),
-        cssNumber("--c-history-tip-delay"));
+        cssNumber(CSS_TIP_DELAY));
     });
     rowsBox.addEventListener(EVENT_MOUSEOUT, (event) => { if (event.target.closest(CLASS_MARK)) hideHistoryTip(); });
     const pinFrom = (mark) => pinCommit(rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines));
@@ -2683,6 +2780,7 @@
   if (HISTORY) {
     document.querySelector(`.tab[data-view=${HISTORY_VIEW}]`).hidden = false;
     setupHistory();
+    renderHistorySidebar();
   }
 
   // ---- detail panel -------------------------------------------------------------------------------------------
@@ -2708,13 +2806,16 @@
       el("div", { class: "detail-badges" },
         n.status ? el("span", { class: "badge badge-neutral", text: n.status }) : null,
         n.type === "RQ" && DATA.coverage[key] ? coverageBadge(DATA.coverage[key]) : null,
-        n.kind === "undefined" ? el("span", { class: "badge badge-error", text: "Not in the index" }) : null),
+        n.kind === KIND_UNDEFINED ? el("span", { class: "badge badge-error", text: "Not in the index" }) : null),
       n.doc ? el("div", { class: "detail-location", text: `${n.doc}:${n.first}-${n.last}` }) : null,
       el("div", { class: "detail-actions" },
         el("button", { class: "button button-primary", type: "button", text: "Show in graph",
           title: "Open the graph on this element and its links", on: { click: () => showView("graph") } }),
         el("button", { class: "button", type: "button", text: "Copy ID",
-          title: "Copy this ID (or name) to the clipboard", on: { click: () => copy(n.label) } })));
+          title: "Copy this ID (or name) to the clipboard", on: { click: () => copy(n.label) } }),
+        HISTORY && n.kind !== KIND_UNDEFINED ? el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, "data-action": HISTORY_VIEW, text: "History",
+          title: "Open the History tab on this element: who changed it, and its code, over time (RQ-HST-011)",
+          on: { [EVENT_CLICK]: () => scopeHistory(key) } }) : null));
     const groups = linksByType(key);
     const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
     const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>

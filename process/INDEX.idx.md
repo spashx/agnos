@@ -266,7 +266,7 @@ TASK-HST-002|38-57|Done|Line ranges tracked back through the history
 TASK-HST-003|58-76|Done|Generator options, `history` data and summary line
 TASK-HST-004|77-96|Done|History tab, timeline and overview strip
 TASK-HST-005|97-112|Done|Figures, activity band and filters
-TASK-HST-006|113-130|Not Started|Sidebar History section and detail panel History button
+TASK-HST-006|113-130|Done|Sidebar History section and detail panel History button
 TASK-HST-007|131-147|Not Started|Speed, accessibility, documentation and the demo's page
 @process/3.plan/PLAN-IDX-001.md
 PLAN-IDX-001|1-53||Process artifact index

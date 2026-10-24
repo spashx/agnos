@@ -284,6 +284,119 @@ out.icons = chips.map((c) => c.querySelector(".kind-icon").classList.contains("k
         self.assertEqual("".join("a" if n % 5 == 0 else "h" for n in range(20)), got["icons"])
 
 
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class EntryPointsTest(unittest.TestCase):
+    """TASK-HST-006: RQ-HST-010, RQ-HST-011, RQ-HST-014."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        cls.data = add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names, path=None):
+        return found(rendered_dom_after(path or self.path, START + script), *names)
+
+    def test_RQ_HST_010_given_a_history_then_the_sidebar_lists_the_identities_with_counts_and_kinds(self):
+        got = self.run_script("""
+const items = [...document.querySelectorAll("#history-shortcuts [data-person]")];
+out.names = items.map((i) => i.querySelector(".history-name").textContent).join(",");
+out.counts = items.map((i) => i.querySelector(".chip-count").textContent).join(",");
+out.kinds = items.map((i) => i.querySelector(".kind-icon").classList.contains("kind-agent") ? "agent" : "human").join(",");
+out.section = document.getElementById("side-history").hidden ? "hidden" : "shown";
+""", "names", "counts", "kinds", "section")
+        self.assertEqual("shown", got["section"])
+        self.assertEqual("Alice,Bob,Claude Opus 5.5", got["names"])
+        self.assertEqual("3,2,3", got["counts"])
+        self.assertEqual("human,human,agent", got["kinds"])
+
+    def test_RQ_HST_010_given_the_pointer_on_an_identity_then_its_tooltip_tells_its_names_and_how_they_were_merged(self):
+        got = self.run_script("""
+const item = document.querySelector('#history-shortcuts [data-person="0"]');
+item.dispatchEvent(new FocusEvent("focus"));
+const tip = document.getElementById("history-tip");
+out.tip = tip.hidden ? "" : tip.textContent;
+""", "tip")
+        for text in ("Alice", "alice", "alice@example.com", "merged by e-mail"):
+            self.assertIn(text, got["tip"], text)
+
+    def test_RQ_HST_010_given_an_identity_clicked_then_the_history_tab_opens_filtered_on_it(self):
+        got = self.run_script("""
+document.querySelector('#history-shortcuts [data-person="1"]').click();
+out.opened = agnosTrace.state.view;
+out.pressed = [...document.querySelectorAll('#history-people [aria-pressed="true"]')].map((c) => c.dataset.person).join(",");
+out.keys = [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+""", "opened", "pressed", "keys")
+        self.assertEqual(("history", "1", "TASK-DEM-001"), (got["opened"], got["pressed"], got["keys"]))
+
+    def test_RQ_HST_011_given_a_feature_when_its_history_button_is_pressed_then_the_tab_shows_it_and_what_it_contains(self):
+        got = self.run_script("""
+agnosTrace.select("FTR-DEM-001");
+document.querySelector('#detail [data-action="history"]').click();
+const keys = () => [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+out.opened = agnosTrace.state.view;
+out.keys = keys();
+out.chip = document.getElementById("history-scope").textContent;
+document.querySelector('#history-angle [data-angle="code"]').click();
+out.code = keys();
+""", "opened", "keys", "chip", "code")
+        self.assertEqual("history", got["opened"])
+        self.assertEqual("FTR-DEM-001,RQ-DEM-001,RQ-DEM-002,RQ-DEM-003,RQ-DEM-004,RQ-DEM-005", got["keys"])
+        self.assertIn("FTR-DEM-001", got["chip"])
+        scope = {"FTR-DEM-001", "RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003", "RQ-DEM-004", "RQ-DEM-005"}
+        citing = sorted({"file:" + s for s, d, kind, _ in self.data["edges"] if kind == "code" and d in scope})
+        self.assertTrue(citing)
+        self.assertEqual(",".join(citing), got["code"])
+
+    def test_RQ_HST_011_given_the_scope_chip_removed_then_every_row_shows_with_the_filters_kept(self):
+        got = self.run_script("""
+const rows = document.getElementById("history-rows");
+agnosTrace.showView("history");
+out.all = rows.dataset.total;
+agnosTrace.select("RQ-DEM-001");
+document.querySelector('#detail [data-action="history"]').click();
+document.querySelector('#history-kind [data-kind="human"]').click();
+out.scoped = [...rows.querySelectorAll(".history-row[data-key]")].map((r) => r.dataset.key).join(",");
+document.querySelector("#history-scope button").click();
+out.chipgone = String(document.getElementById("history-scope").hidden);
+out.kindpressed = document.querySelector('#history-kind [aria-pressed="true"]').dataset.kind;
+document.getElementById("history-reset").click();
+out.back = String(rows.dataset.total === out.all);
+""", "all", "scoped", "chipgone", "kindpressed", "back")
+        self.assertEqual("RQ-DEM-001", got["scoped"])
+        self.assertEqual(("true", "human", "true"), (got["chipgone"], got["kindpressed"], got["back"]))
+
+    def test_RQ_HST_011_given_a_file_when_its_history_button_is_pressed_then_the_code_angle_shows_it(self):
+        first = "file:" + self.data["files"][0]["path"]
+        got = self.run_script(f"""
+agnosTrace.select({json.dumps(first)});
+document.querySelector('#detail [data-action="history"]').click();
+out.anglepressed = document.querySelector('#history-angle [aria-pressed="true"]').dataset.angle;
+out.keys = [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+""", "anglepressed", "keys")
+        self.assertEqual(("code", first), (got["anglepressed"], got["keys"]))
+
+    def test_RQ_HST_010_given_no_history_then_there_is_no_history_section_nor_button(self):
+        got = self.run_script("""
+agnosTrace.select("FTR-DEM-001");
+out.section = document.getElementById("side-history").hidden ? "hidden" : "shown";
+out.button = String(Boolean(document.querySelector('#detail [data-action="history"]')));
+""", "section", "button", path=self.plain)
+        self.assertEqual(("hidden", "false"), (got["section"], got["button"]))
+
+
+START = """
+const out = document.documentElement.dataset;
+"""
+
+
 def large_process(root, count):
     """A process of one feature holding count requirements, with its index."""
     folder = root / "process" / "1.requirements"

@@ -1087,6 +1087,12 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-card-muted { color: var(--s-text-muted); }
 .history-person { display: inline-flex; align-items: center; gap: var(--s-space-xs); }
 .history-swatch { flex: none; width: var(--c-dot-size); height: var(--c-dot-size); border-radius: var(--s-radius-pill); background: var(--identity); }
+.history-scope { display: inline-flex; align-items: center; gap: var(--s-space-xs); padding: var(--s-space-hair) var(--s-space-hair) var(--s-space-hair) var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-accent-border); border-radius: var(--c-chip-radius); background: var(--s-accent-subtle); color: var(--s-text); font-size: var(--s-text-small); }
+.history-scope[hidden] { display: none; }
+.history-scope button { padding: var(--s-space-none) var(--s-space-xs); border: none; border-radius: var(--c-chip-radius); background: transparent; color: var(--s-text-muted); font: inherit; cursor: pointer; }
+.history-scope button:hover { background: var(--c-table-row-hover); color: var(--s-text); }
+.quality-shortcut .history-person-line { display: inline-flex; align-items: center; gap: var(--s-space-xs); min-width: var(--s-space-none); }
+#history-shortcuts .history-name { color: inherit; }
 .history-card-list { display: flex; flex-wrap: wrap; gap: var(--s-space-hair) var(--s-space-xs); }
 
 @media (prefers-reduced-motion: reduce) { .chip, .splitter { transition: none; } }

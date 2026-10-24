@@ -59,6 +59,11 @@
       <h2 class="side-title">Quality <span id="side-grade"></span></h2>
       <ul class="quality-shortcuts" id="quality-shortcuts"></ul>
     </section>
+    <!-- RQ-HST-010, DEC-HST-006: the identities of the history; a click opens the History tab filtered on one -->
+    <section class="side-section" id="side-history" hidden>
+      <h2 class="side-title">History</h2>
+      <ul class="quality-shortcuts" id="history-shortcuts"></ul>
+    </section>
     <footer class="side-footer" id="about"></footer>
   </aside>
 
@@ -165,6 +170,8 @@
           <button type="button" data-grouping="files" aria-pressed="true" title="One row per file and function">By file</button>
           <button type="button" data-grouping="requirements" title="One row per element the code cites, with the changes of the code citing it">By requirement</button>
         </fieldset>
+        <!-- RQ-HST-011: the element the tab is scoped to, removable -->
+        <span class="history-scope" id="history-scope" hidden></span>
         <span class="toolbar-spacer"></span>
         <span class="graph-status" id="history-status" title="Rows and commits shown, and the period in view"></span>
         <button class="button" type="button" id="history-fit" title="Show the whole history (key 0)">Fit</button>
@@ -193,7 +200,6 @@
         <div class="history-scroll" id="history-scroll"><div class="history-rows" id="history-rows"></div></div>
         <div class="history-overview-row"><span class="history-corner">Overview</span><svg class="history-overview" id="history-overview" role="img" aria-label="The whole history; the window is the period in view"></svg></div>
       </div>
-      <div class="chart-tip history-tip" id="history-tip" role="tooltip" hidden></div>
       <aside class="card history-card" id="history-card" aria-label="Commit" hidden></aside>
     </section>
   </main>
@@ -203,6 +209,7 @@
 
   <aside class="detail" id="detail" aria-label="Selected element" aria-live="polite"></aside>
 </div>
+<div class="chart-tip history-tip" id="history-tip" role="tooltip" hidden></div>
 <script src="@DATA_SCRIPT@"></script>
 <script>
 /*@LIBRARY@*/

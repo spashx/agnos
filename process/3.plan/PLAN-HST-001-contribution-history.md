@@ -112,7 +112,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-006: Sidebar History section and detail panel History button
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the sidebar's History section below Quality (identities by commits, kind icon, tooltip of merged
   names and e-mails, click opening the tab filtered) and the detail panel's History button scoping the tab to the
   selected element, with its removable chip.
@@ -125,8 +125,8 @@ This plan implements the tasks in the format specified below.
   the code citing them; When the chip is removed, Then all rows show with the filters kept.
 - **Dependencies**: TASK-HST-005
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 218 tests, 0 failure, 1 skipped. `EntryPointsTest` (7, headless Edge): the sidebar's History section lists Alice, Bob, Claude Opus 5.5 with 3, 2, 3 commits and the human, human, agent icons; focusing Alice shows a tooltip with "Alice", "alice", "alice@example.com" and "merged by e-mail"; clicking Bob opens the History tab with Bob's chip pressed and TASK-DEM-001 only; FTR-DEM-001's History button opens the tab on FTR-DEM-001 and RQ-DEM-001 to 005 with a "Scope: FTR-DEM-001" chip, and the code angle then lists exactly the files citing them; removing the chip of RQ-DEM-001's scope keeps the Humans filter and Reset brings every row back; a file's button opens the code angle on that file; without history, neither the section nor the button exists. `test_literals.py` OK; a direct count of the history section shows no repeated literal; `"undefined"`, `"kpi-label"`, `"kpi-value"`, `"chip-count"`, `"quality-shortcut"`, `"rect"`, `"commits"` named once at the top of the script (two of them were already written twice before this task). Screenshots: scope chip, sidebar identities with icons and counts, identity tooltip kept inside the window.
+- **Assumptions**: The page tooltip moved out of the History view, so that it shows from the sidebar too. A function's scope is its own row; a file's scope is its row and its functions. An element's scope opens the requirements angle, a file's or function's the code angle by file.
 
 ### TASK-HST-007: Speed, accessibility, documentation and the demo's page
 - **Tier**: M
