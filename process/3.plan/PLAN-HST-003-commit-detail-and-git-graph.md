@@ -126,7 +126,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-018: Speed measured again, documentation, the demo's page
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the performance measure of RQ-HST-013 again with the graph block, update the skill's
   documentation (the commit in the detail panel, the git graph), run the whole suite and regenerate the demo's
   traceability page with `--call-graph --history`.
@@ -137,5 +137,11 @@ This plan implements the tasks in the format specified below.
   page, Then a commit of `feature/WEB` shows on its branch in the git graph.
 - **Dependencies**: TASK-HST-013 to TASK-HST-017
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_history_perf.py` (`AGNOS_TRACE_PERF=1`): history adds 2.30 s and 428 KiB (limits 20 s, 3 MB), the
+  tab drawn in 57 to 64 ms (limit 300); the P95 of the steps was 51.0 and 58.0 ms on two of six runs, 37.2 to 39.8 ms
+  on the others; the version before this plan (`fcf70ce`), measured the same way, gave 40.4 to 48.3 ms: no
+  regression, the machine's noise around a 50 ms limit. Whole suite 252 tests OK, 2 skipped. `SKILL.md`: the commit in
+  the detail panel, the git graph, the `graph` block, the selectors. The demo's page with `--call-graph --history`:
+  78 commits, 7 humans; `commit:1164d205e6` reads "…, feature/WEB" with the labels `main,feature/WEB`.
+- **Assumptions**: The P95 metric of RQ-HST-013 is kept as it is; its margin on this machine is small, which is
+  reported to the owner.

@@ -10,7 +10,7 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
      (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052.
      Detail band, tags, feature titles, wheel zoom: ADR-TRC-007 (DEC-TRC-029 to DEC-TRC-031), RQ-TRC-053 to RQ-TRC-056.
-     History: FTR-HST-001, ADR-HST-001 (DEC-HST-001 to DEC-HST-006), RQ-HST-001 to RQ-HST-015. -->
+     History: FTR-HST-001, ADR-HST-001 (DEC-HST-001 to DEC-HST-011), RQ-HST-001 to RQ-HST-026. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -82,13 +82,18 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   folders that opens and closes (their functions below them with a call graph), or the elements by the code citing
   them. A mark is one commit on a row: its shape tells the kind (circle: human, diamond: agent, ringed circle: human
   and agent together, the ring in the agent's colour), its colour the author (one colour per identity), its size the
-  lines changed; hover it for the commit, click it to pin its card (with every element and file it changed). The
+  lines changed; hover it for the commit, click it (or Enter) to select the commit in the detail panel (RQ-HST-023:
+  its kind, hash, subject, date, contributors, lines and branch in the fixed band; below, the **git graph** of the
+  commits around it, a lane and a colour per branch, its name at its newest commit, the lines to the parents curving
+  where a branch starts or is merged, a click on a row selecting that commit (RQ-HST-025); then what the commit
+  changed, by type, with the lines changed in each). The
   figures (commits, humans, agents, share with an agent, period) and an activity band stacked by kind follow the rows
   shown. The wheel over the marks zooms, a drag pans, `+` `-` `0` and the arrows do the same; the overview strip at
-  the bottom moves the period. Filters: identities (one or more), kind (humans, agents), a text on the rows (ID,
-  title, path, function), the element types; "Rows without changes" shows the rows a filter empties. The labels column
+  the bottom moves the period. The selectors stand together on the toolbar: angle, code grouping, kind (all, humans,
+  agents). Filters: identities (one or more), a text on the rows (ID, title, path, function; the first field of its
+  line, as wide as the sidebar's search), the element types; "Rows without changes" shows the rows a filter empties. The labels column
   is resized by its edge (drag, arrows, double click to reset; remembered in the browser). The sidebar's **History**
-  section lists the identities (a person or an agent icon, their commits; its tooltip tells their names, e-mails and
+  section lists the identities (a person or an agent icon in the identity's colour, their commits; its tooltip tells their names, e-mails and
   how they were merged, when they were): a click opens the tab filtered on that one. The detail panel's **History**
   button opens the tab on the selected element and what it contains (or a file and its functions), shown as a chip
   that removes the scope.
@@ -155,7 +160,7 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   a method's qualifier is a class, the outer parts namespaces. Anonymous namespaces and
   lambdas make no box.
 
-## History (FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004)
+## History (FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004, DEC-HST-010)
 
 - `scripts/history.py` is loaded only with `--history`; it runs the `git` command, nothing else beyond the standard
   library. Without `--history`, git is not run and the data file is unchanged.
@@ -176,7 +181,14 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   (`name`, `names`, `emails`, `mergedBy` among `email` and `mailmap`, `kind`, `commits` as author, `coCommits`),
   `commits` in author-date order (`hash` of 10 characters, `date`, `subject`, `author` and `coAuthors` as indexes into
   `people`, `kind`) and `interventions`: `elements` by ID, `files` by path and, with a call graph, `functions` by index
-  into `callGraph.functions`, each a list of `[commit index, changed lines]`.
+  into `callGraph.functions`, each a list of `[commit index, changed lines]`; and `graph` (RQ-HST-024, DEC-HST-010):
+  `branches` (names, `null` for an unnamed branch) and `nodes`, HEAD's commits newest first in topological order down
+  to the oldest commit of `commits`, merges and commits outside the folders read included (`hash`, `parents` as node
+  indexes, `branch`, `commit` index or `null`, and then `date` and `subject`). It is read by a second `git log` with no
+  path, since a path-limited log rewrites parents and drops merges. A commit's branch is found by following first
+  parents from the default branch's tip (`main`, `master`, else the branch checked out), the other local tips oldest
+  first, then the second parent of each merge whose message names its branch (`Merge branch 'X'`, `Merge pull request
+  #n from owner/X`, `Merge X into Y`); a commit keeps the first branch that reaches it.
 
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 
