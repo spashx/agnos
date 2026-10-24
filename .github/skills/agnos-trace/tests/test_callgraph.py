@@ -27,8 +27,9 @@ CALLS = FIXTURE / "calls"
 
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-trace/requirements-callgraph.txt)"
-DATA_BEFORE_PLAN_SHA256 = "c43656a2d4ce43c171aff4ceb8477c82836225ee4074c19af25bb54793ca5dd2"   # the fixture page's data
-# before PLAN-TRC-002, with its two machine-dependent fields (the process and source paths given) blanked
+DATA_BEFORE_PLAN_SHA256 = "8656b86a13e3df3f45b500ddf4079fe1099a3a8af43417dc529044433e341809"   # the fixture page's data
+# without --call-graph, with its two machine-dependent fields (the process and source paths given) blanked; re-pinned
+# on purpose by TASK-TRC-046 (ADR-TRC-008, DEC-TRC-033): the `quality` block replaced the gap lists.
 
 
 def location_free_sha256(page):
@@ -265,14 +266,15 @@ class PageDataTest(unittest.TestCase):
         added = output_bytes(self.page) - output_bytes(without)
         self.assertLessEqual(added, 120 * counts["functions"] + 16 * counts["calls"])
 
-    def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_listed_outside_the_gaps(self):
+    def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_an_informational_check(self):
         graph = self.data["callGraph"]
         names = [graph["functions"][i][3] for i in graph["untraced"]]
         self.assertEqual(9, len(names))                         # src/notrace.py's untraced() since RQ-TRC-050
         self.assertIn("untraced", names)
         self.assertNotIn("covered", names)                      # its docstring cites an ID
         self.assertNotIn("net::Port::send", names)
-        self.assertNotIn("untraced-functions", self.data["gapKinds"])
+        check = next(c for c in self.data["quality"]["checks"] if c["key"] == "functions-traced")
+        self.assertEqual(("informational", "function", graph["untraced"]), (check["risk"], check["items"], check["findings"]))
 
 
 def scope_of(graph, qualified):
@@ -366,7 +368,7 @@ class FunctionPanelTest(unittest.TestCase):
 
     def test_RQ_TRC_035_given_the_call_graph_when_the_page_opens_then_the_overview_and_gaps_show_it_uninflated(self):
         data = json.loads(data_block(self.path))
-        total = sum(len(data["gaps"][g]) for g in data["gapKinds"])
+        total = sum(len(c["findings"]) for c in data["quality"]["checks"] if c["risk"] != "informational")
         dom = rendered_dom(self.path)
         self.assertIn('<h2 class="card-title">Call graph</h2>', dom)
         self.assertIn("8 call links", dom)

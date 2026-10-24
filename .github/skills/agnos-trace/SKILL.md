@@ -38,12 +38,13 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      `pip install -r .github/skills/agnos-trace/requirements-callgraph.txt` (prebuilt wheels, no compiler); without them
      the page is written all the same, without functions.
 3. Check the exit code:
-   - `0`: written. The last line gives the counts:
-     `agnos-trace: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>; gaps: uncovered <n>,
-     untasked <n>, task-no-rq <n>, adr-no-rq <n>, empty <n>, isolated <n>, undefined <n>, untraced-files <n>; <page> written`.
-     With `--call-graph`, `; call graph: <n> functions, <n> calls, ambiguous <n>, external <n>` comes before the page, or
-     `; call graph skipped: tree-sitter not installed, run: pip install -r …` when the packages are missing.
-     Report it to the user as it is, with the gaps that are not 0.
+   - `0`: written. The last line gives the counts and the quality score (see "Quality scoring" below):
+     `agnos-trace: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>; quality: <grade> <score>/10;
+     checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>, files-traced <s>;
+     findings <n>; <page> written`.
+     With `--call-graph`, `functions-traced <s>` joins the checks and `; call graph: <n> functions, <n> calls, ambiguous
+     <n>, external <n>` comes before the page, or `; call graph skipped: tree-sitter not installed, run: pip install -r …`
+     when the packages are missing. Report it to the user as it is, with the checks scoring under 10.
    - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token), printed on the error stream;
      nothing is written. Apply the Error Recovery Protocol.
 4. Give the user the path of the page. It opens offline in any current browser, from disk, as long as its
@@ -128,17 +129,40 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   in a source line. `<A> to <B>`, `<A>–<B>`, `<A>..<B>` of one type and trigram count as every defined ID between them.
 - **covered**: a source file cites the requirement; **indirect**: a source file cites a decision, task, ADR, plan or
   feature linked to it (another requirement does not count); **uncovered**: neither.
-- Gaps: `uncovered`, `untasked` (no task cites the requirement), `task-no-rq` (the task cites no requirement itself),
-  `adr-no-rq` (neither the ADR nor its decisions cite one), `empty` (feature without requirement, ADR without decision,
-  plan without task), `isolated` (no link touches the element or what it contains), `undefined` (cited, not in the
-  index), `untraced-files` (scanned files citing no ID).
+- Findings (the elements that fail a check): `uncovered`, `untasked` (no task cites the requirement), `task-no-rq` (the
+  task cites no requirement itself), `adr-no-rq` (neither the ADR nor its decisions cite one), `empty` (feature without
+  requirement, ADR without decision, plan without task), `isolated` (no link touches the element or what it contains),
+  `undefined` (cited, not in the index), `untraced-files` (scanned files citing no ID).
 - An ID quoted in prose as an example (a test fixture's IDs in a task's Verification field, an instructions file's
   sample IDs) is a citation like any other: it shows as `undefined`. Write such examples without the ID grammar.
+
+## Quality scoring (ADR-TRC-008: DEC-TRC-032, DEC-TRC-033; RQ-TRC-058, RQ-TRC-059, RQ-TRC-064)
+
+Each rule is a **check**. Its **score** is 10 × the share of its **population** that is not a finding, to one decimal
+(half up); a check with an empty population has no score and weighs nothing. The **overall score** is the average of
+the checks' scores weighted by risk (critical 10, high 7.5, medium 5, low 2.5, informational 0); the **grade** is A
+from 9, B from 7.5, C from 6, D from 4, else E. A trigram's score uses the same formula on its own elements (the checks
+whose findings are IDs; files and functions belong to no trigram). The checks, risks, weights and thresholds are data in
+`assets/scoring.json`: change a number there, never in the code. Written to the data file as `quality`
+(`score`, `grade`, `checks[]` with `key`, `title`, `rule`, `risk`, `items`, `population`, `findings`, `score`, and
+`trigrams`), and summarised on the generator's last line.
+
+| Check (key) | Risk | Population | Findings |
+|---|---|---|---|
+| Requirements covered (`covered`) | critical | requirements | `uncovered` |
+| IDs defined (`defined`) | critical | IDs cited by the process or the sources | `undefined` |
+| Requirements tasked (`tasked`) | high | requirements | `untasked` |
+| Tasks with a requirement (`task-rq`) | high | tasks | `task-no-rq` |
+| ADRs with a requirement (`adr-rq`) | medium | ADRs | `adr-no-rq` |
+| Containers not empty (`filled`) | medium | features, ADRs, plans | `empty` |
+| Elements connected (`connected`) | medium | defined elements | `isolated` |
+| Source files traced (`files-traced`) | medium | scanned files | `untraced-files` |
+| Functions traced (`functions-traced`) | informational | functions (with `--call-graph`) | functions citing no ID |
 
 ## Tests
 
 `python -m unittest discover -s .github/skills/agnos-trace/tests -v` from the repository root: a synthetic process in
-`tests/fixtures/repo` plants one element of every gap. The page tests run in a headless Chromium-family browser (Edge,
+`tests/fixtures/repo` plants one element of every finding. The page tests run in a headless Chromium-family browser (Edge,
 Chrome, Chromium; `AGNOS_TRACE_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
 (`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_TRACE_PERF=1` adds the measure on a
 generated tree of 20,000 functions and 100,000 calls (about a minute).

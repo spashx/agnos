@@ -145,7 +145,7 @@ class SourceScannerTest(unittest.TestCase):
         self.assertEqual("undefined", self.model.elements["RQ-DEM-099"]["kind"])
 
 
-class CoverageAndGapsTest(unittest.TestCase):
+class CoverageAndFindingsTest(unittest.TestCase):
     """TASK-TRC-003: RQ-TRC-008, RQ-TRC-009, RQ-TRC-017 (DEC-TRC-002, DEC-TRC-004)."""
 
     @classmethod
@@ -162,7 +162,7 @@ class CoverageAndGapsTest(unittest.TestCase):
         model.add_edge("src/x.py", "RQ-DEM-001", "code", [1, "RQ-DEM-001"])
         self.assertEqual("uncovered", tm.analyse(model)["coverage"]["RQ-DEM-002"])
 
-    def test_RQ_TRC_009_given_the_fixture_when_gaps_are_listed_then_each_list_holds_its_planted_elements(self):
+    def test_RQ_TRC_009_given_the_fixture_when_findings_are_listed_then_each_list_holds_its_planted_elements(self):
         self.assertEqual({"uncovered": ["RQ-DEM-003", "RQ-DEM-004", "RQ-DEM-005"],
                           "untasked": ["RQ-DEM-004", "RQ-DEM-005"],
                           "task-no-rq": ["TASK-DEM-003"],
@@ -170,16 +170,17 @@ class CoverageAndGapsTest(unittest.TestCase):
                           "empty": ["FTR-DEM-002", "ADR-DEM-002", "PLAN-DEM-002"],
                           "isolated": ["RQ-DEM-005", "FTR-DEM-002", "ADR-DEM-002", "PLAN-DEM-002"],
                           "undefined": ["DEC-DEM-099", "RQ-DEM-099"],
-                          "untraced-files": ["src/notrace.py"]}, self.analysis["gaps"])
+                          "untraced-files": ["src/notrace.py"]}, self.analysis["findings"])
 
-    def test_RQ_TRC_017_given_the_fixture_when_the_generator_runs_then_it_prints_the_counts_and_the_gaps(self):
+    def test_RQ_TRC_017_given_the_fixture_when_the_generator_runs_then_it_prints_the_counts_and_the_quality(self):
         with tempfile.TemporaryDirectory() as tmp:
             code, out, _ = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out",
                                      str(Path(tmp) / "page.html")])
         self.assertEqual(0, code)
         summary = out.strip().splitlines()[-1]
-        for part in ("15 elements", "4 files", "RQ 5: covered 1, indirect 1, uncovered 3", "uncovered 3", "untasked 2",
-                     "task-no-rq 1", "adr-no-rq 1", "empty 3", "isolated 4", "undefined 2", "untraced-files 1"):
+        for part in ("15 elements", "4 files", "RQ 5: covered 1, indirect 1, uncovered 3", "quality: C 6.1/10",
+                     "covered 4.0", "defined 7.5", "tasked 6.0", "task-rq 6.7", "adr-rq 5.0", "filled 5.0",
+                     "connected 7.3", "files-traced 7.5", "findings 17"):
             self.assertIn(part, summary)
 
 
@@ -866,10 +867,14 @@ class IndependenceTest(unittest.TestCase):
 
     def test_RQ_TRC_021_given_the_generator_when_its_imports_are_read_then_they_are_all_standard_library(self):
         import ast
-        tree = ast.parse((SKILL / "scripts" / "trace_matrix.py").read_text(encoding="utf-8"))
-        imported = {alias.name.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
-        imported |= {node.module.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module}
-        self.assertEqual(set(), imported - set(sys.stdlib_module_names))
+        siblings = {p.stem for p in (SKILL / "scripts").glob("*.py")}      # scorecard.py, beside the generator (ADR-TRC-008)
+        for name in ("trace_matrix.py", "scorecard.py"):
+            tree = ast.parse((SKILL / "scripts" / name).read_text(encoding="utf-8"))
+            imported = {alias.name.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.Import)
+                        for alias in node.names}
+            imported |= {node.module.split(".")[0] for node in ast.walk(tree)
+                         if isinstance(node, ast.ImportFrom) and node.module}
+            self.assertEqual(set(), imported - set(sys.stdlib_module_names) - siblings, name)
 
 
 if __name__ == "__main__":

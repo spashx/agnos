@@ -160,8 +160,13 @@
   const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === "element").map((e) => e.tri))]
     .sort((a, b) => a.localeCompare(b));
   const gapBadgeClass = (gapKind, count) => "badge badge-" + (count ? GAP[gapKind][2] : "ok");
-  const gapKinds = [...DATA.gapKinds, ...(CALL_GRAPH ? [UNTRACED] : [])];
-  const gapItems = (gapKind) => (gapKind === UNTRACED ? CALL_GRAPH.untraced.map((i) => fnKeys[i]) : DATA.gaps[gapKind]);
+  // TASK-TRC-046, ADR-TRC-008: the lists drawn so far come from the data's `quality` block; TASK-TRC-047 replaces them.
+  const RULE_OF_CHECK = { covered: "uncovered", tasked: "untasked", "task-rq": "task-no-rq", "adr-rq": "adr-no-rq",
+    filled: "empty", connected: "isolated", defined: "undefined", "files-traced": "untraced-files" };
+  const GAP_ORDER = ["uncovered", "untasked", "task-no-rq", "adr-no-rq", "empty", "isolated", "undefined", "untraced-files"];
+  const FINDINGS = Object.fromEntries(DATA.quality.checks.filter((c) => RULE_OF_CHECK[c.key]).map((c) => [RULE_OF_CHECK[c.key], c.findings]));
+  const gapKinds = [...GAP_ORDER, ...(CALL_GRAPH ? [UNTRACED] : [])];
+  const gapItems = (gapKind) => (gapKind === UNTRACED ? CALL_GRAPH.untraced.map((i) => fnKeys[i]) : FINDINGS[gapKind]);
 
   // ---- call graph (TASK-TRC-012: RQ-TRC-033, RQ-TRC-038; DEC-TRC-016) -------------------------------------------
   // Functions are nodes like the others, contained by their file and citing the IDs of their lines. Their calls stay
@@ -1601,7 +1606,7 @@
 
   // ---- gaps ---------------------------------------------------------------------------------------------------
   function renderGaps() {
-    const total = DATA.gapKinds.reduce((sum, g) => sum + DATA.gaps[g].length, 0);
+    const total = GAP_ORDER.reduce((sum, g) => sum + FINDINGS[g].length, 0);
     $("gaps-count").textContent = total ? String(total) : "";
     clear($("gaps-list")).append(...gapKinds.map((g) => {
       const items = gapItems(g);

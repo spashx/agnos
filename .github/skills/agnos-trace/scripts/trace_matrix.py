@@ -17,6 +17,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))    # scorecard.py, beside this script (ADR-TRC-008)
+import scorecard  # noqa: E402
+
 INDEX_NAME = "INDEX.idx.md"
 DEFAULT_OUT_NAME = "TRACEABILITY.html"
 TYPES = ("FTR", "RQ", "ADR", "DEC", "PLAN", "TASK")
@@ -275,8 +278,8 @@ def load_call_graph_module():
     return module
 
 
-# ---- coverage and gaps -------------------------------------------------------------------------------------------
-GAP_KINDS = ("uncovered", "untasked", "task-no-rq", "adr-no-rq", "empty", "isolated", "undefined", "untraced-files")
+# ---- coverage and findings -------------------------------------------------------------------------------------------
+RULE_KEYS = ("uncovered", "untasked", "task-no-rq", "adr-no-rq", "empty", "isolated", "undefined", "untraced-files")
 CONTAINED_TYPE = {"FTR": "RQ", "ADR": "DEC", "PLAN": "TASK"}       # what a container type is empty without
 COVERING_TYPES = frozenset({"DEC", "TASK", "ADR", "PLAN", "FTR"})  # elements through which coverage is indirect
 
@@ -331,12 +334,12 @@ def refs_to_type(links, model, element_id, wanted):
 
 # RQ-TRC-009, DEC-TRC-004 (TASK-TRC-003)
 def analyse(model):
-    """The coverage of every requirement and the gap lists, IDs in index order, undefined IDs and files by name."""
+    """The coverage of every requirement and the findings of each rule, IDs in index order, undefined IDs and files by name."""
     links = Links(model)
     defined = [e for e in model.elements.values() if e["kind"] == "element"]
     coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e["type"] == "RQ"}
     of_type = lambda t: [e["id"] for e in defined if e["type"] == t]  # noqa: E731
-    gaps = {
+    findings = {
         "uncovered": [rq for rq, r in coverage.items() if r == "uncovered"],
         "untasked": [rq for rq in of_type("RQ")
                      if not any(model.elements[s]["type"] == "TASK" for s in links.refs_in.get(rq, ()))],
@@ -351,17 +354,16 @@ def analyse(model):
         "undefined": sorted(i for i, e in model.elements.items() if e["kind"] == "undefined"),
         "untraced-files": sorted(p for p, f in model.files.items() if not f["ids"]),
     }
-    return {"coverage": coverage, "gaps": gaps}
+    return {"coverage": coverage, "findings": findings}
 
 
-def summary(model, analysis):
-    """The one line the generator ends with: element and file counts, coverage, gap counts (RQ-TRC-017)."""
+def summary(model, analysis, quality):
+    """The one line the generator ends with: element and file counts, coverage, the quality score (RQ-TRC-017, RQ-TRC-064)."""
     defined = sum(e["kind"] == "element" for e in model.elements.values())
     rated = list(analysis["coverage"].values())
-    gaps = ", ".join(f"{k} {len(analysis['gaps'][k])}" for k in GAP_KINDS)
     return (f"agnos-trace: {defined} elements, {len(model.files)} files; RQ {len(rated)}: covered "
             f"{rated.count('covered')}, indirect {rated.count('indirect')}, uncovered {rated.count('uncovered')}; "
-            f"gaps: {gaps}")
+            f"{scorecard.summary_part(quality)}")
 
 
 # ---- design tokens -----------------------------------------------------------------------------------------------
@@ -412,7 +414,7 @@ def library_label():
 
 
 # DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
-def page_data(model, analysis, meta, call_graph=None):
+def page_data(model, analysis, quality, meta, call_graph=None):
     defined = [e for e in model.elements.values() if e["kind"] == "element"]
     undefined = sorted((e for e in model.elements.values() if e["kind"] == "undefined"), key=lambda e: e["id"])
     fields = ("id", "kind", "type", "tri", "doc", "first", "last", "status", "title")
@@ -423,8 +425,7 @@ def page_data(model, analysis, meta, call_graph=None):
         "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         "coverage": analysis["coverage"],
-        "gaps": analysis["gaps"],
-        "gapKinds": list(GAP_KINDS),
+        "quality": quality,
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data["callGraph"] = call_graph.page_data({p: n for n, p in enumerate(paths)})
@@ -508,15 +509,18 @@ def main(argv=None):
         scanned = scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
                                excludes=args.exclude or DEFAULT_EXCLUDES)
         analysis = analyse(model)
-        line = summary(model, analysis)
         graph = None
         if args.call_graph:
             graph = load_call_graph_module().analyse(scanned, code_citations(model), evidence)
+        scored = graph if graph is not None and not graph.core_missing else None
+        quality = scorecard.build(model, analysis, scorecard.load_scoring(), scored)    # RQ-TRC-064
+        line = summary(model, analysis, quality)
+        if graph is not None:
             line += "; " + graph.summary()
         meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
-        data = page_data(model, analysis, meta, graph)
-    except InputError as error:
+        data = page_data(model, analysis, quality, meta, graph)
+    except (InputError, scorecard.ScoringError) as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
         return 1
     write_outputs(out, data, title)
