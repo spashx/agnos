@@ -68,3 +68,16 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `python -m unittest discover -s tests` (skill folder): 136 tests, 1 failure (RQ-TRC-026 data hash, failing before this plan), 1 skipped. `WheelZoomTest` passes: token `dimension.graph-wheel-sensitivity` = 0.1 with its component token `graph-wheel-sensitivity`; in headless Edge the graph renderer reports 0.1 and one wheel notch (deltaY -100) zooms by a ratio between 1 and 1.2 (the library default of 1 gives 2.5). `SKILL.md` documents the wheel, band, tags and feature titles.
 - **Assumptions**: None
+
+### TASK-TRC-045: Halve the delay of a relation tooltip
+- **Tier**: S
+- **Status**: Done
+- **Description**: The tooltip of a graph link appears after 1 s instead of 2 s (token `duration.tooltip`, used only by
+  `graph-tip-delay`); RQ-TRC-046 and its test follow.
+- **Requirement refs**: RQ-TRC-046
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the tokens, Then the delay of a relation tooltip is 1 s.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: "by a factor of 2" read as dividing the 2 s delay by 2.

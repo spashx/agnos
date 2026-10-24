@@ -750,7 +750,7 @@ class RelationTooltipTest(unittest.TestCase):
     def test_RQ_TRC_046_given_a_call_link_when_its_tooltip_is_asked_then_it_says_the_relation_and_its_ends_in_order(self):
         import html
         import re
-        self.assertEqual("2000ms", tm.load_tokens(tm.TOKENS_PATH)["global"]["duration.tooltip"])
+        self.assertEqual("1000ms", tm.load_tokens(tm.TOKENS_PATH)["global"]["duration.tooltip"])
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "page.html"
             page, _ = call_graph_page(path)

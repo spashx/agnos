@@ -298,14 +298,14 @@ ADR-TRC-003).
 ### RQ-TRC-046: A relation's tooltip
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN the pointer rests on a link of the graph for the delay of the design tokens (2 s), the page SHALL
+- **Statement**: WHEN the pointer rests on a link of the graph for the delay of the design tokens (1 s), the page SHALL
   show next to it the relation's meaning, its two ends in their direction, and its count of proof lines, and SHALL hide
   it when the pointer leaves the link or the graph moves.
 - **Rationale**: a link in a dense graph is told apart by pointing at it, not by following it.
 - **Priority**: Should
 - **Acceptance Criteria**: Given a function's graph with functions on, When the tooltip of the call from
   `net::Port::send` to `net::Port::write` is asked, Then it says "calls (caller → callee)" with both names in that
-  order; Given the tokens, Then the delay is 2 s.
+  order; Given the tokens, Then the delay is 1 s.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012, RQ-TRC-044, RQ-TRC-045
 
 ### RQ-TRC-049: A search result's full text
