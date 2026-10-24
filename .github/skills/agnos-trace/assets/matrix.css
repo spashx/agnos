@@ -619,6 +619,7 @@ th {
 
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { color: var(--s-text); }
+th.drop-target { box-shadow: inset calc(var(--s-stroke-focus) * 2) 0 0 var(--s-accent); }   /* RQ-TRC-052: where the dragged column lands */
 th[aria-sort="ascending"]::after { content: " ▲"; color: var(--s-accent); }
 th[aria-sort="descending"]::after { content: " ▼"; color: var(--s-accent); }
 th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }

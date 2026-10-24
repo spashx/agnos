@@ -248,4 +248,4 @@ TASK-TRC-038|142-152|Done|Ellipsis on long names in the Untraced functions list
 @process/3.plan/PLAN-TRC-005-matrix-columns.md
 PLAN-TRC-005|1-45||Matrix Columns in Specification Order and Rearrangeable
 TASK-TRC-039|17-31|Done|One column model and the default order
-TASK-TRC-040|32-45|Not Started|Move columns, remember the order, reset
+TASK-TRC-040|32-45|Done|Move columns, remember the order, reset

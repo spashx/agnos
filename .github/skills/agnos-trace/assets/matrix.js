@@ -1363,8 +1363,80 @@
     return el("span", { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
   }
 
-  // The columns in the reader's order; a function until TASK-TRC-040 lets the reader move them.
-  function orderedColumns() { return DEFAULT_COLUMN_ORDER.map((key) => MATRIX_COLUMNS.find((c) => c.key === key)); }
+  // ---- column order (TASK-TRC-040: RQ-TRC-052; DEC-TRC-028) ----------------------------------------------------
+  // The reader's order is a list of column keys kept in the browser; whatever it lacks or does not know is repaired.
+  const ORDER_KEY = "agnos-trace-column-order";
+  const columnOrder = repairColumnOrder(loadColumnOrder());
+  let draggedColumn = null;
+  let resizingColumn = false;                                  // a resize grip never starts a move
+
+  function loadColumnOrder() {
+    try { return JSON.parse(localStorage.getItem(ORDER_KEY) || "[]"); } catch (error) { return []; }   // no storage
+  }
+
+  function saveColumnOrder() {
+    try {
+      if (columnOrder.join() === DEFAULT_COLUMN_ORDER.join()) localStorage.removeItem(ORDER_KEY);
+      else localStorage.setItem(ORDER_KEY, JSON.stringify(columnOrder));
+    } catch (error) { /* the order lasts this visit */ }
+  }
+
+  // Unknown or repeated keys are dropped; a column the order lacks comes back after its predecessor in the default order.
+  function repairColumnOrder(saved) {
+    const order = (Array.isArray(saved) ? saved : []).filter((key, i, all) => DEFAULT_COLUMN_ORDER.includes(key) && all.indexOf(key) === i);
+    DEFAULT_COLUMN_ORDER.forEach((key, i) => {
+      if (order.includes(key)) return;
+      const before = i ? order.indexOf(DEFAULT_COLUMN_ORDER[i - 1]) : -1;
+      order.splice(before + 1, 0, key);
+    });
+    return order;
+  }
+
+  function orderedColumns() { return columnOrder.map((key) => MATRIX_COLUMNS.find((c) => c.key === key)); }
+
+  function moveColumn(key, to) {
+    const from = columnOrder.indexOf(key);
+    if (from < 0 || to < 0 || to >= columnOrder.length || to === from) return;
+    columnOrder.splice(from, 1);
+    columnOrder.splice(to, 0, key);
+    saveColumnOrder();
+    renderMatrix();
+  }
+
+  function resetColumns() {
+    columnOrder.splice(0, columnOrder.length, ...DEFAULT_COLUMN_ORDER);
+    saveColumnOrder();
+    resetColumnWidths();
+    renderMatrix();
+  }
+
+  function columnHeaderMoves(th, key) {
+    th.addEventListener("dragstart", (event) => {
+      if (resizingColumn) { event.preventDefault(); return; }
+      draggedColumn = key;
+      try { event.dataTransfer.setData("text/plain", key); event.dataTransfer.effectAllowed = "move"; } catch (error) { /* a plain drag */ }
+    });
+    th.addEventListener("dragover", (event) => {
+      if (!draggedColumn) return;
+      event.preventDefault();
+      th.classList.toggle("drop-target", draggedColumn !== key);
+    });
+    th.addEventListener("dragleave", () => th.classList.remove("drop-target"));
+    th.addEventListener("drop", (event) => {
+      if (!draggedColumn) return;
+      event.preventDefault();
+      const moved = draggedColumn;
+      draggedColumn = null;
+      moveColumn(moved, columnOrder.indexOf(key));
+    });
+    th.addEventListener("dragend", () => { draggedColumn = null; th.classList.remove("drop-target"); });
+    th.addEventListener("keydown", (event) => {
+      if (!event.altKey || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+      event.preventDefault();
+      moveColumn(key, columnOrder.indexOf(key) + (event.key === "ArrowRight" ? 1 : -1));
+      document.querySelector(`#matrix-table th[data-column=${key}]`)?.focus();
+    });
+  }
 
   function renderMatrix() {
     const column = MATRIX_COLUMNS.find((c) => c.key === state.sort.column);
@@ -1375,11 +1447,15 @@
       return order * state.sort.dir || a.id.localeCompare(b.id);
     });
     const ordered = orderedColumns();
-    const head = el("tr", {}, ...ordered.map((c) => el("th", {
-      class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
-      title: `${c.hint} · click to sort`,
-      on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
-    c.label, columnGrip(c))));
+    const head = el("tr", {}, ...ordered.map((c) => {
+      const th = el("th", {
+        class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
+        draggable: "true", tabindex: "0", title: `${c.hint} · click to sort · drag, or Alt+arrow, to move`,
+        on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
+      c.label, columnGrip(c));
+      columnHeaderMoves(th, c.key);
+      return th;
+    }));
     const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
       on: { click: () => select(r.id) } }, ...ordered.map((c) => c.cell(r))));
     $("matrix-table").classList.toggle("with-functions", Boolean(CALL_GRAPH));
@@ -1441,10 +1517,12 @@
     event.preventDefault();
     event.stopPropagation();
     grip.setPointerCapture(event.pointerId);
+    resizingColumn = true;
     const start = event.clientX;
     const width = grip.parentElement.offsetWidth;
     const move = (e) => setColumnWidth(key, width + e.clientX - start);
     const end = () => {
+      resizingColumn = false;
       grip.removeEventListener("pointermove", move);
       grip.removeEventListener("pointerup", end);
       grip.removeEventListener("pointercancel", end);
@@ -1460,6 +1538,7 @@
     grip.addEventListener("click", (event) => event.stopPropagation());          // a grip never sorts
     grip.addEventListener("dblclick", (event) => { event.stopPropagation(); resetColumnWidths(); });
     grip.addEventListener("pointerdown", (event) => dragColumn(c.key, grip, event));
+    grip.addEventListener("mousedown", (event) => event.preventDefault());       // the grip resizes, it never drags the header
     grip.addEventListener("keydown", (event) => {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault();
@@ -1514,6 +1593,7 @@
   }
 
   $("export-csv").addEventListener("click", exportCsv);
+  $("reset-columns").addEventListener("click", resetColumns);
 
   // ---- gaps ---------------------------------------------------------------------------------------------------
   function renderGaps() {

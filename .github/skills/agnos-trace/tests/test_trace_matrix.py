@@ -547,8 +547,68 @@ class ColumnResizeTest(unittest.TestCase):
         self.assertEqual(found["before"], found["reset"])
 
 
+MOVE_COLUMNS = """
+agnosTrace.showView("matrix");
+const heads = () => [...document.querySelectorAll("#matrix-table th")];
+const head = (key) => document.querySelector(`#matrix-table th[data-column="${key}"]`);
+const keys = () => heads().map((th) => th.dataset.column).join(",");
+const out = document.documentElement.dataset;
+const underOwnHeader = () => {
+  const row = document.querySelector("#matrix-table tbody tr");
+  const cell = (key) => row.children[heads().findIndex((th) => th.dataset.column === key)];
+  return Boolean(cell("coverage").querySelector(".badge") && cell("id").classList.contains("cell-requirement"));
+};
+out.first = keys();
+out.under0 = String(underOwnHeader());
+const width = head("coverage").offsetWidth;
+const alt = (key) => head("coverage").dispatchEvent(new KeyboardEvent("keydown", { key, altKey: true, bubbles: true }));
+alt("ArrowLeft");
+alt("ArrowLeft");
+alt("ArrowLeft");                                    // already first: stays
+out.keyed = keys();
+out.under1 = String(underOwnHeader());
+out.sort = head("id").getAttribute("aria-sort");
+out.width = String(head("coverage").offsetWidth === width);
+out.stored = localStorage.getItem("agnos-trace-column-order") || "";
+const transfer = new DataTransfer();
+head("id").dispatchEvent(new DragEvent("dragstart", { dataTransfer: transfer, bubbles: true }));
+head("coverage").dispatchEvent(new DragEvent("dragover", { dataTransfer: transfer, bubbles: true, cancelable: true }));
+head("coverage").dispatchEvent(new DragEvent("drop", { dataTransfer: transfer, bubbles: true, cancelable: true }));
+out.dragged = keys();
+out.under2 = String(underOwnHeader());
+document.getElementById("reset-columns").click();
+out.reset = keys();
+out.storedAfter = localStorage.getItem("agnos-trace-column-order") || "";
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class ColumnOrderTest(unittest.TestCase):
+    """TASK-TRC-039, TASK-TRC-040: RQ-TRC-051, RQ-TRC-052 (DEC-TRC-027, DEC-TRC-028)."""
+
+    def test_RQ_TRC_051_RQ_TRC_052_given_the_matrix_when_columns_are_moved_then_cells_follow_and_reset_restores(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(first|under\d|keyed|sort|width|stored|dragged|reset|stored-after)="([^"]*)"',
+                                    rendered_dom_after(path, MOVE_COLUMNS)))
+        default = "feature,id,coverage,decisions,tasks,files,lines"
+        self.assertEqual(default, found["first"])                       # RQ-TRC-051: Feature leads
+        self.assertEqual("true", found["under0"])
+        self.assertEqual("coverage,feature,id,decisions,tasks,files,lines", found["keyed"])   # Alt+Left, twice
+        self.assertEqual("true", found["under1"])
+        self.assertEqual("ascending", found["sort"])                    # a move leaves the sort alone
+        self.assertEqual("true", found["width"])                        # and the widths
+        self.assertEqual("coverage,feature,id,decisions,tasks,files,lines", found["stored"].replace("&quot;", "").strip("[]"))
+        self.assertEqual("id,coverage,feature,decisions,tasks,files,lines", found["dragged"])   # dropped on Coverage
+        self.assertEqual("true", found["under2"])
+        self.assertEqual(default, found["reset"])
+        self.assertEqual("", found["stored-after"])
+
+
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
-                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv",
+                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")
 READ_TOOLTIPS = """
 agnosTrace.select("RQ-DEM-002");

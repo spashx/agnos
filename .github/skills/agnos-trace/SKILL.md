@@ -8,7 +8,7 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 
 <!-- FTR-TRC-001; ADR-TRC-001 (DEC-TRC-001 to DEC-TRC-004), ADR-TRC-002 (DEC-TRC-009 to DEC-TRC-011),
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
-     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. -->
+     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -55,7 +55,11 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 - **Graph**: the selected element's links as a flow of columns (features, requirements, ADRs and decisions, plans and
   tasks, source files, undefined IDs), depth 1 to 3; "Whole graph" for everything.
 - **Matrix**: one row per requirement with its feature, ADRs and decisions, plans and tasks, source files and lines,
-  coverage; sortable, filtered by the search and the trigram filters, exportable as CSV.
+  coverage; sortable, filtered by the search and the trigram filters, exportable as CSV. The columns stand by default
+  in the order of the specification (Feature, Requirement, Coverage, ADRs / decisions, Plans / tasks, Functions,
+  Source files, Lines; RQ-TRC-051). Drag a header onto another, or press Alt+← / Alt+→ on a focused header, to move the
+  column; the order is remembered in the browser, like the widths, and "Reset columns" brings back the default order and
+  widths (RQ-TRC-052). The CSV keeps its own fixed columns.
 - **Gaps**: the lists below, each element a link to its detail.
 - **Detail panel**: the selection's type, title, status, location, and its links grouped by type with their count, IDs and
   the lines that make them. `#<ID>` in the URL selects an element; back and forward follow the selections.

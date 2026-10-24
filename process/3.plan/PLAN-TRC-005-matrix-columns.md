@@ -26,12 +26,12 @@ This plan implements the tasks in the format specified below.
   own header, the default widths of each column unchanged, and the sort and the CSV as before.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: `python -m unittest discover -s tests` (skill folder): 130 tests, 1 failure `test_RQ_TRC_026_..._data_is_the_one_before_this_feature`, which fails identically without this change (checked with the changes stashed), 1 skipped. New assertion in `test_callgraph` passes: headers feature, id, coverage, decisions, tasks, functions, files, lines; `ColumnResizeTest` passes with Requirement still sorted ascending. The default widths now select `th[data-column=…]` (no unquoted-quote form, so the page without a call graph holds no `data-column="functions"` text).
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 130 tests, 1 failure `test_RQ_TRC_026_..._data_is_the_one_before_this_feature`, which fails identically without this change (checked with the changes stashed), 1 skipped. New assertion in `test_callgraph` passes: headers feature, id, coverage, decisions, tasks, functions, files, lines; `ColumnResizeTest` passes with Requirement still sorted ascending. The default widths now select `th[data-column=…]` (unquoted, so a page without a call graph holds no `data-column="functions"` text).
 - **Assumptions**: None
 
 ### TASK-TRC-040: Move columns, remember the order, reset
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make the headers draggable and Alt+arrow movable, keep the order in the browser, add the "Reset
   columns" button with its tooltip, and document the matrix in `SKILL.md`.
 - **Requirement refs**: RQ-TRC-052, RQ-TRC-045
@@ -41,5 +41,5 @@ This plan implements the tasks in the format specified below.
   pressed, Then the default order and widths come back; Given a resize grip, When it is dragged, Then no move starts.
 - **Dependencies**: TASK-TRC-039
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 131 tests, 1 failure (RQ-TRC-026 data hash, same as before this plan), 1 skipped. `ColumnOrderTest` passes in headless Edge: default order feature,id,coverage,decisions,tasks,files,lines; two Alt+Left on Coverage give coverage,feature,id (a third is a no-op), cells stay under their headers, Requirement still ascending, Coverage width unchanged, order stored in `agnos-trace-column-order`; a drop of Requirement on Coverage gives id,coverage,feature; "Reset columns" restores the default and clears the storage. `TooltipTest` covers `#reset-columns`.
 - **Assumptions**: None
