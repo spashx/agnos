@@ -1630,6 +1630,7 @@
   function renderDetail() {
     const panel = clear($("detail"));
     const key = state.selected;
+    if (key !== pressedFor) { pressedTags.clear(); pressedFor = key; }
     if (!key) {
       panel.append(el("div", { class: "detail-empty" },
         el("span", { class: "detail-empty-title", text: "No element selected" }),
@@ -1658,13 +1659,41 @@
     const groups = linksByType(key);
     const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
     const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
-      el("span", { class: `badge badge-neutral t-${t}` }, el("span", { class: `dot t-${t}` }), `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
+      groupTag(t, t, `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
       : el("span", { class: "badge badge-error", text: "No link" }));
     const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
     summary.append(...callSections.map((s) => s.badge));
     if (CALL_GRAPH && n.type === "RQ" && !groups.has("FN")) summary.append(noFunctionBadge(key));   // RQ-TRC-041
     panel.append(detailBand(n.type, head, summary),
       el("div", { class: "detail-body" }, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t)))));
+    applyTagFilter();
+  }
+
+  // RQ-TRC-055, DEC-TRC-030: a tag is a toggle that shows only its group; the pressed tags belong to one selection.
+  const pressedTags = new Set();
+  let pressedFor = null;
+
+  function groupTag(group, type, text) {
+    const tag = el("button", { class: `badge badge-neutral tag t-${type}`, type: "button", "data-group": group,
+      "aria-pressed": String(pressedTags.has(group)), title: "Show only this group of links; click again to show them all" },
+      el("span", { class: `dot t-${type}` }), text);
+    tag.addEventListener("click", () => {
+      if (pressedTags.has(group)) pressedTags.delete(group); else pressedTags.add(group);
+      tag.setAttribute("aria-pressed", String(pressedTags.has(group)));
+      applyTagFilter();
+    });
+    return tag;
+  }
+
+  function grouped(group, section) {
+    section.dataset.group = group;
+    return section;
+  }
+
+  function applyTagFilter() {
+    for (const section of $("detail").querySelectorAll(".detail-body .group")) {
+      section.hidden = pressedTags.size > 0 && !pressedTags.has(section.dataset.group);
+    }
   }
 
   // RQ-TRC-054, DEC-TRC-030: the identity and the tags stand in a band that does not scroll, over the body of links.
@@ -1697,8 +1726,8 @@
     return [{ title: "Callers", rel: "called by", list: calls.callers(index) },
       { title: "Callees", rel: "calls", list: calls.callees(index) }]
       .map(({ title, rel, list }) => ({
-        badge: el("span", { class: "badge badge-neutral t-FN" }, el("span", { class: "dot t-FN" }), `${title} ${list.length}`),
-        section: callGroup(title, rel, list.toSorted(byLabel)),
+        badge: groupTag(title.toLowerCase(), "FN", `${title} ${list.length}`),
+        section: grouped(title.toLowerCase(), callGroup(title, rel, list.toSorted(byLabel))),
       }));
   }
 
@@ -1744,17 +1773,17 @@
           title: "Open the graph on this box, its functions and their links", on: { click: () => showView("graph") } }),
         el("button", { class: "button", type: "button", text: "Copy name",
           title: "Copy the box's name to the clipboard", on: { click: () => copy(box.label) } })));
-    const badge = (type, text) => el("span", { class: `badge badge-neutral t-${type}` }, el("span", { class: `dot t-${type}` }), text);
-    const summary = el("div", { class: "detail-summary" }, badge("FN", `Inner scopes ${inner.length}`),
-      badge("FN", `${plural("FN", members.length)} ${members.length}`), badge("RQ", `${plural("RQ", cited.length)} ${cited.length}`),
-      badge("FN", `Callers ${callers.length}`), badge("FN", `Callees ${callees.length}`));
+    const summary = el("div", { class: "detail-summary" }, groupTag("inner", "FN", `Inner scopes ${inner.length}`),
+      groupTag("FN", "FN", `${plural("FN", members.length)} ${members.length}`), groupTag("RQ", "RQ", `${plural("RQ", cited.length)} ${cited.length}`),
+      groupTag("callers", "FN", `Callers ${callers.length}`), groupTag("callees", "FN", `Callees ${callees.length}`));
     panel.append(detailBand("FN", head, summary), el("div", { class: "detail-body" }, ...[
       box.parent ? listGroup("Enclosing scope", [box.parent], keyItem) : null,              // RQ-TRC-048
-      inner.length ? listGroup("Inner scopes", inner, keyItem) : null,
-      listGroup(plural("FN", own.length), own.sort(byKeyLabel), keyItem),
-      listGroup("Callers by scope", callers, boxCallItem("called by")),
-      listGroup("Callees by scope", callees, boxCallItem("calls")),
-      listGroup(plural("RQ", cited.length), cited, keyItem, "RQ")].filter(Boolean)));
+      inner.length ? grouped("inner", listGroup("Inner scopes", inner, keyItem)) : null,
+      grouped("FN", listGroup(plural("FN", own.length), own.sort(byKeyLabel), keyItem)),
+      grouped("callers", listGroup("Callers by scope", callers, boxCallItem("called by"))),
+      grouped("callees", listGroup("Callees by scope", callees, boxCallItem("calls"))),
+      grouped("RQ", listGroup(plural("RQ", cited.length), cited, keyItem, "RQ"))].filter(Boolean)));
+    applyTagFilter();
   }
 
   // The calls into and out of a box's functions, by the box of the other end at the box's own level, with their
@@ -1790,7 +1819,7 @@
 
   function linkGroup(type, byKey) {
     const items = [...byKey.entries()].sort((a, b) => nodes.get(a[0]).label.localeCompare(nodes.get(b[0]).label, undefined, { numeric: true }));
-    return el("section", { class: "group" },
+    return el("section", { class: "group", "data-group": type },
       el("div", { class: "group-head" }, el("h3", { class: "group-title" }, el("span", { class: `dot t-${type}` }), plural(type, items.length)),
         el("span", { class: "group-count", text: items.length })),
       el("ul", { class: "group-items" }, ...items.map(([key, list]) => {

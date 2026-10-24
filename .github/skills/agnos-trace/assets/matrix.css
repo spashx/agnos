@@ -748,6 +748,11 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .detail-top .detail-head { border-bottom: none; }
 .detail-top .detail-title { font-size: var(--s-text-heading); font-weight: var(--s-weight-strong); }
 .detail-top .detail-summary { border-bottom: none; padding-top: var(--s-space-none); }
+
+/* RQ-TRC-055: a tag filters the groups below; pressed, it takes the accent */
+button.tag { border: none; font: inherit; font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); cursor: pointer; }
+button.tag:hover { box-shadow: inset 0 0 0 var(--s-stroke-hairline) var(--s-border-strong); }
+button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var(--s-accent); box-shadow: inset 0 0 0 var(--s-stroke-focus) var(--s-accent); }
 .detail-body { flex: 1; min-height: var(--s-space-none); overflow-y: auto; }
 
 .detail-empty { display: flex; flex-direction: column; gap: var(--s-space-sm); padding: var(--s-space-xl); color: var(--s-text-subtle); font-size: var(--s-text-small); }

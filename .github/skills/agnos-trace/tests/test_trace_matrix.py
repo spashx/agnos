@@ -673,6 +673,56 @@ class DetailBandTest(unittest.TestCase):
         self.assertEqual("true", found["bar-width"])
 
 
+TAG_FILTER = """
+const out = document.documentElement.dataset;
+agnosTrace.select("RQ-DEM-001");
+const tags = () => [...document.querySelectorAll("#detail .detail-summary [data-group]")];
+const shown = () => [...document.querySelectorAll("#detail .detail-body .group")].filter((g) => !g.hidden).map((g) => g.dataset.group).join(",");
+out.all = shown();
+out.tags = tags().map((t) => t.dataset.group).join(",");
+const first = tags()[0];
+const second = tags()[1];
+first.click();
+out.one = shown();
+out.firstPressed = first.getAttribute("aria-pressed");
+second.click();
+out.two = shown();
+first.click();
+second.click();
+out.again = shown();
+out.pressedAgain = String(tags().filter((t) => t.getAttribute("aria-pressed") === "true").length);
+first.click();
+agnosTrace.select("RQ-DEM-002");
+out.afterSelect = String(tags().filter((t) => t.getAttribute("aria-pressed") === "true").length);
+out.allAfterSelect = String(shown().split(",").length === tags().length);
+out.firstTitle = first.title;
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class TagFilterTest(unittest.TestCase):
+    """TASK-TRC-043: RQ-TRC-055, RQ-TRC-045 (DEC-TRC-030)."""
+
+    def test_RQ_TRC_055_given_tags_when_clicked_then_only_their_groups_show_and_a_new_selection_clears_them(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(all|tags|one|first-pressed|two|again|pressed-again|after-select|all-after-select|first-title)="([^"]*)"',
+                                    rendered_dom_after(path, TAG_FILTER)))
+        groups = found["all"].split(",")
+        self.assertGreaterEqual(len(groups), 3)
+        self.assertEqual(found["tags"].split(","), groups)             # a tag per group, in the same order
+        self.assertEqual(groups[0], found["one"])
+        self.assertEqual("true", found["first-pressed"])
+        self.assertEqual(",".join(groups[:2]), found["two"])           # tags clicked together show their groups together
+        self.assertEqual(found["all"], found["again"])
+        self.assertEqual("0", found["pressed-again"])
+        self.assertEqual("0", found["after-select"])                   # a new selection drops the filter
+        self.assertEqual("true", found["all-after-select"])
+        self.assertTrue(found["first-title"].strip())                  # RQ-TRC-045
+
+
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
                    "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")

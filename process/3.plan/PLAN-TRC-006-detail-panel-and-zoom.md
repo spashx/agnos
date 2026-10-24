@@ -42,7 +42,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-043: Tags that filter the groups
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make each group tag a toggle that shows only its group, for elements and boxes, cleared on a new
   selection.
 - **Requirement refs**: RQ-TRC-055, RQ-TRC-045
@@ -52,7 +52,7 @@ This plan implements the tasks in the format specified below.
   is pressed.
 - **Dependencies**: TASK-TRC-042
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 134 tests, 1 failure (RQ-TRC-026 data hash, failing before this plan), 1 skipped. `TagFilterTest` passes in headless Edge on RQ-DEM-001: one tag per group in the groups' order; first tag shows only its group and is `aria-pressed`; a second tag adds its group; unpressing both shows all groups; selecting RQ-DEM-002 leaves no tag pressed and all groups shown; the tag has a title.
 - **Assumptions**: None
 
 ### TASK-TRC-044: A finer wheel zoom
