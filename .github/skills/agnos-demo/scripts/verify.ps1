@@ -24,7 +24,7 @@ $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
 $SKILL_NAME = 'agnos-demo'
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
-$ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa)$'
+$ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
 $ID_PATTERN = '\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b'
 $DEFINITION_PATTERN = '^\+#{1,3} ((?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}):'
 $TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO'
@@ -34,6 +34,8 @@ $MIN_COMMITS = 50; $MIN_SPAN_DAYS = 56; $MAX_SPAN_DAYS = 64; $MIN_ACTIVE_DAYS = 
 $MIN_IDENTITIES = 5; $MIN_DEV = 2; $MIN_SESSIONS = 3; $MIN_HOLIDAYS = 2
 $LITERAL_REPEAT_LIMIT = 3; $LITERAL_MIN_LENGTH = 8
 $REBUILD_FOLDER_PREFIX = 'agnos-demo-verify-'
+$FULL_SCORE = '10.0'; $NO_SCORE = 'n/a'
+$UI_ARTIFACTS = @('FTR-DSN-001', 'ADR-DSN-001', 'PLAN-DSN-001', 'FTR-WEB-001', 'ADR-WEB-001', 'PLAN-WEB-001')   # RQ-DMO-022
 $ROLE_BY_PATH = @(
   @{ Pattern = '^process/1\.requirements/FTR-'; Role = 'po' }
   @{ Pattern = '^process/2\.architecture/ADR-'; Role = 'arch' }
@@ -42,6 +44,7 @@ $ROLE_BY_PATH = @(
   @{ Pattern = '^client/src/.+\.ts$'; Role = 'dev' }
   @{ Pattern = '^service/tests/test_.+\.py$'; Role = 'qa' }
   @{ Pattern = '^client/tests/.+\.test\.ts$'; Role = 'qa' }
+  @{ Pattern = '^client/design/'; Role = 'ux' }               # DEC-DMO-007
 )
 
 if (-not $Toolkit) { $Toolkit = (& git -C $PSScriptRoot rev-parse --show-toplevel).Trim() }
@@ -155,9 +158,11 @@ $traceScript = Join-Path $Toolkit '.github/skills/agnos-trace/scripts/trace_matr
 $traceOut = (& python $traceScript --process (Join-Path $Demo 'process') --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') | Out-String)
 $traceExit = $LASTEXITCODE
 Remove-Item -LiteralPath $traceDir -Recurse -Force
-$gaps = [regex]::Match($traceOut, 'uncovered (\d+), untasked (\d+), task-no-rq (\d+), adr-no-rq (\d+).*?undefined (\d+)')
-$traceOk = ($traceExit -eq 0) -and $gaps.Success -and ($gaps.Groups[1].Value -eq '0') -and ($gaps.Groups[3].Value -eq '0') -and ($gaps.Groups[5].Value -eq '0')
-Report 'RQ-DMO-008' $traceOk ("agnos-trace: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), task-no-rq $($gaps.Groups[3].Value), undefined $($gaps.Groups[5].Value)" } else { 'no summary (exit ' + $traceExit + ')' }))
+# The generator's summary line since its quality scorecard (FTR-TRC-003): "RQ n: covered n, indirect n, uncovered n;
+# quality: <grade> <score>/10; checks: covered s, defined s, tasked s, task-rq s, ..."
+$gaps = [regex]::Match($traceOut, 'uncovered (\d+); quality: .*?checks: covered [\d.na/]+, defined ([\d.na/]+), tasked [\d.na/]+, task-rq ([\d.na/]+)')
+$traceOk = ($traceExit -eq 0) -and $gaps.Success -and ($gaps.Groups[1].Value -eq '0') -and ($gaps.Groups[2].Value -eq $FULL_SCORE) -and ($gaps.Groups[3].Value -in $FULL_SCORE, $NO_SCORE)
+Report 'RQ-DMO-008' $traceOk ("agnos-trace: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), IDs defined score $($gaps.Groups[2].Value), tasks with a requirement score $($gaps.Groups[3].Value)" } else { 'no summary (exit ' + $traceExit + ')' }))
 
 # RQ-DMO-009
 $readme = if ($demoFiles -contains 'README.md') { (Demo-Git @('show', 'HEAD:README.md')) } else { @() }
@@ -255,6 +260,15 @@ $future = @($commits | Where-Object { $_.Day -gt (Get-Date).Date })
 $epochByHash = @{}; foreach ($c in $commits) { $epochByHash[$c.Hash] = $c.Epoch }
 $olderThanParent = @($commits | Where-Object { $c = $_; @($c.Parents | Where-Object { $epochByHash[$_] -gt $c.Epoch }).Count -gt 0 })
 Report 'RQ-DMO-019' ($fsckOk -and ($future.Count -eq 0) -and ($olderThanParent.Count -eq 0)) "git fsck --strict ok: $fsckOk; commits in the future: $($future.Count); commits older than a parent: $($olderThanParent.Count)"
+
+# RQ-DMO-022: the design system and the interface made on it, the UX designer's work, the client's tests
+$indexText = if (Test-Path -LiteralPath (Join-Path $Demo 'process/INDEX.idx.md')) { [System.IO.File]::ReadAllText((Join-Path $Demo 'process/INDEX.idx.md')) } else { '' }
+$uiMissing = @($UI_ARTIFACTS | Where-Object { $indexText -notmatch ('(?m)^' + [regex]::Escape($_) + '\|') })
+$webPlan = @(Get-ChildItem -LiteralPath (Join-Path $Demo 'process/3.plan') -Filter 'PLAN-WEB-*.md' -ErrorAction SilentlyContinue)
+$webCitesDesign = ($webPlan.Count -gt 0) -and ([System.IO.File]::ReadAllText($webPlan[0].FullName) -match '(RQ|ADR|DEC)-DSN-\d{3}')
+$uxCommits = @(Demo-Git @('log', '--all', '--author=-ux', '--format=%h'))
+$clientTests = Start-Process -FilePath node -ArgumentList '--test', 'tests/*.test.ts' -WorkingDirectory (Join-Path $Demo 'client') -Wait -PassThru -WindowStyle Hidden
+Report 'RQ-DMO-022' (($uiMissing.Count -eq 0) -and $webCitesDesign -and ($uxCommits.Count -gt 0) -and ($clientTests.ExitCode -eq 0)) "design system and interface artifacts missing: $(if ($uiMissing.Count) { $uiMissing -join ', ' } else { 'none' }); UI plan cites the design system: $webCitesDesign; commits by a ux identity: $($uxCommits.Count); client tests exit $($clientTests.ExitCode)"
 
 # RQ-DMO-020
 $skillFiles = @(".github/skills/$SKILL_NAME/SKILL.md", ".claude/skills/$SKILL_NAME/SKILL.md", ".github/skills/$SKILL_NAME/scripts/replay.ps1", ".github/skills/$SKILL_NAME/scripts/verify.ps1", ".github/skills/$SKILL_NAME/scripts/build.ps1")

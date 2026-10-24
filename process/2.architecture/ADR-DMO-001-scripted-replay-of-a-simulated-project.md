@@ -75,6 +75,18 @@ capability means extending the scenario and the content. A build on an unchanged
 (dates, times and identities are fixed in the scenario).
 Fulfils RQ-DMO-020, RQ-DMO-021, RQ-DMO-010.
 
+### DEC-DMO-007: Two parallel sessions for the design system and the interface, and the engine keys they need
+Owner request of 2026-10-24 (RQ-DMO-022). The cast gains `rob-ux` (`rob-ux@agnos-demo.example`, role `ux`), active
+on five days of October. Two sessions are added to the scenario after NTF: DSN (design system) on `feature/DSN`,
+forked after the NTF merge, and WEB (the booking interface) on `feature/WEB`, forked from the CLI session's typed
+client, which merges `feature/DSN` first and is merged into the default branch on 2026-10-23 after CLI. The replay
+engine gains three keys: `label` on a step (a name for its commit), `from` on `branch` (fork at a labelled commit),
+`into` and `resolveFiles` on `merge` (merge into a given branch; a conflict on a generated file is resolved by
+regenerating it, the index by the `agnos-index` skill, the metrics log by the union of its rows). `verify.ps1` accepts
+the `ux` role and maps `client/design/` to it. The files and steps were prepared on 2026-10-24 by a sub-agent on the
+demo itself and are folded back into the scenario, so that `build` reproduces them (RQ-DMO-021). Fulfils RQ-DMO-022
+and the amended RQ-DMO-011.
+
 ## Consequences
 - The demo can be rebuilt and re-verified at any time, by anyone who has this repository, and serves as a
   regression test of AGNOS: the index and traceability skills are run against it.

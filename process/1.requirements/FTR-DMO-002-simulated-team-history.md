@@ -2,7 +2,8 @@
 
 ## Overview
 The history of the demo repository (FTR-DMO-001) shows several people working over about two months. The
-people are fictitious. Each one has a role (product owner, architect, developer, tester/QA) readable in
+people are fictitious. Each one has a role (product owner, architect, developer, tester/QA, and a UX designer for
+the interface, amended by the owner on 2026-10-24) readable in
 their identity, so the history can be filtered by role. Dates follow human working time: no weekend, no
 public holiday, working hours. As the history is simulated, the public holidays MAY be fictitious but
 SHALL be declared in the demo.
@@ -19,15 +20,16 @@ SHALL be declared in the demo.
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo history SHALL use at least 5 distinct identities named `<firstname>-<role>`, in
-  lowercase, where `<role>` is `po` (product owner), `arch` (architect), `dev` (developer) or `qa`
-  (tester), with at least one identity per role and at least two `dev`; the e-mail of each identity SHALL
-  start with the same `<firstname>-<role>`.
+  lowercase, where `<role>` is `po` (product owner), `arch` (architect), `dev` (developer), `qa` (tester) or
+  `ux` (UX designer, amended by the owner on 2026-10-24), with at least one identity per role among `po`, `arch`,
+  `dev` and `qa`, and at least two `dev`; the e-mail of each identity SHALL start with the same
+  `<firstname>-<role>`.
 - **Rationale**: A fixed suffix lets anyone find the role of a person by filtering, with no other file.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo history
   - **When** `git log --format=%an` is listed without duplicates
-  - **Then** every name matches `^[a-z]+-(po|arch|dev|qa)$`
+  - **Then** every name matches `^[a-z]+-(po|arch|dev|qa|ux)$`
   - **And** `git log --author=-qa` returns only commits of `qa` identities
 - **Dependencies**: RQ-DMO-001
 

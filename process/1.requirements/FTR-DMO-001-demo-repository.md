@@ -181,6 +181,26 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 
 ---
 
+### RQ-DMO-022: A user interface built on a design system
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The demo SHALL contain, as two simulated sessions of its history, a design system made with the
+  `agnos-design-system` skill (its own requirements, ADR, plan and tokens file, session DSN) and a web interface of the
+  product whose every visual value comes from those tokens (session WEB), designed by a `ux` identity, built from the
+  scenario like the rest of the demo, so that the demo shows the MANDATORY DESIGN SYSTEM rule of AGNOS applied.
+- **Rationale**: the design-system rule is part of AGNOS and had no example in the demo (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo rebuilt by `build`
+  - **When** its process index and history are read
+  - **Then** it holds FTR-DSN-001, ADR-DSN-001, PLAN-DSN-001, FTR-WEB-001, ADR-WEB-001 and PLAN-WEB-001, the UI tasks
+    citing the design-system IDs
+  - **And** a `ux` identity authors the design-system work, and the UI code holds no raw visual literal
+  - **And** the client's tests pass
+- **Dependencies**: RQ-DMO-010, RQ-DMO-011, RQ-DMO-012, RQ-DMO-004
+
+---
+
 ## Non-Functional Requirements
 
 ### RQ-DMO-010: Creating the demo leaves the user's environment untouched
