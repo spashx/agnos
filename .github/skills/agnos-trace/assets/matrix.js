@@ -37,6 +37,7 @@
   const KEY_ARROWLEFT = "ArrowLeft";
   const KEY_ARROWRIGHT = "ArrowRight";
   const TYPE_FILE = "FILE";
+  const TYPE_FUNCTION = "FN";
   const VALUE_IMPLEMENTATION_DETAIL = "Implementation detail";
   const TYPE_UNDEFINED = "UNDEFINED";
   const KIND_UNDEFINED = "undefined";      // an ID cited but not in the index
@@ -97,6 +98,7 @@
   const TAG_LABEL = "label";
   const VALUE_LEGEND_ITEM = "legend-item";
   const VALUE_LINE = "line";
+  const VALUE_LINES = "lines";
   const STYLE_LINE_COLOR = "line-color";
   const VALUE_MATRIX = "matrix";
   const VALUE_MATRIX_TABLE = "matrix-table";
@@ -177,6 +179,8 @@
   const PERCENT = 100;
   const FILE_PREFIX = "file:";
   const FN_PREFIX = "fn:";
+  const COMMIT_PREFIX = "commit:";      // a commit selected in the detail panel: commit:<short hash> (DEC-HST-009)
+  const isCommitKey = (key) => Boolean(key) && key.startsWith(COMMIT_PREFIX);
   const CALLS_SHOWN = 50;               // callers or callees listed at first, and added per "more" (DEC-TRC-017)
   // RQ-TRC-047, DEC-TRC-021: the levels of detail, and the boxes drawn in place of functions above the function level.
   const DETAIL = { namespace: "namespace", class: "class", function: "function" };
@@ -1007,7 +1011,7 @@
         proofs = links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
           .reduce((sum, l) => sum + l.lines.length, 0);
       }
-      let unit = proofs === 1 ? VALUE_LINE : "lines";
+      let unit = proofs === 1 ? VALUE_LINE : VALUE_LINES;
       if (merged !== undefined) unit = proofs === 1 ? VALUE_CALL_SITE : VALUE_CALL_SITES;      // RQ-TRC-046: the merged count
       const lines = proofs ? ` · ${proofs} ${unit}` : "";
       return `${look.meaning}: ${nodeOf(source).label} → ${nodeOf(target).label}${lines}`;
@@ -1053,7 +1057,7 @@
 
     function draw() {
       const started = performance.now();
-      const key = state.selected;
+      const key = isCommitKey(state.selected) ? null : state.selected;     // DEC-HST-009: a commit is not drawn here
       $("graph-empty").hidden = Boolean(key) || whole;
       ensure();
       cy.resize();
@@ -2132,7 +2136,7 @@
   const CLASS_MARK = ".history-mark";
   const CLASS_LABEL = "history-label";
   const CLASS_IDENTITY_ICON = "is-identity";
-  const IS_PINNED = "is-pinned";
+  const IS_SELECTED = "is-selected";
   const EVENT_POINTERDOWN = "pointerdown";
   const KEY_ENTER = "Enter";
   const ID_HISTORY_TYPES = "history-types";
@@ -2151,10 +2155,7 @@
   const ID_HISTORY_ROWS = "history-rows";
   const ID_HISTORY_GROUPING = "history-grouping";
   const ID_HISTORY_ANGLE = "history-angle";
-  const ID_HISTORY_CARD = "history-card";
   const ID_HISTORY_OVERVIEW = "history-overview";
-  const CLASS_CARD_MUTED = "history-card-muted";
-  const CLASS_CARD_LIST = "history-card-list";
   const CLASS_RING = "history-ring";
   const CLASS_LEGEND_ITEM = "history-legend-item";
   const CLASS_COUNT = "history-count";
@@ -2197,7 +2198,7 @@
   const BAND_STACK = [KIND_HUMAN, KIND_TOGETHER, KIND_AGENT];   // from the bottom of a bar
   const hist = {
     angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, baseRows: [], rows: [], built: false,
-    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null, closed: new Set(),
+    commit: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null, closed: new Set(),
     text: "", types: new Set(TYPES), label: null,
   };
   const MERGED_TEXT = { email: "e-mail", mailmap: ".mailmap" };
@@ -2710,7 +2711,7 @@
     const agent = commit.coAuthors.find((i) => HISTORY.people[i].kind === KIND_AGENT);
     const ring = commit.kind === KIND_TOGETHER ? svgEl(SVG_CIRCLE, { class: CLASS_RING, cx: x, cy: y,
       r: r + cssNumber(CSS_RING_GAP), stroke: colourOf[agent ?? commit.coAuthors[0] ?? commit.author] }) : null;
-    const mark = svgEl(SVG_GROUP, { class: `history-mark${hist.pinned === ci ? " " + IS_PINNED : ""}`, "data-commit": ci,
+    const mark = svgEl(SVG_GROUP, { class: `history-mark${hist.commit === ci ? " " + IS_SELECTED : ""}`, "data-commit": ci,
       "data-kind": commit.kind, "data-lines": lines, tabindex: "0", role: "img", [VALUE_ARIA_LABEL]: markLabel(row, ci, lines) },
     shape, ring);
     mark.addEventListener(EVENT_FOCUS, () => showHistoryTip(mark, row, ci, lines));
@@ -2787,7 +2788,7 @@
     historyStatus();
   }
 
-  // ---- tooltip and pinned card ----
+  // ---- tooltip ----
   function tipLines(row, ci, lines) {
     const commit = HISTORY.commits[ci];
     const person = (i) => `${HISTORY.people[i].name} (${HISTORY.people[i].kind})`;
@@ -2804,42 +2805,105 @@
     showTipLines(target, tipLines(row, ci, lines));
   }
 
-  // Every element, file and function the commit changed, from the interventions (built once, on the first pin).
+  // ---- the commit in the detail panel (TASK-HST-016: RQ-HST-023; DEC-HST-009) ----
+  const GRAPH = HISTORY ? HISTORY.graph : null;
+  const commitOf = new Map(HISTORY ? HISTORY.commits.map((c, i) => [c.hash, i]) : []);
+  const graphNodeOf = new Map(GRAPH ? GRAPH.nodes.map((n, i) => [n.hash, i]) : []);
+  const COMMIT_KIND_NAME = { [KIND_HUMAN]: "Human", [KIND_AGENT]: "Agent", [KIND_TOGETHER]: "Together" };
+  const COMMIT_KIND_ICONS = { [KIND_HUMAN]: [KIND_HUMAN], [KIND_AGENT]: [KIND_AGENT], [KIND_TOGETHER]: [KIND_HUMAN, KIND_AGENT] };
+  const CHANGED_ORDER = [...TYPES, TYPE_FILE, TYPE_FUNCTION];
+  const UNNAMED_BRANCH = "unnamed branch";
+  const TYPE_COMMIT = "COMMIT";
+  const hashOf = (key) => key.slice(COMMIT_PREFIX.length);
+  const knownCommit = (key) => isCommitKey(key) && (commitOf.has(hashOf(key)) || graphNodeOf.has(hashOf(key)));
+  const lineCount = (n) => `${n} ${n === 1 ? VALUE_LINE : VALUE_LINES}`;
+  const branchName = (node) => GRAPH.branches[node.branch] ?? UNNAMED_BRANCH;
+
+  // [key, lines] of every element, file and function the commit changed, from the interventions (indexed once).
   let changedBy = null;
   function changedIn(ci) {
     if (!changedBy) {
       changedBy = new Map();
-      const add = (key, list) => list.forEach(([c]) => { if (!changedBy.has(c)) changedBy.set(c, []); changedBy.get(c).push(key); });
+      const add = (key, list) => list.forEach(([c, lines]) => {
+        if (!changedBy.has(c)) changedBy.set(c, []);
+        changedBy.get(c).push([key, lines]);
+      });
       Object.entries(HISTORY.interventions.elements).forEach(([id, list]) => add(id, list));
       Object.entries(HISTORY.interventions.files).forEach(([path, list]) => add(FILE_PREFIX + path, list));
+      Object.entries(HISTORY.interventions.functions || {}).forEach(([n, list]) => add(fnKeys[Number(n)], list));
     }
-    return (changedBy.get(ci) || []).filter((key) => nodes.has(key));
+    return (changedBy.get(ci) || []).filter(([key]) => nodes.has(key));
   }
 
-  function pinCommit(row, ci, lines) {
-    const commit = HISTORY.commits[ci];
-    hist.pinned = ci;
-    const card = $(ID_HISTORY_CARD);
-    const changed = changedIn(ci);
-    clear(card).append(
-      el("div", { class: "history-card-head" }, el(TAG_SPAN, { class: "history-card-hash", text: commit.hash }),
-        el(TAG_SPAN, { class: CLASS_CARD_MUTED, text: DATE_TEXT.format(commitTime[ci]) }),
-        el(TAG_BUTTON, { class: "button history-card-close", type: TAG_BUTTON, title: "Close this commit's card", text: "Close",
-          on: { [EVENT_CLICK]: unpinCommit } })),
-      el("div", { class: "history-card-subject", text: commit.subject }),
-      el("div", { class: CLASS_CARD_LIST }, personTag(commit.author), ...commit.coAuthors.map(personTag)),
-      el("div", { class: CLASS_CARD_MUTED, text: `${KIND_LABEL[commit.kind]} · ${lines} lines changed in ${row.label}` }),
-      changed.length ? el("div", { class: CLASS_CARD_MUTED, text: `Changed by this commit (${changed.length}):` }) : null,
-      changed.length ? el("div", { class: CLASS_CARD_LIST }, ...changed.map((key) => idButton(key, true))) : null);
-    card.hidden = false;
-    for (const mark of $(ID_HISTORY_ROWS).querySelectorAll(CLASS_MARK)) mark.classList.toggle(IS_PINNED, Number(mark.dataset.commit) === ci);
+  // The lines a commit changed: its files', and its process elements' outside an element it also changed (a feature's
+  // range holds its requirements'); a function's lines are its file's.
+  function changedLines(changed) {
+    const keys = new Set(changed.map(([key]) => key));
+    const inner = (key) => (links.get(key) || []).some((l) => l.kind === VALUE_CONTAINS && l.dir === "in" && keys.has(l.key));
+    return changed.filter(([key]) => !key.startsWith(FN_PREFIX) && !inner(key)).reduce((sum, [, lines]) => sum + lines, 0);
   }
 
-  function unpinCommit() {
-    hist.pinned = null;
-    $(ID_HISTORY_CARD).hidden = true;
-    for (const mark of $(ID_HISTORY_ROWS).querySelectorAll(CLASS_MARK)) mark.classList.remove(IS_PINNED);
+  function changedGroup(type, list) {
+    const sorted = list.toSorted((a, b) => nodes.get(a[0]).label.localeCompare(nodes.get(b[0]).label, undefined, { numeric: true }));
+    return grouped(type, listGroup(plural(type, list.length), sorted, ([key, lines]) => el("li", { class: "link-item" },
+      idButton(key, true), el(TAG_SPAN, { class: "link-rel", text: lineCount(lines) }),
+      nodes.get(key).title ? el(TAG_SPAN, { class: "link-title", text: nodes.get(key).title }) : null), type));
   }
+
+  function commitBadges(commit, total, node) {
+    return el("div", { class: "detail-badges" },
+      commit ? richTip(el(TAG_SPAN, { class: "badge badge-neutral", text: lineCount(total) }), () => ({ head: "Lines changed",
+        lines: [`${lineCount(total)} changed in the process elements and source files read`,
+          "A feature's, an ADR's or a plan's lines hold those of what it contains: they are counted once"] })) : null,
+      node ? richTip(el(TAG_SPAN, { class: "badge badge-neutral", text: branchName(node) }), () => ({ head: branchName(node),
+        lines: ["The branch the commit was made on, found from the branch tips and the merges' messages"] })) : null);
+  }
+
+  // A commit as the panel shows a selection: its band (kind, hash, subject, date, contributors, badges, actions, tags),
+  // then the git graph and what it changed, by type.
+  function renderCommitDetail(panel, key) {
+    const hash = hashOf(key);
+    const ci = commitOf.get(hash);
+    const node = GRAPH.nodes[graphNodeOf.get(hash)];
+    const commit = ci === undefined ? null : HISTORY.commits[ci];
+    const changed = commit ? changedIn(ci) : [];
+    const merge = Boolean(node) && node.parents.length > 1;
+    let kind = COMMIT_KIND_NAME[commit?.kind];
+    if (!commit) kind = merge ? "Merge" : "Outside the folders read";
+    const head = el("div", { class: `detail-head t-${TYPE_COMMIT}` },
+      el("div", { class: "detail-kind" }, ...(commit ? COMMIT_KIND_ICONS[commit.kind].map(kindIcon) : []), `Commit · ${kind}`),
+      el("h2", { class: "detail-id", text: hash }),
+      el("p", { class: "detail-title", text: commit ? commit.subject : node.subject }),
+      el("div", { class: "detail-location", text: DATE_TEXT.format(commit ? commitTime[ci] : Date.parse(node.date)) }),
+      commit ? el("div", { class: "detail-people" }, personTag(commit.author), ...commit.coAuthors.map(personTag)) : null,
+      commitBadges(commit, changedLines(changed), node),
+      el("div", { class: "detail-actions" },
+        el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, text: "Copy hash", title: "Copy this commit's short hash to the clipboard",
+          on: { [EVENT_CLICK]: () => copy(hash) } })));
+    const byType = new Map();
+    for (const [k, lines] of changed) {
+      const type = nodes.get(k).type;
+      if (!byType.has(type)) byType.set(type, []);
+      byType.get(type).push([k, lines]);
+    }
+    const types = CHANGED_ORDER.filter((type) => byType.has(type));
+    const summary = el("div", { class: "detail-summary" }, types.length
+      ? types.map((type) => groupTag(type, type, `${plural(type, byType.get(type).length)} ${byType.get(type).length}`))
+      : el(TAG_SPAN, { class: "badge badge-neutral", text: "No change credited" }));
+    const note = merge ? "A merge credits no one: what it brings was changed by the commits of its parents."
+      : "This commit changed none of the process elements and source files read.";
+    panel.append(detailBand(TYPE_COMMIT, head, summary), el("div", { class: "detail-body" },
+      ...types.map((type) => changedGroup(type, byType.get(type))), types.length ? null : el("p", { class: "detail-note", text: note })));
+    applyTagFilter();
+  }
+
+  // The mark of the selected commit is marked in the timeline; another selection unmarks it.
+  function markCommit(key) {
+    hist.commit = knownCommit(key) ? commitOf.get(hashOf(key)) ?? null : null;
+    for (const mark of $(ID_HISTORY_ROWS).querySelectorAll(CLASS_MARK)) mark.classList.toggle(IS_SELECTED, Number(mark.dataset.commit) === hist.commit);
+  }
+
+  const selectCommit = (ci) => select(COMMIT_PREFIX + HISTORY.commits[ci].hash);
 
   const rowOfMark = (mark) => hist.rows.find((r) => r.key === mark.closest(".history-row").dataset.key);
 
@@ -2853,7 +2917,7 @@
         cssNumber(CSS_TIP_DELAY));
     });
     rowsBox.addEventListener(EVENT_MOUSEOUT, (event) => { if (event.target.closest(CLASS_MARK)) hideHistoryTip(); });
-    const pinFrom = (mark) => pinCommit(rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines));
+    const pinFrom = (mark) => selectCommit(Number(mark.dataset.commit));          // RQ-HST-023
     rowsBox.addEventListener(EVENT_CLICK, (event) => { const mark = event.target.closest(CLASS_MARK); if (mark) pinFrom(mark); });
     rowsBox.addEventListener(EVENT_KEYDOWN, (event) => {
       const mark = event.target.closest(CLASS_MARK);
@@ -3031,6 +3095,7 @@
       drawHistory();
     },
     span: () => [...hist.span], setSpan, timeAt, xOf, state: hist, redraw: drawHistory,
+    known: knownCommit, render: renderCommitDetail, markCommit,                           // DEC-HST-009
   };
   if (HISTORY) {
     document.querySelector(`.tab[data-view=${HISTORY_VIEW}]`).hidden = false;
@@ -3051,6 +3116,10 @@
     }
     if (boxes.get(key)) {
       renderBoxDetail(panel, boxes.get(key));
+      return;
+    }
+    if (isCommitKey(key)) {
+      historyView.render(panel, key);
       return;
     }
     const n = nodes.get(key);
@@ -3267,8 +3336,8 @@
   }
 
   // ---- selection, views, history ------------------------------------------------------------------------------
-  // An element, file or function of the model, or a box of the call graph (DEC-TRC-022).
-  const isKey = (key) => nodes.has(key) || Boolean(boxes.get(key));
+  // An element, file or function of the model, a box of the call graph (DEC-TRC-022), or a commit (DEC-HST-009).
+  const isKey = (key) => nodes.has(key) || Boolean(boxes.get(key)) || historyView.known(key);
 
   function hashKey() {
     const raw = decodeURIComponent(location.hash.slice(1));
@@ -3281,7 +3350,8 @@
     state.selected = key;
     renderDetail();
     for (const tr of $("matrix-table").querySelectorAll("tbody tr")) tr.classList.toggle("selected", tr.dataset.key === key);
-    graph.select(key);
+    if (!isCommitKey(key)) graph.select(key);
+    historyView.markCommit(key);
     const hash = `#${encodeURIComponent(key)}`;
     if (!fromHistory && location.hash !== hash) history.pushState({ key }, "", hash);
   }

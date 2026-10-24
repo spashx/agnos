@@ -80,5 +80,80 @@ out.markshape = first ? first.firstElementChild.tagName : "";
         self.assertEqual("circle", got["markshape"])
 
 
+COMMIT_PANEL = """
+agnosTrace.showView("history");
+const clickMark = (row, commit) => document.querySelector(`.history-row[data-key="${row}"] .history-mark[data-commit="${commit}"]`)
+  .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+const text = (selector) => document.querySelector(selector)?.textContent || "";
+const groups = () => [...document.querySelectorAll("#detail .detail-body .group[data-group]")].map((g) => g.dataset.group + ":"
+  + [...g.querySelectorAll(".link-item")].map((i) => i.querySelector(".id").textContent + "=" + i.querySelector(".link-rel").textContent).join(";")).join("|");
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class CommitDetailTest(PageTestCase):
+    """TASK-HST-016: RQ-HST-023, RQ-HST-007, RQ-HST-026 (DEC-HST-009)."""
+
+    def run_script(self, script, *names):
+        return super().run_script(COMMIT_PANEL + script, *names)
+
+    def test_RQ_HST_023_given_a_mark_clicked_then_the_detail_panel_shows_the_commit_and_what_it_changed(self):
+        got = self.run_script("""
+clickMark("RQ-DEM-002", 4);
+out.selected = agnosTrace.state.selected;
+out.viewed = agnosTrace.state.view;
+out.card = String(Boolean(document.getElementById("history-card")));
+out.kindline = text("#detail .detail-top .detail-kind");
+out.shownhash = text("#detail .detail-top .detail-id");
+out.subject = text("#detail .detail-top .detail-title");
+out.people = [...document.querySelectorAll("#detail .detail-top .history-person")].map((p) => (p.querySelector(".kind-icon") ? "icon:" : "") + p.textContent).join(",");
+out.badges = [...document.querySelectorAll("#detail .detail-top .detail-badges .badge")].map((b) => b.textContent).join(",");
+out.tags = [...document.querySelectorAll("#detail .detail-summary .tag")].map((t) => t.dataset.group).join(",");
+out.groups = groups();
+out.marked = [...document.querySelectorAll(".history-mark.is-selected")].map((m) => m.dataset.commit).join(",");
+out.address = decodeURIComponent(location.hash);
+""", "selected", "viewed", "card", "kindline", "shownhash", "subject", "people", "badges", "tags", "groups", "marked", "address")
+        file = self.data["files"][0]["path"]
+        self.assertEqual(("commit:a000000005", "history", "false"), (got["selected"], got["viewed"], got["card"]))
+        self.assertIn("Commit", got["kindline"])
+        self.assertIn("Agent", got["kindline"])
+        self.assertEqual(("a000000005", "tests"), (got["shownhash"], got["subject"]))
+        self.assertEqual("icon:Claude Opus 5.5", got["people"])
+        self.assertEqual("7 lines,main", got["badges"])
+        self.assertEqual("RQ,FILE", got["tags"])
+        self.assertEqual(f"RQ:RQ-DEM-002=3 lines|FILE:{file.rsplit('/', 1)[-1]}=4 lines", got["groups"])
+        self.assertEqual("4", got["marked"])
+        self.assertEqual("#commit:a000000005", got["address"])
+
+    def test_RQ_HST_023_given_an_item_of_a_group_clicked_then_it_is_selected_and_the_mark_unmarked(self):
+        got = self.run_script("""
+clickMark("RQ-DEM-002", 4);
+document.querySelector('#detail .group[data-group="RQ"] .id-link').click();
+out.selected = agnosTrace.state.selected;
+out.marked = String(document.querySelectorAll(".history-mark.is-selected").length);
+""", "selected", "marked")
+        self.assertEqual(("RQ-DEM-002", "0"), (got["selected"], got["marked"]))
+
+    def test_RQ_HST_023_given_a_feature_and_its_requirement_changed_then_the_total_counts_their_lines_once(self):
+        got = self.run_script("""
+clickMark("RQ-DEM-001", 0);
+out.badges = [...document.querySelectorAll("#detail .detail-top .detail-badges .badge")].map((b) => b.textContent).join(",");
+out.groups = groups();
+""", "badges", "groups")
+        self.assertEqual("31 lines,main", got["badges"])                  # RQ-DEM-001's 6 lines are inside FTR-DEM-001's 31
+        self.assertEqual("FTR:FTR-DEM-001=31 lines|RQ:RQ-DEM-001=6 lines", got["groups"])
+
+    def test_RQ_HST_023_given_the_keyboard_on_a_mark_then_enter_selects_its_commit(self):
+        got = self.run_script("""
+document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-mark[data-commit="2"]')
+  .dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+out.selected = agnosTrace.state.selected;
+agnosTrace.showView("graph");
+out.graph = String(document.getElementById("graph-empty").hidden);
+""", "selected", "graph")
+        self.assertEqual("commit:a000000003", got["selected"])
+        self.assertEqual("false", got["graph"])                           # the graph shows no commit: its empty state
+
+
 if __name__ == "__main__":
     unittest.main()

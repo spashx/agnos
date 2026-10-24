@@ -309,6 +309,7 @@ button, input, select { font: inherit; color: inherit; }
 .t-FN { --type-color: var(--s-type-fn); }
 .t-FILE { --type-color: var(--s-type-file); }
 .t-UNDEFINED { --type-color: var(--s-type-undefined); }
+.t-COMMIT { --type-color: var(--s-accent); }                       /* RQ-HST-023: a commit in the detail panel */
 
 .dot {
   display: inline-block;
@@ -1094,27 +1095,9 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-mark { cursor: pointer; }
 .history-mark > :first-child { stroke: var(--c-history-mark-outline); stroke-width: var(--s-stroke-hairline); }
 .history-ring { fill: none; stroke-width: var(--s-stroke-medium); }
-.history-mark:hover > :first-child, .history-mark:focus > :first-child, .history-mark.is-pinned > :first-child { stroke: var(--s-text); stroke-width: var(--s-stroke-focus); }
+.history-mark:hover > :first-child, .history-mark:focus > :first-child, .history-mark.is-selected > :first-child { stroke: var(--s-text); stroke-width: var(--s-stroke-focus); }
 .history-mark:focus { outline: none; }
 .tip { max-width: var(--c-history-card-width); }
-.history-card {
-  position: absolute;
-  top: var(--s-space-xl);
-  right: var(--s-space-xl);
-  z-index: 20;
-  width: var(--c-history-card-width);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-space-xs);
-  box-shadow: var(--c-overlay-shadow);
-  font-size: var(--s-text-small);
-}
-.history-card[hidden] { display: none; }
-.history-card-head { display: flex; align-items: center; gap: var(--s-space-sm); }
-.history-card-hash { font-family: var(--s-font-mono); font-weight: var(--s-weight-strong); }
-.history-card-close { margin-left: auto; }
-.history-card-subject { font-weight: var(--s-weight-medium); }
-.history-card-muted { color: var(--s-text-muted); }
 .history-person { display: inline-flex; align-items: center; gap: var(--s-space-xs); }
 .history-scope { display: inline-flex; align-items: center; gap: var(--s-space-xs); padding: var(--s-space-hair) var(--s-space-hair) var(--s-space-hair) var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-accent-border); border-radius: var(--c-chip-radius); background: var(--s-accent-subtle); color: var(--s-text); font-size: var(--s-text-small); }
 .history-scope[hidden] { display: none; }
@@ -1122,6 +1105,9 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-scope button:hover { background: var(--c-table-row-hover); color: var(--s-text); }
 .quality-shortcut .history-person-line { display: inline-flex; align-items: center; gap: var(--s-space-xs); min-width: var(--s-space-none); }
 #history-shortcuts .history-name { color: inherit; }
-.history-card-list { display: flex; flex-wrap: wrap; gap: var(--s-space-hair) var(--s-space-xs); }
+/* RQ-HST-023, DEC-HST-009: a commit in the detail panel: its contributors, the kind icons of its kind line */
+.detail-people { display: flex; flex-wrap: wrap; gap: var(--s-space-hair) var(--s-space-md); font-size: var(--s-text-small); }
+.detail-kind .kind-icon { margin-right: calc(-1 * var(--s-space-xs)); }
+.detail-note { margin: var(--s-space-none); padding: var(--s-space-md) var(--s-space-lg); color: var(--s-text-muted); font-size: var(--s-text-small); }
 
 @media (prefers-reduced-motion: reduce) { .chip, .splitter { transition: none; } }

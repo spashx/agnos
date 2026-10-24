@@ -40,10 +40,18 @@ COMMITS = [
 ]
 
 
-def history_block(data, elements=None, files=None, people=PEOPLE, commits=COMMITS):
+def linear_graph(commits):
+    """RQ-HST-024: the commits on one branch, newest first, each the child of the one before it in date."""
+    newest = list(reversed(range(len(commits))))
+    return {"branches": ["main"], "nodes": [{"hash": commits[ci]["hash"], "parents": [n + 1] if n + 1 < len(newest) else [],
+                                             "branch": 0, "commit": ci} for n, ci in enumerate(newest)]}
+
+
+def history_block(data, elements=None, files=None, people=PEOPLE, commits=COMMITS, graph=None):
     """A history block for a page's data: the given interventions, or a few on the fixture's elements and files."""
     first_file = data["files"][0]["path"]
     return {
+        "graph": graph or linear_graph(commits),
         "limits": {"since": None, "depth": None, "commits": len(commits), "first": commits[0]["date"],
                    "last": commits[-1]["date"], "shallow": False},
         "people": people, "commits": commits,
@@ -161,19 +169,18 @@ out.fit = String(Math.abs(spanSize() - w0) < 1);
 """, "zoomed", "pan", "fit")
         self.assertEqual(("true", "true", "true"), (got["zoomed"], got["pan"], got["fit"]))
 
-    def test_RQ_HST_007_given_a_mark_then_hover_shows_its_commit_and_click_pins_it(self):
+    def test_RQ_HST_007_given_a_mark_then_hover_shows_its_commit_and_click_selects_it_in_the_detail_panel(self):
         got = self.run_script("""
 const mark = document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-mark[data-commit="2"]');
 mark.dispatchEvent(new FocusEvent("focus"));
 const tip = document.getElementById("tip");
 out.tip = tip.hidden ? "" : tip.textContent;
 mark.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-const card = document.getElementById("history-card");
-out.card = card.hidden ? "" : card.textContent;
-""", "tip", "card")
+out.detail = document.querySelector("#detail .detail-id")?.textContent || "";
+""", "tip", "detail")
         for text in ("a000000003", "Alice", "Claude Opus 5.5", "requirement refined", "2 lines"):
             self.assertIn(text, got["tip"], text)
-        self.assertIn("a000000003", got["card"])
+        self.assertEqual("a000000003", got["detail"])                     # RQ-HST-007 as amended: RQ-HST-023
 
     def test_RQ_HST_007_given_a_row_label_when_clicked_then_the_element_is_selected(self):
         got = self.run_script("""

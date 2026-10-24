@@ -79,7 +79,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-016: The commit in the detail panel
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make `commit:<hash>` a key of the selection; render the commit in the detail panel (band, tags,
   groups of what it changed with their lines); select it on a mark's click or Enter; remove the pinned card.
 - **Requirement refs**: RQ-HST-023, RQ-HST-007, RQ-HST-026
@@ -90,8 +90,16 @@ This plan implements the tasks in the format specified below.
   Then no card shows over it and the selected commit's mark is marked; When the panel scrolls, Then its band stays.
 - **Dependencies**: TASK-HST-014
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `CommitDetailTest`, 4 tests OK: a click selects `commit:a000000005`, the History tab stays, no
+  `#history-card`; band "Commit · Agent", hash, subject, Claude Opus 5.5 with its icon, badges `7 lines,main`, tags
+  `RQ,FILE`, groups `RQ-DEM-002=3 lines` and `a.py=4 lines`, the mark marked, address `#commit:a000000005`; a group item
+  selects it and unmarks the mark; a feature and its requirement counted once (31 lines); Enter on a mark selects its
+  commit, and the graph then shows its empty state. The band is the panel's `detail-top`, which does not scroll
+  (RQ-TRC-054). `test_RQ_HST_007_…_click_selects_it_in_the_detail_panel` OK. Whole suite: 250 tests OK, 2 skipped.
+- **Assumptions**: The total of lines counts the files and the process elements that no other changed element contains
+  (a feature's range holds its requirements'); functions are inside their files. A merge, or a commit that changed no
+  folder read, is selectable from the git graph (TASK-HST-017) and shows a note instead of groups. The commit's band
+  takes the accent colour as its type colour.
 
 ### TASK-HST-017: The git graph of the selected commit
 - **Tier**: L
