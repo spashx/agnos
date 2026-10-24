@@ -103,7 +103,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-017: The git graph of the selected commit
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw, in the commit's detail panel, the git graph of DEC-HST-011: lanes by branch, names, dots,
   curved lines to the parents, rows with hash, subject and author's icon, the selected commit marked, a click selecting a
   commit; branch tokens added to the design system.
@@ -115,8 +115,14 @@ This plan implements the tasks in the format specified below.
   their tokens and the literal test passes.
 - **Dependencies**: TASK-HST-015, TASK-HST-016
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `GitGraphTest`, 2 tests OK: with a4 selected, 7 rows newest first, a4 `aria-current`, lanes `main` 0
+  and `feature/A` 1, labels `main,feature/A`, 7 lines of which 2 curved, 6 author icons, 1 ring, the two lanes'
+  strokes differ; a click on the merge's row selects it ("Commit · Merge", its note), every row a named button with the
+  rich tooltip and no title. Literal test OK. Whole suite 252 tests OK, 2 skipped. On the demo's page, a commit of
+  `feature/WEB` drawn on its lane under `main`'s merge, both named (screenshot checked).
+- **Assumptions**: The window is 12 commits above and below the selected one; lanes are coloured by branch (stable
+  from one selection to the next), the eight branch tokens taken in turn. Each row raises the rich tooltip with the whole
+  subject, since the panel truncates it.
 
 ### TASK-HST-018: Speed measured again, documentation, the demo's page
 - **Tier**: M

@@ -302,13 +302,13 @@ TASK-HST-010|39-57|Done|The content of the rich tooltips
 TASK-HST-011|58-74|Done|Files in a folder tree
 TASK-HST-012|75-92|Done|A resizable label column and a filter on the rows
 @process/3.plan/PLAN-HST-003-commit-detail-and-git-graph.md
-PLAN-HST-003|1-135||The Commit in the Detail Panel, its Git Graph, and the History Tab's Controls
+PLAN-HST-003|1-141||The Commit in the Detail Panel, its Git Graph, and the History Tab's Controls
 TASK-HST-013|20-37|Done|The selectors together, the row filter first
 TASK-HST-014|38-55|Done|An identity drawn by its icon in its colour
 TASK-HST-015|56-79|Done|The commit graph in the history block
 TASK-HST-016|80-103|Done|The commit in the detail panel
-TASK-HST-017|104-120|Not Started|The git graph of the selected commit
-TASK-HST-018|121-135|Not Started|Speed measured again, documentation, the demo's page
+TASK-HST-017|104-126|Done|The git graph of the selected commit
+TASK-HST-018|127-141|Not Started|Speed measured again, documentation, the demo's page
 @process/3.plan/PLAN-IDX-001.md
 PLAN-IDX-001|1-53||Process artifact index
 TASK-IDX-001|15-35|Done|Index generators and tests

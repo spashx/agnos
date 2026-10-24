@@ -155,5 +155,79 @@ out.graph = String(document.getElementById("graph-empty").hidden);
         self.assertEqual("false", got["graph"])                           # the graph shows no commit: its empty state
 
 
+MERGE = "m000000001"
+
+
+def branched_graph():
+    """RQ-HST-024's case on the fixture's commits: main c0, c1, the merge, c5; feature/A c2, c3, c4 from c1."""
+    node = lambda h, parents, branch, commit: {"hash": h, "parents": parents, "branch": branch, "commit": commit}  # noqa: E731
+    merge = {**node(MERGE, [5, 2], 0, None), "date": "2026-03-10T10:00:00Z", "subject": "Merge branch 'feature/A'"}
+    return {"branches": ["main", "feature/A"], "nodes": [
+        node("a000000006", [1], 0, 5), merge, node("a000000005", [3], 1, 4), node("a000000004", [4], 1, 3),
+        node("a000000003", [5], 1, 2), node("a000000002", [6], 0, 1), node("a000000001", [], 0, 0)]}
+
+
+GIT_GRAPH = """
+agnosTrace.select("commit:a000000004");
+const graph = document.querySelector("#detail .git-graph");
+const rows = () => [...graph.querySelectorAll(".git-row")];
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class GitGraphTest(unittest.TestCase):
+    """TASK-HST-017: RQ-HST-025, RQ-HST-014 (DEC-HST-011)."""
+
+    @classmethod
+    def setUpClass(cls):
+        from test_history_page import history_block
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_history(cls.path, lambda data: history_block(data, graph=branched_graph()))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, START + GIT_GRAPH + script), *names)
+
+    def test_RQ_HST_025_given_a_commit_of_a_branch_then_its_lanes_names_dots_and_lines_are_drawn(self):
+        got = self.run_script("""
+out.rows = rows().map((r) => r.dataset.node).join(",");
+out.current = rows().filter((r) => r.getAttribute("aria-current") === "true").map((r) => r.dataset.node).join(",");
+out.lanes = [...graph.querySelectorAll(".git-dot")].map((d) => d.dataset.node + ":" + d.dataset.lane).join(",");
+out.labels = [...graph.querySelectorAll(".git-label")].map((l) => l.textContent).join(",");
+out.edges = String(graph.querySelectorAll(".git-edge").length);
+out.curves = String([...graph.querySelectorAll(".git-edge")].filter((e) => e.getAttribute("d").includes("C")).length);
+out.icons = String(graph.querySelectorAll(".git-row .kind-icon.is-identity").length);
+out.ring = String(graph.querySelectorAll(".git-ring").length);
+const stroke = (lane) => getComputedStyle(graph.querySelector(`.git-edge[data-lane="${lane}"]`)).stroke;
+out.strokes = String(stroke(0) !== stroke(1));
+""", "rows", "current", "lanes", "labels", "edges", "curves", "icons", "ring", "strokes")
+        self.assertEqual("a000000006,m000000001,a000000005,a000000004,a000000003,a000000002,a000000001", got["rows"])
+        self.assertEqual("a000000004", got["current"])
+        self.assertEqual("a000000006:0,m000000001:0,a000000005:1,a000000004:1,a000000003:1,a000000002:0,a000000001:0",
+                         got["lanes"])
+        self.assertEqual("main,feature/A", got["labels"])
+        self.assertEqual(("7", "2", "6", "1", "true"),
+                         (got["edges"], got["curves"], got["icons"], got["ring"], got["strokes"]))
+
+    def test_RQ_HST_025_given_the_merge_row_clicked_then_the_merge_is_selected(self):
+        got = self.run_script(f"""
+rows().find((r) => r.dataset.node === "{MERGE}").click();
+out.selected = agnosTrace.state.selected;
+out.kindline = document.querySelector("#detail .detail-kind").textContent;
+out.note = document.querySelector("#detail .detail-note")?.textContent || "";
+out.named = String(rows().every((r) => r.tagName === "BUTTON" && r.getAttribute("aria-label").includes(r.dataset.node)
+  && r.dataset.richTip === "true" && !r.getAttribute("title")));                     // RQ-HST-016: one rich tooltip
+""", "selected", "kindline", "note", "named")
+        self.assertEqual("commit:" + MERGE, got["selected"])
+        self.assertIn("Merge", got["kindline"])
+        self.assertIn("merge credits no one", got["note"].lower())
+        self.assertEqual("true", got["named"])
+
+
 if __name__ == "__main__":
     unittest.main()

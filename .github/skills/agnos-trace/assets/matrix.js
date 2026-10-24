@@ -2892,9 +2892,118 @@
       : el(TAG_SPAN, { class: "badge badge-neutral", text: "No change credited" }));
     const note = merge ? "A merge credits no one: what it brings was changed by the commits of its parents."
       : "This commit changed none of the process elements and source files read.";
-    panel.append(detailBand(TYPE_COMMIT, head, summary), el("div", { class: "detail-body" },
+    panel.append(detailBand(TYPE_COMMIT, head, summary), el("div", { class: "detail-body" }, gitGraph(key),
       ...types.map((type) => changedGroup(type, byType.get(type))), types.length ? null : el("p", { class: "detail-note", text: note })));
     applyTagFilter();
+  }
+
+  // ---- the git graph of the selected commit (TASK-HST-017: RQ-HST-025; DEC-HST-011) ----
+  const GIT_WINDOW = 12;                // the commits drawn above and below the selected one
+  const BRANCH_TOKENS = 8;              // --c-history-branch-1…8, taken in turn by the branches
+  const MIDDLE = 0.5;
+  const CSS_BRANCH = "--branch";
+  const branchVar = (branch) => `var(--c-history-branch-${(branch % BRANCH_TOKENS) + 1})`;
+  const branchColour = (branch) => `${CSS_BRANCH}: ${branchVar(branch)}`;
+  let gitLanes = null;
+
+  // The lane of each branch, computed once: the default branch (found first) in lane 0; every other one, from its
+  // newest row, in the leftmost lane free over the rows its commits and lines span, so that a lane is reused once its
+  // branch has ended.
+  function laneOfBranch() {
+    if (gitLanes) return gitLanes;
+    const span = new Map();
+    const reach = (branch, row) => {
+      const s = span.get(branch);
+      if (s) { s[0] = Math.min(s[0], row); s[1] = Math.max(s[1], row); } else span.set(branch, [row, row]);
+    };
+    GRAPH.nodes.forEach((n, i) => {
+      reach(n.branch, i);
+      n.parents.forEach((p, k) => (k === 0 ? reach(n.branch, Math.max(i, p - 1)) : reach(GRAPH.nodes[p].branch, i)));
+    });
+    const byStart = (a, b) => (b === 0) - (a === 0) || span.get(a)[0] - span.get(b)[0] || a - b;   // the default first
+    const taken = [];
+    gitLanes = new Map();
+    for (const branch of [...span.keys()].sort(byStart)) {
+      const [top, bottom] = span.get(branch);
+      let lane = 0;
+      while ((taken[lane] || []).some(([t, u]) => top <= u && t <= bottom)) lane += 1;
+      (taken[lane] ||= []).push([top, bottom]);
+      gitLanes.set(branch, lane);
+    }
+    return gitLanes;
+  }
+
+  // A line from a commit to its parent: down its own lane, curving into the parent's in the last row (a branch's start),
+  // or, to a second parent, curving out in the first row and down the parent's lane (a merge).
+  function gitEdgePath(from, to, merge, x, y, row) {
+    const [x0, y0, x1, y1] = [x(from.lane), y(from.row), x(to.lane), y(to.row)];
+    if (from.lane === to.lane) return `M${x0} ${y0}L${x1} ${y1}`;
+    if (merge) return `M${x0} ${y0}C${x0} ${y0 + row * MIDDLE} ${x1} ${y0 + row * MIDDLE} ${x1} ${y0 + row}L${x1} ${y1}`;
+    return `M${x0} ${y0}L${x0} ${y1 - row}C${x0} ${y1 - row * MIDDLE} ${x1} ${y1 - row * MIDDLE} ${x1} ${y1}`;
+  }
+
+  function gitRow(i, centre, labelled) {
+    const node = GRAPH.nodes[i];
+    const commit = node.commit === null ? null : HISTORY.commits[node.commit];
+    const subject = commit ? commit.subject : node.subject;
+    const people = commit ? [commit.author, ...commit.coAuthors].map((p) => HISTORY.people[p].name).join(", ") : "";
+    const tip = () => ({ head: node.hash, lines: [subject, DATE_TEXT.format(commit ? commitTime[node.commit] : Date.parse(node.date)),
+      people, `Branch: ${branchName(node)}`] });                                         // RQ-HST-017: the whole subject
+    return richTip(el(TAG_BUTTON, { class: "git-row", type: TAG_BUTTON, "data-node": node.hash, "aria-current": i === centre ? VALUE_TRUE : null,
+      [VALUE_ARIA_LABEL]: `${node.hash} ${subject}, ${branchName(node)}`,
+      on: { [EVENT_CLICK]: () => select(COMMIT_PREFIX + node.hash) } },
+    labelled ? el(TAG_SPAN, { class: "git-label", style: { [CSS_BRANCH]: branchVar(node.branch) }, text: branchName(node) }) : null,
+    el(TAG_SPAN, { class: "git-hash", text: node.hash }), el(TAG_SPAN, { class: "git-subject", text: subject }),
+    commit ? identityIcon(commit.author) : null), tip, CSS_TIP_DELAY);
+  }
+
+  // The commits around the selected one, newest at the top: a lane per branch, a dot per commit, the lines to the
+  // parents, and a row per commit that selects it.
+  function gitGraph(key) {
+    const centre = graphNodeOf.get(hashOf(key));
+    const lanes = laneOfBranch();
+    const first = Math.max(0, centre - GIT_WINDOW);
+    const last = Math.min(GRAPH.nodes.length - 1, centre + GIT_WINDOW);
+    const row = cssNumber("--c-history-git-row");
+    const lane = cssNumber("--c-history-git-lane");
+    const dot = cssNumber("--c-history-git-dot");
+    const x = (n) => (n + MIDDLE) * lane;
+    const y = (i) => (i - first + MIDDLE) * row;
+    const at = (i) => ({ row: i, lane: lanes.get(GRAPH.nodes[i].branch) });
+    let widest = 0;
+    const edges = [];
+    for (let i = 0; i <= last; i += 1) {                 // every line that crosses the rows drawn
+      GRAPH.nodes[i].parents.forEach((p, k) => {
+        if (p < first) return;
+        const [from, to] = [at(i), at(p)];
+        widest = Math.max(widest, from.lane, to.lane);
+        const carrier = k > 0 ? to : from;
+        edges.push(svgEl(VALUE_PATH, { class: "git-edge", d: gitEdgePath(from, to, k > 0, x, y, row), "data-lane": carrier.lane,
+          style: branchColour(GRAPH.nodes[carrier.row].branch) }));
+      });
+    }
+    const dots = [];
+    const seen = new Set();
+    const rows = [];
+    for (let i = first; i <= last; i += 1) {
+      const node = GRAPH.nodes[i];
+      const { lane: n } = at(i);
+      widest = Math.max(widest, n);
+      dots.push(svgEl(SVG_CIRCLE, { class: `git-dot${node.parents.length > 1 ? " is-merge" : ""}`, cx: x(n), cy: y(i), r: dot,
+        "data-node": node.hash, "data-lane": n, style: branchColour(node.branch) }));
+      if (i === centre) dots.push(svgEl(SVG_CIRCLE, { class: "git-ring", cx: x(n), cy: y(i), r: dot + cssNumber("--c-history-git-ring") }));
+      rows.push(gitRow(i, centre, !seen.has(node.branch)));
+      seen.add(node.branch);
+    }
+    const width = (widest + 1) * lane;
+    const height = (last - first + 1) * row;
+    return el("section", { class: "git-graph-section" },
+      el("div", { class: "group-head" }, el("h3", { class: "group-title", text: "Git graph" }),
+        el(TAG_SPAN, { class: "group-count", text: commitCount(last - first + 1) })),
+      el("div", { class: "git-graph", style: { "--git-graph-width": `${width}px` } },
+        svgEl("svg", { class: "git-lines", width, height, [ATTR_VIEWBOX]: `0 0 ${width} ${height}`, [ATTR_ARIA_HIDDEN]: VALUE_TRUE },
+          ...edges, ...dots),
+        el("div", { class: "git-rows" }, ...rows)));
   }
 
   // The mark of the selected commit is marked in the timeline; another selection unmarks it.

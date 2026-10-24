@@ -1108,6 +1108,31 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 /* RQ-HST-023, DEC-HST-009: a commit in the detail panel: its contributors, the kind icons of its kind line */
 .detail-people { display: flex; flex-wrap: wrap; gap: var(--s-space-hair) var(--s-space-md); font-size: var(--s-text-small); }
 .detail-kind .kind-icon { margin-right: calc(-1 * var(--s-space-xs)); }
+/* RQ-HST-025, DEC-HST-011: the git graph of a commit: lanes and lines on the left, a row per commit on the right */
+.git-graph-section { padding: var(--s-space-md) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.git-graph { position: relative; margin-top: var(--s-space-sm); }
+.git-lines { position: absolute; top: var(--s-space-none); left: var(--s-space-none); overflow: hidden; pointer-events: none; }
+.git-rows { display: flex; flex-direction: column; }
+.git-row {
+  display: flex; align-items: center; gap: var(--s-space-sm); min-width: var(--s-space-none); height: var(--c-history-git-row);
+  padding: var(--s-space-none) var(--s-space-xs) var(--s-space-none) calc(var(--git-graph-width) + var(--s-space-sm));
+  border: none; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text);
+  font: inherit; font-size: var(--s-text-small); text-align: left; cursor: pointer;
+}
+.git-row:hover { background: var(--c-table-row-hover); }
+.git-row[aria-current="true"] { background: var(--c-history-git-selected); font-weight: var(--s-weight-medium); }
+.git-row:focus-visible { outline: var(--c-focus-ring) solid var(--s-focus); outline-offset: calc(-1 * var(--c-focus-ring)); }
+.git-hash { flex: none; color: var(--s-text-muted); font-family: var(--s-font-mono); }
+.git-subject { flex: 1 1 auto; min-width: var(--s-space-none); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.git-label {
+  flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: var(--s-space-none) var(--s-space-xs);
+  border: var(--s-stroke-hairline) solid var(--branch); border-radius: var(--c-chip-radius); color: var(--branch);
+  font-size: var(--s-text-caption); font-weight: var(--s-weight-strong);
+}
+.git-edge { fill: none; stroke: var(--branch); stroke-width: var(--c-history-git-edge-width); stroke-linecap: round; }
+.git-dot { fill: var(--branch); stroke: var(--c-history-git-merge-fill); stroke-width: var(--s-stroke-focus); }
+.git-dot.is-merge { fill: var(--c-history-git-merge-fill); stroke: var(--branch); }
+.git-ring { fill: none; stroke: var(--s-text); stroke-width: var(--s-stroke-focus); }
 .detail-note { margin: var(--s-space-none); padding: var(--s-space-md) var(--s-space-lg); color: var(--s-text-muted); font-size: var(--s-text-small); }
 
 @media (prefers-reduced-motion: reduce) { .chip, .splitter { transition: none; } }
