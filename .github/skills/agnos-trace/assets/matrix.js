@@ -2008,11 +2008,19 @@
   const SVG_TEXT = "text";
   const CLASS_MARK = ".history-mark";
   const CLASS_LABEL = "history-label";
+  const CLASS_SWATCH = "history-swatch";
   const IS_PINNED = "is-pinned";
   const EVENT_POINTERDOWN = "pointerdown";
   const EVENT_FOCUS = "focus";
   const EVENT_BLUR = "blur";
   const KEY_ENTER = "Enter";
+  const SVG_RECT = "rect";
+  const TEXT_IDENTITIES = "identities";
+  const ID_SHOW_EMPTY = "history-show-empty";
+  const ID_HISTORY_PEOPLE = "history-people";
+  const ID_HISTORY_KIND = "history-kind";
+  const CSS_HAIRLINE = "--s-stroke-hairline";
+  const CSS_IDENTITY = "--identity";
   const ID_HISTORY_SCROLL = "history-scroll";
   const ID_HISTORY_ROWS = "history-rows";
   const ID_HISTORY_GROUPING = "history-grouping";
@@ -2056,9 +2064,15 @@
     [UNIT_YEAR, DAYS_PER_YEAR * DAY_MS, { year: NUMERIC }],
   ];
   const DATE_TEXT = new Intl.DateTimeFormat(LOCALE, { timeZone: UTC, year: NUMERIC, ...FORMAT_TIME });
+  const DAY_TEXT = new Intl.DateTimeFormat(LOCALE, { timeZone: UTC, year: NUMERIC, ...FORMAT_DAY });
 
+  const KIND_ALL = "all";
+  const BAND_DAY_LIMIT = 45;            // a period of at most this many days is drawn day by day (RQ-HST-008)
+  const BAND_WEEK_LIMIT = 270;          // up to this many, week by week; beyond, month by month
+  const BAND_STACK = [KIND_HUMAN, KIND_TOGETHER, KIND_AGENT];   // from the bottom of a bar
   const hist = {
-    angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, rows: [], built: false, pinned: null,
+    angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, baseRows: [], rows: [], built: false,
+    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [],
   };
   const commitTime = HISTORY ? HISTORY.commits.map((c) => Date.parse(c.date)) : [];
   const fnIndex = new Map(fnKeys.map((key, i) => [key, i]));
@@ -2085,7 +2099,7 @@
   function personTag(index) {
     const person = HISTORY.people[index];
     return el(TAG_SPAN, { class: "history-person", title: `${person.name} (${KIND_LABEL[person.kind]})` },
-      el(TAG_SPAN, { class: "history-swatch", style: { "--identity": colourOf[index] } }), kindIcon(person.kind),
+      el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
       el(TAG_SPAN, { text: person.name }));
   }
 
@@ -2148,6 +2162,99 @@
     if (hist.grouping === GROUPING_FILES) return fileRows();
     const cited = elementKeys().filter((id) => links.get(id).some((l) => l.kind === LINK_KIND_CODE && l.dir === "in"));
     return groupedRows(cited, codeMarks);
+  }
+
+  // ---- filters (TASK-HST-005: RQ-HST-009) ----
+  const filtering = () => hist.people.size > 0 || hist.kind !== KIND_ALL;
+
+  function keptCommits() {
+    return HISTORY.commits.map((c) => {
+      if (hist.people.size && ![c.author, ...c.coAuthors].some((i) => hist.people.has(i))) return false;
+      if (hist.kind === KIND_HUMAN) return c.kind !== KIND_AGENT;
+      return hist.kind !== KIND_AGENT || c.kind !== KIND_HUMAN;
+    });
+  }
+
+  function shownRows() {
+    const rows = [];
+    let heading = null;
+    for (const row of hist.baseRows) {
+      if (row.group) {
+        heading = { ...row, count: 0 };
+        rows.push(heading);
+        continue;
+      }
+      const marks = row.marks.filter(([ci]) => hist.kept[ci]);
+      if (!marks.length && filtering() && !hist.showEmpty) continue;
+      rows.push({ ...row, marks });
+      if (heading) heading.count += 1;
+    }
+    return rows.filter((row) => !row.group || row.count);
+  }
+
+  function applyFilters() {
+    hist.kept = keptCommits();
+    hist.rows = shownRows();
+    hist.shown = [...new Set(hist.rows.flatMap((row) => (row.group ? [] : row.marks.map(([ci]) => ci))))].sort((a, b) => a - b);
+    for (const chipNode of $(ID_HISTORY_PEOPLE).querySelectorAll("[data-person]")) {
+      chipNode.setAttribute(VALUE_ARIA_PRESSED, String(hist.people.has(Number(chipNode.dataset.person))));
+    }
+    for (const b of $(ID_HISTORY_KIND).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.kind === hist.kind));
+    const active = hist.rows.filter((row) => !row.group).length;
+    $("history-kept").textContent = `${active} ${active === 1 ? "row" : "rows"} · ${hist.shown.length} `
+      + `${hist.shown.length === 1 ? "commit" : "commits"}${filtering() ? " kept by the filters" : ""}`;
+    renderFigures();
+    drawHistory();
+  }
+
+  function resetFilters() {
+    hist.people.clear();
+    hist.kind = KIND_ALL;
+    hist.showEmpty = false;
+    $(ID_SHOW_EMPTY).checked = false;
+    applyFilters();
+  }
+
+  // An identity's chip: its colour, its kind's icon, its name, its commits; its tooltip tells how it was merged.
+  function identityTitle(index) {
+    const person = HISTORY.people[index];
+    const merged = person.mergedBy.length ? `merged by ${person.mergedBy.join(" and ")}` : "one name and one address";
+    return `${person.name} (${KIND_LABEL[person.kind]}): ${person.commits} commits as author, ${person.coCommits} as co-author`
+      + `\nNames: ${person.names.join(", ")}\nE-mails: ${person.emails.join(", ")}\nIdentity ${merged}`;
+  }
+
+  function personChip(index, onClick) {
+    const person = HISTORY.people[index];
+    return el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, "data-person": index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
+      title: identityTitle(index), on: { [EVENT_CLICK]: onClick } },
+    el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
+    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: "chip-count", text: person.commits + person.coCommits }));
+  }
+
+  function renderPeopleChips() {
+    clear($(ID_HISTORY_PEOPLE)).append(...HISTORY.people.map((_, i) => personChip(i, () => {
+      toggle(hist.people, i);
+      applyFilters();
+    })));
+  }
+
+  // ---- figures (RQ-HST-008) ----
+  function renderFigures() {
+    const shown = hist.shown.map((ci) => HISTORY.commits[ci]);
+    const people = new Set(shown.flatMap((c) => [c.author, ...c.coAuthors]));
+    const ofKind = (kind) => [...people].filter((i) => HISTORY.people[i].kind === kind).length;
+    const withAgent = shown.filter((c) => c.kind !== KIND_HUMAN).length;
+    const dates = hist.shown.map((ci) => commitTime[ci]);
+    const period = dates.length ? `${DAY_TEXT.format(dates[0])} – ${DAY_TEXT.format(dates.at(-1))}` : "—";
+    const figure = (key, label, value, sub) => el("div", { class: "kpi", "data-figure": key },
+      el(TAG_SPAN, { class: "kpi-label", text: label }), el(TAG_SPAN, { class: "kpi-value", text: value }),
+      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: sub }));
+    clear($("history-kpis")).append(
+      figure("commits", "Commits", shown.length, filtering() ? "kept by the filters" : "on the rows shown"),
+      figure("humans", "Humans", ofKind(KIND_HUMAN), TEXT_IDENTITIES),
+      figure("agents", "Agents", ofKind(KIND_AGENT), TEXT_IDENTITIES),
+      figure("share", "With an agent", `${pct(withAgent, shown.length)} %`, `${withAgent} commits, alone or with a human`),
+      figure("period", "Period", dates.length ? `${Math.max(1, Math.round((dates.at(-1) - dates[0]) / DAY_MS))} days` : "—", period));
   }
 
   // ---- time scale ----
@@ -2235,10 +2342,60 @@
     svg.setAttribute(ATTR_VIEWBOX, `0 0 ${width} ${height}`);
     const ticks = HISTORY.commits.map((c, i) => svgEl(VALUE_LINE, { class: "history-tick", x1: at(commitTime[i]),
       x2: at(commitTime[i]), y1: height * TICK_FROM, y2: height * TICK_TO, stroke: `var(--c-history-${c.kind})` }));
-    const inset = cssNumber("--s-stroke-hairline");
-    const window = svgEl("rect", { class: "history-window", x: at(hist.span[0]), y: inset, height: height - 2 * inset,
+    const inset = cssNumber(CSS_HAIRLINE);
+    const window = svgEl(SVG_RECT, { class: "history-window", x: at(hist.span[0]), y: inset, height: height - 2 * inset,
       width: Math.max(1, at(hist.span[1]) - at(hist.span[0])) });
     clear(svg).append(window, ...ticks);                    // the window under the ticks, which stay visible
+  }
+
+  // ---- the activity band (RQ-HST-008): commits per day, week or month of the period in view ----
+  function bandUnit() {
+    const days = spanWidth() / DAY_MS;
+    if (days <= BAND_DAY_LIMIT) return "day";
+    return days <= BAND_WEEK_LIMIT ? UNIT_WEEK : UNIT_MONTH;
+  }
+
+  function drawBand() {
+    const band = $("history-band");
+    const width = plotWidth();
+    const height = cssNumber("--c-history-band-height");
+    const unit = bandUnit();
+    band.dataset.unit = unit;
+    band.setAttribute(ATTR_VIEWBOX, `0 0 ${width} ${height}`);
+    const buckets = [];
+    for (let t = floorTo(unit, hist.span[0]); t <= hist.span[1]; t = nextTick(unit, t)) buckets.push({ t, end: nextTick(unit, t), counts: {} });
+    let b = 0;
+    for (const ci of hist.shown) {
+      const at = commitTime[ci];
+      while (b < buckets.length && buckets[b].end <= at) b += 1;
+      if (b < buckets.length && at >= buckets[b].t) {
+        const kind = HISTORY.commits[ci].kind;
+        buckets[b].counts[kind] = (buckets[b].counts[kind] || 0) + 1;
+      }
+    }
+    const total = (bucket) => BAND_STACK.reduce((sum, kind) => sum + (bucket.counts[kind] || 0), 0);
+    const most = Math.max(1, ...buckets.map(total));
+    const gap = cssNumber("--c-history-bar-gap");
+    const inset = cssNumber(CSS_HAIRLINE);
+    const bars = buckets.filter((bucket) => total(bucket)).map((bucket) => {
+      const x = localX(bucket.t) + gap;
+      const w = Math.max(inset, localX(bucket.end) - localX(bucket.t) - 2 * gap);
+      let y = height - inset;
+      const parts = BAND_STACK.filter((kind) => bucket.counts[kind]).map((kind) => {
+        const h = ((height - 2 * inset) * bucket.counts[kind]) / most;
+        y -= h;
+        return svgEl(SVG_RECT, { class: `history-bar-${kind}`, x, y, width: w, height: h });
+      });
+      const lines = [`${unit === "day" ? "" : `${unit[0].toUpperCase()}${unit.slice(1)} of `}${DAY_TEXT.format(bucket.t)}: ${total(bucket)} commits`,
+        ...BAND_STACK.filter((kind) => bucket.counts[kind]).map((kind) => `${bucket.counts[kind]} ${KIND_LABEL[kind]}`)];
+      const bar = svgEl(SVG_GROUP, { class: "history-bar", tabindex: "0", role: "img", [VALUE_ARIA_LABEL]: lines.join(", ") }, ...parts);
+      bar.addEventListener(EVENT_MOUSEOVER, () => showTipLines(bar, lines));
+      bar.addEventListener(EVENT_MOUSEOUT, hideHistoryTip);
+      bar.addEventListener(EVENT_FOCUS, () => showTipLines(bar, lines));
+      bar.addEventListener(EVENT_BLUR, hideHistoryTip);
+      return bar;
+    });
+    clear(band).append(...bars);
   }
 
   // ---- rows in view ----
@@ -2306,7 +2463,7 @@
   }
 
   function historyStatus() {
-    const shown = HISTORY.commits.filter((_, i) => commitTime[i] >= hist.span[0] && commitTime[i] <= hist.span[1]).length;
+    const shown = hist.shown.filter((ci) => commitTime[ci] >= hist.span[0] && commitTime[ci] <= hist.span[1]).length;
     const active = hist.rows.filter((r) => !r.group && r.marks.length).length;
     $("history-status").textContent = `${active} rows with changes · ${shown} commits in view · `
       + `${DATE_TEXT.format(hist.span[0])} – ${DATE_TEXT.format(hist.span[1])}`;
@@ -2315,10 +2472,11 @@
   function drawHistory() {
     if (!hist.built || $("view-history").hidden) return;
     const gutter = `${$(ID_HISTORY_SCROLL).offsetWidth - $(ID_HISTORY_SCROLL).clientWidth}px`;   // the rows' scroll bar
-    for (const row of document.querySelectorAll(".history-axis-row, .history-overview-row")) row.style.paddingRight = gutter;
+    for (const row of document.querySelectorAll(".history-band-row, .history-axis-row, .history-overview-row")) row.style.paddingRight = gutter;
     const { ticks } = axisTicks();
     hist.ticks = ticks;
     drawAxis(ticks);
+    drawBand();
     drawOverview();
     drawRows();
     historyStatus();
@@ -2335,9 +2493,13 @@
 
   let tipTimer = null;
   function showHistoryTip(target, row, ci, lines) {
+    showTipLines(target, tipLines(row, ci, lines));
+  }
+
+  function showTipLines(target, lines) {
     clearTimeout(tipTimer);
     const tip = $(ID_HISTORY_TIP);
-    clear(tip).append(...tipLines(row, ci, lines).map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
+    clear(tip).append(...lines.map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
     const box = target.getBoundingClientRect();
     tip.hidden = false;
     tip.style.left = `${box.right}px`;
@@ -2451,6 +2613,13 @@
       const button = event.target.closest("[data-grouping]");
       if (button) setAngle(hist.angle, button.dataset.grouping);
     });
+    $(ID_HISTORY_KIND).addEventListener(EVENT_CLICK, (event) => {
+      const button = event.target.closest("[data-kind]");
+      if (button) { hist.kind = button.dataset.kind; applyFilters(); }
+    });
+    $(ID_SHOW_EMPTY).addEventListener(EVENT_CHANGE, (event) => { hist.showEmpty = event.target.checked; applyFilters(); });
+    $("history-reset").addEventListener(EVENT_CLICK, resetFilters);
+    renderPeopleChips();
     new ResizeObserver(() => drawHistory()).observe(plot);
     renderHistoryLegend();
     renderHistoryLimits();
@@ -2462,9 +2631,9 @@
     for (const b of $(ID_HISTORY_ANGLE).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.angle === angle));
     for (const b of $(ID_HISTORY_GROUPING).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.grouping === grouping));
     $(ID_HISTORY_GROUPING).hidden = angle !== ANGLE_CODE;
-    hist.rows = historyRows();
+    hist.baseRows = historyRows();
     $(ID_HISTORY_SCROLL).scrollTop = 0;
-    drawHistory();
+    applyFilters();
   }
 
   // The shapes of the marks, drawn as the timeline draws them, at the largest mark's size (RQ-HST-014).
@@ -2503,11 +2672,13 @@
         hist.built = true;
         hist.full = fullSpan();
         hist.span = [...hist.full];
-        hist.rows = historyRows();
+        hist.baseRows = historyRows();
+        applyFilters();
+        return;
       }
       drawHistory();
     },
-    span: () => [...hist.span], timeAt, xOf, state: hist, redraw: drawHistory,
+    span: () => [...hist.span], setSpan, timeAt, xOf, state: hist, redraw: drawHistory,
   };
   if (HISTORY) {
     document.querySelector(`.tab[data-view=${HISTORY_VIEW}]`).hidden = false;

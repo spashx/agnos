@@ -96,7 +96,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-005: Figures, activity band and filters
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw above the timeline the key figures and the activity band stacked by human, agent and together,
   with its period following the zoom, and add the filter bar (identities, kind, empty rows, reset, counts kept).
 - **Requirement refs**: RQ-HST-008, RQ-HST-009, RQ-HST-014; RQ-TRC-018
@@ -107,8 +107,8 @@ This plan implements the tasks in the format specified below.
   from a year to two weeks, Then the band's period goes from month to day.
 - **Dependencies**: TASK-HST-004
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 211 tests, 0 failure, 1 skipped. `FiguresAndFiltersTest` (5, headless Edge): the figures of the synthetic history read 5 commits, 2 humans, 1 agent, 40 % with an agent (commits 2 and 4 of 5 shown); Bob selected keeps only TASK-DEM-001 and its heading (2 rows), 1 commit, "1 row" kept, and "Rows without changes" shows the others again; the kind Agents keeps commits 2 and 4 only, Reset brings every row and commits 0, 1, 2, 4, 5 back; the band is drawn week by week at fit (79 days) and day by day on a 10-day period, with bars; 20 identities give 20 chips with 20 different swatch colours and the agent icon on the 4 agents. `test_literals.py` OK and a direct count of the history section shows no repeated literal. Screenshot of this repository on 30 days: figures 76 commits, 1 human, 2 agents, 100 % with an agent, 29 days; chips spashx 102, Claude Opus 5.5 54, Claude Sonnet 5.5 35; day bars stacked.
+- **Assumptions**: The figures count the commits on the rows shown (angle, scope, filters), over the whole history, not only the period in view; the band and the status count the period in view. "Humans" keeps the commits with a human contributor (human or together), "Agents" those with an agent (agent or together). Empty rows hide only while a filter is on, so the unfiltered timeline lists every element. A day bucket up to 45 days in view, a week up to 270, else a month.
 
 ### TASK-HST-006: Sidebar History section and detail panel History button
 - **Tier**: M

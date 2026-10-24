@@ -192,6 +192,98 @@ out.named = String(marks.every((m) => m.getAttribute("aria-label") && m.getAttri
         self.assertEqual("true", got["named"])
 
 
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class FiguresAndFiltersTest(unittest.TestCase):
+    """TASK-HST-005: RQ-HST-008, RQ-HST-009, RQ-HST-014."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names, path=None):
+        return found(rendered_dom_after(path or self.path, OPEN + script), *names)
+
+    def test_RQ_HST_008_given_the_tab_then_the_figures_count_the_commits_shown_and_the_share_with_an_agent(self):
+        got = self.run_script("""
+const figure = (key) => document.querySelector(`#history-kpis [data-figure="${key}"] .kpi-value`)?.textContent || "";
+out.commits = figure("commits");
+out.humans = figure("humans");
+out.agents = figure("agents");
+out.share = figure("share");
+""", "commits", "humans", "agents", "share")
+        # the requirements angle shows commits 0, 1, 2, 4 and 5; 2 (together) and 4 (agent) have an agent
+        self.assertEqual(("5", "2", "1", "40 %"), (got["commits"], got["humans"], got["agents"], got["share"]))
+
+    def test_RQ_HST_009_given_one_identity_selected_then_only_its_commits_and_rows_stay(self):
+        got = self.run_script("""
+document.querySelector('#history-people [data-person="1"]').click();
+const rows = document.getElementById("history-rows");
+out.rowcount = rows.dataset.total;
+out.keys = [...rows.querySelectorAll(".history-row[data-key]")].map((r) => r.dataset.key).join(",");
+out.commits = document.querySelector('#history-kpis [data-figure="commits"] .kpi-value').textContent;
+out.kept = document.getElementById("history-kept").textContent;
+document.getElementById("history-show-empty").click();
+out.withempty = rows.dataset.total;
+""", "rowcount", "keys", "commits", "kept", "withempty")
+        self.assertEqual("TASK-DEM-001", got["keys"])                 # Bob's commits are 1 and 3; 3 is on a file only
+        self.assertEqual("2", got["rowcount"])                           # the row and its type heading
+        self.assertEqual("1", got["commits"])
+        self.assertIn("1 row", got["kept"])
+        self.assertGreater(int(got["withempty"]), 2)
+
+    def test_RQ_HST_009_given_the_kind_agents_then_only_commits_with_an_agent_stay_and_reset_shows_all(self):
+        got = self.run_script("""
+const rows = document.getElementById("history-rows");
+const all = rows.dataset.total;
+document.querySelector('#history-kind [data-kind="agent"]').click();
+out.commits = [...new Set([...rows.querySelectorAll(".history-mark")].map((m) => m.dataset.commit))].sort().join(",");
+document.getElementById("history-reset").click();
+out.reset = String(rows.dataset.total === all);
+out.after = [...new Set([...rows.querySelectorAll(".history-mark")].map((m) => m.dataset.commit))].sort().join(",");
+""", "commits", "reset", "after")
+        self.assertEqual("2,4", got["commits"])
+        self.assertEqual("true", got["reset"])
+        self.assertEqual("0,1,2,4,5", got["after"])
+
+    def test_RQ_HST_008_given_the_zoom_then_the_band_period_follows_it(self):
+        got = self.run_script("""
+const band = document.getElementById("history-band");
+const view = agnosTrace.historyView;
+out.fit = band.dataset.unit;
+const [a] = view.span();
+view.setSpan(a, 10 * 86400000);
+out.days = band.dataset.unit;
+out.bars = String(band.querySelectorAll(".history-bar").length > 0);
+""", "fit", "days", "bars")
+        self.assertEqual(("week", "day", "true"), (got["fit"], got["days"], got["bars"]))
+
+    def test_RQ_HST_014_given_20_identities_then_each_has_its_own_colour_and_its_kind_icon(self):
+        people = [{"name": f"P{n}", "names": [f"P{n}"], "emails": [f"p{n}@x"], "mergedBy": [],
+                   "kind": AGENT if n % 5 == 0 else HUMAN, "commits": 1, "coCommits": 0} for n in range(20)]
+        commits = [{"hash": f"b{n:09d}", "date": f"2026-02-{n + 1:02d}T10:00:00Z", "subject": "s", "author": n,
+                    "coAuthors": [], "kind": people[n]["kind"]} for n in range(20)]
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            generate(page)
+            add_history(page, lambda data: history_block(data, {"RQ-DEM-001": [[n, 1] for n in range(20)]}, {},
+                                                         people, commits))
+            got = self.run_script("""
+const chips = [...document.querySelectorAll("#history-people [data-person]")];
+out.chips = String(chips.length);
+out.colours = String(new Set(chips.map((c) => getComputedStyle(c.querySelector(".history-swatch")).backgroundColor)).size);
+out.icons = chips.map((c) => c.querySelector(".kind-icon").classList.contains("kind-agent") ? "a" : "h").join("");
+""", "chips", "colours", "icons", path=page)
+        self.assertEqual(("20", "20"), (got["chips"], got["colours"]))
+        self.assertEqual("".join("a" if n % 5 == 0 else "h" for n in range(20)), got["icons"])
+
+
 def large_process(root, count):
     """A process of one feature holding count requirements, with its index."""
     folder = root / "process" / "1.requirements"
