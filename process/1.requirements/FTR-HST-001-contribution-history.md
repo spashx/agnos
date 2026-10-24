@@ -351,7 +351,9 @@ of FTR-TRC-003.
   around it, newest at the top: one lane per branch, each in a colour of the design tokens and named by a label at its
   newest commit in view, a dot per commit on its branch's lane, the lines from each commit to its parents (curved where
   a branch starts or is merged), a row per commit with its short hash, subject and author's icon, and the selected
-  commit marked; clicking a commit of the graph SHALL select it; the graph SHALL take every visual value from the design
+  commit marked; clicking a commit of the graph SHALL select it; the graph SHALL be a group of the panel, with its tag
+  among the band's tags to show it alone or with the others, as any group (amended by the owner on 2026-10-25); the
+  graph SHALL take every visual value from the design
   tokens, in both themes.
 - **Rationale**: the reader sees on which branch the commit was made, what came before and after it, and when it was
   merged; a graph as clear as those of the usual git tools makes the page credible (owner request of 2026-10-24).

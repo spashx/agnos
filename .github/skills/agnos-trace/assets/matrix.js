@@ -2814,6 +2814,7 @@
   const CHANGED_ORDER = [...TYPES, TYPE_FILE, TYPE_FUNCTION];
   const UNNAMED_BRANCH = "unnamed branch";
   const TYPE_COMMIT = "COMMIT";
+  const GROUP_GRAPH = "graph";
   const hashOf = (key) => key.slice(COMMIT_PREFIX.length);
   const knownCommit = (key) => isCommitKey(key) && (commitOf.has(hashOf(key)) || graphNodeOf.has(hashOf(key)));
   const lineCount = (n) => `${n} ${n === 1 ? VALUE_LINE : VALUE_LINES}`;
@@ -2887,12 +2888,14 @@
       byType.get(type).push([k, lines]);
     }
     const types = CHANGED_ORDER.filter((type) => byType.has(type));
-    const summary = el("div", { class: "detail-summary" }, types.length
-      ? types.map((type) => groupTag(type, type, `${plural(type, byType.get(type).length)} ${byType.get(type).length}`))
-      : el(TAG_SPAN, { class: "badge badge-neutral", text: "No change credited" }));
+    const graphSection = gitGraph(key);
+    const summary = el("div", { class: "detail-summary" },
+      groupTag(GROUP_GRAPH, TYPE_COMMIT, `Git graph ${graphSection.querySelectorAll(".git-row").length}`), types.length
+        ? types.map((type) => groupTag(type, type, `${plural(type, byType.get(type).length)} ${byType.get(type).length}`))
+        : el(TAG_SPAN, { class: "badge badge-neutral", text: "No change credited" }));
     const note = merge ? "A merge credits no one: what it brings was changed by the commits of its parents."
       : "This commit changed none of the process elements and source files read.";
-    panel.append(detailBand(TYPE_COMMIT, head, summary), el("div", { class: "detail-body" }, gitGraph(key),
+    panel.append(detailBand(TYPE_COMMIT, head, summary), el("div", { class: "detail-body" }, graphSection,
       ...types.map((type) => changedGroup(type, byType.get(type))), types.length ? null : el("p", { class: "detail-note", text: note })));
     applyTagFilter();
   }
@@ -2997,7 +3000,7 @@
     }
     const width = (widest + 1) * lane;
     const height = (last - first + 1) * row;
-    return el("section", { class: "git-graph-section" },
+    return el("section", { class: "group git-graph-section", "data-group": GROUP_GRAPH },          // RQ-HST-025: a tag shows it or not
       el("div", { class: "group-head" }, el("h3", { class: "group-title", text: "Git graph" }),
         el(TAG_SPAN, { class: "group-count", text: commitCount(last - first + 1) })),
       el("div", { class: "git-graph", style: { "--git-graph-width": `${width}px` } },

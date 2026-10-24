@@ -85,7 +85,7 @@ agnosTrace.showView("history");
 const clickMark = (row, commit) => document.querySelector(`.history-row[data-key="${row}"] .history-mark[data-commit="${commit}"]`)
   .dispatchEvent(new MouseEvent("click", { bubbles: true }));
 const text = (selector) => document.querySelector(selector)?.textContent || "";
-const groups = () => [...document.querySelectorAll("#detail .detail-body .group[data-group]")].map((g) => g.dataset.group + ":"
+const groups = () => [...document.querySelectorAll('#detail .detail-body .group[data-group]:not([data-group="graph"])')].map((g) => g.dataset.group + ":"
   + [...g.querySelectorAll(".link-item")].map((i) => i.querySelector(".id").textContent + "=" + i.querySelector(".link-rel").textContent).join(";")).join("|");
 """
 
@@ -120,7 +120,7 @@ out.address = decodeURIComponent(location.hash);
         self.assertEqual(("a000000005", "tests"), (got["shownhash"], got["subject"]))
         self.assertEqual("icon:Claude Opus 5.5", got["people"])
         self.assertEqual("7 lines,main", got["badges"])
-        self.assertEqual("RQ,FILE", got["tags"])
+        self.assertEqual("graph,RQ,FILE", got["tags"])                    # RQ-HST-025: the git graph's tag first
         self.assertEqual(f"RQ:RQ-DEM-002=3 lines|FILE:{file.rsplit('/', 1)[-1]}=4 lines", got["groups"])
         self.assertEqual("4", got["marked"])
         self.assertEqual("#commit:a000000005", got["address"])
@@ -213,6 +213,20 @@ out.strokes = String(stroke(0) !== stroke(1));
         self.assertEqual("main,feature/A", got["labels"])
         self.assertEqual(("7", "2", "6", "1", "true"),
                          (got["edges"], got["curves"], got["icons"], got["ring"], got["strokes"]))
+
+    def test_RQ_HST_025_given_the_git_graph_tag_then_it_shows_the_graph_alone_and_again_everything(self):
+        got = self.run_script("""
+const tag = document.querySelector('#detail .detail-summary .tag[data-group="graph"]');
+out.tagtext = tag ? tag.textContent : "";
+tag.click();
+const shown = () => [...document.querySelectorAll("#detail .detail-body .group")].filter((g) => !g.hidden).map((g) => g.dataset.group).join(",");
+out.alone = shown();
+tag.click();
+out.all = shown();
+""", "tagtext", "alone", "all")
+        self.assertEqual("Git graph 7", got["tagtext"])
+        self.assertEqual("graph", got["alone"])
+        self.assertEqual("graph,FILE", got["all"])                          # a000000004 changed one file only
 
     def test_RQ_HST_025_given_the_merge_row_clicked_then_the_merge_is_selected(self):
         got = self.run_script(f"""

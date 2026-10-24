@@ -145,3 +145,17 @@ This plan implements the tasks in the format specified below.
   78 commits, 7 humans; `commit:1164d205e6` reads "…, feature/WEB" with the labels `main,feature/WEB`.
 - **Assumptions**: The P95 metric of RQ-HST-013 is kept as it is; its margin on this machine is small, which is
   reported to the owner.
+
+### TASK-HST-019: A tag to show the git graph or not
+- **Tier**: S
+- **Status**: Done
+- **Description**: Make the commit's git graph a group of the detail panel, with a "Git graph" tag among the band's tags
+  that shows it alone or with the others (owner request of 2026-10-25).
+- **Requirement refs**: RQ-HST-025 (amended), RQ-TRC-055
+- **ADR refs**: ADR-HST-001 (DEC-HST-011), ADR-TRC-007 (DEC-TRC-030)
+- **Acceptance Criteria**: Given a commit selected, When its "Git graph" tag is pressed, Then only the git graph shows;
+  When it is pressed again, Then every group shows.
+- **Dependencies**: TASK-HST-017
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The tag comes first, counts the commits drawn, and takes the commit's accent colour.

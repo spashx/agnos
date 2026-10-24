@@ -1109,7 +1109,6 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .detail-people { display: flex; flex-wrap: wrap; gap: var(--s-space-hair) var(--s-space-md); font-size: var(--s-text-small); }
 .detail-kind .kind-icon { margin-right: calc(-1 * var(--s-space-xs)); }
 /* RQ-HST-025, DEC-HST-011: the git graph of a commit: lanes and lines on the left, a row per commit on the right */
-.git-graph-section { padding: var(--s-space-md) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
 .git-graph { position: relative; margin-top: var(--s-space-sm); }
 .git-lines { position: absolute; top: var(--s-space-none); left: var(--s-space-none); overflow: hidden; pointer-events: none; }
 .git-rows { display: flex; flex-direction: column; }
