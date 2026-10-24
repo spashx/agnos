@@ -51,8 +51,8 @@
       <div class="chips" id="tri-filters"></div>
     </section>
     <section class="side-section">
-      <h2 class="side-title">Gaps</h2>
-      <ul class="gap-shortcuts" id="gap-shortcuts"></ul>
+      <h2 class="side-title">Quality</h2>
+      <ul class="quality-shortcuts" id="quality-shortcuts"></ul>
     </section>
     <footer class="side-footer" id="about"></footer>
   </aside>
@@ -63,13 +63,13 @@
   <main class="main">
     <nav class="tabs" role="tablist" aria-label="Views">
       <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true"
-              title="Counts, requirement coverage, gaps and coverage per trigram">Overview</button>
+              title="Counts, requirement coverage, quality checks and coverage per trigram">Overview</button>
       <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false"
               title="The selected element and its links, drawn as a flow of columns">Graph</button>
       <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false"
               title="One row per requirement: what contains, decides, plans, implements and cites it">Matrix</button>
-      <button class="tab" role="tab" type="button" data-view="gaps" aria-selected="false"
-              title="Breaches of the traceability rules, list by list; the count is their total">Gaps <span class="tab-count" id="gaps-count"></span></button>
+      <button class="tab" role="tab" type="button" data-view="quality" aria-selected="false"
+              title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span class="tab-count" id="quality-count"></span></button>
     </nav>
 
     <section class="view" id="view-overview" role="tabpanel">
@@ -80,8 +80,8 @@
           <div id="coverage-chart"></div>
         </article>
         <article class="card">
-          <header class="card-header"><h2 class="card-title">Gaps</h2><span class="card-hint">breaches of the traceability rules</span></header>
-          <div id="gap-summary"></div>
+          <header class="card-header"><h2 class="card-title">Quality</h2><span class="card-hint">checks of the traceability rules, findings per check</span></header>
+          <div id="quality-summary"></div>
         </article>
         <article class="card card-wide">
           <header class="card-header"><h2 class="card-title">Coverage by trigram</h2><span class="card-hint">requirements of each feature area</span></header>
@@ -113,7 +113,7 @@
       </div>
       <div class="graph-frame">
         <div class="graph-scroll" id="graph-scroll"><div class="graph" id="cy" aria-label="Traceability graph"></div></div>
-        <div class="graph-empty" id="graph-empty">Select an element — search, or click a row of the matrix or the gaps — to draw its links.</div>
+        <div class="graph-empty" id="graph-empty">Select an element — search, or click a row of the matrix or the quality view — to draw its links.</div>
         <div class="legend" id="legend"></div>
       </div>
     </section>
@@ -134,8 +134,8 @@
       <div class="table-frame"><table class="matrix" id="matrix-table"></table></div>
     </section>
 
-    <section class="view" id="view-gaps" role="tabpanel" hidden>
-      <div class="gaps" id="gaps-list"></div>
+    <section class="view" id="view-quality" role="tabpanel" hidden>
+      <div class="quality" id="quality-list"></div>
     </section>
   </main>
 

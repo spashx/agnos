@@ -66,7 +66,7 @@ RQ-TRC-005|65-76||Process references
 RQ-TRC-006|77-88||Source references
 RQ-TRC-007|89-99||Dangling references
 RQ-TRC-008|100-110||Requirement coverage
-RQ-TRC-009|111-123||Gaps
+RQ-TRC-009|111-123||Findings of each rule
 RQ-TRC-010|124-139||Offline page, its data beside it
 RQ-TRC-011|140-150||Search
 RQ-TRC-012|151-162||Interactive graph
@@ -106,7 +106,7 @@ RQ-TRC-031|82-92||Requirement IDs at function level
 RQ-TRC-032|93-105||Language plug-ins
 RQ-TRC-033|106-117||Functions in the detail panel and the search
 RQ-TRC-034|118-129||Functions in the graph
-RQ-TRC-035|130-140||Call graph in the overview and the gaps
+RQ-TRC-035|130-140||Call graph in the overview and the quality view
 RQ-TRC-041|141-155||Functions in the matrix, the graph toolbar and every requirement's panel
 RQ-TRC-047|156-181||Functions grouped in namespace and class boxes, at a chosen level of detail
 RQ-TRC-048|182-213||Graph toolbar words that tell the specification from the implementation
@@ -287,7 +287,7 @@ TASK-TRC-045|72-83|Done|Halve the delay of a relation tooltip
 @process/3.plan/PLAN-TRC-007-quality-scorecard.md
 PLAN-TRC-007|1-131||Quality Scorecard
 TASK-TRC-046|17-36|Done|Scoring of the checks and the `quality` data
-TASK-TRC-047|37-52|Not Started|Quality vocabulary in the page
+TASK-TRC-047|37-52|Done|Quality vocabulary in the page
 TASK-TRC-048|53-67|Not Started|Check cards, compact or detailed
 TASK-TRC-049|68-84|Not Started|Report card and grade palette
 TASK-TRC-050|85-99|Not Started|Charts with tooltips

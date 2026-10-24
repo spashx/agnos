@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, the gaps (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them. Independent of the product developed."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph]"
 ---
 
@@ -52,8 +52,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 
 ## What the page shows
 
-- **Overview**: element counts, share of requirements covered, indirectly covered and uncovered, the gap counts, the
-  coverage of each trigram.
+- **Overview**: element counts, share of requirements covered, indirectly covered and uncovered, the quality score and grade with the findings per check,
+  the coverage of each trigram.
 - **Graph**: the mouse wheel zooms by about 10 % a notch, from the design token `graph-wheel-sensitivity` (RQ-TRC-056). The selected element's links as a flow of columns (features, requirements, ADRs and decisions, plans and
   tasks, source files, undefined IDs), depth 1 to 3; "Whole graph" for everything.
 - **Matrix**: one row per requirement with its feature, ADRs and decisions, plans and tasks, source files and lines,
@@ -62,7 +62,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   Source files, Lines; RQ-TRC-051). Drag a header onto another, or press Alt+← / Alt+→ on a focused header, to move the
   column; the order is remembered in the browser, like the widths, and "Reset columns" brings back the default order and
   widths (RQ-TRC-052). The CSV keeps its own fixed columns. The Feature column shows each feature's title under its ID (RQ-TRC-053).
-- **Gaps**: the lists below, each element a link to its detail.
+- **Quality**: the checks (see "Quality scoring"), each with its score, its rule and its findings, each finding a link to its
+  detail.
 - **Detail panel**: the selection's type, title, status, location and tags (the count of its links by type) stand in a
   band, fixed at the top (RQ-TRC-054); below it, only the links scroll, grouped by type with their IDs and the lines that
   make them. Clicking a tag shows only its group (several tags, several groups), clicking it again shows them all, and
@@ -72,7 +73,7 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   Functions filter is off when the page opens: turn it on (or the graph's "Implementation" switch, the same filter) to
   draw the implementation in the graph's "Implementation" column, where a selected function's callers stand on its left
   and its callees on its right; at most 400 nodes are drawn, the status line says how many are left out. The overview
-  has a "Call graph" card and the gaps an informational "Untraced functions" list.
+  has a "Call graph" card and the Quality view an informational "Functions traced" check.
 - The search list (RQ-TRC-049): pointing at a result, or moving onto it with the arrow keys, shows after 300 ms a
   tooltip beside the list with its type, whole name, whole title and location; the list itself cuts them to its width.
 - The graph's toolbar groups stand in the order Depth, Display, Implementation detail (RQ-TRC-048). The "Display"
@@ -95,7 +96,7 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 ## Call graph (DEC-TRC-013 to DEC-TRC-018)
 
 - A function is a definition with a body; its key is `fn:<file>:<first line>`. It cites the IDs of its lines and of the
-  comment block just above it. Coverage and the gap counts stay file-based: the call graph changes none of them.
+  comment block just above it. Coverage and the findings stay file-based: the call graph changes none of them.
 - Calls are resolved by name: among the definitions of that name in the caller's language, the first non-empty set of
   the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
   each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function

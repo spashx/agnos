@@ -36,7 +36,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-047: Quality vocabulary in the page
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rename the Gaps tab, sidebar section, overview card and their identifiers to Quality, checks and
   findings, draw the findings of each check from the `quality` block, and reword RQ-TRC-009, RQ-TRC-015, RQ-TRC-017,
   RQ-TRC-035 and RQ-TRC-045 and the documentation so that "gap" appears nowhere.
@@ -47,7 +47,7 @@ This plan implements the tasks in the format specified below.
   card are named Quality.
 - **Dependencies**: TASK-TRC-046
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 151 tests, 0 failure, 1 skipped. `VocabularyTest`: the data file, the summary line, `SKILL.md`, `matrix.html` and `scoring.json` hold no "gap"; in headless Edge the rendered page, minus its style and script blocks, holds no "gap", the tab reads "Quality" (`data-view="quality"`), the check card `check-covered` exists and findings are named. Ids and classes renamed (`quality-*`, `check-*`, `finding-*`); the page draws its checks from `quality.checks` (the shim of TASK-TRC-046 is gone). RQ-TRC-008, 009, 015, 017, 035, 045 reworded; README and the `.claude` pointer description updated.
 - **Assumptions**: None
 
 ### TASK-TRC-048: Check cards, compact or detailed

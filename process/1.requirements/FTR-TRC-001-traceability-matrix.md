@@ -34,7 +34,7 @@ ADR-TRC-003).
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the process folder has no `INDEX.idx.md`, or a source folder does not exist, THEN the trace generator
   SHALL write nothing, print the cause on the error stream and exit with code 1.
-- **Rationale**: a page built from a partial input would show false gaps.
+- **Rationale**: a page built from a partial input would show false findings.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a process folder without `INDEX.idx.md`, When the generator runs, Then it exits 1, names
   the missing file, and no output file is created.
@@ -102,23 +102,23 @@ ADR-TRC-003).
 - **EARS Type**: Ubiquitous
 - **Statement**: The trace generator SHALL rate each requirement as covered (a source file references it), indirectly
   covered (no source file does, but one references a decision, task or ADR linked to it) or uncovered.
-- **Rationale**: an uncovered requirement is the gap the matrix exists to show.
+- **Rationale**: an uncovered requirement is the finding the matrix exists to show.
 - **Priority**: Must
 - **Acceptance Criteria**: Given RQ-X-001 cited by a source file, RQ-X-002 cited only by TASK-X-001 which a source file
   cites, and RQ-X-003 cited by no source and no linked element, Then they are rated covered, indirect and uncovered.
 - **Dependencies**: DEC-TRC-004
 
-### RQ-TRC-009: Gaps
+### RQ-TRC-009: Findings of each rule
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The trace generator SHALL list, each with its count and IDs: uncovered requirements; requirements no task
+- **Statement**: The trace generator SHALL list, as the findings of a rule, each with its count and IDs: uncovered requirements; requirements no task
   references; tasks that reference no requirement; ADRs that, with their decisions, reference no requirement; features,
   ADRs and plans that contain nothing; elements with no link other than containment; undefined IDs; source files that
   reference no ID.
 - **Rationale**: each list is a breach of an AGNOS traceability rule.
 - **Priority**: Must
-- **Acceptance Criteria**: Given a fixture process with one element of each gap, When the page is built, Then each gap list
-  holds exactly that element.
+- **Acceptance Criteria**: Given a fixture process with one element of each finding, When the page is built, Then each rule's findings
+  hold exactly that element.
 - **Dependencies**: DEC-TRC-004
 
 ### RQ-TRC-010: Offline page, its data beside it
@@ -188,7 +188,7 @@ ADR-TRC-003).
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The page SHALL open on an overview giving the count of each element type, the share of requirements
-  covered, indirectly covered and uncovered, the count of each gap, and the coverage per trigram.
+  covered, indirectly covered and uncovered, the quality score and grade, the findings of each check, and the coverage per trigram.
 - **Rationale**: the state of traceability at a glance.
 - **Priority**: Should
 - **Acceptance Criteria**: Given 10 requirements of which 7 are covered, When the page opens, Then the overview shows 70 %
@@ -213,7 +213,7 @@ ADR-TRC-003).
 - **Rationale**: agents run it the way they run the other AGNOS skills.
 - **Priority**: Must
 - **Acceptance Criteria**: Given an agent that loads the skill, When it follows the procedure, Then it produces the page and
-  reports the gap counts printed by the generator.
+  reports the quality score and the check scores printed by the generator.
 - **Dependencies**: DEC-TRC-008
 
 ### RQ-TRC-018: Design system of the page
@@ -287,7 +287,7 @@ ADR-TRC-003).
 ### RQ-TRC-045: Explanatory tooltips
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The page SHALL give every control (view tabs, type and trigram filters, gap shortcuts, the graph
+- **Statement**: The page SHALL give every control (view tabs, type and trigram filters, quality shortcuts, the graph
   toolbar's depth, switches, Fit and Whole graph, the coverage filter, Export CSV, the matrix headers, the detail panel's
   buttons, the overview tiles) a tooltip that says what it does or what it counts.
 - **Rationale**: a reader new to the page learns it by pointing, not by reading a manual.

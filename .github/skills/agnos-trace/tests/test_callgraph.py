@@ -373,7 +373,7 @@ class FunctionPanelTest(unittest.TestCase):
         self.assertIn('<h2 class="card-title">Call graph</h2>', dom)
         self.assertIn("8 call links", dom)
         self.assertIn("Untraced functions", dom)
-        self.assertIn(f'<span class="tab-count" id="gaps-count">{total}</span>', dom)
+        self.assertIn(f'<span class="tab-count" id="quality-count">{total}</span>', dom)
 
 
 TURN_FUNCTIONS_ON = ("[...document.querySelectorAll('#type-filters .chip')]"

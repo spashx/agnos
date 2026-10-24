@@ -127,15 +127,15 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   shows no function; When the Function filter is turned on, Then the two functions appear in their column.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012, DEC-TRC-017
 
-### RQ-TRC-035: Call graph in the overview and the gaps
+### RQ-TRC-035: Call graph in the overview and the quality view
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The page SHALL show in its overview the count of functions, call links, ambiguous and external calls,
-  and SHALL list as an informational gap, not counted in the gap total, the functions that cite no ID.
+  and SHALL score, as an informational check that weighs nothing in the overall score and adds nothing to the findings total, the functions that cite no ID.
 - **Rationale**: the share of traced functions is useful; it is not an AGNOS rule breach.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the fixture, When the page opens, Then the overview gives its function and call counts and
-  the gap list "Untraced functions" holds its untraced functions without changing the Gaps tab's count.
+  the check "Functions traced" holds its untraced functions without changing the Quality tab's count.
 - **Dependencies**: RQ-TRC-009, RQ-TRC-015
 
 ### RQ-TRC-041: Functions in the matrix, the graph toolbar and every requirement's panel

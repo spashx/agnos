@@ -757,7 +757,7 @@ class WheelZoomTest(unittest.TestCase):
         self.assertLess(ratio, 1.2)                                     # the library's default would give 2.5
 
 
-TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
+TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".quality-shortcut", "#depth", "#depth button",
                    "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")
 READ_TOOLTIPS = """

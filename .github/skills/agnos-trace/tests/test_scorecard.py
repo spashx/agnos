@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE.parent / "scripts"))
 
 import scorecard as sc  # noqa: E402
 import trace_matrix as tm  # noqa: E402
-from test_trace_matrix import PROCESS, SOURCES, run_main, scanned_model  # noqa: E402
+from test_trace_matrix import BROWSER, PROCESS, SOURCES, generate, rendered_dom_after, run_main, scanned_model  # noqa: E402
 
 
 class ScoreArithmeticTest(unittest.TestCase):
@@ -118,6 +118,39 @@ class QualityBlockTest(unittest.TestCase):
                           "--generated-at", "x"])
                 runs.append(json.loads(page.with_suffix(".json").read_text(encoding="utf-8"))["quality"])
         self.assertEqual(runs[0], runs[1])
+
+
+GAP_WORD = "gap"
+SKILL = HERE.parent
+RENDERED_CHECK = "agnosTrace.showView('quality');"
+
+
+class VocabularyTest(unittest.TestCase):
+    """TASK-TRC-047: RQ-TRC-057 (DEC-TRC-034): the former word for a finding list is gone from what a reader gets."""
+
+    def test_RQ_TRC_057_given_the_data_the_summary_line_and_the_documentation_then_none_holds_the_retired_word(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            code, out, _ = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(page)])
+            data = page.with_suffix(".json").read_text(encoding="utf-8")
+        self.assertEqual(0, code)
+        self.assertNotIn(GAP_WORD, data.lower())
+        self.assertNotIn(GAP_WORD, out.lower())
+        for name in ("SKILL.md", "assets/matrix.html", "assets/scoring.json"):
+            self.assertNotIn(GAP_WORD, (SKILL / name).read_text(encoding="utf-8").lower(), name)
+
+    @unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+    def test_RQ_TRC_057_given_the_page_when_rendered_then_its_text_ids_and_classes_name_quality_checks_and_findings(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            dom = rendered_dom_after(path, RENDERED_CHECK)
+        visible = re.sub(r"<(style|script)\b.*?</\1>", "", dom, flags=re.S)       # the style's layout spacing is not wording
+        self.assertNotIn(GAP_WORD, visible.lower())
+        self.assertRegex(visible, r'data-view="quality"[^>]*>Quality')
+        self.assertIn('id="check-covered"', visible)
+        self.assertIn("finding", visible)
 
 
 if __name__ == "__main__":

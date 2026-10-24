@@ -1,5 +1,5 @@
 /* agnos-trace page script (FTR-TRC-001; ADR-TRC-003: DEC-TRC-005, DEC-TRC-007, DEC-TRC-012; ADR-TRC-002: DEC-TRC-010).
-   Views (TASK-TRC-005): overview, search, filters, matrix, gaps, detail panel, deep links.
+   Views (TASK-TRC-005): overview, search, filters, matrix, quality, detail panel, deep links.
    Panels (TASK-TRC-008): splitter bars, see the "resizable panels" section.
    Graph (TASK-TRC-006): see the "graph" section — the selection's neighbourhood as a traceability flow, columns by type.
    Call graph (FTR-TRC-002, ADR-TRC-004; TASK-TRC-012): functions as nodes, calls in typed arrays, see "call graph".
@@ -32,26 +32,20 @@
     "contains:out": "contains", "contains:in": "part of", "refs:out": "cites", "refs:in": "cited by",
     "code:out": "cites", "code:in": "cited in", "defines:out": "defines", "defines:in": "defined in",
   };
-  const UNTRACED = "untraced-functions";     // an informational list, never counted as a gap (RQ-TRC-035, DEC-TRC-018)
   const COVERAGE = {
     covered: ["Covered", "a source file cites the requirement"],
     indirect: ["Indirect", "a source file cites a decision, task or ADR linked to it"],
     uncovered: ["Uncovered", "no source file cites it, directly or indirectly"],
   };
-  const GAP = {
-    "uncovered": ["Uncovered requirements", "No source file cites them, directly or through a decision, task or ADR linked to them.", "error"],
-    "untasked": ["Requirements without a task", "No task of any plan cites them.", "warn"],
-    "task-no-rq": ["Tasks without a requirement", "The task cites no requirement itself.", "warn"],
-    "adr-no-rq": ["ADRs without a requirement", "Neither the ADR nor any of its decisions cites a requirement.", "warn"],
-    "empty": ["Empty containers", "Features without requirements, ADRs without decisions, plans without tasks.", "warn"],
-    "isolated": ["Isolated elements", "Nothing cites them and they cite nothing, nor does anything they contain.", "warn"],
-    "undefined": ["Undefined IDs", "Cited by the process or the sources, but defined nowhere in the index.", "error"],
-    "untraced-files": ["Untraced source files", "Scanned files that cite no ID at all.", "warn"],
-    [UNTRACED]: ["Untraced functions", "Functions citing no ID in their lines or the comment just above. Informational: not counted as a gap.", "neutral"],
-  };
+  // RQ-TRC-057, ADR-TRC-008: a check's badge by its risk; its title, rule and findings come from the data's `quality` block.
+  const CHECK_BADGE = { critical: "error", high: "warn", medium: "warn", low: "warn", informational: "neutral" };
+  const INFORMATIONAL = "informational";
+  const ITEMS_FILE = "file";
+  const ITEMS_FUNCTION = "function";
+  const FUNCTIONS_CHECK = "functions-traced";
   const SEARCH_LIMIT = 60;
   const CELL_LIMIT = 3;
-  const GAP_ITEMS_SHOWN = 60;
+  const FINDINGS_SHOWN = 60;
   const EVIDENCE_SHOWN = 3;
   const PERCENT = 100;
   const FILE_PREFIX = "file:";
@@ -152,21 +146,20 @@
       n.findTitle = (n.title || "").toLowerCase();
     }
   }
-  const keyOf = (gapKind, item) => (gapKind === "untraced-files" ? FILE_PREFIX + item : item);
   const typeOrder = (type) => NODE_TYPES.indexOf(type);
   const requirements = DATA.elements.filter((e) => e.kind === "element" && e.type === "RQ").map((e) => nodes.get(e.id));
   const counts = Object.fromEntries(NODE_TYPES.map((t) => [t, 0]));
   for (const n of nodes.values()) counts[n.type] += 1;
   const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === "element").map((e) => e.tri))]
     .sort((a, b) => a.localeCompare(b));
-  const gapBadgeClass = (gapKind, count) => "badge badge-" + (count ? GAP[gapKind][2] : "ok");
-  // TASK-TRC-046, ADR-TRC-008: the lists drawn so far come from the data's `quality` block; TASK-TRC-047 replaces them.
-  const RULE_OF_CHECK = { covered: "uncovered", tasked: "untasked", "task-rq": "task-no-rq", "adr-rq": "adr-no-rq",
-    filled: "empty", connected: "isolated", defined: "undefined", "files-traced": "untraced-files" };
-  const GAP_ORDER = ["uncovered", "untasked", "task-no-rq", "adr-no-rq", "empty", "isolated", "undefined", "untraced-files"];
-  const FINDINGS = Object.fromEntries(DATA.quality.checks.filter((c) => RULE_OF_CHECK[c.key]).map((c) => [RULE_OF_CHECK[c.key], c.findings]));
-  const gapKinds = [...GAP_ORDER, ...(CALL_GRAPH ? [UNTRACED] : [])];
-  const gapItems = (gapKind) => (gapKind === UNTRACED ? CALL_GRAPH.untraced.map((i) => fnKeys[i]) : FINDINGS[gapKind]);
+  const CHECKS = DATA.quality.checks;
+  const checkBadgeClass = (check) => "badge badge-" + (check.findings.length ? CHECK_BADGE[check.risk] : "ok");
+  // A finding is an element's ID, a file's path or the index of a function of the call graph (DEC-TRC-033).
+  const findingKey = (check, item) => {
+    if (check.items === ITEMS_FILE) return FILE_PREFIX + item;
+    return check.items === ITEMS_FUNCTION ? fnKeys[item] : item;
+  };
+  const findingKeys = (check) => check.findings.map((item) => findingKey(check, item));
 
   // ---- call graph (TASK-TRC-012: RQ-TRC-033, RQ-TRC-038; DEC-TRC-016) -------------------------------------------
   // Functions are nodes like the others, contained by their file and citing the IDs of their lines. Their calls stay
@@ -310,7 +303,7 @@
   const state = {
     selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
     types: new Set(NODE_TYPES.filter((t) => t !== "FN")),   // functions off at load (RQ-TRC-034, DEC-TRC-017)
-    tris: new Set(trigrams), expandedGaps: new Set(),
+    tris: new Set(trigrams), expandedChecks: new Set(),
   };
   const isVisible = (node) => state.types.has(node.type) && (!node.tri || state.tris.has(node.tri));
 
@@ -1082,13 +1075,11 @@
         el("span", { class: "coverage-item-value", text: `${c[k]}` }),
         el("span", { class: "kpi-sub", text: `${pct(c[k], total)} % of ${total}` })))));
 
-    clear($("gap-summary")).append(el("div", { class: "gap-rows" }, ...gapKinds.map((g) => {
-      const n = gapItems(g).length;
-      return el("button", { class: "gap-row", type: "button", on: { click: () => openGap(g) } },
-        el("span", { class: "gap-row-label", text: GAP[g][0] }),
-        el("span", { class: "gap-row-hint", text: GAP[g][1] }),
-        el("span", { class: gapBadgeClass(g, n), text: n }));
-    })));
+    clear($("quality-summary")).append(el("div", { class: "check-rows" }, ...CHECKS.map((check) =>
+      el("button", { class: "check-row", type: "button", on: { click: () => openCheck(check.key) } },
+        el("span", { class: "check-row-label", text: check.title }),
+        el("span", { class: "check-row-hint", text: check.rule }),
+        el("span", { class: checkBadgeClass(check), text: check.findings.length })))));
 
     const rows = trigrams.map((tri) => {
       const list = requirements.filter((r) => r.tri === tri);
@@ -1107,7 +1098,7 @@
     if (CALL_GRAPH) $("tri-table").closest(".card").before(callGraphCard());
   }
 
-  // RQ-TRC-035: the call graph's counts; the untraced functions are listed, not counted among the gaps.
+  // RQ-TRC-035: the call graph's counts; the untraced functions are an informational check, not counted among the findings.
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
     const item = (label, value, hint, onClick) => el(onClick ? "button" : "div",
@@ -1122,7 +1113,7 @@
         item("Call links", c.calls, "one per caller and callee"),
         item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
         item("External calls", c.external, "a name defined in no scanned file"),
-        item("Untraced functions", CALL_GRAPH.untraced.length, "citing no ID · informational", () => openGap(UNTRACED))));
+        item("Untraced functions", CALL_GRAPH.untraced.length, "citing no ID · informational", () => openCheck(FUNCTIONS_CHECK))));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------
@@ -1146,9 +1137,9 @@
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
-    clear($("gap-shortcuts")).append(...gapKinds.map((g) => el("li", {}, el("button", { class: "gap-shortcut", type: "button",
-      title: GAP[g][1], on: { click: () => openGap(g) } }, el("span", { text: GAP[g][0] }),
-      el("span", { class: gapBadgeClass(g, gapItems(g).length), text: gapItems(g).length })))));
+    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el("button", { class: "quality-shortcut", type: "button",
+      title: check.rule, on: { click: () => openCheck(check.key) } }, el("span", { text: check.title }),
+      el("span", { class: checkBadgeClass(check), text: check.findings.length })))));
   }
 
   function toggle(set, value) { if (set.has(value)) set.delete(value); else set.add(value); }
@@ -1604,33 +1595,32 @@
   $("export-csv").addEventListener("click", exportCsv);
   $("reset-columns").addEventListener("click", resetColumns);
 
-  // ---- gaps ---------------------------------------------------------------------------------------------------
-  function renderGaps() {
-    const total = GAP_ORDER.reduce((sum, g) => sum + FINDINGS[g].length, 0);
-    $("gaps-count").textContent = total ? String(total) : "";
-    clear($("gaps-list")).append(...gapKinds.map((g) => {
-      const items = gapItems(g);
-      const shown = state.expandedGaps.has(g) ? items : items.slice(0, GAP_ITEMS_SHOWN);
-      return el("article", { class: "card gap-card", id: `gap-${g}` },
+  // ---- quality view (TASK-TRC-047: RQ-TRC-057; DEC-TRC-034) ----------------------------------------------------
+  function renderQuality() {
+    const total = CHECKS.filter((c) => c.risk !== INFORMATIONAL).reduce((sum, c) => sum + c.findings.length, 0);
+    $("quality-count").textContent = total ? String(total) : "";
+    clear($("quality-list")).append(...CHECKS.map((check) => {
+      const keys = findingKeys(check);
+      const shown = state.expandedChecks.has(check.key) ? keys : keys.slice(0, FINDINGS_SHOWN);
+      return el("article", { class: "card check-card", id: `check-${check.key}` },
         el("header", { class: "card-header" },
-          el("h2", { class: "card-title gap-card-title" }, GAP[g][0]),
-          el("span", { class: gapBadgeClass(g, items.length), text: items.length })),
-        el("p", { class: "gap-card-desc", text: GAP[g][1] }),
-        items.length ? el("ul", { class: "gap-items" }, ...shown.map((item) => {
-          const key = keyOf(g, item);
+          el("h2", { class: "card-title check-card-title" }, check.title),
+          el("span", { class: checkBadgeClass(check), text: keys.length })),
+        el("p", { class: "check-card-desc", text: check.rule }),
+        keys.length ? el("ul", { class: "finding-list" }, ...shown.map((key) => {
           const n = nodes.get(key);
-          return el("li", {}, el("button", { class: "gap-item", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
+          return el("li", {}, el("button", { class: "finding", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
             el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label }),
-            n.title ? el("span", { class: "gap-item-title", text: n.title }) : null));
-        })) : el("div", { class: "gap-none", text: "None — the rule holds." }),
-        items.length > shown.length ? el("button", { class: "link-button", type: "button",
-          on: { click: () => { state.expandedGaps.add(g); renderGaps(); } }, text: `Show all ${items.length}` }) : null);
+            n.title ? el("span", { class: "finding-title", text: n.title }) : null));
+        })) : el("div", { class: "check-none", text: "None — the rule holds." }),
+        keys.length > shown.length ? el("button", { class: "link-button", type: "button",
+          on: { click: () => { state.expandedChecks.add(check.key); renderQuality(); } }, text: `Show all ${keys.length}` }) : null);
     }));
   }
 
-  function openGap(g) {
-    showView("gaps");
-    const card = $(`gap-${g}`);
+  function openCheck(key) {
+    showView("quality");
+    const card = $(`check-${key}`);
     if (card) card.scrollIntoView({ block: "start" });
   }
 
@@ -1642,7 +1632,7 @@
     if (!key) {
       panel.append(el("div", { class: "detail-empty" },
         el("span", { class: "detail-empty-title", text: "No element selected" }),
-        el("span", { text: "Search an ID, a title or a file, or click any element of the matrix, the gaps or the graph: its links appear here, grouped by type." })));
+        el("span", { text: "Search an ID, a title or a file, or click any element of the matrix, the quality view or the graph: its links appear here, grouped by type." })));
       return;
     }
     if (boxes.get(key)) {
@@ -2002,7 +1992,7 @@
   renderFilters();
   renderOverview();
   renderMatrix();
-  renderGaps();
+  renderQuality();
   renderDetail();
   setupPanels();
   const initial = hashKey();
