@@ -282,7 +282,7 @@ TASK-HST-007|144-160|Not Started|Speed, accessibility, documentation and the dem
 @process/3.plan/PLAN-HST-002-tooltips-and-history-rows.md
 PLAN-HST-002|1-92||Consistent Tooltips, and the Rows of the History Tab
 TASK-HST-009|19-38|Done|The rich tooltip component; no double tooltip; no implementation ID
-TASK-HST-010|39-57|Not Started|The content of the rich tooltips
+TASK-HST-010|39-57|Done|The content of the rich tooltips
 TASK-HST-011|58-74|Not Started|Files in a folder tree
 TASK-HST-012|75-92|Not Started|A resizable label column and a filter on the rows
 @process/3.plan/PLAN-IDX-001.md

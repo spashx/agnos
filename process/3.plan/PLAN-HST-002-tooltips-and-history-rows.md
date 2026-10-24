@@ -38,7 +38,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-010: The content of the rich tooltips
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Give every business tooltip of RQ-HST-017 its content on the component: the graph's nodes (element,
   file by its name with its path below, function, box), relations and legend; the matrix's IDs, findings, coverage
   badges and bars; the header items; the quality shortcuts, "Fix first" links, scores, risks, findings, grades and
@@ -52,8 +52,8 @@ This plan implements the tasks in the format specified below.
   change; Given any element listed by RQ-HST-017, Then it has no plain `title`.
 - **Dependencies**: TASK-HST-009
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 228 tests, 0 failure, 1 skipped. `RichContentTest` (5, headless Edge): RQ-DEM-001's graph node tooltip has the bold line RQ-DEM-001, then Requirement, its title, its coverage (Covered directly), its location `FTR-DEM-001-demo-feature.md:8-12`; hovering the node in the graph shows it after the delay and the graph container has no `title`; a file node's bold line is its file name, its path and "IDs cited" below; a code relation's tooltip is headed "Cited in code", names `→ RQ-DEM-001` and a proof line `L<n> <text>`; the matrix's RQ-DEM-001 shows its title, a check's score gives "Score s / 10", the formula and the population, RQ-DEM-001's History label gives 3 changes, 2 identities and its last change by Alice; 18 kinds of business items (IDs, findings, coverage badges and bars, header items, quality shortcuts, Fix-first links, scores, risks, findings counts, grade chips, scale steps, trigrams, History labels and limits) carry no `title` and raise the rich tooltip. RQ-TRC-045's test accepts a rich tooltip in place of a plain one on a control. `test_literals.py` OK (literals named: `LINK_KIND_DEFINES`, `VALUE_AMBIGUOUS`, `CSS_QUICK_DELAY`). Screenshot of this repository's graph: the node tooltip as specified.
+- **Assumptions**: The graph's node tooltips use the search's 300 ms delay; the relations keep their own delay token. A span or div raising a rich tooltip takes the keyboard focus (tabindex 0). The score's tooltip also gives the population and the findings, so that the formula's numbers are named. `tipFor` keeps its one-line text for its callers; the rich content is `edgeTipContent`.
 
 ### TASK-HST-011: Files in a folder tree
 - **Tier**: M

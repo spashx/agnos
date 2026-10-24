@@ -767,7 +767,7 @@ for (const selector of %s) {
   const found = [...document.querySelectorAll(selector)];
   if (!found.length) untitled.push(selector + " (none)");
   for (const node of found) {
-    const titled = node.title || node.closest("label")?.title;
+    const titled = node.title || node.closest("label")?.title || node.dataset.richTip;   // DEC-HST-007: or a rich tooltip
     if (!titled) untitled.push(selector);
   }
 }

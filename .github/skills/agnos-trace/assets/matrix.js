@@ -62,6 +62,9 @@
   const VALUE_CHECKBOX = "checkbox";
   const EVENT_CLICK = "click";
   const LINK_KIND_CODE = "code";
+  const LINK_KIND_DEFINES = "defines";
+  const VALUE_AMBIGUOUS = "ambiguous";
+  const CSS_QUICK_DELAY = "--c-search-tip-delay";
   const VALUE_CONTAINS = "contains";
   const VALUE_COVERAGE_FILTER = "coverage-filter";
   const VALUE_COVERAGE_ITEM = "coverage-item";
@@ -271,6 +274,7 @@
   function richTip(node, contentOf, delayToken) {
     node.removeAttribute("title");
     node.dataset.richTip = VALUE_TRUE;
+    if (!node.matches("button, a, input, [tabindex]")) node.setAttribute("tabindex", "0");     // a keyboard path
     node.addEventListener(EVENT_MOUSEOVER, () => scheduleRichTip(node, contentOf, delayToken));
     node.addEventListener(EVENT_MOUSEOUT, hideRichTip);
     node.addEventListener(EVENT_FOCUS, () => showRichTip(node, contentOf()));
@@ -351,7 +355,7 @@
 
   // A function's IDs carry the lines of its file's own citations: the proofs are stored once, in the file's links.
   function addFunctionLinks() {
-    for (const key of fnKeys) addLink(nodes.get(key).file, key, "defines", []);    // RQ-TRC-048, DEC-TRC-023
+    for (const key of fnKeys) addLink(nodes.get(key).file, key, LINK_KIND_DEFINES, []);    // RQ-TRC-048, DEC-TRC-023
     const proofs = new Map();
     const proofsOf = (fileKey, id) => {
       if (!proofs.has(fileKey)) {
@@ -602,8 +606,6 @@
 
   function createGraph() {
     const container = $("cy");
-    const tip = el("div", { class: "graph-tip", role: "tooltip", hidden: true });
-    $(VALUE_GRAPH_SCROLL).after(tip);
     let tipTimer = null;
     let cy = null;
     let whole = false;
@@ -964,13 +966,16 @@
         const n = nodeOf(event.target.id());
         event.target.addClass(VALUE_HOVER);
         event.target.connectedEdges().addClass(VALUE_NEAR);
-        container.title = n.title ? `${n.label} — ${n.title}` : n.label;
+        const at = event.target.renderedPosition();
+        const box = container.getBoundingClientRect();
+        scheduleRichTip({ left: box.left + at.x, right: box.left + at.x, top: box.top + at.y, bottom: box.top + at.y },
+          () => nodeTip(event.target.id()), CSS_QUICK_DELAY);
       });
       cy.on(EVENT_MOUSEOUT, VALUE_NODE_ITEM, (event) => {
         event.target.removeClass(VALUE_HOVER);
         if (event.target.id() !== centre) event.target.connectedEdges().removeClass(VALUE_NEAR);
         highlight(centre);
-        container.title = "";
+        hideRichTip();
       });
       // RQ-TRC-046: a link's tooltip once the pointer rests on it for the token delay.
       cy.on(EVENT_MOUSEOVER, VALUE_EDGE, (event) => {
@@ -983,13 +988,18 @@
       return cy;
     }
 
-    // The relation of a drawn link, its two ends in their direction, and its proof lines.
-    function tipFor(edgeId) {
+    // A drawn link: its kind, its look, its two ends in their direction.
+    function edgeParts(edgeId) {
       const edge = cy.getElementById(edgeId);
       const kind = edge.data("kind");
-      const look = kind === VALUE_CALLS && edge.data("ambiguous") ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind];
-      const source = edge.data("source");
-      const target = edge.data("target");
+      const ambiguous = kind === VALUE_CALLS && edge.data(VALUE_AMBIGUOUS);
+      return { edge, kind, ambiguous, look: ambiguous ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind], source: edge.data("source"),
+        target: edge.data("target") };
+    }
+
+    // The relation of a drawn link, its two ends in their direction, and its proof lines.
+    function tipFor(edgeId) {
+      const { edge, kind, look, source, target } = edgeParts(edgeId);
       const merged = edge.data("count");               // a link merging calls between boxes (DEC-TRC-021)
       let proofs = merged ?? 0;
       if (merged === undefined && kind === VALUE_CALLS) proofs = callSites(source, target);
@@ -1003,17 +1013,26 @@
       return `${look.meaning}: ${nodeOf(source).label} → ${nodeOf(target).label}${lines}`;
     }
 
+    // RQ-HST-017: a relation, its two ends in their direction, its first proof lines, on the page's rich tooltip.
+    function edgeTipContent(edgeId) {
+      const { kind, ambiguous, look, source, target } = edgeParts(edgeId);
+      const proofs = links.has(source) ? links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
+        .flatMap((l) => l.lines) : [];
+      const count = tipFor(edgeId).split(" · ").slice(1).join(" · ");
+      return { head: RELATION_NAME[ambiguous ? VALUE_AMBIGUOUS : kind] || look.meaning,
+        lines: [`${nodeOf(source).label} → ${nodeOf(target).label}`, look.meaning, count,
+          ...proofs.slice(0, PROOFS_SHOWN).map(([line, text]) => `L${line} ${text}`)],
+        mono: [3, 4] };
+    }
+
     function showTip(edgeId, at) {
-      const scroller = $(VALUE_GRAPH_SCROLL);
-      tip.textContent = tipFor(edgeId);
-      tip.style.left = `${at.x - scroller.scrollLeft}px`;
-      tip.style.top = `${at.y - scroller.scrollTop}px`;
-      tip.hidden = false;
+      const box = container.getBoundingClientRect();
+      showRichTip({ left: box.left + at.x, right: box.left + at.x, top: box.top + at.y, bottom: box.top + at.y }, edgeTipContent(edgeId));
     }
 
     function hideTip() {
       clearTimeout(tipTimer);
-      tip.hidden = true;
+      hideRichTip();
     }
 
     function highlight(key) {
@@ -1172,13 +1191,16 @@
 
     clear($("legend")).append(...NODE_TYPES.map((t) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM },
       el(TAG_SPAN, { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
-    ...Object.values(EDGE_LOOK).map((look) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM, title: look.meaning },
-      edgeSample(look), look.meaning)),
-    ...(CALL_GRAPH ? BOX_KINDS.map((kind) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM, title: BOX_HINT[kind] },   // RQ-TRC-047
-      el(TAG_SPAN, { class: `legend-box box-${kind}` }), BOX_NAME[kind])) : []));
+    ...Object.entries(EDGE_LOOK).map(([kind, look]) => richTip(el(TAG_SPAN, { class: VALUE_LEGEND_ITEM },
+      edgeSample(look), look.meaning), () => ({ head: RELATION_NAME[kind], lines: [look.meaning] }))),
+    ...(CALL_GRAPH ? BOX_KINDS.map((kind) => richTip(el(TAG_SPAN, { class: VALUE_LEGEND_ITEM },   // RQ-TRC-047
+      el(TAG_SPAN, { class: `legend-box box-${kind}` }), BOX_NAME[kind]), () => ({ head: BOX_NAME[kind], lines: [BOX_HINT[kind]] }))) : []));
 
     return {
       tipFor,
+      edgeTipContent,
+      tipContent: nodeTip,                // RQ-HST-017: read by the tests
+      instance: ensure,
       setDetail: applyDetail,           // RQ-TRC-047: the level of detail, one of DETAIL's values
       setEnclosing: applyEnclosing,     // RQ-TRC-047: the enclosing boxes drawn or left out
       elements() { return cy ? cy.elements().map((e) => e.data()) : []; },
@@ -1199,8 +1221,9 @@
   // ---- header and footer --------------------------------------------------------------------------------------
   function renderHeader() {
     const meta = DATA.meta;
-    const item = (label, value, title) => el("div", { class: "meta-item", title: title || value },
-      el(TAG_SPAN, { class: "meta-label", text: label }), el(TAG_SPAN, { class: "meta-value", text: value }));
+    const item = (label, value) => richTip(el("div", { class: "meta-item" },
+      el(TAG_SPAN, { class: "meta-label", text: label }), el(TAG_SPAN, { class: "meta-value", text: value })),
+    () => ({ head: label, lines: [value] }));
     clear($("meta")).append(item("Generated", meta.generatedAt), item("Process", meta.process),
       item("Sources", meta.sources.join(", ")));
     $("about").append(el("div", { text: `Generated by agnos-trace · graph by ${meta.library} (MIT)` }));
@@ -1217,8 +1240,14 @@
   function stackBar(c, total) {
     return el("div", { class: "stack", role: "img",
       [VALUE_ARIA_LABEL]: `${c.covered} covered, ${c.indirect} indirect, ${c.uncovered} uncovered of ${total}` },
-      ...Object.keys(COVERAGE).map((k) => el("div", { class: `stack-part stack-${k}`, title: `${COVERAGE[k][0]}: ${c[k]}`,
-        style: { width: `${total ? (PERCENT * c[k]) / total : 0}%` } })));
+      ...Object.keys(COVERAGE).map((k) => richTip(el("div", { class: `stack-part stack-${k}`,
+        style: { width: `${total ? (PERCENT * c[k]) / total : 0}%` } }), () => coverageTip(k, c[k], total))));
+  }
+
+  // RQ-HST-017: a coverage rating, its count out of the requirements and its definition.
+  function coverageTip(k, count, total) {
+    return { head: COVERAGE[k][0], lines: [count === undefined ? "" : `${count} of ${total} requirements · ${pct(count, total)} %`,
+      COVERAGE[k][1]] };
   }
 
   function searchPrefix(type) {
@@ -1241,11 +1270,12 @@
     clear($("kpis")).append(coverageCard, typeTiles);
 
     clear($("coverage-chart")).append(stackBar(c, total), el("div", { class: "coverage-legend" },
-      ...Object.keys(COVERAGE).map((k) => el(TAG_BUTTON, { class: VALUE_COVERAGE_ITEM, type: TAG_BUTTON, title: COVERAGE[k][1],
+      ...Object.keys(COVERAGE).map((k) => richTip(el(TAG_BUTTON, { class: VALUE_COVERAGE_ITEM, type: TAG_BUTTON,
         on: { click: () => { setCoverageFilter(k); showView(VALUE_MATRIX); } } },
         el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL }, el(TAG_SPAN, { class: `legend-swatch stack-${k}` }), COVERAGE[k][0]),
         el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: `${c[k]}` }),
-        el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${pct(c[k], total)} % of ${total}` })))));
+        el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${pct(c[k], total)} % of ${total}` })),
+      () => { const tip = coverageTip(k, c[k], total); return { ...tip, lines: [...tip.lines, "Click to show them in the matrix"] }; }))));
 
     clear($("quality-summary")).append(el("div", { class: "check-rows" }, ...CHECKS.map((check) =>
       el(TAG_BUTTON, { class: "check-row", type: TAG_BUTTON, on: { click: () => openCheck(check.key) } },
@@ -1273,10 +1303,10 @@
   // RQ-TRC-035: the call graph's counts; the untraced functions are an informational check, not counted among the findings.
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
-    const item = (label, value, hint, onClick) => el(onClick ? TAG_BUTTON : "div",
-      { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, title: hint, on: onClick ? { click: onClick } : null },
+    const item = (label, value, hint, onClick) => richTip(el(onClick ? TAG_BUTTON : "div",
+      { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, on: onClick ? { click: onClick } : null },
       el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
-      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint }));
+      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint })), () => ({ head: `${label}: ${value}`, lines: [hint] }));
     return el(TAG_ARTICLE, { class: "card card-wide" },
       el(TAG_HEADER, { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
         el(TAG_SPAN, { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
@@ -1309,12 +1339,23 @@
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
-    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON,
-      title: check.rule, on: { click: () => openCheck(check.key) } }, el(TAG_SPAN, { text: check.title }),
-      el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
+    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, richTip(el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON,
+      on: { click: () => openCheck(check.key) } }, el(TAG_SPAN, { text: check.title }),
+      el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })), () => checkTip(check)))));
   }
 
   function toggle(set, value) { if (set.has(value)) set.delete(value); else set.add(value); }
+
+  const findingCount = (n) => `${n} ${n === 1 ? "finding" : "findings"}`;
+  const scoreTip = (check) => ({ head: `Score ${scoreText(check)} / ${SCORE_MAX}`,
+    lines: [checkFormula(check), `population ${check.population} · ${findingCount(check.findings.length)}`] });
+
+  // RQ-HST-017: a check, its score, its risk, its findings and its rule.
+  function checkTip(check) {
+    const count = check.findings.length;
+    return { head: check.title, lines: [`Score ${scoreText(check)} / ${SCORE_MAX} · risk ${check.risk}`,
+      findingCount(count), check.rule] };
+  }
 
   function filtersChanged() { renderMatrix(); graph.refresh(); }
 
@@ -1361,6 +1402,34 @@
       n.doc ? `${n.doc}:${n.first}-${n.last}` : ""], mono: [2] };
   }
 
+  const RELATION_NAME = { contains: "Contains", refs: "Cites", code: "Cited in code", defines: "Defines", calls: "Calls",
+    ambiguous: "Ambiguous call" };
+  const PROOFS_SHOWN = 2;
+
+  function nodeTip(key) {
+    const n = nodeOf(key);
+    const linked = (links.get(key) || []).length;
+    if (boxes.get(key)) {
+      return { head: n.label, lines: [BOX_NAME[n.box] || BOX_NAME[CLASS_KIND], `${boxes.membersOf(key).length} functions`] };
+    }
+    if (n.type === TYPE_FILE) {
+      const functions = (links.get(key) || []).filter((l) => l.kind === LINK_KIND_DEFINES && l.dir === "out").length;
+      return { type: n.type, head: n.path.split("/").pop(), lines: ["Source file", n.path, `${n.ids} IDs cited`,
+        CALL_GRAPH ? `${functions} functions` : ""], mono: [1] };
+    }
+    if (n.type === "FN") {
+      const index = calls ? calls.index.get(key) : undefined;
+      const cited = (links.get(key) || []).filter((l) => l.kind === LINK_KIND_CODE && l.dir === "out").map((l) => l.key);
+      return { type: n.type, head: n.label, lines: [`Function · ${n.language}`, `${n.path}:${n.first}-${n.last}`,
+        index === undefined ? "" : `${calls.callers(index).length} callers · ${calls.callees(index).length} callees`,
+        cited.length ? `Cites ${cited.join(", ")}` : "Cites no ID"], mono: [1] };
+    }
+    if (n.type === TYPE_UNDEFINED) return { type: n.type, head: n.label, lines: ["Cited, but not in the index", `${linked} links`] };
+    const base = elementTip(n);
+    const coverage = n.type === "RQ" && DATA.coverage[key] ? `${COVERAGE[DATA.coverage[key]][0]}: ${COVERAGE[DATA.coverage[key]][1]}` : "";
+    return { ...base, lines: [...base.lines, coverage, `${linked} links`] };
+  }
+
   function showSearchTip(item, n) {
     const row = item.getBoundingClientRect();
     const side = results.getBoundingClientRect();
@@ -1372,7 +1441,7 @@
     const row = item.getBoundingClientRect();
     const side = results.getBoundingClientRect();
     scheduleRichTip({ left: side.left, right: side.right, top: row.top, bottom: row.top }, () => elementTip(nodes.get(key)),
-      "--c-search-tip-delay");
+      CSS_QUICK_DELAY);
   }
   results.addEventListener("mouseleave", hideSearchTip);
   results.addEventListener("scroll", hideSearchTip);
@@ -1521,13 +1590,13 @@
   function idButton(key, short) {
     const n = nodeOf(key);
     const label = n.type === TYPE_FILE && short ? n.label.split("/").pop() : n.label;
-    return el(TAG_BUTTON, { class: `id-link t-${n.type}`, type: TAG_BUTTON, title: n.title || n.label,
+    return richTip(el(TAG_BUTTON, { class: `id-link t-${n.type}`, type: TAG_BUTTON,
       on: { click: (event) => { event.stopPropagation(); select(key); } } },
-      el(TAG_SPAN, { class: `dot t-${n.type}` }), el(TAG_SPAN, { class: "id", text: label }));
+      el(TAG_SPAN, { class: `dot t-${n.type}` }), el(TAG_SPAN, { class: "id", text: label })), () => nodeTip(key), CSS_QUICK_DELAY);
   }
 
   function coverageBadge(rating) {
-    return el(TAG_SPAN, { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
+    return richTip(el(TAG_SPAN, { class: `badge badge-${rating}`, text: COVERAGE[rating][0] }), () => coverageTip(rating));
   }
 
   // ---- column order (TASK-TRC-040: RQ-TRC-052; DEC-TRC-028) ----------------------------------------------------
@@ -1789,9 +1858,9 @@
     const shown = state.moreFindings.has(check.key) ? keys : keys.slice(0, FINDINGS_SHOWN);
     return [keys.length ? el("ul", { class: "finding-list" }, ...shown.map((key) => {
       const n = nodes.get(key);
-      return el("li", {}, el("button", { class: "finding", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
+      return el("li", {}, richTip(el("button", { class: "finding", type: "button", on: { click: () => select(key) } },
         el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label }),
-        n.title ? el("span", { class: "finding-title", text: n.title }) : null));
+        n.title ? el("span", { class: "finding-title", text: n.title }) : null), () => nodeTip(key), CSS_QUICK_DELAY));
     })) : el("div", { class: "check-none", text: "None — the rule holds." }),
     keys.length > shown.length ? el("button", { class: "link-button", type: "button",
       on: { click: () => { state.moreFindings.add(check.key); renderQuality(); } }, text: `Show all ${keys.length}` }) : null];
@@ -1809,11 +1878,15 @@
           title: open ? "Show this check compact" : "Show the rule, the figures and the findings of this check",
           on: { click: toggleCheck } }, el("span", { class: "check-chevron", "aria-hidden": "true" }),
           el("span", { class: "check-card-title", text: check.title })),
-        el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk, title: "Risk level of the check: its weight in the overall score" }),
-        el("span", { class: `check-score grade-${grade || VALUE_NONE}`, title: checkFormula(check) },
+        richTip(el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk }),
+          () => ({ head: `Risk ${check.risk}`, lines: [`Weight ${DATA.quality.risks[check.risk]} in the overall score`] })),
+        richTip(el("span", { class: `check-score grade-${grade || VALUE_NONE}` },
           el("span", { class: "score-bar" }, el("span", { class: "score-fill", style: { "--score": (check.score ?? 0) * PERCENT / SCORE_MAX } })),
           el("span", { class: "score-text", text: scoreText(check) })),
-        el("span", { class: checkBadgeClass(check), text: check.findings.length, title: "Findings: elements that fail this check" })),
+        () => scoreTip(check)),
+        richTip(el("span", { class: `${checkBadgeClass(check)} check-count`, text: check.findings.length }),
+          () => ({ head: findingCount(check.findings.length),
+            lines: ["The elements that fail this check"] }))),
       open ? el("div", { class: "check-detail", id: detailId },
         el("p", { class: "check-card-desc", text: check.rule }),
         el("p", { class: "check-formula", text: checkFormula(check) }), checkKpis(check), ...checkFindings(check)) : null);
@@ -1858,7 +1931,7 @@
 
   function checkTipLines(check) {
     return [check.title, `score ${scoreText(check)} out of ${SCORE_MAX} · risk ${check.risk}`,
-      `population ${check.population} · ${check.findings.length} ${check.findings.length === 1 ? "finding" : "findings"}`];
+      `population ${check.population} · ${findingCount(check.findings.length)}`];
   }
 
   function radarChart() {
@@ -1941,18 +2014,27 @@
   // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).
   function gradeChip(grade, score, extra) {
     const meaning = grade ? `Grade ${grade}: ${DATA.quality.verdicts[grade].toLowerCase()}, score ${score.toFixed(SCORE_DECIMALS)} out of ${SCORE_MAX}` : "Not graded";
-    return el("span", { class: `grade-chip grade-${grade || VALUE_NONE} ${extra || ""}`, title: meaning, text: grade || "–" });
+    return richTip(el("span", { class: `grade-chip grade-${grade || VALUE_NONE} ${extra || ""}`, text: grade || "–" }),
+      () => ({ head: grade ? `Grade ${grade}` : "Not graded", lines: [meaning, grade ? gradeRange(grade) : ""] }));
   }
 
   const attentionChecks = () => rankedChecks().filter((c) => isRanked(c) && c.score < DATA.quality.attention);
+
+  function gradeRange(letter) {
+    const scale = DATA.quality.scale;
+    const i = scale.findIndex(([l]) => l === letter);
+    const upper = i ? scale[i - 1][1] : SCORE_MAX;
+    return i ? `Scores from ${scale[i][1]} to under ${upper}` : `Scores from ${scale[i][1]} to ${upper}`;
+  }
 
   function scaleStrip(grade) {
     const scale = DATA.quality.scale;
     return el("ol", { class: "scale", "aria-label": "Grade scale" }, ...scale.map(([letter, threshold], i) => {
       const upper = i ? scale[i - 1][1] : SCORE_MAX;
       const range = i ? `${threshold} to under ${upper}` : `${threshold} to ${upper}`;
-      return el("li", { class: `scale-step grade-${letter}${letter === grade ? " is-current" : ""}`, text: letter,
-        title: `Grade ${letter}: score ${range}`, "aria-current": letter === grade ? "true" : null });
+      return richTip(el("li", { class: `scale-step grade-${letter}${letter === grade ? " is-current" : ""}`, text: letter,
+        [VALUE_ARIA_LABEL]: `Grade ${letter}: score ${range}`, "aria-current": letter === grade ? "true" : null }),
+      () => ({ head: `Grade ${letter}`, lines: [DATA.quality.verdicts[letter], gradeRange(letter)] }));
     }));
   }
 
@@ -1968,12 +2050,16 @@
   function renderReport() {
     const quality = DATA.quality;
     const fixes = rankedChecks().filter((c) => isRanked(c) && c.findings.length).slice(0, FIX_FIRST_SHOWN);
-    const fixLink = (c) => el("li", {}, el("button", { class: "fix-link", type: "button", "data-check": c.key,
-      title: `${c.rule} Open this check.`, on: { click: () => openCheck(c.key) } },
+    const fixLink = (c) => el("li", {}, richTip(el("button", { class: "fix-link", type: "button", "data-check": c.key,
+      on: { click: () => openCheck(c.key) } },
     el("span", { class: "fix-title", text: c.title }),
-    el("span", { class: `check-score grade-${gradeOf(c.score)}` }, el("span", { class: "score-text", text: scoreText(c) }))));
-    const area = ([tri, t]) => el("li", { class: "report-trigram", title: `${tri}: score ${scoreOut(t.score)} out of ${SCORE_MAX}` },
-      el("span", { class: "report-tri", text: tri }), gradeChip(t.grade, t.score), el("span", { class: "report-tri-score", text: scoreOut(t.score) }));
+    richTip(el("span", { class: `check-score grade-${gradeOf(c.score)}` }, el("span", { class: "score-text", text: scoreText(c) })),
+      () => scoreTip(c))), () => checkTip(c)));
+    const area = ([tri, t]) => richTip(el("li", { class: "report-trigram" },
+      el("span", { class: "report-tri", text: tri }), gradeChip(t.grade, t.score), el("span", { class: "report-tri-score", text: scoreOut(t.score) })),
+    () => { const low = (t.checks || []).filter((c) => c.score !== null && c.score < DATA.quality.attention).length;
+      return { head: tri, lines: [`Score ${scoreOut(t.score)} / ${SCORE_MAX} · grade ${t.grade || "–"}`,
+        `${low} ${low === 1 ? "check" : "checks"} under ${DATA.quality.attention}`] }; });
     clear($("quality-report")).append(
       el("div", { class: "report-main" }, gradeChip(quality.grade, quality.score, "report-grade"),
         el("div", { class: "report-summary" },
@@ -2547,6 +2633,19 @@
     return mark;
   }
 
+  // RQ-HST-017: a row, its changes, its identities and its last change.
+  function rowTip(row) {
+    const n = nodeOf(row.key);
+    const people = new Set(row.marks.flatMap(([ci]) => [HISTORY.commits[ci].author, ...HISTORY.commits[ci].coAuthors]));
+    const last = row.marks.reduce((best, [ci]) => (best === null || commitTime[ci] > commitTime[best] ? ci : best), null);
+    const changes = row.marks.length;
+    return { type: n ? n.type : null, head: n && n.type !== TYPE_FILE ? n.label : row.title || row.label,
+      lines: [n && n.type !== TYPE_FILE ? n.title : "", `${changes} ${changes === 1 ? "change" : "changes"} · ${people.size} `
+        + `${people.size === 1 ? "identity" : TEXT_IDENTITIES}`,
+      last === null ? "No change in the history read"
+        : `Last change: ${DAY_TEXT.format(commitTime[last])} by ${HISTORY.people[HISTORY.commits[last].author].name}`] };
+  }
+
   function rowElement(row, index) {
     const height = rowHeight();
     const top = `${index * height}px`;
@@ -2554,7 +2653,7 @@
       return el("div", { class: "history-row is-group", style: { top } },
         el(TAG_SPAN, { class: CLASS_LABEL }, row.label, el(TAG_SPAN, { class: CLASS_COUNT, text: row.count })), el("div"));
     }
-    const label = el(TAG_BUTTON, { class: CLASS_LABEL, type: TAG_BUTTON, title: row.title || (row.name ? `${row.label} — ${row.name}` : row.label),
+    const label = el(TAG_BUTTON, { class: CLASS_LABEL, type: TAG_BUTTON,
       style: { "--history-depth": row.depth }, on: { [EVENT_CLICK]: () => select(row.key) } },
     el(TAG_SPAN, { class: "history-id", text: row.label }), row.name ? el(TAG_SPAN, { class: CLASS_NAME, text: row.name }) : null,
     el(TAG_SPAN, { class: CLASS_COUNT, text: row.marks.length || "" }));
@@ -2566,6 +2665,7 @@
       const x = localX(commitTime[ci]);
       if (x >= -reach && x <= width + reach) strip.append(markElement(row, ci, lines, height / 2));
     }
+    richTip(label, () => rowTip(row), CSS_TIP_DELAY);
     return el("div", { class: "history-row", "data-key": row.key, style: { top } }, label, strip);
   }
 
@@ -2767,7 +2867,11 @@
     if (limits.depth) parts.push(`last ${limits.depth}`);
     if (limits.shallow) parts.push("cut: shallow clone");
     const text = parts.join(" · ");
-    Object.assign($("history-limits"), { textContent: text, title: `History read: ${text}` });
+    $("history-limits").textContent = text;
+    richTip($("history-limits"), () => ({ head: "History read", lines: [
+      limits.first ? `From ${DAY_TEXT.format(Date.parse(limits.first))} to ${DAY_TEXT.format(Date.parse(limits.last))}` : "",
+      `${limits.commits} commits${limits.since ? `, authored since ${limits.since}` : ""}${limits.depth ? `, the last ${limits.depth}` : ""}`,
+      limits.shallow ? "Cut: the repository is a shallow clone" : "The whole history the limits allow"] }));
   }
 
   const historyView = {
@@ -2884,8 +2988,8 @@
 
   function noFunctionBadge(key) {
     const note = fileCitations(key).length ? "cited at file level only" : "no function cites it";
-    return el("span", { class: "badge badge-warn t-FN", title: note }, el("span", { class: "dot t-FN" }),
-      `${plural("FN", 0)} 0 · ${note}`);
+    return richTip(el("span", { class: "badge badge-warn t-FN" }, el("span", { class: "dot t-FN" }),
+      `${plural("FN", 0)} 0 · ${note}`), () => ({ head: "No function", lines: [`No function of the call graph cites this requirement: ${note}`] }));
   }
 
   // RQ-TRC-033: a function's callers and callees, the first CALLS_SHOWN of each, more on request (DEC-TRC-017).
@@ -2980,9 +3084,10 @@
   function callItem(c, rel) {
     const sites = c.lines.map((line) => `L${line}`).join(" · ");
     return el("li", { class: "link-item" }, idButton(c.key),
-      el("span", { class: "link-rel", title: `call sites in the caller: ${sites}` }, `${rel} · ${sites} `,
-        c.ambiguous ? el("span", { class: "badge badge-warn", text: "ambiguous",
-          title: "the name matches several definitions; the analysis cannot tell which one is called" }) : null));
+      richTip(el("span", { class: "link-rel" }, `${rel} · ${sites} `,
+        c.ambiguous ? el("span", { class: "badge badge-warn", text: VALUE_AMBIGUOUS }) : null),
+      () => ({ head: c.ambiguous ? "Ambiguous call" : "Call sites", lines: [`Lines of the call in the caller: ${sites}`,
+        c.ambiguous ? "The name matches several definitions; the analysis cannot tell which one is called" : ""] })));
   }
 
   function linkGroup(type, byKey) {

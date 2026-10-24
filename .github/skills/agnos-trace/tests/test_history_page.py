@@ -478,6 +478,113 @@ out.chiptitle = document.querySelector('#history-people [data-person="0"]').getA
         self.assertEqual("", got["chiptitle"])
 
 
+READ_TIP = """
+const tip = document.getElementById("tip");
+const readTip = (node) => { node.dispatchEvent(new FocusEvent("focus")); const head = tip.querySelector(".tip-head")?.textContent || "";
+  const text = tip.hidden ? "" : tip.textContent; node.dispatchEvent(new FocusEvent("blur")); return [head, text]; };
+"""
+# RQ-HST-017: the business items, which raise the rich tooltip and carry no browser title
+RICH_TARGETS = (".id-link", ".finding", ".badge-covered", ".badge-indirect", ".badge-uncovered", ".meta-item",
+                "#quality-shortcuts .quality-shortcut", ".fix-link", ".check-score", ".check-risk", ".check-count",
+                ".grade-chip", ".scale-step", ".report-trigram", ".history-row[data-key] .history-label", "#history-limits", ".stack-part",
+                ".coverage-item")
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class RichContentTest(unittest.TestCase):
+    """TASK-HST-010: RQ-HST-017, RQ-HST-016."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        cls.data = add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, START + READ_TIP + script), *names)
+
+    def test_RQ_HST_017_given_a_requirement_node_of_the_graph_then_its_tooltip_gives_id_title_coverage_and_location(self):
+        got = self.run_script("""
+agnosTrace.select("RQ-DEM-001");
+agnosTrace.showView("graph");
+const content = agnosTrace.graph.tipContent("RQ-DEM-001");
+out.head = content.head;
+out.lines = content.lines.join("|");
+const cy = agnosTrace.graph.instance();
+cy.getElementById("RQ-DEM-001").emit("mouseover");
+setTimeout(() => { out.hovered = tip.hidden ? "" : tip.querySelector(".tip-head").textContent;
+  out.containertitle = document.getElementById("cy").getAttribute("title") || ""; }, 1500);
+""", "head", "lines", "hovered", "containertitle")
+        self.assertEqual("RQ-DEM-001", got["head"])
+        for part in ("Requirement", "Covered directly", "Covered", "FTR-DEM-001-demo-feature.md:8-12"):
+            self.assertIn(part, got["lines"], part)
+        self.assertEqual(("RQ-DEM-001", ""), (got["hovered"], got["containertitle"]))
+
+    def test_RQ_HST_017_given_a_file_node_then_its_bold_line_is_the_file_name_and_its_path_is_below(self):
+        path = self.data["files"][0]["path"]
+        got = self.run_script(f"""
+const content = agnosTrace.graph.tipContent({json.dumps("file:" + path)});
+out.head = content.head;
+out.lines = content.lines.join("|");
+""", "head", "lines")
+        self.assertEqual(path.rsplit("/", 1)[-1], got["head"])
+        self.assertIn(path, got["lines"])
+        self.assertIn("IDs cited", got["lines"])
+
+    def test_RQ_HST_017_given_a_relation_then_its_tooltip_names_it_its_ends_and_its_proof(self):
+        got = self.run_script("""
+agnosTrace.select("RQ-DEM-001");
+agnosTrace.showView("graph");
+const edge = agnosTrace.graph.instance().edges().filter((e) => e.data("kind") === "code")[0];
+const content = agnosTrace.graph.edgeTipContent(edge.id());
+out.head = content.head;
+out.lines = content.lines.join("|");
+""", "head", "lines")
+        self.assertEqual("Cited in code", got["head"])
+        self.assertIn("→ RQ-DEM-001", got["lines"])
+        self.assertRegex(got["lines"], r"L\d+ ")                          # a proof line with its number
+
+    def test_RQ_HST_017_given_a_matrix_id_a_check_score_and_a_history_label_then_their_tooltips_hold_their_facts(self):
+        got = self.run_script("""
+agnosTrace.showView("matrix");
+const [idHead, idText] = readTip([...document.querySelectorAll('#matrix-table .id-link')].find((b) => b.textContent === "RQ-DEM-001"));
+out.idhead = idHead; out.idtext = idText;
+agnosTrace.showView("quality");
+const [, scoreText] = readTip(document.querySelector("#quality-list .check-score"));
+out.score = scoreText;
+agnosTrace.showView("history");
+const [labelHead, labelText] = readTip(document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-label'));
+out.labelhead = labelHead; out.labeltext = labelText;
+""", "idhead", "idtext", "score", "labelhead", "labeltext")
+        self.assertEqual("RQ-DEM-001", got["idhead"])
+        self.assertIn("Covered directly", got["idtext"])
+        self.assertRegex(got["score"], r"Score \d+\.\d / 10")
+        self.assertIn("population", got["score"])
+        self.assertEqual("RQ-DEM-001", got["labelhead"])
+        for part in ("3 changes", "2 identities", "Last change", "Alice"):
+            self.assertIn(part, got["labeltext"], part)
+
+    def test_RQ_HST_016_given_the_business_items_then_none_has_a_browser_title_and_each_raises_the_rich_tooltip(self):
+        got = self.run_script(f"""
+agnosTrace.select("RQ-DEM-002");
+document.getElementById("expand-checks").click();
+agnosTrace.showView("history");
+const bad = [];
+for (const selector of {json.dumps(list(RICH_TARGETS))}) {{
+  const found = [...document.querySelectorAll(selector)];
+  if (!found.length) bad.push(selector + " (none)");
+  for (const node of found) if (node.getAttribute("title") || node.dataset.richTip !== "true") bad.push(selector);
+}}
+out.bad = [...new Set(bad)].join(",");
+""", "bad")
+        self.assertEqual("", got["bad"])
+
+
 class WordingTest(unittest.TestCase):
     """TASK-HST-009: RQ-HST-018: no ID of the skill's process in the page's own wording."""
 
