@@ -793,6 +793,8 @@ class FunctionMatrixTest(unittest.TestCase):
         for label in ("ADRs / decisions", "Plans / tasks", "Functions", "Source files"):    # aligned with their cells
             self.assertRegex(dom, rf'<th class="sortable *"[^>]*>{re.escape(label)}<span class="col-grip"')
         self.assertRegex(dom, r'<th class="sortable num"[^>]*>Lines<span class="col-grip"')
+        order = re.findall(r'<th [^>]*data-column="(\w+)"', dom)       # RQ-TRC-051: Functions before the source files
+        self.assertEqual(["feature", "id", "coverage", "decisions", "tasks", "functions", "files", "lines"], order)
         row = re.search(r'<tr[^>]*data-key="RQ-DEM-001".*?</tr>', dom, re.S).group(0)
         self.assertIn('<span class="id">net::Port::send</span>', row)
         csv = re.search(r'<pre id="csv-text">(.*?)</pre>', dom, re.S).group(1)

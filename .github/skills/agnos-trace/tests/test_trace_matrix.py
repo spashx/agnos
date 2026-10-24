@@ -522,7 +522,7 @@ const grip = heads()[0].querySelector(".col-grip");
 for (let i = 0; i < 3; i += 1) grip.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
 grip.click();
 out.after = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
-out.sort = heads()[0].getAttribute("aria-sort");
+out.sort = document.querySelector('#matrix-table th[data-column="id"]').getAttribute("aria-sort");   // RQ-TRC-051: Feature leads
 heads()[0].querySelector(".col-grip").dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
 out.reset = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
 """

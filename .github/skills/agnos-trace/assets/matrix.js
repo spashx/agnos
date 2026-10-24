@@ -1306,20 +1306,32 @@
 
   function unique(list) { return [...new Set(list)]; }
 
+  // RQ-TRC-051, DEC-TRC-027: each column is declared once, with the cell it draws; the header and every row walk the
+  // ordered list of keys (DEFAULT_COLUMN_ORDER, then the reader's order, RQ-TRC-052), so a header and its cells never part.
   const MATRIX_COLUMNS = [
-    { key: "id", label: "Requirement", value: (r) => r.id, hint: "The requirement, its title and status" },
+    { key: "feature", label: "Feature", value: (r) => r.feature.join(" "), hint: "The feature that contains it",
+      cell: (r) => el("td", {}, idList(r.feature)) },
+    { key: "id", label: "Requirement", value: (r) => r.id, hint: "The requirement, its title and status",
+      cell: (r) => el("td", { class: "cell-requirement" }, idButton(r.id),
+        el("div", { class: "cell-title", text: r.title }),
+        r.status ? el("span", { class: "badge badge-neutral", text: r.status }) : null) },
     { key: "coverage", label: "Coverage", value: (r) => ["covered", "indirect", "uncovered"].indexOf(r.coverage),
-      hint: "Covered: a source file cites it · Indirect: through a linked decision, task, ADR or plan · Uncovered: neither" },
-    { key: "feature", label: "Feature", value: (r) => r.feature.join(" "), hint: "The feature that contains it" },
+      hint: "Covered: a source file cites it · Indirect: through a linked decision, task, ADR or plan · Uncovered: neither",
+      cell: (r) => el("td", {}, coverageBadge(r.coverage)) },
     // A list column sorts by its count but shows IDs: its header aligns left, like its cells (only "Lines" is a number).
     { key: "decisions", label: "ADRs / decisions", value: (r) => r.decisions.length,
-      hint: "ADRs and decisions citing it or cited by it" },
-    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, hint: "Plans and tasks citing it" },
+      hint: "ADRs and decisions citing it or cited by it", cell: (r) => el("td", {}, idList(r.decisions)) },
+    { key: "tasks", label: "Plans / tasks", value: (r) => r.tasks.length, hint: "Plans and tasks citing it",
+      cell: (r) => el("td", {}, idList(r.tasks)) },
     ...(CALL_GRAPH ? [{ key: "functions", label: "Functions", value: (r) => r.functions.length,
-      hint: "Functions citing it in their lines or the comment just above them" }] : []),
-    { key: "files", label: "Source files", value: (r) => r.files.length, hint: "Source files citing it" },
-    { key: "lines", label: "Lines", value: (r) => r.lines, num: true, hint: "Source lines citing it, all files together" },
+      hint: "Functions citing it in their lines or the comment just above them",
+      cell: (r) => el("td", {}, idList(r.functions)) }] : []),
+    { key: "files", label: "Source files", value: (r) => r.files.length, hint: "Source files citing it",
+      cell: (r) => el("td", {}, idList(r.files)) },
+    { key: "lines", label: "Lines", value: (r) => r.lines, num: true, hint: "Source lines citing it, all files together",
+      cell: (r) => el("td", { class: "num", text: r.lines || "—" }) },
   ];
+  const DEFAULT_COLUMN_ORDER = MATRIX_COLUMNS.map((c) => c.key);
   const matrixRows = requirements.map(matrixRow);
 
   function rowMatches(r) {
@@ -1351,6 +1363,9 @@
     return el("span", { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
   }
 
+  // The columns in the reader's order; a function until TASK-TRC-040 lets the reader move them.
+  function orderedColumns() { return DEFAULT_COLUMN_ORDER.map((key) => MATRIX_COLUMNS.find((c) => c.key === key)); }
+
   function renderMatrix() {
     const column = MATRIX_COLUMNS.find((c) => c.key === state.sort.column);
     const rows = matrixRows.filter(rowMatches).sort((a, b) => {
@@ -1359,20 +1374,14 @@
       const order = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true });
       return order * state.sort.dir || a.id.localeCompare(b.id);
     });
-    const head = el("tr", {}, ...MATRIX_COLUMNS.map((c) => el("th", {
+    const ordered = orderedColumns();
+    const head = el("tr", {}, ...ordered.map((c) => el("th", {
       class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
       title: `${c.hint} · click to sort`,
       on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
     c.label, columnGrip(c))));
     const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
-      on: { click: () => select(r.id) } },
-      el("td", { class: "cell-requirement" }, idButton(r.id),
-        el("div", { class: "cell-title", text: r.title }),
-        r.status ? el("span", { class: "badge badge-neutral", text: r.status }) : null),
-      el("td", {}, coverageBadge(r.coverage)),
-      el("td", {}, idList(r.feature)), el("td", {}, idList(r.decisions)), el("td", {}, idList(r.tasks)),
-      CALL_GRAPH ? el("td", {}, idList(r.functions)) : null,
-      el("td", {}, idList(r.files)), el("td", { class: "num", text: r.lines || "—" })));
+      on: { click: () => select(r.id) } }, ...ordered.map((c) => c.cell(r))));
     $("matrix-table").classList.toggle("with-functions", Boolean(CALL_GRAPH));
     clear($("matrix-table")).append(el("thead", {}, head), el("tbody", {}, body));
     applyColumnWidths();

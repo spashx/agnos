@@ -323,6 +323,34 @@ ADR-TRC-003).
   list, Then it is gone; Given the tokens, Then the delay is 300 ms.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-011, RQ-TRC-045
 
+### RQ-TRC-051: Matrix columns in the order of the specification
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The matrix SHALL show its columns, by default, in the order of the specification hierarchy: Feature,
+  Requirement, Coverage, ADRs / decisions, Plans / tasks, then Functions (with a call graph), Source files and Lines.
+- **Rationale**: a row reads from the feature that contains the requirement down to the code that implements it, as the
+  graph's columns do.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the page opened for the first time, When the matrix headers are read from left to
+  right, Then they are Feature, Requirement, Coverage, ADRs / decisions, Plans / tasks, Source files, Lines (with
+  Functions before Source files when the page has a call graph), and each cell stands under its own header.
+- **Dependencies**: RQ-TRC-014, RQ-TRC-041, RQ-TRC-043, ADR-TRC-006, DEC-TRC-027
+
+### RQ-TRC-052: Rearrangeable matrix columns
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the user drags a matrix column header onto another header (or presses Alt with the left or right
+  arrow key on a focused header), the page SHALL move that column to the dropped position, keep every cell under its
+  own header, leave the sort and the widths of the columns as they are, remember the order in the browser, and restore
+  the default order and widths when the user presses the "Reset columns" button; a resize grip SHALL never start a move.
+- **Rationale**: readers of the matrix care about different columns first (a developer the functions, a product owner
+  the coverage), so the order is theirs to choose.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the matrix at its default order, When the Coverage header is moved before the Feature
+  header, Then Coverage is the first column with its cells, the sort and the widths are unchanged, and the order is
+  still there after the page is reloaded; When "Reset columns" is pressed, Then the default order and widths come back.
+- **Dependencies**: RQ-TRC-014, RQ-TRC-018, RQ-TRC-043, RQ-TRC-045, RQ-TRC-051, ADR-TRC-006, DEC-TRC-028
+
 ---
 
 ## Non-Functional Requirements
