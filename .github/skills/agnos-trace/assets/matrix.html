@@ -51,7 +51,7 @@
       <div class="chips" id="tri-filters"></div>
     </section>
     <section class="side-section">
-      <h2 class="side-title">Quality</h2>
+      <h2 class="side-title">Quality <span id="side-grade"></span></h2>
       <ul class="quality-shortcuts" id="quality-shortcuts"></ul>
     </section>
     <footer class="side-footer" id="about"></footer>
@@ -69,7 +69,7 @@
       <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false"
               title="One row per requirement: what contains, decides, plans, implements and cites it">Matrix</button>
       <button class="tab" role="tab" type="button" data-view="quality" aria-selected="false"
-              title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span class="tab-count" id="quality-count"></span></button>
+              title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span id="quality-grade"></span> <span class="tab-count" id="quality-count"></span></button>
     </nav>
 
     <section class="view" id="view-overview" role="tabpanel">
@@ -80,7 +80,7 @@
           <div id="coverage-chart"></div>
         </article>
         <article class="card">
-          <header class="card-header"><h2 class="card-title">Quality</h2><span class="card-hint">checks of the traceability rules, findings per check</span></header>
+          <header class="card-header"><h2 class="card-title">Quality <span id="overview-grade"></span></h2><span class="card-hint">checks of the traceability rules, findings per check</span></header>
           <div id="quality-summary"></div>
         </article>
         <article class="card card-wide">
@@ -135,6 +135,7 @@
     </section>
 
     <section class="view" id="view-quality" role="tabpanel" hidden>
+      <section class="card report" id="quality-report" aria-label="Quality report card"></section>
       <div class="toolbar">
         <span class="toolbar-spacer"></span>
         <button class="button" type="button" id="expand-checks" title="Open every check: its rule, its figures and its findings">Expand all</button>

@@ -45,6 +45,7 @@
   const FUNCTIONS_CHECK = "functions-traced";
   const SCORE_MAX = 10;
   const SCORE_DECIMALS = 1;
+  const FIX_FIRST_SHOWN = 3;
   const SEARCH_LIMIT = 60;
   const CELL_LIMIT = 3;
   const FINDINGS_SHOWN = 60;
@@ -1654,9 +1655,64 @@
         el("p", { class: "check-formula", text: checkFormula(check) }), checkKpis(check), ...checkFindings(check)) : null);
   }
 
+  // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).
+  function gradeChip(grade, score, extra) {
+    const meaning = grade ? `Grade ${grade}: ${DATA.quality.verdicts[grade].toLowerCase()}, score ${score.toFixed(SCORE_DECIMALS)} out of ${SCORE_MAX}` : "Not graded";
+    return el("span", { class: `grade-chip grade-${grade || "none"} ${extra || ""}`, title: meaning, text: grade || "–" });
+  }
+
+  const attentionChecks = () => rankedChecks().filter((c) => isRanked(c) && c.score < DATA.quality.attention);
+
+  function scaleStrip(grade) {
+    const scale = DATA.quality.scale;
+    return el("ol", { class: "scale", "aria-label": "Grade scale" }, ...scale.map(([letter, threshold], i) => {
+      const upper = i ? scale[i - 1][1] : SCORE_MAX;
+      const range = i ? `${threshold} to under ${upper}` : `${threshold} to ${upper}`;
+      return el("li", { class: `scale-step grade-${letter}${letter === grade ? " is-current" : ""}`, text: letter,
+        title: `Grade ${letter}: score ${range}`, "aria-current": letter === grade ? "true" : null });
+    }));
+  }
+
+  const scoreOut = (score) => (score === null ? "n/a" : score.toFixed(SCORE_DECIMALS));
+
+  function verdictText(grade, attention) {
+    if (!grade) return "Nothing to score";
+    const need = attention === 1 ? "check needs" : "checks need";
+    return `${DATA.quality.verdicts[grade]}: ${attention ? `${attention} ${need} attention` : "no check needs attention"}`;
+  }
+
+  // RQ-TRC-060: the report card of the decision maker: grade, score, verdict, grade of each trigram, what to fix first.
+  function renderReport() {
+    const quality = DATA.quality;
+    const fixes = rankedChecks().filter((c) => isRanked(c) && c.findings.length).slice(0, FIX_FIRST_SHOWN);
+    const fixLink = (c) => el("li", {}, el("button", { class: "fix-link", type: "button", "data-check": c.key,
+      title: `${c.rule} Open this check.`, on: { click: () => openCheck(c.key) } },
+    el("span", { class: "fix-title", text: c.title }),
+    el("span", { class: `check-score grade-${gradeOf(c.score)}` }, el("span", { class: "score-text", text: scoreText(c) }))));
+    const area = ([tri, t]) => el("li", { class: "report-trigram", title: `${tri}: score ${scoreOut(t.score)} out of ${SCORE_MAX}` },
+      el("span", { class: "report-tri", text: tri }), gradeChip(t.grade, t.score), el("span", { class: "report-tri-score", text: scoreOut(t.score) }));
+    clear($("quality-report")).append(
+      el("div", { class: "report-main" }, gradeChip(quality.grade, quality.score, "report-grade"),
+        el("div", { class: "report-summary" },
+          el("div", { class: "report-score", text: quality.score === null ? "n/a" : `${scoreOut(quality.score)} / ${SCORE_MAX}` }),
+          el("div", { class: "report-verdict", text: verdictText(quality.grade, attentionChecks().length) }), scaleStrip(quality.grade))),
+      el("div", { class: "report-fix" }, el("h3", { class: "report-title", text: "Fix first" }),
+        fixes.length ? el("ul", { class: "fix-first" }, ...fixes.map(fixLink)) : el("p", { class: "check-none", text: "Nothing to fix." })),
+      el("div", { class: "report-areas" }, el("h3", { class: "report-title", text: "By feature area" }),
+        el("ul", { class: "report-trigrams" }, ...Object.entries(quality.trigrams).map(area))));
+  }
+
+  function renderGradeChips() {
+    for (const id of ["side-grade", "quality-grade", "overview-grade"]) {
+      clear($(id)).append(gradeChip(DATA.quality.grade, DATA.quality.score));
+    }
+  }
+
   function renderQuality() {
     const total = CHECKS.filter((c) => c.risk !== INFORMATIONAL).reduce((sum, c) => sum + c.findings.length, 0);
     $("quality-count").textContent = total ? String(total) : "";
+    renderGradeChips();
+    renderReport();
     clear($("quality-list")).append(...rankedChecks().map(checkCard));
   }
 

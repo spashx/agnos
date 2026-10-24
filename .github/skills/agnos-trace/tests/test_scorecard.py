@@ -201,5 +201,86 @@ class CheckCardsTest(unittest.TestCase):
         self.assertEqual("", found["none"])
 
 
+GRADES = "ABCDE"
+CONTRAST_MIN = 4.5
+HEX_DIGITS = 2
+
+
+def luminance(hex_colour):
+    channels = [int(hex_colour.lstrip("#")[i:i + HEX_DIGITS], 16) / 255 for i in (0, 2, 4)]
+    linear = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def contrast(first, second):
+    light, dark = sorted((luminance(first), luminance(second)), reverse=True)
+    return (light + 0.05) / (dark + 0.05)
+
+
+class GradePaletteTest(unittest.TestCase):
+    """TASK-TRC-049: RQ-TRC-065 (DEC-TRC-035)."""
+
+    def test_RQ_TRC_065_given_the_tokens_of_both_themes_then_each_grade_letter_has_a_contrast_of_4_5_on_its_fill(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        for theme in tm.THEMES:
+            for letter in GRADES.lower():
+                fill = tokens["global"][tokens["semantic"][f"grade-{letter}"][theme]]
+                text = tokens["global"][tokens["semantic"][f"on-grade-{letter}"][theme]]
+                self.assertGreaterEqual(contrast(fill, text), CONTRAST_MIN, f"{theme} grade {letter}")
+
+    def test_RQ_TRC_065_given_the_five_grade_fills_then_they_are_distinct_and_not_a_green_to_red_scale(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        for theme in tm.THEMES:
+            fills = [tokens["global"][tokens["semantic"][f"grade-{c}"][theme]].lower() for c in GRADES.lower()]
+            self.assertEqual(5, len(set(fills)))
+            green = [f for f in fills if int(f[3:5], 16) > max(int(f[1:3], 16), int(f[5:7], 16))]
+            self.assertEqual([], green, "no grade fill is green-dominant")
+
+
+REPORT_CARD = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("quality");
+const text = (selector) => document.querySelector(selector)?.textContent.trim() || "";
+out.grade = text("#quality-report .report-grade");
+out.score = text("#quality-report .report-score");
+out.verdict = text("#quality-report .report-verdict");
+out.scale = [...document.querySelectorAll("#quality-report .scale-step")].map((s) => s.textContent.trim()).join("");
+out.current = text("#quality-report .scale-step.is-current");
+out.trigrams = [...document.querySelectorAll("#quality-report .report-trigram")].map((t) => [...t.children].map((c) => c.textContent.trim()).join(" ")).join("|");
+out.fixes = [...document.querySelectorAll("#quality-report .fix-first button")].map((b) => b.dataset.check).join(",");
+out.tab = text("#quality-grade");
+out.side = text("#side-grade");
+out.overview = text("#overview-grade");
+document.querySelector("#quality-report .fix-first button").click();
+out.opened = [...agnosTrace.state.openChecks].join(",");
+out.view = document.querySelector(".tab[aria-selected=true]").dataset.view;
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class ReportCardTest(unittest.TestCase):
+    """TASK-TRC-049: RQ-TRC-060, RQ-TRC-064 (DEC-TRC-034)."""
+
+    def test_RQ_TRC_060_given_the_fixture_when_the_quality_view_opens_then_the_report_card_reads_at_a_glance(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            quality = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))["quality"]
+            found = dict(re.findall(r'data-(grade|score|verdict|scale|current|trigrams|fixes|tab|side|overview|opened|view)="([^"]*)"',
+                                    rendered_dom_after(path, REPORT_CARD)))
+        self.assertEqual(quality["grade"], found["grade"])
+        self.assertEqual(f"{quality['score']:.1f} / 10", found["score"])
+        self.assertEqual("Fair: 6 checks need attention", found["verdict"])
+        self.assertEqual(GRADES, found["scale"])                       # the A to E scale, the current grade marked
+        self.assertEqual(quality["grade"], found["current"])
+        self.assertEqual("DEM " + quality["trigrams"]["DEM"]["grade"] + " " + f"{quality['trigrams']['DEM']['score']:.1f}",
+                         found["trigrams"])
+        self.assertEqual("covered,adr-rq,filled", found["fixes"])       # the three lowest-scored checks
+        self.assertEqual((quality["grade"],) * 3, (found["tab"], found["side"], found["overview"]))   # RQ-TRC-064
+        self.assertEqual("covered", found["opened"])                    # a "Fix first" link opens its check
+        self.assertEqual("quality", found["view"])
+
+
 if __name__ == "__main__":
     unittest.main()

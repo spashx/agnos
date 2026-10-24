@@ -67,7 +67,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-049: Report card and grade palette
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the five grade colour tokens with their text tokens, and the report card (grade letter on the A–E
   scale, score, verdict, grade of each trigram, three "Fix first" links); show the grade in the tab, the sidebar and the
   overview card.
@@ -79,7 +79,7 @@ This plan implements the tasks in the format specified below.
   the tab, the sidebar and the overview show the same grade and score as the data file.
 - **Dependencies**: TASK-TRC-048
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 155 tests, 0 failure, 1 skipped. `GradePaletteTest`: for both themes each of the five grade letters has a contrast of at least 4.5:1 on its fill (tokens `grade-a`..`grade-e`, `on-grade-a`..), five distinct fills, none green-dominant. `ReportCardTest` in headless Edge on the fixture: grade C, "6.1 / 10", verdict "Fair: 6 checks need attention", scale A B C D E with C marked current, trigram "DEM C 6.1", Fix first = covered, adr-rq, filled, the same grade in the tab, the sidebar and the overview card, a Fix first link opens its check and the Quality view. Screenshot at 1440x900 of the demo trace checked.
 - **Assumptions**: None
 
 ### TASK-TRC-050: Charts with tooltips

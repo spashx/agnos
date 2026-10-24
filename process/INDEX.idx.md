@@ -289,7 +289,7 @@ PLAN-TRC-007|1-131||Quality Scorecard
 TASK-TRC-046|17-36|Done|Scoring of the checks and the `quality` data
 TASK-TRC-047|37-52|Done|Quality vocabulary in the page
 TASK-TRC-048|53-67|Done|Check cards, compact or detailed
-TASK-TRC-049|68-84|Not Started|Report card and grade palette
+TASK-TRC-049|68-84|Done|Report card and grade palette
 TASK-TRC-050|85-99|Not Started|Charts with tooltips
 TASK-TRC-051|100-116|Not Started|Fit in the window, speed, final documentation
 TASK-TRC-052|117-131|Not Started|Remediation: named constants in the skill's code

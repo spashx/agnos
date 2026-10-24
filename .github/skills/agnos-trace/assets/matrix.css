@@ -697,9 +697,43 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .check-score { display: flex; align-items: center; gap: var(--s-space-sm); grid-column: 1; }
 .check-head > .badge:last-child { grid-column: 2; grid-row: 2; }
 .score-bar { flex: 1; height: var(--c-bar-height); border-radius: var(--s-radius-pill); background: var(--s-surface-hover); overflow: hidden; }
-.score-fill { display: block; height: 100%; width: calc(var(--score) * 1%); background: var(--s-status-ok); }
-.grade-C .score-fill { background: var(--s-status-warn); }
-.grade-D .score-fill, .grade-E .score-fill { background: var(--s-status-error); }
+.score-fill { display: block; height: 100%; width: calc(var(--score) * 1%); background: var(--s-border-strong); }
+.grade-A .score-fill { background: var(--s-grade-a); }
+.grade-B .score-fill { background: var(--s-grade-b); }
+.grade-C .score-fill { background: var(--s-grade-c); }
+.grade-D .score-fill { background: var(--s-grade-d); }
+.grade-E .score-fill { background: var(--s-grade-e); }
+
+/* RQ-TRC-060, RQ-TRC-065, DEC-TRC-035: the grade letter on its blue-to-orange fill; the letter is always written */
+.grade-chip {
+  display: inline-flex; align-items: center; justify-content: center; min-width: var(--s-space-xl);
+  padding: var(--s-space-none) var(--s-space-xs); border-radius: var(--s-radius-sm); font-weight: var(--s-weight-bold);
+  background: var(--s-surface-hover); color: var(--s-text-muted);
+}
+.grade-chip.grade-A, .scale-step.grade-A { background: var(--s-grade-a); color: var(--s-on-grade-a); }
+.grade-chip.grade-B, .scale-step.grade-B { background: var(--s-grade-b); color: var(--s-on-grade-b); }
+.grade-chip.grade-C, .scale-step.grade-C { background: var(--s-grade-c); color: var(--s-on-grade-c); }
+.grade-chip.grade-D, .scale-step.grade-D { background: var(--s-grade-d); color: var(--s-on-grade-d); }
+.grade-chip.grade-E, .scale-step.grade-E { background: var(--s-grade-e); color: var(--s-on-grade-e); }
+.side-title .grade-chip, .tab .grade-chip, .card-title .grade-chip { font-size: var(--s-text-caption); vertical-align: middle; }
+
+.report { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: var(--s-space-xl); align-items: start; }
+.report-main { display: flex; align-items: center; gap: var(--s-space-lg); }
+.report-grade { width: var(--c-report-grade-size); height: var(--c-report-grade-size); border-radius: var(--s-radius-md); font-size: var(--s-text-display); }
+.report-summary { display: flex; flex-direction: column; gap: var(--s-space-xs); min-width: var(--s-space-none); }
+.report-score { font-size: var(--s-text-title); font-weight: var(--s-weight-strong); font-variant-numeric: tabular-nums; }
+.report-verdict { color: var(--s-text-muted); }
+.scale { display: flex; gap: var(--s-space-hair); margin: var(--s-space-xs) var(--s-space-none) var(--s-space-none); padding: var(--s-space-none); list-style: none; }
+.scale-step { display: flex; align-items: center; justify-content: center; min-width: var(--s-space-xl); padding: var(--s-space-xs) var(--s-space-sm); border-radius: var(--s-radius-sm); font-weight: var(--s-weight-bold); font-size: var(--s-text-caption); }
+.scale-step.is-current { box-shadow: 0 0 0 var(--s-stroke-focus) var(--s-surface), 0 0 0 calc(var(--s-stroke-focus) * 2) var(--s-text); font-size: var(--s-text-heading); }
+.report-title { margin: var(--s-space-none) var(--s-space-none) var(--s-space-sm); font-size: var(--s-text-caption); color: var(--s-text-subtle); text-transform: uppercase; letter-spacing: var(--s-tracking-caps); }
+.fix-first, .report-trigrams { display: flex; flex-direction: column; gap: var(--s-space-xs); margin: var(--s-space-none); padding: var(--s-space-none); list-style: none; }
+.fix-link { display: flex; align-items: center; justify-content: space-between; gap: var(--s-space-sm); width: 100%; padding: var(--s-space-xs) var(--s-space-sm); border: none; border-radius: var(--s-radius-sm); background: var(--s-surface-subtle); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.fix-link:hover { background: var(--c-table-row-hover); }
+.fix-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report-trigram { display: flex; align-items: center; gap: var(--s-space-sm); }
+.report-tri { min-width: var(--s-space-2xl); font-family: var(--s-font-mono); font-weight: var(--s-weight-medium); }
+.report-tri-score { color: var(--s-text-muted); font-variant-numeric: tabular-nums; }
 .score-text { min-width: var(--s-space-xl); font-variant-numeric: tabular-nums; font-weight: var(--s-weight-strong); text-align: right; }
 .check-detail { margin-top: var(--s-space-md); padding-top: var(--s-space-md); border-top: var(--s-stroke-hairline) solid var(--s-border); }
 .check-card-desc { margin: var(--s-space-none) var(--s-space-none) var(--s-space-sm); color: var(--s-text-muted); font-size: var(--s-text-small); }
