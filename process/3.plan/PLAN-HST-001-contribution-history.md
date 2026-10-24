@@ -37,7 +37,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-002: Line ranges tracked back through the history
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In `history.py`, map the ranges of the working tree to the last commit, read one `git log -p -U0 -M
   -m --parents --topo-order` over the scanned folders within `--since` and `--max-count`, track every range back through
   the commits and their parents (renames and merges included), and credit each non-merge commit whose hunks overlap a
@@ -52,8 +52,8 @@ This plan implements the tasks in the format specified below.
   commits are read; Given the same repository twice, Then the result is equal.
 - **Dependencies**: TASK-HST-001
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 189 tests, 0 failure, 1 skipped; `test_history.py` run with `-W error::ResourceWarning`: 28 tests OK. `LineTrackingTest` (11): Alice's commit on line 7 credits RQ-A (2 lines) not RQ-B; still on RQ-A after 3 lines inserted above; kept after `git mv`; side-branch commit credited to RQ-B, merge author walked never credited; uncommitted edits credit no one; a range added by a commit stops there; `g` and the whole file credited, `f` not; `depth=2` reads 2 commits; `since` filters on the author date; two runs equal; lines looking like `+++ b/` and holding `\r` counted right. Against `git log -L` on 25 random elements of this repository and 25 of the demo: 50 equal, 0 different. This repository's process folder: 91 commits read, 301 elements credited, 0.30 s. `test_literals.py`: 0 repeated literal.
+- **Assumptions**: `--since` is passed to git (committer date) to bound the walk, and the author date is then checked against the cutoff git computes (`git rev-parse --since`), since RQ-HST-001 speaks of commits authored since. A hunk's removed lines count in proportion of its added lines in the range; a pure removal counts when it lies strictly inside the range. Two children carrying one range back differently give the parent the span of both.
 
 ### TASK-HST-003: Generator options, `history` data and summary line
 - **Tier**: M

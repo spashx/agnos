@@ -224,6 +224,120 @@ class AgentTest(RepoTestCase):
         self.assertFalse(patterns.is_agent("Claudette Martin", "claudette@example.com"))
 
 
+def numbered(first, last, tag="line"):
+    return "".join(f"{tag} {n}\n" for n in range(first, last + 1))
+
+
+FEATURE = "process/FTR-A.md"
+ALICE = "Alice <alice@example.com>"
+BOB = "Bob <bob@example.com>"
+CAROL = "Carol <carol@example.com>"
+
+
+class LineTrackingTest(RepoTestCase):
+    """TASK-HST-002: RQ-HST-001, RQ-HST-002, RQ-HST-003."""
+
+    def setUp(self):
+        super().setUp()
+        # RQ-A on lines 5 to 10, RQ-B on lines 12 to 20, written by Carol
+        self.lines = numbered(1, 20).splitlines(keepends=True)
+        self.repo.commit({FEATURE: "".join(self.lines)}, author=CAROL, message="feature")
+
+    def change(self, number, text, author, path=FEATURE, message="change"):
+        self.lines[number - 1] = text + "\n"
+        self.repo.commit({path: "".join(self.lines)}, author=author, message=message)
+
+    def credits(self, ranges, wholes=None, **limits):
+        repo = history.check_repository(self.repo.top)
+        commits, credited = history.read_history(repo, ranges, wholes or {}, **limits)
+        names = {c["hash"]: c["author"][0] for c in commits}
+        return commits, {key: {names[h]: lines for h, lines in by.items()} for key, by in credited.items()}
+
+    def test_RQ_HST_002_given_a_commit_on_one_line_of_rq_a_then_it_is_credited_to_rq_a_only(self):
+        self.change(7, "changed by Alice", ALICE)
+        _, credits = self.credits({FEATURE: [("RQ-A", 5, 10), ("RQ-B", 12, 20)]})
+        self.assertEqual({"Carol": 6, "Alice": 2}, credits["RQ-A"])
+        self.assertEqual({"Carol": 9}, credits["RQ-B"])
+
+    def test_RQ_HST_002_given_lines_inserted_above_later_then_the_earlier_credit_stays_on_rq_a(self):
+        self.change(7, "changed by Alice", ALICE)
+        self.lines[0:0] = ["new 1\n", "new 2\n", "new 3\n"]
+        self.repo.commit({FEATURE: "".join(self.lines)}, author=BOB)
+        _, credits = self.credits({FEATURE: [("RQ-A", 8, 13), ("RQ-B", 15, 23)]})
+        self.assertEqual({"Carol", "Alice"}, set(credits["RQ-A"]))
+        self.assertNotIn("Bob", credits["RQ-B"])
+
+    def test_RQ_HST_002_given_the_file_renamed_then_the_credit_is_kept(self):
+        self.change(7, "changed by Alice", ALICE)
+        self.repo.git("mv", FEATURE, "process/FTR-A-renamed.md")
+        self.repo.commit({}, author=BOB, message="rename")
+        _, credits = self.credits({"process/FTR-A-renamed.md": [("RQ-A", 5, 10)]})
+        self.assertEqual({"Carol": 6, "Alice": 2}, credits["RQ-A"])
+
+    def test_RQ_HST_002_given_a_side_branch_merged_then_its_commit_is_credited_and_the_merge_is_not(self):
+        self.repo.git("checkout", "-q", "-b", "side")
+        self.change(15, "changed by Bob on a branch", BOB)
+        self.repo.git("checkout", "-q", "main")
+        self.lines[14] = "line 15\n"
+        self.change(7, "changed by Alice on main", ALICE)
+        self.repo.git("merge", "-q", "--no-ff", "-m", "merge side", "side", env={
+            "GIT_AUTHOR_NAME": "Dan", "GIT_AUTHOR_EMAIL": "dan@example.com",
+            "GIT_COMMITTER_NAME": "Dan", "GIT_COMMITTER_EMAIL": "dan@example.com"})
+        commits, credits = self.credits({FEATURE: [("RQ-A", 5, 10), ("RQ-B", 12, 20)]})
+        self.assertEqual({"Carol": 6, "Alice": 2}, credits["RQ-A"])
+        self.assertEqual({"Carol": 9, "Bob": 2}, credits["RQ-B"])
+        self.assertIn("Dan", {c["author"][0] for c in commits})          # walked, never credited
+
+    def test_RQ_HST_002_given_an_uncommitted_change_then_it_credits_no_one(self):
+        self.change(7, "changed by Alice", ALICE)
+        self.repo.write(FEATURE, "top 1\ntop 2\n" + "".join(self.lines).replace("line 15", "uncommitted"))
+        _, credits = self.credits({FEATURE: [("RQ-A", 7, 12), ("RQ-B", 14, 22)]})
+        self.assertEqual({"Carol": 6, "Alice": 2}, credits["RQ-A"])
+        self.assertEqual({"Carol": 9}, credits["RQ-B"])
+
+    def test_RQ_HST_002_given_a_range_added_by_a_commit_then_the_tracking_stops_there(self):
+        self.lines[20:] = ["new rq " + str(n) + "\n" for n in range(1, 4)]
+        self.repo.commit({FEATURE: "".join(self.lines)}, author=ALICE, message="RQ-C")
+        _, credits = self.credits({FEATURE: [("RQ-C", 21, 23)]})
+        self.assertEqual({"Alice": 3}, credits["RQ-C"])
+
+    def test_RQ_HST_003_given_two_functions_and_a_commit_on_g_then_it_is_credited_to_g_and_the_file(self):
+        code = "src/app.py"
+        body = ["def f():\n", "    return 1\n", "\n", "\n", "def g():\n", "    return 2\n"]
+        self.repo.commit({code: "".join(body)}, author=CAROL)
+        body[5] = "    return 3\n"
+        self.repo.commit({code: "".join(body)}, author=BOB)
+        _, credits = self.credits({code: [("f", 1, 2), ("g", 5, 6)]}, {code: ["file"]})
+        self.assertEqual({"Carol": 2}, credits["f"])
+        self.assertEqual({"Carol": 2, "Bob": 2}, credits["g"])
+        self.assertEqual({"Carol": 6, "Bob": 2}, credits["file"])
+
+    def test_RQ_HST_001_given_a_depth_then_only_that_many_commits_are_read(self):
+        for n in range(4):
+            self.change(6, f"edit {n}", ALICE)
+        commits, _ = self.credits({FEATURE: [("RQ-A", 5, 10)]}, depth=2)
+        self.assertEqual(2, len(commits))
+
+    def test_RQ_HST_001_given_a_since_date_then_only_the_commits_authored_since_are_read(self):
+        for n in range(4):
+            self.change(6, f"edit {n}", ALICE)                   # authored on days 2 to 5
+        commits, credits = self.credits({FEATURE: [("RQ-A", 5, 10)]}, since="2026-10-04T00:00:00+00:00")
+        self.assertEqual(2, len(commits))
+        self.assertNotIn("Carol", credits["RQ-A"])
+
+    def test_RQ_HST_002_given_the_same_repository_twice_then_the_result_is_equal(self):
+        self.change(7, "changed by Alice", ALICE)
+        ranges = {FEATURE: [("RQ-A", 5, 10), ("RQ-B", 12, 20)]}
+        first, second = self.credits(ranges), self.credits(ranges)
+        self.assertEqual(first, second)
+
+    def test_RQ_HST_002_given_a_line_that_looks_like_a_diff_header_then_the_counts_are_right(self):
+        self.change(7, "++ b/elsewhere", ALICE)
+        self.change(8, "-- a/elsewhere\r", BOB)
+        _, credits = self.credits({FEATURE: [("RQ-A", 5, 10)]})
+        self.assertEqual({"Carol": 6, "Alice": 2, "Bob": 2}, credits["RQ-A"])
+
+
 class IndependenceTest(unittest.TestCase):
     """TASK-HST-001: RQ-HST-015."""
 

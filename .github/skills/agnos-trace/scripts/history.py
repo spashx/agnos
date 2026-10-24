@@ -3,6 +3,7 @@
 Implements FTR-HST-001 after ADR-HST-001. Loaded by trace_matrix.py only with --history (DEC-HST-001, RQ-HST-015).
 Python >= 3.9, standard library only; git is read through its command line, never through a library.
 """
+import datetime
 import json
 import re
 import subprocess
@@ -11,6 +12,8 @@ from pathlib import Path
 
 # RQ-TRC-067: a literal written more than once is a named constant.
 ENCODING = "utf-8"
+ERRORS = "replace"
+HEAD = "HEAD"
 KEY_NAME = "name"
 KEY_EMAIL = "email"
 KEY_KIND = "kind"
@@ -45,11 +48,32 @@ RECORD = "\x1e"
 FIELD = "\x1f"
 TRAILER_SEPARATOR = "\x1d"
 LOG_FIELDS = ("%H", "%P", "%an", "%ae", "%aN", "%aE", "%aI", "%s",
-              f"%(trailers:key=Co-authored-by,valueonly,separator=%x1d)")
+              "%(trailers:key=Co-authored-by,valueonly,separator=%x1d)")
 LOG_FORMAT = RECORD + "%x1f".join(LOG_FIELDS) + FIELD
 SHORT_HASH = 10
-CONTACT_RE = re.compile(r"^\s*(.*?)\s*<([^<>]*)>\s*$")
+CONTACT_RE = re.compile(r"^([^<>]*)<([^<>]*)>\s*$")
 MAILMAP_CHUNK = 200                                # contacts per `git check-mailmap` call, within the command-line limit
+
+# DEC-HST-002: zero-context patches with renames, paths written as they are, every parent of a merge walked.
+QUOTE_OFF = ("-c", "core.quotepath=false")
+PATCH_OPTIONS = ("-p", "-U0", "-M", "--no-color", "--no-ext-diff", "--no-textconv")
+WALK_OPTIONS = ("-m", "--parents")
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+DIFF_PREFIX = "diff --git "
+SECOND_SIDE = " b/"
+OLD_PREFIX = "--- "
+NEW_PREFIX = "+++ "
+RENAME_FROM = "rename from "
+RENAME_TO = "rename to "
+NULL_PATH = "/dev/null"
+SIDE_PREFIX = 2                                    # "a/" or "b/" before a path of a patch
+NO_NEWLINE = "\\"                                  # "\ No newline at end of file", inside a hunk
+MAX_AGE = "--max-age="
+QUOTE = '"'
+ESCAPE_RE = re.compile(rb"\\([0-7]{3}|.)")
+ESCAPES = {b"t": b"\t", b"n": b"\n", b"r": b"\r", b"a": b"\a", b"b": b"\b", b"f": b"\f", b"v": b"\v"}
+OCTAL = 8
+OCTAL_DIGITS = 3
 
 
 class HistoryUnavailable(Exception):
@@ -64,7 +88,7 @@ def git(args, cwd):
     """The standard output of one git command run in cwd."""
     try:
         done = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding=ENCODING,
-                              errors="replace")
+                              errors=ERRORS)
     except FileNotFoundError:
         raise HistoryUnavailable(CAUSE_NO_GIT) from None
     if done.returncode != 0:
@@ -90,7 +114,7 @@ def check_repository(folder):
     except GitError:
         raise HistoryUnavailable(CAUSE_NO_TREE) from None
     try:
-        git([REV_PARSE, "--verify", "--quiet", "HEAD"], top)
+        git([REV_PARSE, "--verify", "--quiet", HEAD], top)
     except GitError:
         raise HistoryUnavailable(CAUSE_NO_COMMIT) from None
     shallow = git([REV_PARSE, "--is-shallow-repository"], top).strip() == "true"
@@ -125,7 +149,7 @@ def load_agent_patterns(path=AGENTS_PATH):
 def parse_contact(text):
     """(name, e-mail) of 'Name <e-mail>', or None."""
     m = CONTACT_RE.match(text)
-    return (m.group(1), m.group(2)) if m else None
+    return (m.group(1).strip(), m.group(2)) if m else None
 
 
 def parse_header(record):
@@ -137,9 +161,9 @@ def parse_header(record):
             KEY_DATE: date, KEY_SUBJECT: subject, KEY_CO_AUTHORS: co_authors}
 
 
-def log_args(since=None, depth=None, paths=()):
+def log_args(since=None, depth=None, paths=(), options=()):
     """The options of `git log` for the history read (RQ-HST-001): git applies both limits."""
-    args = ["log", f"--format={LOG_FORMAT}", "--topo-order"]
+    args = [*QUOTE_OFF, "log", f"--format={LOG_FORMAT}", "--topo-order", *options]
     if since:
         args.append(f"--since={since}")
     if depth:
@@ -199,7 +223,7 @@ class Identities:
         result = []
         for key, person in self.by_key.items():
             names = person[KEY_NAMES]
-            name = min(names, key=lambda n: (-names[n], n))
+            name = min(names, key=lambda n, seen=names: (-seen[n], n))
             merged = ([MERGED_BY_EMAIL] if len(person[KEY_SPELLINGS]) > 1 else []) +                      ([MERGED_BY_MAILMAP] if person[MERGED_BY_MAILMAP] else [])
             result.append({"key": key, KEY_NAME: name, KEY_NAMES: sorted(set(names) | person[KEY_RAW]),
                            KEY_EMAILS: sorted(person[KEY_EMAILS]), "mergedBy": sorted(merged), KEY_KIND: person[KEY_KIND],
@@ -235,3 +259,237 @@ def identify(repo, commits, patterns):
                        KEY_SUBJECT: commit[KEY_SUBJECT], KEY_AUTHOR: index[author], KEY_CO_AUTHORS: [index[k] for k in co],
                        KEY_KIND: commit_kind({people[i][KEY_KIND] for i in contributors})})
     return people, result
+
+
+# ---- line tracking -----------------------------------------------------------------------------------------------
+# RQ-HST-002, RQ-HST-003, DEC-HST-002
+def git_lines(args, cwd):
+    """The output lines of one git command, read as bytes so that a carriage return inside a line stays in it."""
+    try:
+        process = subprocess.Popen(["git", *args], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except FileNotFoundError:
+        raise HistoryUnavailable(CAUSE_NO_GIT) from None
+    with process:
+        for raw in process.stdout:
+            yield raw.rstrip(b"\n").decode(ENCODING, errors=ERRORS)
+        error = process.stderr.read().decode(ENCODING, errors=ERRORS).strip()
+    if process.returncode != 0:
+        raise GitError(error or f"git {args[0]} failed")
+
+
+def unquote(path):
+    """A path as git writes it, quoted with C escapes when it holds a quote, a backslash or a control character."""
+    if not (len(path) > 1 and path.startswith(QUOTE) and path.endswith(QUOTE)):
+        return path
+
+    def one(m):
+        code = m.group(1)
+        return bytes([int(code, OCTAL)]) if len(code) == OCTAL_DIGITS else ESCAPES.get(code, code)
+    return ESCAPE_RE.sub(one, path[1:-1].encode(ENCODING)).decode(ENCODING, errors=ERRORS)
+
+
+def side_path(text):
+    """The path of a '--- a/x' or '+++ b/x' line, or None for /dev/null."""
+    path = unquote(text)
+    return None if path == NULL_PATH else path[SIDE_PREFIX:]
+
+
+def same_path(header):
+    """The path of 'diff --git a/x b/x' when both sides are the same path, else None (the next lines tell)."""
+    rest = header[len(DIFF_PREFIX):]
+    size = (len(rest) - len(SECOND_SIDE) - SIDE_PREFIX) // 2
+    middle = SIDE_PREFIX + size
+    first, second = rest[SIDE_PREFIX:middle], rest[middle + len(SECOND_SIDE):]
+    return first if first == second and rest[middle:middle + len(SECOND_SIDE)] == SECOND_SIDE else None
+
+
+class FileDiff:
+    """One file of a patch: its old and new paths (None when absent) and its hunks (old start, old count, new start,
+    new count)."""
+
+    def __init__(self, path):
+        self.old = self.new = path
+        self.hunks = []
+
+
+def parse_patch(lines):
+    """[(header record or None, [FileDiff])] in the order of the output; a hunk's lines are counted, never parsed, so
+    that a changed line that looks like a header is read as a line."""
+    entries, diffs, diff, pending = [], None, None, 0
+    for line in lines:
+        if pending:
+            if not line.startswith(NO_NEWLINE):
+                pending -= 1
+            continue
+        if line.startswith(RECORD):
+            diffs, diff = [], None
+            entries.append((line[1:], diffs))
+            continue
+        if diffs is None:
+            diffs = []
+            entries.append((None, diffs))
+        if line.startswith(DIFF_PREFIX):
+            diff = FileDiff(same_path(line))
+            diffs.append(diff)
+        elif diff is None:
+            continue
+        elif line.startswith(RENAME_FROM):
+            diff.old = unquote(line[len(RENAME_FROM):])
+        elif line.startswith(RENAME_TO):
+            diff.new = unquote(line[len(RENAME_TO):])
+        elif line.startswith(OLD_PREFIX):
+            diff.old = side_path(line[len(OLD_PREFIX):])
+        elif line.startswith(NEW_PREFIX):
+            diff.new = side_path(line[len(NEW_PREFIX):])
+        else:
+            m = HUNK_RE.match(line)
+            if m:
+                old_start, old_count, new_start, new_count = (int(g) if g is not None else 1 for g in m.groups())
+                diff.hunks.append((old_start, old_count, new_start, new_count))
+                pending = old_count + new_count
+    return entries
+
+
+def shift(first, last, hunks):
+    """(the range [first, last] of a file's new version in its old version, or None when all its lines were added; the
+    lines the hunks changed in it). The old range spans the unchanged lines of the range and the old lines of the hunks
+    that touch it, as `git log -L` follows a range; a hunk's removed lines count in proportion of its added lines in the
+    range, a pure removal inside the range counts whole."""
+    low = high = None
+    delta = changed = 0                        # old line = new line + delta, for the unchanged lines past the hunks seen
+    position = first
+
+    def keep(start, end):
+        nonlocal low, high
+        low = start if low is None else min(low, start)
+        high = end if high is None else max(high, end)
+
+    for old_start, old_count, new_start, new_count in hunks:
+        start = new_start if new_count else new_start + 1
+        if start > last:
+            break
+        if max(position, first) <= start - 1:
+            keep(max(position, first) + delta, min(start - 1, last) + delta)
+        if new_count:
+            overlap = min(new_start + new_count - 1, last) - max(new_start, first) + 1
+            touched = overlap > 0
+            if touched:
+                changed += overlap + (old_count * overlap + new_count // 2) // new_count
+        else:
+            touched = first <= new_start < last
+            if touched:
+                changed += old_count
+        if touched and old_count:
+            keep(old_start, old_start + old_count - 1)
+        delta += old_count - new_count
+        position = start + new_count
+    if max(position, first) <= last:
+        keep(max(position, first) + delta, last + delta)
+    return ((low, high) if low is not None else None), changed
+
+
+def transform(state, diffs, commit, tally):
+    """The ranges of state, {path: [(key, first, last)]} in a version's coordinates (first None: the whole file), in the
+    coordinates of the version the diffs start from; each range the diffs touch is credited to commit in tally, unless None."""
+    by_new = {d.new: d for d in diffs if d.new is not None}
+    moved = {}
+    for path, items in state.items():
+        diff = by_new.get(path)
+        if diff is None:
+            moved.setdefault(path, []).extend(items)
+            continue
+        kept = []
+        for key, first, last in items:
+            if first is None:
+                span, changed = (None, None), sum(old + new for _, old, _, new in diff.hunks)
+            else:
+                span, changed = shift(first, last, diff.hunks)
+            if commit is not None and changed:
+                by_commit = tally.setdefault(key, {})
+                by_commit[commit] = by_commit.get(commit, 0) + changed
+            if span is not None:
+                kept.append((key, *span))
+        if diff.old is not None and kept:
+            moved.setdefault(diff.old, []).extend(kept)
+    return moved
+
+
+def union(into, state):
+    """Adds state's ranges to into; a range of one key met twice spans both, since two children of a commit can carry
+    it back slightly differently."""
+    for path, items in state.items():
+        by_key = {(key, first is None): (key, first, last) for key, first, last in into.get(path, [])}
+        for key, first, last in items:
+            seen = by_key.get((key, first is None))
+            if seen is not None and first is not None:
+                first, last = min(first, seen[1]), max(last, seen[2])
+            by_key[(key, first is None)] = (key, first, last)
+        into[path] = sorted(by_key.values(), key=lambda item: (item[0], item[1] or 0))
+
+
+def author_cutoff(repo, since):
+    """The time stamp before which a commit was not authored in the period read, or None (RQ-HST-001): git's --since
+    is on the committer date, so the author date is checked here."""
+    if not since:
+        return None
+    answer = git([REV_PARSE, f"--since={since}"], repo.top).strip()
+    return int(answer[len(MAX_AGE):]) if answer.startswith(MAX_AGE) else None
+
+
+def authored_since(commit, cutoff):
+    return cutoff is None or datetime.datetime.fromisoformat(commit[KEY_DATE]).timestamp() >= cutoff
+
+
+def commit_groups(entries):
+    """[(commit, [diffs per parent])] from the log's entries: git writes a merge once per parent, one after the other."""
+    groups = []
+    for record, diffs in entries:
+        if record is None:
+            continue
+        commit = parse_header(record)
+        if groups and groups[-1][0][KEY_HASH] == commit[KEY_HASH]:
+            groups[-1][1].append(diffs)
+        else:
+            groups.append((commit, [diffs]))
+    return groups
+
+
+def tracked_files(repo, paths):
+    out = git([*QUOTE_OFF, "ls-files", "-z", "--", *paths], repo.top)
+    return set(filter(None, out.split("\0")))
+
+
+def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
+    """(commits, credits): the commits authored in the period read, newest first, merges included; and
+    {key: {full hash: changed lines}}, the non-merge commits that changed each range. ranges is {path: [(key, first,
+    last)]} and wholes {path: [key]}, at the working tree, paths relative to the top of the repository; paths limits
+    the history read to these folders. The uncommitted changes credit no one."""
+    tracked = tracked_files(repo, paths)
+    state = {}
+    for path, items in ranges.items():
+        state.setdefault(path, []).extend(items)
+    for path, keys in wholes.items():
+        state.setdefault(path, []).extend((key, None, None) for key in keys)
+    state = {path: items for path, items in state.items() if path in tracked}
+    tally = {}
+    for _, diffs in parse_patch(git_lines([*QUOTE_OFF, "diff", *PATCH_OPTIONS, HEAD, "--", *paths], repo.top)):
+        state = transform(state, diffs, None, tally)
+    cutoff = author_cutoff(repo, since)
+    groups = commit_groups(parse_patch(git_lines(log_args(since, depth, paths, PATCH_OPTIONS + WALK_OPTIONS), repo.top)))
+    commits, states = [], {}
+    for position, (commit, per_parent) in enumerate(groups):
+        here = state if position == 0 else states.pop(commit[KEY_HASH], None)
+        authored = authored_since(commit, cutoff)
+        if authored:
+            commits.append(commit)
+        if here is None:
+            continue                                         # reached by no commit read: nothing to carry back
+        parents = commit[KEY_PARENTS]
+        credited = commit[KEY_HASH] if authored and len(parents) <= 1 else None
+        if not parents:
+            transform(here, per_parent[0], credited, tally)
+            continue
+        for number, parent in enumerate(parents):
+            diffs = per_parent[number] if number < len(per_parent) else []
+            union(states.setdefault(parent, {}), transform(here, diffs, credited, tally))
+    return commits, tally

@@ -262,7 +262,7 @@ TASK-FIX-001|14-33|Done|Design-system dependencies and TASK-DSY-002 tier
 @process/3.plan/PLAN-HST-001-contribution-history.md
 PLAN-HST-001|1-147||Contribution History
 TASK-HST-001|19-37|Done|Identities and agents from git
-TASK-HST-002|38-57|Not Started|Line ranges tracked back through the history
+TASK-HST-002|38-57|Done|Line ranges tracked back through the history
 TASK-HST-003|58-76|Not Started|Generator options, `history` data and summary line
 TASK-HST-004|77-96|Not Started|History tab, timeline and overview strip
 TASK-HST-005|97-112|Not Started|Figures, activity band and filters
