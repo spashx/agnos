@@ -66,3 +66,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `build.ps1 -Verify`: `agnos-demo replay: 85 commits, HEAD 8702175`, global git configuration unchanged; `agnos-demo verify: 22 passed, 0 failed`, among them RQ-DMO-002 (toolkit files missing: 0), RQ-DMO-008 (uncovered 0, IDs defined 10.0), RQ-DMO-011 (7 identities, rob-ux among them), RQ-DMO-018 (5 session branches merged), RQ-DMO-022 (artifacts present, 6 ux commits, client tests exit 0) and RQ-DMO-021 (second build, same HEAD). The demo's traceability page with `--call-graph --history`: 219 functions, 78 commits, 7 humans; its History section lists nina-dev, paul-dev, john-qa, linda-po, omar-arch, sara-qa and rob-ux. `SKILL.md`: seven people, five sessions. The first build stopped on `Remove-Item` of the demo folder, locked by the editor's workspace: its content was removed, the folder not; `replay.ps1` now empties the folder instead of removing it, and accepts an empty folder, after which the build ran.
 - **Assumptions**: An empty target folder may be rebuilt, as the engine leaves it after a removal it could not finish. The maintainer skill `agnos-docs-sync` is copied into the demo's toolkit by the baseline, as the other skills are (only `agnos-demo` is excluded); left as it is, to be decided by the owner.
+
+### TASK-DMO-014: No maintainer skill in the demo's toolkit
+- **Tier**: S
+- **Status**: Done
+- **Description**: Leave `agnos-docs-sync` (its skill, pointer and sub-agent) out of the demo's baseline, as `agnos-demo`
+  is, and check it in `verify.ps1` (owner request of 2026-10-24: it has no use in the demo).
+- **Requirement refs**: RQ-DMO-002
+- **ADR refs**: ADR-DMO-001 (DEC-DMO-006)
+- **Acceptance Criteria**: Given the rebuilt demo, Then it holds no file of `agnos-demo` nor of `agnos-docs-sync`, and
+  RQ-DMO-002 passes.
+- **Dependencies**: TASK-DMO-013
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None

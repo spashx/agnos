@@ -22,6 +22,7 @@ $ErrorActionPreference = 'Stop'
 
 $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
 $SKILL_NAME = 'agnos-demo'
+$MAINTAINER_PATTERN = '(skills/(agnos-demo|agnos-docs-sync)/|agents/agnos-docs-sync\.md$)'   # TASK-DMO-014
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
 $ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
@@ -98,8 +99,8 @@ Report 'RQ-DMO-001' ((Test-Path -LiteralPath $Demo) -and ($topFull -eq $Demo) -a
 $toolkitFiles = Get-Tracked $Toolkit | Where-Object { $f = $_; -not (@($plan.baselineExclude) | Where-Object { $f -match $_ }) -and (Test-Path -LiteralPath (Join-Path $Toolkit $f)) }
 $missing = @($toolkitFiles | Where-Object { $demoFiles -notcontains $_ })
 $foreignIds = @(& git -C $Demo grep -nE "(FTR|RQ|ADR|DEC|PLAN|TASK)-($TOOLKIT_TRIGRAMS)-[0-9]{3}" -- process)
-$demoSkill = @($demoFiles | Where-Object { $_ -match "skills/$SKILL_NAME/" })
-Report 'RQ-DMO-002' (($missing.Count -eq 0) -and ($foreignIds.Count -eq 0) -and ($demoSkill.Count -eq 0)) "toolkit files missing: $($missing.Count); toolkit IDs in process/: $($foreignIds.Count); $SKILL_NAME files: $($demoSkill.Count)"
+$demoSkill = @($demoFiles | Where-Object { $_ -match $MAINTAINER_PATTERN })     # RQ-DMO-002 as amended: no maintainer skill
+Report 'RQ-DMO-002' (($missing.Count -eq 0) -and ($foreignIds.Count -eq 0) -and ($demoSkill.Count -eq 0)) "toolkit files missing: $($missing.Count); toolkit IDs in process/: $($foreignIds.Count); maintainer skill files: $($demoSkill.Count)"
 
 # RQ-DMO-003
 $py = @($demoFiles | Where-Object { $_ -match '^service/roombook/.+\.py$' })

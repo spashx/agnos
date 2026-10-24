@@ -51,6 +51,9 @@
     "^process/",
     "^\\.github/skills/agnos-demo/",
     "^\\.claude/skills/agnos-demo/",
+    "^\\.github/skills/agnos-docs-sync/",
+    "^\\.claude/skills/agnos-docs-sync/",
+    "^\\.claude/agents/agnos-docs-sync\\.md$",
     "^README\\.md$"
   ],
   "steps": [

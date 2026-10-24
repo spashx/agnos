@@ -43,8 +43,8 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo repository SHALL contain the AGNOS toolkit of this repository (the instructions
   file, the four skills with their `.claude` entry points, `CLAUDE.md`, `AGENTS.md` and the getting-started
-  guide) and SHALL NOT contain any artifact of this repository's own `process/` folder, nor the
-  `agnos-demo` skill that generates it.
+  guide) and SHALL NOT contain any artifact of this repository's own `process/` folder, nor its maintainer skills:
+  `agnos-demo`, which generates it, and `agnos-docs-sync`, with its sub-agent (amended by the owner on 2026-10-24).
 - **Rationale**: The demo must look like a fresh clone of AGNOS in which a project was started, with no
   trace of how AGNOS itself was built.
 - **Priority**: Must
