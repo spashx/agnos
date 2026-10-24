@@ -76,7 +76,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-004: History tab, timeline and overview strip
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the History tab (only with history data) and its timeline: angle switch, code grouping, rows by
   type or by file and function, time axis, marks by shape, colour and size, virtualised rows, zoom, pan, fit, overview
   strip, hover tooltip and pinned commit card, row label selecting the element; one colour per identity (twelve
@@ -91,8 +91,8 @@ This plan implements the tasks in the format specified below.
   element is selected in the detail panel; Given 2,000 rows, Then fewer than 100 row elements are in the document.
 - **Dependencies**: TASK-HST-003
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 206 tests, 0 failure, 1 skipped. `test_history_page.py` (9, headless Edge, synthetic `history` block): no History tab without history; requirements angle has elements + type headings as rows, RQ-DEM-001 shows marks of commits 0, 2, 5; code angle rows are the files; a wheel notch over the marks narrows the period and keeps the time under the pointer (< 1 % drift); `+` zooms, `→` pans, `0` fits back; a focused mark's tooltip gives hash, Alice, Claude Opus 5.5, subject and "2 lines", a click pins the card; a row label selects RQ-DEM-001; marks are agent:path, human:circle, together:circle, each focusable and named; 2,002 rows (1,999 requirements) leave fewer than 100 rows in the document before and after scrolling to the middle. `test_literals.py` OK, and a direct count of the history section shows no repeated literal (the test's tokenizer misses some occurrences after template literals). Screenshots of this repository's page (100 commits, 2,429 code rows) in both themes checked by eye: rows, axis, ringed together-marks in the agent's colour, overview ticks, pinned card listing the 9 files of a commit. Identity colours: the twelve tokens give at least 3.09:1 on the raised surface of both themes, the golden-angle hues at least 3.44:1 (computed). `test_scorecard.py` RQ-TRC-060 test: its DOM reading took the last `data-view` of the page, now the History tab's; it reads the root element's, its expectation unchanged.
+- **Assumptions**: The wheel zooms over the marks and scrolls the rows over the labels, so both stay reachable. The overview strip is drawn but its keyboard path is the timeline's keys. Group headings are rows (one per type), counted in the total. The legend shows the shapes in a neutral colour, so that it is not read as identity colours.
 
 ### TASK-HST-005: Figures, activity band and filters
 - **Tier**: M

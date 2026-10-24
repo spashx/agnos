@@ -271,8 +271,10 @@ class ReportCardTest(unittest.TestCase):
             path = Path(tmp) / "page.html"
             generate(path)
             quality = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))["quality"]
-            found = dict(re.findall(r'data-(grade|score|verdict|scale|current|trigrams|fixes|tab|side|overview|opened|view)="([^"]*)"',
-                                    rendered_dom_after(path, REPORT_CARD)))
+            dom = rendered_dom_after(path, REPORT_CARD)
+            found = dict(re.findall(r'data-(grade|score|verdict|scale|current|trigrams|fixes|tab|side|overview|opened)="([^"]*)"', dom))
+            # the view the script wrote on the root element, not a tab's data-view (TASK-HST-004 added a tab after Quality)
+            found["view"] = re.search(r'<html[^>]*\sdata-view="([^"]*)"', dom).group(1)
         self.assertEqual(quality["grade"], found["grade"])
         self.assertEqual(f"{quality['score']:.1f} / 10", found["score"])
         self.assertEqual("Fair: 6 checks need attention", found["verdict"])

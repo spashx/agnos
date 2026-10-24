@@ -1,0 +1,242 @@
+"""Tests of the History view of the agnos-trace page (FTR-HST-001, ADR-HST-001: DEC-HST-005, DEC-HST-006), in a
+headless browser, on pages whose data file is given a synthetic `history` block.
+
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-trace/tests -v
+"""
+import json
+import re
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / "scripts"))
+sys.path.insert(0, str(HERE))
+
+import trace_matrix as tm  # noqa: E402
+from test_trace_matrix import BROWSER, generate, rendered_dom_after, run_main  # noqa: E402
+
+NEEDS_BROWSER = "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)"
+HUMAN, AGENT, TOGETHER = "human", "agent", "together"
+PEOPLE = [
+    {"name": "Alice", "names": ["Alice", "alice"], "emails": ["alice@example.com"], "mergedBy": ["email"], "kind": HUMAN,
+     "commits": 3, "coCommits": 0},
+    {"name": "Bob", "names": ["Bob"], "emails": ["bob@example.com"], "mergedBy": [], "kind": HUMAN, "commits": 2,
+     "coCommits": 0},
+    {"name": "Claude Opus 5.5", "names": ["Claude Opus 5.5"], "emails": ["noreply@anthropic.com"], "mergedBy": [],
+     "kind": AGENT, "commits": 1, "coCommits": 2},
+]
+COMMITS = [
+    {"hash": "a000000001", "date": "2026-01-05T10:00:00Z", "subject": "feature drafted", "author": 0, "coAuthors": [],
+     "kind": HUMAN},
+    {"hash": "a000000002", "date": "2026-01-20T10:00:00Z", "subject": "plan", "author": 1, "coAuthors": [], "kind": HUMAN},
+    {"hash": "a000000003", "date": "2026-02-02T10:00:00Z", "subject": "requirement refined", "author": 0,
+     "coAuthors": [2], "kind": TOGETHER},
+    {"hash": "a000000004", "date": "2026-02-18T10:00:00Z", "subject": "code", "author": 1, "coAuthors": [2],
+     "kind": TOGETHER},
+    {"hash": "a000000005", "date": "2026-03-03T10:00:00Z", "subject": "tests", "author": 2, "coAuthors": [], "kind": AGENT},
+    {"hash": "a000000006", "date": "2026-03-20T10:00:00Z", "subject": "fix", "author": 0, "coAuthors": [], "kind": HUMAN},
+]
+
+
+def history_block(data, elements=None, files=None, people=PEOPLE, commits=COMMITS):
+    """A history block for a page's data: the given interventions, or a few on the fixture's elements and files."""
+    first_file = data["files"][0]["path"]
+    return {
+        "limits": {"since": None, "depth": None, "commits": len(commits), "first": commits[0]["date"],
+                   "last": commits[-1]["date"], "shallow": False},
+        "people": people, "commits": commits,
+        "interventions": {
+            "elements": elements if elements is not None else
+            {"FTR-DEM-001": [[0, 31]], "RQ-DEM-001": [[0, 6], [2, 2], [5, 3]], "RQ-DEM-002": [[4, 3]],
+             "TASK-DEM-001": [[1, 5]]},
+            "files": files if files is not None else {first_file: [[3, 10], [4, 4]]},
+        },
+    }
+
+
+def add_history(page, make=history_block):
+    """Writes a history block into the data files of a generated page; returns the data."""
+    json_path, script_path = tm.data_paths(page)
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    data["history"] = make(data)
+    tm.write_outputs(page, data, data["meta"]["title"])
+    return data
+
+
+def found(dom, *names):
+    return dict(re.findall(r'data-(%s)="([^"]*)"' % "|".join(names), dom))
+
+
+OPEN = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("history");
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TimelineTest(unittest.TestCase):
+    """TASK-HST-004: RQ-HST-007, RQ-HST-014."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        cls.data = add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names, path=None):
+        return found(rendered_dom_after(path or self.path, OPEN + script), *names)
+
+    def test_RQ_HST_007_given_a_page_without_history_then_there_is_no_history_tab(self):
+        got = found(rendered_dom_after(self.plain, """
+const out = document.documentElement.dataset;
+const tab = document.querySelector('.tab[data-view="history"]');
+out.tab = tab && !tab.hidden ? "shown" : "none";
+"""), "tab")
+        self.assertEqual("none", got["tab"])
+
+    def test_RQ_HST_007_given_the_requirements_angle_then_one_row_per_element_with_its_marks(self):
+        got = self.run_script("""
+const rows = document.getElementById("history-rows");
+out.total = rows.dataset.total;
+const row = rows.querySelector('.history-row[data-key="RQ-DEM-001"]');
+out.marks = String(row ? row.querySelectorAll(".history-mark").length : -1);
+out.commits = row ? [...row.querySelectorAll(".history-mark")].map((m) => m.dataset.commit).join(",") : "";
+out.tab = document.querySelector('.tab[data-view="history"]').hidden ? "hidden" : "shown";
+""", "total", "marks", "commits", "tab")
+        defined = [e for e in self.data["elements"] if e["kind"] == "element"]
+        groups = len({e["type"] for e in defined})
+        self.assertEqual("shown", got["tab"])
+        self.assertEqual(str(len(defined) + groups), got["total"])
+        self.assertEqual("3", got["marks"])
+        self.assertEqual("0,2,5", got["commits"])
+
+    def test_RQ_HST_007_given_the_code_angle_then_the_rows_are_the_files(self):
+        got = self.run_script("""
+document.querySelector('#history-angle [data-angle="code"]').click();
+const rows = document.getElementById("history-rows");
+out.total = rows.dataset.total;
+out.first = rows.querySelector(".history-row[data-key]")?.dataset.key || "";
+""", "total", "first")
+        self.assertEqual(str(len(self.data["files"])), got["total"])
+        self.assertTrue(got["first"].startswith("file:"), got["first"])
+
+    def test_RQ_HST_007_given_the_wheel_over_the_timeline_then_it_zooms_around_the_pointer(self):
+        got = self.run_script("""
+const plot = document.getElementById("history-plot");
+const view = agnosTrace.historyView;
+const box = plot.getBoundingClientRect();
+const [t0, t1] = view.span();
+const x = view.xOf((t0 + t1) / 2 - (t1 - t0) / 4);
+const anchor = view.timeAt(x);
+plot.dispatchEvent(new WheelEvent("wheel", { deltaY: -120, clientX: x, clientY: box.top + 20, bubbles: true, cancelable: true }));
+const [u0, u1] = view.span();
+out.narrower = String(u1 - u0 < t1 - t0);
+out.kept = String(Math.abs(view.timeAt(x) - anchor) < (u1 - u0) / 100);
+""", "narrower", "kept")
+        self.assertEqual(("true", "true"), (got["narrower"], got["kept"]))
+
+    def test_RQ_HST_007_given_the_keyboard_then_it_zooms_pans_and_fits(self):
+        got = self.run_script("""
+const plot = document.getElementById("history-plot");
+const view = agnosTrace.historyView;
+const spanSize = () => { const [a, b] = view.span(); return b - a; };
+const spanStart = () => view.span()[0];
+const w0 = spanSize();
+plot.dispatchEvent(new KeyboardEvent("keydown", { key: "+", bubbles: true }));
+out.zoomed = String(spanSize() < w0);
+const s0 = spanStart();
+plot.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+out.pan = String(spanStart() > s0);
+plot.dispatchEvent(new KeyboardEvent("keydown", { key: "0", bubbles: true }));
+out.fit = String(Math.abs(spanSize() - w0) < 1);
+""", "zoomed", "pan", "fit")
+        self.assertEqual(("true", "true", "true"), (got["zoomed"], got["pan"], got["fit"]))
+
+    def test_RQ_HST_007_given_a_mark_then_hover_shows_its_commit_and_click_pins_it(self):
+        got = self.run_script("""
+const mark = document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-mark[data-commit="2"]');
+mark.dispatchEvent(new FocusEvent("focus"));
+const tip = document.getElementById("history-tip");
+out.tip = tip.hidden ? "" : tip.textContent;
+mark.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+const card = document.getElementById("history-card");
+out.card = card.hidden ? "" : card.textContent;
+""", "tip", "card")
+        for text in ("a000000003", "Alice", "Claude Opus 5.5", "requirement refined", "2 lines"):
+            self.assertIn(text, got["tip"], text)
+        self.assertIn("a000000003", got["card"])
+
+    def test_RQ_HST_007_given_a_row_label_when_clicked_then_the_element_is_selected(self):
+        got = self.run_script("""
+document.querySelector('.history-row[data-key="RQ-DEM-001"] .history-label').click();
+out.selected = agnosTrace.state.selected;
+""", "selected")
+        self.assertEqual("RQ-DEM-001", got["selected"])
+
+    def test_RQ_HST_014_given_marks_then_their_shape_tells_the_kind_and_each_has_a_name(self):
+        got = self.run_script("""
+const marks = [...document.querySelectorAll(".history-mark")];
+out.shapes = [...new Set(marks.map((m) => m.dataset.kind + ":" + m.firstElementChild.tagName))].sort().join(",");
+out.named = String(marks.every((m) => m.getAttribute("aria-label") && m.getAttribute("tabindex") === "0"));
+""", "shapes", "named")
+        self.assertEqual("agent:path,human:circle,together:circle", got["shapes"])
+        self.assertEqual("true", got["named"])
+
+
+def large_process(root, count):
+    """A process of one feature holding count requirements, with its index."""
+    folder = root / "process" / "1.requirements"
+    folder.mkdir(parents=True)
+    name = "process/1.requirements/FTR-BIG-001-big.md"
+    tris = ("BIG", "BIH", "BII")
+    per_tri = 999
+    lines = ["# FTR-BIG-001: Big", ""] + [f"### RQ-{tris[n // per_tri]}-{n % per_tri + 1:03d}: R{n}" for n in range(count)]
+    (root / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    ids = [line.split(":")[0][4:] for line in lines[2:]]
+    rows = ["# AGNOS process index", f"@{name}", f"FTR-BIG-001|1-{len(lines)}||Big"]
+    rows += [f"{i}|{n + 3}-{n + 3}||R" for n, i in enumerate(ids)]
+    (root / "process" / "INDEX.idx.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (root / "src").mkdir()
+    (root / "src" / "code.py").write_text("# RQ-BIG-001\n", encoding="utf-8")
+    return root / "process", root / "src", ids
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class VirtualRowsTest(unittest.TestCase):
+    """TASK-HST-004: RQ-HST-007, RQ-HST-013 (DEC-HST-005: only the rows in view are in the document)."""
+
+    def test_RQ_HST_013_given_2000_rows_then_fewer_than_100_row_elements_are_in_the_document(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process, sources, ids = large_process(Path(tmp), 1999)
+            page = Path(tmp) / "page.html"
+            code, _, err = run_main(["--process", str(process), "--sources", str(sources), "--out", str(page),
+                                     "--generated-at", "x"])
+            self.assertEqual(0, code, err)
+            add_history(page, lambda data: history_block(data, {i: [[n % len(COMMITS), 1]] for n, i in enumerate(ids)}))
+            got = found(rendered_dom_after(page, OPEN + """
+const rows = document.getElementById("history-rows");
+out.total = rows.dataset.total;
+out.drawn = String(rows.querySelectorAll(".history-row").length);
+const scroller = document.getElementById("history-scroll");
+scroller.scrollTop = scroller.scrollHeight / 2;
+scroller.dispatchEvent(new Event("scroll"));
+out.after = String(rows.querySelectorAll(".history-row").length);
+out.middle = String([...rows.querySelectorAll(".history-row[data-key]")].some((r) => r.dataset.key.startsWith("RQ-BIH")));
+"""), "total", "drawn", "after", "middle")
+        self.assertEqual("2002", got["total"])              # 1,999 requirements, 1 feature, 2 type headings
+        self.assertLess(int(got["drawn"]), 100)
+        self.assertLess(int(got["after"]), 100)
+        self.assertEqual("true", got["middle"])
+
+
+if __name__ == "__main__":
+    unittest.main()

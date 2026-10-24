@@ -14,6 +14,11 @@
 </style>
 </head>
 <body>
+<!-- RQ-HST-014, DEC-HST-005: the kind of an identity, beside its name -->
+<svg class="icon-sprite" aria-hidden="true">
+  <symbol id="icon-human" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4.5"></circle><path d="M3.5 21a8.5 8.5 0 0 1 17 0Z"></path></symbol>
+  <symbol id="icon-agent" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="3"></rect><path d="M11 2h2v5h-2z"></path><circle cx="9" cy="13" r="1.8" class="icon-cut"></circle><circle cx="15" cy="13" r="1.8" class="icon-cut"></circle></symbol>
+</svg>
 <div class="app" id="app">
   <header class="topbar">
     <div class="brand">
@@ -70,6 +75,9 @@
               title="One row per requirement: what contains, decides, plans, implements and cites it">Matrix</button>
       <button class="tab" role="tab" type="button" data-view="quality" aria-selected="false"
               title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span id="quality-grade"></span> <span class="tab-count" id="quality-count"></span></button>
+      <!-- RQ-HST-007, DEC-HST-005: shown only when the data hold a history (--history) -->
+      <button class="tab" role="tab" type="button" data-view="history" aria-selected="false" hidden
+              title="Who worked on each element and on the code, and when: humans, agents, and both together">History</button>
     </nav>
 
     <section class="view" id="view-overview" role="tabpanel">
@@ -144,6 +152,32 @@
         <button class="button" type="button" id="collapse-checks" title="Show every check compact: title, risk, score and count of findings">Collapse all</button>
       </div>
       <div class="quality" id="quality-list"></div>
+    </section>
+
+    <!-- FTR-HST-001: RQ-HST-007 to RQ-HST-011, DEC-HST-005, DEC-HST-006 -->
+    <section class="view view-history" id="view-history" role="tabpanel" hidden>
+      <div class="toolbar">
+        <fieldset class="segmented" id="history-angle" aria-label="Angle" title="Read the history from the process elements or from the code">
+          <button type="button" data-angle="requirements" aria-pressed="true" title="One row per process element: who changed the lines of its definition">Requirements</button>
+          <button type="button" data-angle="code" title="One row per source file, its functions below it with a call graph: who changed the code">Code</button>
+        </fieldset>
+        <fieldset class="segmented" id="history-grouping" aria-label="Code rows" title="With the code angle: rows by file, or by the requirement the code cites" hidden>
+          <button type="button" data-grouping="files" aria-pressed="true" title="One row per file and function">By file</button>
+          <button type="button" data-grouping="requirements" title="One row per element the code cites, with the changes of the code citing it">By requirement</button>
+        </fieldset>
+        <span class="toolbar-spacer"></span>
+        <span class="graph-status" id="history-status" title="Rows and commits shown, and the period in view"></span>
+        <button class="button" type="button" id="history-fit" title="Show the whole history (key 0)">Fit</button>
+      </div>
+      <div class="history-legend" id="history-legend"></div>
+      <div class="history-frame" id="history-plot" tabindex="0" aria-label="Timeline of the interventions"
+           title="Wheel over the marks: zoom · drag: pan · keys + − 0 ← →">
+        <div class="history-axis-row"><span class="history-corner" id="history-limits"></span><svg class="history-axis" id="history-axis" aria-hidden="true"></svg></div>
+        <div class="history-scroll" id="history-scroll"><div class="history-rows" id="history-rows"></div></div>
+        <div class="history-overview-row"><span class="history-corner">Overview</span><svg class="history-overview" id="history-overview" role="img" aria-label="The whole history; the window is the period in view"></svg></div>
+      </div>
+      <div class="chart-tip history-tip" id="history-tip" role="tooltip" hidden></div>
+      <aside class="card history-card" id="history-card" aria-label="Commit" hidden></aside>
     </section>
   </main>
 
