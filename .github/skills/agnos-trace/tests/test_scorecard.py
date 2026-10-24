@@ -229,13 +229,16 @@ class GradePaletteTest(unittest.TestCase):
                 text = tokens["global"][tokens["semantic"][f"on-grade-{letter}"][theme]]
                 self.assertGreaterEqual(contrast(fill, text), CONTRAST_MIN, f"{theme} grade {letter}")
 
-    def test_RQ_TRC_065_given_the_five_grade_fills_then_they_are_distinct_and_not_a_green_to_red_scale(self):
+    def test_RQ_TRC_065_given_the_five_grade_fills_then_they_run_from_green_to_red_like_the_food_and_energy_labels(self):
         tokens = tm.load_tokens(tm.TOKENS_PATH)
         for theme in tm.THEMES:
             fills = [tokens["global"][tokens["semantic"][f"grade-{c}"][theme]].lower() for c in GRADES.lower()]
             self.assertEqual(5, len(set(fills)))
-            green = [f for f in fills if int(f[3:5], 16) > max(int(f[1:3], 16), int(f[5:7], 16))]
-            self.assertEqual([], green, "no grade fill is green-dominant")
+            red, green = (lambda f: int(f[1:3], 16)), (lambda f: int(f[3:5], 16))
+            self.assertGreater(green(fills[0]), red(fills[0]))                  # A is green
+            self.assertGreater(red(fills[-1]), green(fills[-1]))                # E is red
+            hues = [red(f) - green(f) for f in fills]
+            self.assertEqual(hues, sorted(hues))                                 # redder at each step
 
 
 REPORT_CARD = """

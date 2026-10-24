@@ -63,7 +63,7 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   column; the order is remembered in the browser, like the widths, and "Reset columns" brings back the default order and
   widths (RQ-TRC-052). The CSV keeps its own fixed columns. The Feature column shows each feature's title under its ID (RQ-TRC-053).
 - **Quality** (RQ-TRC-060 to RQ-TRC-063): for the decision maker, a report card at the top (the project's grade A to E on
-  a blue-to-orange scale with its letter always written, its score out of 10, a one-sentence verdict, the grade of each
+  a green-to-red scale (as the Nutri-Score and DPE labels) with its letter always written, its score out of 10, a one-sentence verdict, the grade of each
   feature area and the three lowest-scored checks as "Fix first"), then three charts (a radar of the checks, bars per
   feature area, the coverage shares; each with a tooltip on hover and on keyboard focus, a radar axis opens its check);
   for the technician, the checks (see "Quality scoring") in a grid, lowest score first, each compact (title, risk, score

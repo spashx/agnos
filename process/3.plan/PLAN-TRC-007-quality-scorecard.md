@@ -129,3 +129,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: New `tests/test_literals.py` (Python by syntax tree, the page script by a tokenizer; docstrings, comments, template literals and the definitions of named constants left aside): before the change it listed 22 repeated literals in `trace_matrix.py`, 15 in `callgraph.py`, 16 in `scorecard.py` and 107 in `matrix.js`; after, both tests pass with none repeated. The literals were named by a throw-away script (reusing an existing constant of the same value where there was one; `INDEX_TITLE_FIELD`, `RANK_TITLE`, `RANK_NONE`, `RESULT_NODE` named by hand for the number 3). `python -m unittest discover -s tests` (skill folder): 161 tests, 0 failure, 1 skipped, the browser tests included (the page script still runs).
 - **Assumptions**: Tier M: the work stays inside one skill and adds no public behaviour; "duplicated" read as written more
   than once, with the exceptions of RQ-TRC-067.
+
+### TASK-TRC-053: Grade colours as the food and energy labels
+- **Tier**: M
+- **Status**: Done
+- **Description**: Replace the blue-to-orange grade palette by the green-to-red scale of the French Nutri-Score and DPE
+  labels (owner decision of 2026-10-24), keep the letter written and the contrast of 4.5:1, and amend RQ-TRC-065 and
+  DEC-TRC-035 to say so.
+- **Requirement refs**: RQ-TRC-065
+- **ADR refs**: ADR-TRC-008 (DEC-TRC-035)
+- **Acceptance Criteria**: Given the tokens of both themes, Then grade A is green, grade E is red, each step is redder than
+  the one before, and each grade letter has a contrast of at least 4.5:1 on its fill.
+- **Dependencies**: TASK-TRC-049
+- **Assignee**: AI
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 161 tests, 0 failure, 1 skipped. `GradePaletteTest`: five distinct fills A #038141, B #85BB2F, C #FECB02, D #EE8100, E #E63E11 in both themes, green-dominant A, red-dominant E, redder at each step; every letter reaches 4.5:1 (white on A, dark text on B to D, black on E, whose first dark-slate text gave 4.30). Screenshot of the fixture's Quality view checked: report card C in yellow, scale A to E green to red, bars and radar points in the grade colours.
+- **Assumptions**: the colours are those of the Nutri-Score, taken as the code "socially understood"; the dark theme uses the same fills.

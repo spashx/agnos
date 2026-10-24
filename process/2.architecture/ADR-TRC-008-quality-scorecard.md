@@ -53,10 +53,11 @@ verdict names the grade in words (A excellent, B good, C fair, D weak, E poor) a
 threshold. The word "gap" and its identifiers (`gap-*` CSS classes and ids, `gaps-list`, the tab's `data-view="gaps"`)
 become `quality-*`, `checks` and `findings`. Fulfils RQ-TRC-057, RQ-TRC-060, RQ-TRC-062 and RQ-TRC-063.
 
-### DEC-TRC-035: A blue-to-orange grade palette; charts are inline SVG
-Five grade colours are global tokens, with their on-colour text tokens, resolved for both themes: deep blue (A), blue (B),
-sand (C), orange (D) and vermilion (E), a diverging scale that stays distinguishable for the common colour-vision
-deficiencies and does not copy the green-to-red labels. The letter is always written, and every grade text meets 4.5:1
+### DEC-TRC-035: A green-to-red grade palette like the food and energy labels; charts are inline SVG
+Five grade colours are global tokens, with their on-colour text tokens, resolved for both themes: dark green (A), light
+green (B), yellow (C), orange (D) and red (E), the scale of the French Nutri-Score and DPE labels, which is socially
+understood (owner decision of 2026-10-24, reversing the first choice of a blue-to-orange scale). The letter is always
+written, so that a colour-blind reader loses nothing, and every grade text meets 4.5:1
 (checked by a test on the resolved tokens). The charts are drawn by small functions from the `quality` block, as inline
 SVG with `role="img"`, a title and a description, and focusable items that raise the page's tooltip (name, score or
 share, population, findings): a **radar** with one axis per scored check, **bars** per trigram (score and grade), and a
@@ -78,8 +79,8 @@ RQ-TRC-065.
   Rejected.
 - **A cap on the grade when a critical check fails**: asked and declined by the owner; the weakest checks stay visible
   in "Fix first". Rejected.
-- **Green-to-red grade colours**: the established reading of food and energy labels, but not colour-blind safe and too
-  close to them to look original in a professional tool. Rejected.
+- **A blue-to-orange scale**: colour-blind safe and original, but not the code everybody reads; first choice, replaced
+  by the owner on 2026-10-24 by the green-to-red scale of the food and energy labels. Rejected.
 - **A chart library**: hundreds of kilobytes in an offline file for three simple charts. Rejected.
 - **Quadrant (priority) chart**: needs an effort estimate per finding that the model does not hold. Rejected.
 

@@ -706,7 +706,7 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .grade-D .score-fill { background: var(--s-grade-d); }
 .grade-E .score-fill { background: var(--s-grade-e); }
 
-/* RQ-TRC-060, RQ-TRC-065, DEC-TRC-035: the grade letter on its blue-to-orange fill; the letter is always written */
+/* RQ-TRC-060, RQ-TRC-065, DEC-TRC-035: the grade letter on its green-to-red fill (Nutri-Score, DPE); the letter is always written */
 .grade-chip {
   display: inline-flex; align-items: center; justify-content: center; min-width: var(--s-space-xl);
   padding: var(--s-space-none) var(--s-space-xs); border-radius: var(--s-radius-sm); font-weight: var(--s-weight-bold);

@@ -152,9 +152,9 @@ configuring the checks per project.
 - **NFR Type**: Accessibility
 - **EARS Type**: Ubiquitous
 - **Statement**: The Quality view SHALL never convey a grade or a score by colour alone (the letter or the figure is
-  always written), SHALL use a five-step grade palette from the design tokens that stays distinguishable by readers with
-  colour-vision deficiency and does not copy the green-to-red scales of the French food and energy labels, SHALL meet
-  the contrast of WCAG 2.1 AA in both themes, and SHALL give every chart a text alternative and every control a keyboard
+  always written), SHALL use a five-step grade palette from the design tokens that follows the green-to-red scale of the French
+  food (Nutri-Score) and energy (DPE) labels, which everybody reads (amended by the owner on 2026-10-24; the letter
+  always written keeps it readable by colour-blind readers), SHALL meet the contrast of WCAG 2.1 AA in both themes, and SHALL give every chart a text alternative and every control a keyboard
   path.
 - **Metric**: contrast ratio of at least 4.5:1 for the grade letters and the figures in both themes; no information
   carried by hue only.
