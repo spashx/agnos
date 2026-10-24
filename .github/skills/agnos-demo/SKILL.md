@@ -12,8 +12,10 @@ Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-demo/`) and
 baseline leaves it out, and CLAUDE.md and AGENTS.md do not list it.
 
 The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
-simulated: six fictitious people (`linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`),
-three sessions on `feature/<TRI>` branches, 2026-08-24 to 2026-10-23, working days and hours only.
+simulated: seven fictitious people (`linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`, and the
+UX designer `rob-ux`), five sessions on `feature/<TRI>` branches (BKG, NTF, CLI, then DSN, a design system made with
+`agnos-design-system`, and WEB, the booking interface built on its tokens; DEC-DMO-007), 2026-08-24 to 2026-10-23,
+working days and hours only.
 Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001.
 
 ## Layout

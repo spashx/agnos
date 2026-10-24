@@ -95,7 +95,7 @@ function Assert-SafeTarget([string]$TargetFull) {
       throw "refusing to rebuild '$TargetFull': it contains the generator, the content or the toolkit"
     }
   }
-  if (Test-Path -LiteralPath $TargetFull) {
+  if ((Test-Path -LiteralPath $TargetFull) -and @(Get-ChildItem -LiteralPath $TargetFull -Force).Count) {   # an empty folder is free
     if (-not (Test-Path -LiteralPath (Join-Path $TargetFull ".git/$GENERATED_MARKER"))) {
       throw "refusing to rebuild '$TargetFull': it was not created by this engine (no $GENERATED_MARKER marker)"
     }
@@ -103,7 +103,10 @@ function Assert-SafeTarget([string]$TargetFull) {
 }
 
 function Initialize-Repository([string]$TargetFull, [string]$Branch) {
-  if (Test-Path -LiteralPath $TargetFull) { Remove-Item -LiteralPath $TargetFull -Recurse -Force }
+  # The folder's content is removed, not the folder: an editor that has the folder open locks it on Windows.
+  if (Test-Path -LiteralPath $TargetFull) {
+    Get-ChildItem -LiteralPath $TargetFull -Force | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+  }
   New-Item -ItemType Directory -Force -Path $TargetFull | Out-Null
   Invoke-Git @('init', '-q', '-b', $Branch) $TargetFull | Out-Null
   foreach ($key in $LOCAL_GIT_CONFIG.Keys) { Invoke-Git @('config', '--local', $key, $LOCAL_GIT_CONFIG[$key]) $TargetFull | Out-Null }

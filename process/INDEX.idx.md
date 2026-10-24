@@ -263,7 +263,7 @@ TASK-DMO-010|190-209|Done|Build and verify the demo repository
 PLAN-DMO-002|1-68||The Demo's Design System and Interface, Folded Back into its Scenario
 TASK-DMO-011|20-38|Done|The engine's new keys, the scenario's DSN and WEB sessions and their content
 TASK-DMO-012|39-53|Done|Verification of the new role and of the current summary line
-TASK-DMO-013|54-68|Not Started|The skill's description, the rebuild and the whole verification
+TASK-DMO-013|54-68|Done|The skill's description, the rebuild and the whole verification
 @process/3.plan/PLAN-DOC-001-documentation-sync.md
 PLAN-DOC-001|1-60||Documentation Sync Sub-Agent
 TASK-DOC-001|16-32|Done|Report of the changes since each document's last change

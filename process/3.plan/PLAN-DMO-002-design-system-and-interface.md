@@ -53,7 +53,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DMO-013: The skill's description, the rebuild and the whole verification
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Update `agnos-demo`'s `SKILL.md` (seven people, five sessions, the `ux` role), rebuild the demo with
   `build`, run the whole `verify` (two builds for RQ-DMO-021), run the demo's tests, and generate its traceability page
   with `--call-graph --history`.
@@ -64,5 +64,5 @@ This plan implements the tasks in the format specified below.
   section lists its seven identities, rob-ux among them.
 - **Dependencies**: TASK-DMO-011, TASK-DMO-012
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `build.ps1 -Verify`: `agnos-demo replay: 85 commits, HEAD 8702175`, global git configuration unchanged; `agnos-demo verify: 22 passed, 0 failed`, among them RQ-DMO-002 (toolkit files missing: 0), RQ-DMO-008 (uncovered 0, IDs defined 10.0), RQ-DMO-011 (7 identities, rob-ux among them), RQ-DMO-018 (5 session branches merged), RQ-DMO-022 (artifacts present, 6 ux commits, client tests exit 0) and RQ-DMO-021 (second build, same HEAD). The demo's traceability page with `--call-graph --history`: 219 functions, 78 commits, 7 humans; its History section lists nina-dev, paul-dev, john-qa, linda-po, omar-arch, sara-qa and rob-ux. `SKILL.md`: seven people, five sessions. The first build stopped on `Remove-Item` of the demo folder, locked by the editor's workspace: its content was removed, the folder not; `replay.ps1` now empties the folder instead of removing it, and accepts an empty folder, after which the build ran.
+- **Assumptions**: An empty target folder may be rebuilt, as the engine leaves it after a removal it could not finish. The maintainer skill `agnos-docs-sync` is copied into the demo's toolkit by the baseline, as the other skills are (only `agnos-demo` is excluded); left as it is, to be decided by the owner.
