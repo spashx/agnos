@@ -1655,6 +1655,141 @@
         el("p", { class: "check-formula", text: checkFormula(check) }), checkKpis(check), ...checkFindings(check)) : null);
   }
 
+  // ---- quality charts (TASK-TRC-050: RQ-TRC-061, RQ-TRC-065; DEC-TRC-035) -----------------------------------------
+  // Inline SVG drawn from the `quality` block, no library: a radar of the checks, bars per trigram, the coverage shares.
+  // Every chart has a title and a description; its items take the keyboard focus and raise the chart tooltip.
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const RADAR = { width: 300, height: 250, radius: 78, ring: 4, labelGap: 12, pointRadius: 4 };
+  const AREA = { width: 260, rowHeight: 30, barHeight: 16, labelWidth: 38, barWidth: 150, textGap: 6 };
+  const SHARE = { width: 260, height: 20, labelHeight: 22 };
+  const FULL_TURN = 360;
+  const QUARTER_TURN = 90;
+  const HALF = 2;
+
+  function svgEl(tag, attrs, ...children) {
+    const node = document.createElementNS(SVG_NS, tag);
+    for (const [name, value] of Object.entries(attrs || {})) if (!isAbsent(value)) node.setAttribute(name, String(value));
+    node.append(...children.flat().filter((child) => !isAbsent(child))
+      .map((child) => (child instanceof Node ? child : document.createTextNode(String(child)))));
+    return node;
+  }
+
+  function chartFrame(width, height, title, description, ...parts) {
+    return svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", class: "chart-svg", "aria-labelledby": `chart-${title.replaceAll(" ", "-")}` },
+      svgEl("title", { id: `chart-${title.replaceAll(" ", "-")}` }, title), svgEl("desc", {}, description), ...parts);
+  }
+
+  const chartTip = () => $("chart-tip");
+
+  function showChartTip(target, lines) {
+    const tip = chartTip();
+    clear(tip).append(...lines.map((line, i) => el("div", { class: i ? "chart-tip-line" : "chart-tip-name", text: line })));
+    const box = target.getBoundingClientRect();
+    tip.hidden = false;
+    tip.style.left = `${box.right}px`;
+    tip.style.top = `${box.top}px`;
+  }
+
+  function hideChartTip() { chartTip().hidden = true; }
+
+  // An item of a chart: focusable, with a text label for screen readers, its tooltip on hover and on focus.
+  function chartItem(node, label, lines, onActivate) {
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("aria-label", label);
+    node.addEventListener("mouseover", () => showChartTip(node, lines));
+    node.addEventListener("mouseout", hideChartTip);
+    node.addEventListener("focus", () => showChartTip(node, lines));
+    node.addEventListener("blur", hideChartTip);
+    if (onActivate) {
+      node.addEventListener("click", onActivate);
+      node.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onActivate(); } });
+    }
+    return node;
+  }
+
+
+  function checkTipLines(check) {
+    return [check.title, `score ${scoreText(check)} out of ${SCORE_MAX} · risk ${check.risk}`,
+      `population ${check.population} · ${check.findings.length} ${check.findings.length === 1 ? "finding" : "findings"}`];
+  }
+
+  function radarChart() {
+    const scored = CHECKS.filter((c) => c.score !== null);
+    const cx = RADAR.width / HALF;
+    const cy = RADAR.height / HALF;
+    const at = (i, fraction) => {
+      const angle = ((-QUARTER_TURN + (FULL_TURN * i) / scored.length) * Math.PI) / (FULL_TURN / HALF);
+      return [cx + Math.cos(angle) * RADAR.radius * fraction, cy + Math.sin(angle) * RADAR.radius * fraction];
+    };
+    const ring = (n) => svgEl("polygon", { class: "radar-ring", points: scored.map((_, i) => at(i, n / RADAR.ring).join(",")).join(" ") });
+    const shape = svgEl("polygon", { class: "radar-shape", points: scored.map((c, i) => at(i, c.score / SCORE_MAX).join(",")).join(" ") });
+    const axes = scored.map((check, i) => {
+      const [x, y] = at(i, 1);
+      const [lx, ly] = at(i, 1 + RADAR.labelGap / RADAR.radius);
+      const anchor = Math.abs(lx - cx) < RADAR.labelGap ? "middle" : (lx > cx ? "start" : "end");
+      const group = svgEl("g", { class: "radar-axis", "data-check": check.key },
+        svgEl("line", { class: "radar-spoke", x1: cx, y1: cy, x2: x, y2: y }),
+        svgEl("text", { class: "radar-label", x: lx, y: ly, "text-anchor": anchor, "dominant-baseline": "middle" }, check.label));
+      group.addEventListener("click", () => openCheck(check.key));
+      return group;
+    });
+    const points = scored.map((check, i) => {
+      const [x, y] = at(i, check.score / SCORE_MAX);
+      return chartItem(svgEl("circle", { class: `radar-point grade-${isRanked(check) ? gradeOf(check.score) : "none"}`, cx: x, cy: y, r: RADAR.pointRadius, "data-check": check.key }),
+        `${check.title}: score ${scoreText(check)} out of ${SCORE_MAX}`, checkTipLines(check), () => openCheck(check.key));
+    });
+    return chartFrame(RADAR.width, RADAR.height, "Checks radar",
+      `Score out of ${SCORE_MAX} of each check, one axis per check: the further from the centre, the better.`,
+      ...Array.from({ length: RADAR.ring }, (_, n) => ring(n + 1)), ...axes, shape, ...points);
+  }
+
+  function areaBars() {
+    const rows = Object.entries(DATA.quality.trigrams);
+    const bar = ([tri, t], i) => {
+      const y = i * AREA.rowHeight;
+      const width = AREA.barWidth * ((t.score ?? 0) / SCORE_MAX);
+      const group = svgEl("g", { class: `area-bar grade-${t.grade || "none"}`, "data-tri": tri },
+        svgEl("text", { class: "area-label", x: 0, y: y + AREA.barHeight, }, tri),
+        svgEl("rect", { class: "area-track", x: AREA.labelWidth, y, width: AREA.barWidth, height: AREA.barHeight }),
+        svgEl("rect", { class: "area-fill", x: AREA.labelWidth, y, width, height: AREA.barHeight }),
+        svgEl("text", { class: "area-value", x: AREA.labelWidth + AREA.barWidth + AREA.textGap, y: y + AREA.barHeight },
+          `${t.grade || "–"} ${scoreOut(t.score)}`));
+      return chartItem(group, `${tri}: grade ${t.grade}, score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
+        [tri, `grade ${t.grade || "none"} · score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
+          `${t.checks.reduce((sum, c) => sum + c.findings, 0)} findings in ${t.checks.length} checks`]);
+    };
+    return chartFrame(AREA.width, Math.max(rows.length, 1) * AREA.rowHeight, "Score by feature area",
+      `Overall score out of ${SCORE_MAX} of each feature area (trigram), with its grade.`, ...rows.map(bar));
+  }
+
+  function coverageShares() {
+    const total = requirements.length;
+    const counts = { covered: 0, indirect: 0, uncovered: 0 };
+    for (const r of requirements) counts[DATA.coverage[r.key]] += 1;
+    let x = 0;
+    const parts = Object.keys(COVERAGE).map((k) => {
+      const width = total ? (SHARE.width * counts[k]) / total : 0;
+      const share = total ? Math.round((PERCENT * counts[k]) / total) : 0;
+      const rect = chartItem(svgEl("rect", { class: `share-part share-${k}`, x, y: 0, width, height: SHARE.height }),
+        `${COVERAGE[k][0]}: ${counts[k]} of ${total} requirements`,
+        [COVERAGE[k][0], `${counts[k]} of ${total} requirements · ${share} %`, COVERAGE[k][1]]);
+      x += width;
+      return rect;
+    });
+    const legend = Object.keys(COVERAGE).map((k, i) => svgEl("text", { class: "share-label", x: (SHARE.width / Object.keys(COVERAGE).length) * i,
+      y: SHARE.height + SHARE.labelHeight }, `${COVERAGE[k][0]} ${counts[k]}`));
+    return chartFrame(SHARE.width, SHARE.height + SHARE.labelHeight + AREA.textGap, "Requirement coverage",
+      "Share of the requirements covered by a source file, covered indirectly, or uncovered.", ...parts, ...legend);
+  }
+
+  function renderCharts() {
+    const card = (title, svg) => el("article", { class: "card chart-card" },
+      el("header", { class: "card-header" }, el("h3", { class: "card-title", text: title })), svg);
+    clear($("quality-charts")).append(card("Checks", radarChart()),
+      card("Feature areas", areaBars()),
+      card("Coverage", coverageShares()));
+  }
+
   // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).
   function gradeChip(grade, score, extra) {
     const meaning = grade ? `Grade ${grade}: ${DATA.quality.verdicts[grade].toLowerCase()}, score ${score.toFixed(SCORE_DECIMALS)} out of ${SCORE_MAX}` : "Not graded";
@@ -1713,6 +1848,7 @@
     $("quality-count").textContent = total ? String(total) : "";
     renderGradeChips();
     renderReport();
+    renderCharts();
     clear($("quality-list")).append(...rankedChecks().map(checkCard));
   }
 

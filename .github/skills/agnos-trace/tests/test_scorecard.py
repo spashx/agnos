@@ -282,5 +282,58 @@ class ReportCardTest(unittest.TestCase):
         self.assertEqual("quality", found["view"])
 
 
+CHARTS = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("quality");
+const charts = [...document.querySelectorAll("#quality-charts svg")];
+out.svgs = String(charts.length);
+out.named = String(charts.every((c) => c.getAttribute("role") === "img" && c.querySelector("title")?.textContent.trim()
+  && c.querySelector("desc")?.textContent.trim()));
+const points = [...document.querySelectorAll("#quality-charts .radar-point")];
+out.points = points.map((p) => p.dataset.check).join(",");
+out.focusable = String(points.every((p) => p.getAttribute("tabindex") === "0" && p.getAttribute("aria-label")));
+out.bars = String(document.querySelectorAll("#quality-charts .area-bar").length);
+out.shares = String(document.querySelectorAll("#quality-charts .share-part").length);
+const tip = document.getElementById("chart-tip");
+const covered = points.find((p) => p.dataset.check === "covered");
+out.hiddenBefore = String(tip.hidden);
+covered.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 200, clientY: 200 }));
+out.tip = tip.hidden ? "" : tip.textContent;
+covered.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+out.hiddenAfter = String(tip.hidden);
+const other = points.find((p) => p.dataset.check === "defined");
+other.dispatchEvent(new FocusEvent("focus"));
+out.focusTip = tip.hidden ? "" : tip.textContent;
+other.dispatchEvent(new FocusEvent("blur"));
+document.querySelector("#quality-charts .radar-axis[data-check=filled]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+out.opened = [...agnosTrace.state.openChecks].join(",");
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class ChartsTest(unittest.TestCase):
+    """TASK-TRC-050: RQ-TRC-061, RQ-TRC-065 (DEC-TRC-035)."""
+
+    def test_RQ_TRC_061_given_the_quality_view_then_it_draws_a_radar_trigram_bars_and_coverage_with_tooltips(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(svgs|named|points|focusable|bars|shares|hidden-before|tip|hidden-after|focus-tip|opened)="([^"]*)"',
+                                    rendered_dom_after(path, CHARTS)))
+        self.assertEqual("3", found["svgs"])                            # radar, trigram bars, coverage
+        self.assertEqual("true", found["named"])                        # a title and a description each (RQ-TRC-065)
+        self.assertEqual("covered,defined,tasked,task-rq,adr-rq,filled,connected,files-traced", found["points"])
+        self.assertEqual("true", found["focusable"])
+        self.assertEqual("1", found["bars"])                            # the fixture has one trigram
+        self.assertEqual("3", found["shares"])                          # covered, indirect, uncovered
+        self.assertEqual("true", found["hidden-before"])
+        for part in ("Requirements covered", "score 4.0", "population 5", "3 findings"):
+            self.assertIn(part, found["tip"])                           # on hover
+        self.assertEqual("true", found["hidden-after"])
+        self.assertIn("IDs defined", found["focus-tip"])                # and on keyboard focus
+        self.assertEqual("filled", found["opened"])                     # an axis opens its check
+
+
 if __name__ == "__main__":
     unittest.main()

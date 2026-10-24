@@ -27,9 +27,9 @@ CALLS = FIXTURE / "calls"
 
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-trace/requirements-callgraph.txt)"
-DATA_BEFORE_PLAN_SHA256 = "8656b86a13e3df3f45b500ddf4079fe1099a3a8af43417dc529044433e341809"   # the fixture page's data
+DATA_BEFORE_PLAN_SHA256 = "8906f0616fdf1b1f10d750c3ea248234091b4d341f4de48435819edb42863984"   # the fixture page's data
 # without --call-graph, with its two machine-dependent fields (the process and source paths given) blanked; re-pinned
-# on purpose by TASK-TRC-046 (ADR-TRC-008, DEC-TRC-033): the `quality` block replaced the gap lists.
+# on purpose by TASK-TRC-046 and TASK-TRC-050 (ADR-TRC-008, DEC-TRC-033): the `quality` block replaced the finding lists, then gained labels.
 
 
 def location_free_sha256(page):

@@ -84,7 +84,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-050: Charts with tooltips
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw the radar of the checks, the bars per trigram and the coverage shares as inline SVG with a title,
   a description, focusable items and the page's tooltip; a radar axis opens its check.
 - **Requirement refs**: RQ-TRC-061, RQ-TRC-065, RQ-TRC-045
@@ -94,7 +94,7 @@ This plan implements the tasks in the format specified below.
   Then a tooltip gives the check's name, score, population and findings; When an axis is clicked, Then its check opens.
 - **Dependencies**: TASK-TRC-049
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 156 tests, 0 failure, 1 skipped. `ChartsTest` in headless Edge on the fixture: 3 SVG charts (radar, feature areas, coverage), each `role="img"` with a non-empty title and description; one radar point per scored check in scoring order, each focusable (`tabindex` 0) with an aria-label; 1 area bar (one trigram), 3 coverage shares; hovering the covered point shows "Requirements covered", "score 4.0", "population 5", "3 findings" and hides on mouseout; focusing the defined point shows "IDs defined"; clicking the filled axis opens that check. Short axis labels come from `label` in `scoring.json`. Screenshot at 1440x900 of the demo trace checked. The RQ-TRC-026 sentinel is re-pinned again (labels added to the data).
 - **Assumptions**: None
 
 ### TASK-TRC-051: Fit in the window, speed, final documentation

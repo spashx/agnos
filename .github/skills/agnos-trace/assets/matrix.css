@@ -225,7 +225,7 @@ button, input, select { font: inherit; color: inherit; }
 .search-result-title { grid-column: 2; color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search-empty { padding: var(--s-space-sm); color: var(--s-text-subtle); font-size: var(--s-text-small); }
 /* RQ-TRC-049: a result's tooltip beside the list, fixed so that the sidebar's overflow does not cut it */
-.search-tip {
+.search-tip, .chart-tip {
   position: fixed;
   z-index: 30;
   max-width: var(--c-popup-height);
@@ -240,7 +240,9 @@ button, input, select { font: inherit; color: inherit; }
   overflow-wrap: anywhere;
   pointer-events: none;
 }
-.search-tip[hidden] { display: none; }
+.search-tip[hidden], .chart-tip[hidden] { display: none; }
+.chart-tip-name { font-weight: var(--s-weight-strong); }
+.chart-tip-line { color: var(--s-text-muted); }
 .search-tip-kind { display: flex; align-items: center; gap: var(--s-space-xs); color: var(--s-text-subtle); font-size: var(--s-text-caption); }
 .search-tip-name { font-family: var(--s-font-mono); font-weight: var(--s-weight-strong); }
 .search-tip-title { margin-top: var(--s-space-hair); color: var(--s-text-muted); }
@@ -717,6 +719,34 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .grade-chip.grade-E, .scale-step.grade-E { background: var(--s-grade-e); color: var(--s-on-grade-e); }
 .side-title .grade-chip, .tab .grade-chip, .card-title .grade-chip { font-size: var(--s-text-caption); vertical-align: middle; }
 
+.charts { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); gap: var(--s-space-md); }
+.chart-card { padding: var(--s-space-md); }
+.chart-card .card-header { margin-bottom: var(--s-space-sm); }
+.chart-svg { display: block; width: 100%; height: auto; }
+.radar-ring { fill: none; stroke: var(--s-border); stroke-width: var(--s-stroke-hairline); }
+.radar-spoke { stroke: var(--s-border); stroke-width: var(--s-stroke-hairline); }
+.radar-shape { fill: var(--s-accent-subtle); stroke: var(--s-accent); stroke-width: var(--s-stroke-focus); }
+.radar-label { fill: var(--s-text-muted); font-size: var(--s-text-caption); cursor: pointer; }
+.radar-axis:hover .radar-label { fill: var(--s-text); }
+.radar-point { fill: var(--s-accent); stroke: var(--s-surface); stroke-width: var(--s-stroke-focus); cursor: pointer; }
+.radar-point.grade-A { fill: var(--s-grade-a); }
+.radar-point.grade-B { fill: var(--s-grade-b); }
+.radar-point.grade-C { fill: var(--s-grade-c); }
+.radar-point.grade-D { fill: var(--s-grade-d); }
+.radar-point.grade-E { fill: var(--s-grade-e); }
+.radar-point:focus-visible, .area-bar:focus-visible, .share-part:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); }
+.area-label, .area-value { fill: var(--s-text); font-size: var(--s-text-small); font-family: var(--s-font-mono); }
+.area-track { fill: var(--s-surface-hover); }
+.area-fill { fill: var(--s-border-strong); }
+.area-bar.grade-A .area-fill { fill: var(--s-grade-a); }
+.area-bar.grade-B .area-fill { fill: var(--s-grade-b); }
+.area-bar.grade-C .area-fill { fill: var(--s-grade-c); }
+.area-bar.grade-D .area-fill { fill: var(--s-grade-d); }
+.area-bar.grade-E .area-fill { fill: var(--s-grade-e); }
+.share-covered { fill: var(--s-status-ok); }
+.share-indirect { fill: var(--s-status-warn); }
+.share-uncovered { fill: var(--s-status-error); }
+.share-label { fill: var(--s-text-muted); font-size: var(--s-text-caption); }
 .report { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: var(--s-space-xl); align-items: start; }
 .report-main { display: flex; align-items: center; gap: var(--s-space-lg); }
 .report-grade { width: var(--c-report-grade-size); height: var(--c-report-grade-size); border-radius: var(--s-radius-md); font-size: var(--s-text-display); }

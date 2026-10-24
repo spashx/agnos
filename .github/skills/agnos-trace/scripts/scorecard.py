@@ -111,7 +111,8 @@ def build(model, analysis, scoring, graph=None):
         found = findings_of(spec["findings"], analysis, graph)
         population = pops[spec["population"]]
         score = score_of(len(population), len(found))
-        checks.append({"key": spec["key"], "title": spec["title"], "rule": spec["rule"], "risk": spec["risk"],
+        checks.append({"key": spec["key"], "label": spec["label"], "title": spec["title"], "rule": spec["rule"],
+                       "risk": spec["risk"],
                        "items": spec["items"], "population": len(population), "findings": found, "score": score})
         if spec["items"] != "id":
             continue
