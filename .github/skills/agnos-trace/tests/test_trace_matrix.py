@@ -758,7 +758,7 @@ class WheelZoomTest(unittest.TestCase):
 
 
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".quality-shortcut", "#depth", "#depth button",
-                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
+                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns", "#expand-checks", "#collapse-checks",
                    "#matrix-table th", ".kpi-type", "#search")
 READ_TOOLTIPS = """
 agnosTrace.select("RQ-DEM-002");

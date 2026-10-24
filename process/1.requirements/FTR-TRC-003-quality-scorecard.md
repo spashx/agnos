@@ -108,7 +108,7 @@ configuring the checks per project.
   switch it between its compact form (name, risk level, score bar and count of findings, on one line) and its
   detailed form (the rule in words, the formula with its population and findings, the KPIs of the check, and the
   findings, the first sixty at first and the rest on request, each linking to its element); the checks SHALL stand
-  in a grid, the lowest score first, all compact when the view opens.
+  in a grid, the lowest score first (the informational check last), all compact when the view opens.
 - **Rationale**: the technician needs the detail of one check at a time, and the overview of all of them at once.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the Quality view, When it opens, Then every check is compact; When a chevron is pressed,

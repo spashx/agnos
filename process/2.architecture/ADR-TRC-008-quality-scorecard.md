@@ -47,7 +47,7 @@ trigrams, three "Fix first" links), the **charts** (radar, trigram bars, coverag
 cards, three to a row). Heights and gaps are tokens; at 1440 by 900 the nine compact cards, the charts and the card fit
 the main area. A check card is compact (name, risk badge, score bar, count of findings) and opens with a chevron
 (`aria-expanded`) to the rule, the formula with population and findings, the KPIs and the findings, sixty at first;
-opened, the card spans the row and the others stay put. Checks stand lowest score first. "Expand all" and "Collapse
+opened, the card spans the row and the others stay put. Checks stand lowest score first, the informational one and those with no score last. "Expand all" and "Collapse
 all" sit in the view's toolbar; a "Fix first" link or a radar axis opens its check and scrolls it into view. The
 verdict names the grade in words (A excellent, B good, C fair, D weak, E poor) and counts the checks under the attention
 threshold. The word "gap" and its identifiers (`gap-*` CSS classes and ids, `gaps-list`, the tab's `data-view="gaps"`)

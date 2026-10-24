@@ -43,6 +43,8 @@
   const ITEMS_FILE = "file";
   const ITEMS_FUNCTION = "function";
   const FUNCTIONS_CHECK = "functions-traced";
+  const SCORE_MAX = 10;
+  const SCORE_DECIMALS = 1;
   const SEARCH_LIMIT = 60;
   const CELL_LIMIT = 3;
   const FINDINGS_SHOWN = 60;
@@ -303,7 +305,7 @@
   const state = {
     selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
     types: new Set(NODE_TYPES.filter((t) => t !== "FN")),   // functions off at load (RQ-TRC-034, DEC-TRC-017)
-    tris: new Set(trigrams), expandedChecks: new Set(),
+    tris: new Set(trigrams), openChecks: new Set(), moreFindings: new Set(),
   };
   const isVisible = (node) => state.types.has(node.type) && (!node.tri || state.tris.has(node.tri));
 
@@ -1595,30 +1597,75 @@
   $("export-csv").addEventListener("click", exportCsv);
   $("reset-columns").addEventListener("click", resetColumns);
 
-  // ---- quality view (TASK-TRC-047: RQ-TRC-057; DEC-TRC-034) ----------------------------------------------------
+  // ---- quality view (TASK-TRC-047, TASK-TRC-048: RQ-TRC-057, RQ-TRC-062; DEC-TRC-034) ----------------------------
+  const scoreText = (check) => (check.score === null ? "n/a" : check.score.toFixed(SCORE_DECIMALS));
+  const gradeOf = (score) => (score === null ? null : (DATA.quality.scale.find(([, threshold]) => score >= threshold) || DATA.quality.scale.at(-1))[0]);
+  const riskWeight = (check) => DATA.quality.risks[check.risk];
+  // The lowest score first; an informational check or one with no score last; the heavier risk, then the title, break a tie.
+  const isRanked = (check) => check.score !== null && check.risk !== INFORMATIONAL;
+  const rankedChecks = () => CHECKS.toSorted((a, b) => (!isRanked(a)) - (!isRanked(b))
+    || (a.score ?? 0) - (b.score ?? 0) || riskWeight(b) - riskWeight(a) || a.title.localeCompare(b.title));
+
+  function checkFormula(check) {
+    if (check.score === null) return "Nothing to score: the population is empty.";
+    return `${SCORE_MAX} × (${check.population} − ${check.findings.length}) ÷ ${check.population} = ${scoreText(check)}`;
+  }
+
+  function checkKpis(check) {
+    const compliant = check.population - check.findings.length;
+    const kpi = (label, value) => el("div", { class: "check-kpi" }, el("span", { class: "check-kpi-value", text: value }),
+      el("span", { class: "check-kpi-label", text: label }));
+    return el("div", { class: "check-kpis" }, kpi("population", check.population), kpi("compliant", compliant),
+      kpi("findings", check.findings.length), kpi("risk", check.risk));
+  }
+
+  function checkFindings(check) {
+    const keys = findingKeys(check);
+    const shown = state.moreFindings.has(check.key) ? keys : keys.slice(0, FINDINGS_SHOWN);
+    return [keys.length ? el("ul", { class: "finding-list" }, ...shown.map((key) => {
+      const n = nodes.get(key);
+      return el("li", {}, el("button", { class: "finding", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
+        el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label }),
+        n.title ? el("span", { class: "finding-title", text: n.title }) : null));
+    })) : el("div", { class: "check-none", text: "None — the rule holds." }),
+    keys.length > shown.length ? el("button", { class: "link-button", type: "button",
+      on: { click: () => { state.moreFindings.add(check.key); renderQuality(); } }, text: `Show all ${keys.length}` }) : null];
+  }
+
+  // A check, compact (title, risk, score bar, findings) or detailed behind its chevron (rule, formula, figures, findings).
+  function checkCard(check) {
+    const open = state.openChecks.has(check.key);
+    const grade = isRanked(check) ? gradeOf(check.score) : null;
+    const detailId = `check-detail-${check.key}`;
+    const toggleCheck = () => { if (open) state.openChecks.delete(check.key); else state.openChecks.add(check.key); renderQuality(); };
+    return el("article", { class: `card check-card${open ? " is-open" : ""}`, id: `check-${check.key}`, "data-check": check.key },
+      el("header", { class: "check-head" },
+        el("button", { class: "check-toggle", type: "button", "aria-expanded": String(open), "aria-controls": detailId,
+          title: open ? "Show this check compact" : "Show the rule, the figures and the findings of this check",
+          on: { click: toggleCheck } }, el("span", { class: "check-chevron", "aria-hidden": "true" }),
+          el("span", { class: "check-card-title", text: check.title })),
+        el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk, title: "Risk level of the check: its weight in the overall score" }),
+        el("span", { class: `check-score grade-${grade || "none"}`, title: checkFormula(check) },
+          el("span", { class: "score-bar" }, el("span", { class: "score-fill", style: { "--score": (check.score ?? 0) * PERCENT / SCORE_MAX } })),
+          el("span", { class: "score-text", text: scoreText(check) })),
+        el("span", { class: checkBadgeClass(check), text: check.findings.length, title: "Findings: elements that fail this check" })),
+      open ? el("div", { class: "check-detail", id: detailId },
+        el("p", { class: "check-card-desc", text: check.rule }),
+        el("p", { class: "check-formula", text: checkFormula(check) }), checkKpis(check), ...checkFindings(check)) : null);
+  }
+
   function renderQuality() {
     const total = CHECKS.filter((c) => c.risk !== INFORMATIONAL).reduce((sum, c) => sum + c.findings.length, 0);
     $("quality-count").textContent = total ? String(total) : "";
-    clear($("quality-list")).append(...CHECKS.map((check) => {
-      const keys = findingKeys(check);
-      const shown = state.expandedChecks.has(check.key) ? keys : keys.slice(0, FINDINGS_SHOWN);
-      return el("article", { class: "card check-card", id: `check-${check.key}` },
-        el("header", { class: "card-header" },
-          el("h2", { class: "card-title check-card-title" }, check.title),
-          el("span", { class: checkBadgeClass(check), text: keys.length })),
-        el("p", { class: "check-card-desc", text: check.rule }),
-        keys.length ? el("ul", { class: "finding-list" }, ...shown.map((key) => {
-          const n = nodes.get(key);
-          return el("li", {}, el("button", { class: "finding", type: "button", title: n.title || n.label, on: { click: () => select(key) } },
-            el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label }),
-            n.title ? el("span", { class: "finding-title", text: n.title }) : null));
-        })) : el("div", { class: "check-none", text: "None — the rule holds." }),
-        keys.length > shown.length ? el("button", { class: "link-button", type: "button",
-          on: { click: () => { state.expandedChecks.add(check.key); renderQuality(); } }, text: `Show all ${keys.length}` }) : null);
-    }));
+    clear($("quality-list")).append(...rankedChecks().map(checkCard));
   }
 
+  $("expand-checks").addEventListener("click", () => { CHECKS.forEach((c) => state.openChecks.add(c.key)); renderQuality(); });
+  $("collapse-checks").addEventListener("click", () => { state.openChecks.clear(); renderQuality(); });
+
   function openCheck(key) {
+    state.openChecks.add(key);
+    renderQuality();
     showView("quality");
     const card = $(`check-${key}`);
     if (card) card.scrollIntoView({ block: "start" });

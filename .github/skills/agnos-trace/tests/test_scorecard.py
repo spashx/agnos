@@ -153,5 +153,53 @@ class VocabularyTest(unittest.TestCase):
         self.assertIn("finding", visible)
 
 
+CHECK_CARDS = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("quality");
+const cards = () => [...document.querySelectorAll("#quality-list .check-card")];
+const toggle = (card) => card.querySelector(".check-toggle");
+const open = () => cards().filter((c) => toggle(c).getAttribute("aria-expanded") === "true").map((c) => c.dataset.check);
+out.order = cards().map((c) => c.dataset.check).join(",");
+out.compact = open().join(",");
+out.compactHasFindings = String(cards().some((c) => c.querySelector(".finding")));
+toggle(cards()[0]).click();
+out.one = open().join(",");
+out.rule = cards()[0].querySelector(".check-detail .check-card-desc")?.textContent.slice(0, 20) || "";
+out.formula = cards()[0].querySelector(".check-formula")?.textContent || "";
+const finding = cards()[0].querySelector(".finding");
+out.findings = String(cards()[0].querySelectorAll(".finding").length);
+finding.click();
+out.selected = agnosTrace.state.selected;
+agnosTrace.showView("quality");
+document.getElementById("expand-checks").click();
+out.all = String(open().length === cards().length);
+document.getElementById("collapse-checks").click();
+out.none = open().join(",");
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class CheckCardsTest(unittest.TestCase):
+    """TASK-TRC-048: RQ-TRC-062 (DEC-TRC-034)."""
+
+    def test_RQ_TRC_062_given_the_quality_view_when_chevrons_are_pressed_then_checks_open_one_by_one_or_all_at_once(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(order|compact|compact-has-findings|one|rule|formula|findings|selected|all|none)="([^"]*)"',
+                                    rendered_dom_after(path, CHECK_CARDS)))
+        self.assertEqual("covered,adr-rq,filled,tasked,task-rq,connected,defined,files-traced", found["order"])   # lowest first
+        self.assertEqual("", found["compact"])                          # every check compact when the view opens
+        self.assertEqual("false", found["compact-has-findings"])
+        self.assertEqual("covered", found["one"])                       # the others stay compact
+        self.assertTrue(found["rule"].startswith("Every requirement is"))
+        self.assertIn("4.0", found["formula"])
+        self.assertEqual("3", found["findings"])
+        self.assertEqual("RQ-DEM-003", found["selected"])               # a finding selects its element
+        self.assertEqual("true", found["all"])
+        self.assertEqual("", found["none"])
+
+
 if __name__ == "__main__":
     unittest.main()

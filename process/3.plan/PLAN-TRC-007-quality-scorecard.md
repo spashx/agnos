@@ -52,7 +52,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-048: Check cards, compact or detailed
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw the checks as a grid of cards, lowest score first, compact (name, risk, score bar, findings) and
   opened by a chevron to the rule, formula, KPIs and findings (sixty at first), with "Expand all" and "Collapse all".
 - **Requirement refs**: RQ-TRC-062
@@ -62,7 +62,7 @@ This plan implements the tasks in the format specified below.
   every check is detailed; When a finding is clicked, Then its element is selected.
 - **Dependencies**: TASK-TRC-047
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 152 tests, 0 failure, 1 skipped. `CheckCardsTest` in headless Edge on the fixture: checks stand lowest score first (covered, adr-rq, filled, tasked, task-rq, connected, defined, files-traced); all compact when the view opens, no finding drawn; one chevron opens only `covered` (rule "Every requirement is…", formula with 4.0, 3 findings); a finding click selects RQ-DEM-003; Expand all opens every check, Collapse all closes them; both buttons and the check cards have tooltips (`TooltipTest`). Screenshot of the demo trace checked (compact grid, an opened card spanning the row, score bar). The informational check ranks last and has a neutral bar.
 - **Assumptions**: None
 
 ### TASK-TRC-049: Report card and grade palette
