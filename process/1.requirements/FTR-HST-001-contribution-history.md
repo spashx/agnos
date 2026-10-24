@@ -129,8 +129,9 @@ of FTR-TRC-003.
 - **Statement**: WHILE the history is built, the trace generator SHALL write in the data file a `history` block holding
   the limits applied (since, depth, number of commits read, first and last dates, whether the history was cut by a
   shallow clone), the identities (display name, names, e-mails, way of merging, kind, counts), the commits (short hash,
-  author date, author, co-authors, subject) and the interventions of each element, file and function (commit and number
-  of lines changed), sorted so that two runs on the same repository write the same bytes, and SHALL end its summary line
+  author date, author, co-authors, subject), the interventions of each element, file and function (commit and number
+  of lines changed) and the commit graph of RQ-HST-024 (amended by the owner on 2026-10-24), sorted so that two runs on
+  the same repository write the same bytes, and SHALL end its summary line
   with `history: <commits> commits, <humans> humans, <agents> agents`.
 - **Rationale**: the page computes no history itself, and another tool or an agent can read the same figures.
 - **Priority**: Must
@@ -149,8 +150,9 @@ of FTR-TRC-003.
   whose colour tells the identity, and whose size tells the number of changed lines; the timeline SHALL zoom with the
   wheel and the keyboard, pan by dragging and with the arrow keys, show an overview strip whose window can be dragged,
   and fit the whole history in one action; hovering a mark SHALL show its commit (hash, date, author, co-authors,
-  subject, lines changed), and clicking it SHALL pin that card; clicking a row's label SHALL select the element in the
-  detail panel. WHILE the data file holds no history, the page SHALL show no History tab and no History section.
+  subject, lines changed), and clicking it SHALL select that commit in the detail panel (RQ-HST-023; amended by the
+  owner on 2026-10-24, the pinned card that had to be closed is gone); clicking a row's label SHALL select the element
+  in the detail panel. WHILE the data file holds no history, the page SHALL show no History tab and no History section.
 - **Rationale**: a timeline shows at a glance who worked on what and when, and lets the reader go from the overview of
   the project to one commit.
 - **Priority**: Must
@@ -284,6 +286,97 @@ of FTR-TRC-003.
   cleared, Then every row shows again.
 - **Dependencies**: RQ-HST-007, RQ-HST-009
 
+### RQ-HST-022: The History tab's selectors together, its row filter first
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the History tab is open, the page SHALL show its selectors in one group on the toolbar's first
+  line, in this order: the angle (requirements or code), the code grouping when the code angle is on, and the kind (all,
+  humans or agents); the filter line below SHALL begin with the row filter, as wide as the sidebar's search field at
+  its default width, followed by the type chips, the option of rows without changes, the counts and the reset.
+- **Rationale**: the controls that choose what is read stand together, and the text filter is found where the reader
+  starts to read, at the same width as the page's other search (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the History tab, When it opens, Then the kind selector stands right after the angle
+  selector on the toolbar (after the code grouping when it shows), and the row filter is the first control of the filter
+  line; Given the sidebar at its default width, Then the row filter and the sidebar's search field have the same width
+  within one pixel.
+- **Dependencies**: RQ-HST-009, RQ-HST-021, RQ-TRC-018, ADR-TRC-002
+
+### RQ-HST-023: A commit in the detail panel
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader clicks a mark of the timeline, or presses Enter or Space on it, the page SHALL select
+  its commit in the detail panel, as an element is selected: a band that does not scroll with, above the title, "Commit"
+  and its kind (human, agent or together) with the kind's icon, as its main title the short hash (as an element's ID),
+  as its subtitle the subject (as an element's title), then the date, the author and co-authors, badges of the total
+  of lines it changed and of its branch, the actions (copy the hash), and the tags of its groups (owner choice of
+  2026-10-24); below it, the groups of what the commit changed, by type (the process elements by
+  their type, the files, the functions with a call graph), each item a link that selects it, with the lines the commit
+  changed in it; the mark of the selected commit SHALL stay marked in the timeline, and no card SHALL open over the
+  timeline.
+- **Rationale**: a commit is read where every selection is read, with what it changed, and nothing has to be closed
+  (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given a commit by Alice with Claude that changed RQ-A (3 lines), RQ-B (1 line) and the file
+  `src/a.py` (12 lines), When its mark is clicked, Then the detail panel shows its hash, subject, Alice and Claude with
+  their icons, "together" and 16 lines, then a group of 2 requirements (RQ-A 3 lines, RQ-B 1 line) and a group of 1 file
+  (`src/a.py` 12 lines); When RQ-A is clicked in that group, Then RQ-A is selected; Given the timeline, Then no card
+  shows over it; When the panel is scrolled, Then its band stays in place.
+- **Dependencies**: RQ-HST-007, RQ-TRC-013, RQ-TRC-054, RQ-TRC-055
+
+### RQ-HST-024: The commit graph in the data file
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the history is built, the trace generator SHALL write in the history block the graph of the
+  commits read, merges included, each with its parents among them and the branch it was made on; a commit's branch
+  SHALL be found by following first parents from the tip of the default branch (`main`, else `master`, else the branch
+  checked out), then from the tips of the other local branches, oldest tip first, then from the second parent of each
+  merge whose message names its branch (`Merge branch 'X'`, `Merge pull request #n from owner/X`, `Merge X into Y`), each
+  commit keeping the first branch that reaches it; a commit no branch reaches SHALL be on an unnamed branch.
+- **Rationale**: git records no branch per commit; the tips of the branches and the messages of the merges are where
+  the names live, and the first-parent rule is the one the hosting services and git tools use to draw them.
+- **Priority**: Must
+- **Acceptance Criteria**: Given a repository whose `main` has commits m1 and m2, `feature/A` branched from m1 with a1
+  and a2 and merged into `main` by "Merge branch 'feature/A'", then deleted, When the history is built, Then m1, m2 and
+  the merge are on `main`, a1 and a2 on `feature/A`, and the merge's parents are m2 and a2; Given a local branch
+  `feature/B` not merged, Then its commits are on `feature/B`; Given a merge whose message names no branch and whose
+  second parent no tip reaches, Then that parent's commits are on an unnamed branch; When the generator runs twice,
+  Then the graph is the same bytes.
+- **Dependencies**: RQ-HST-006, RQ-HST-001
+
+### RQ-HST-025: A git graph of the selected commit
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE a commit is selected in the detail panel, the page SHALL show in it a git graph of the commits
+  around it, newest at the top: one lane per branch, each in a colour of the design tokens and named by a label at its
+  newest commit in view, a dot per commit on its branch's lane, the lines from each commit to its parents (curved where
+  a branch starts or is merged), a row per commit with its short hash, subject and author's icon, and the selected
+  commit marked; clicking a commit of the graph SHALL select it; the graph SHALL take every visual value from the design
+  tokens, in both themes.
+- **Rationale**: the reader sees on which branch the commit was made, what came before and after it, and when it was
+  merged; a graph as clear as those of the usual git tools makes the page credible (owner request of 2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the repository of RQ-HST-024's criterion, When a2 is selected, Then the graph shows the
+  lanes `main` and `feature/A` with their names, a2 marked on `feature/A`, a line from a2 to a1 on its lane, a curve from
+  the merge to a2, and a curve from a1 to m1; When the merge's row is clicked, Then the merge is selected; Given the dark
+  theme, Then the lanes, dots and labels take its tokens.
+- **Dependencies**: RQ-HST-023, RQ-HST-024, RQ-HST-014, RQ-TRC-018, ADR-TRC-002
+
+### RQ-HST-026: An identity drawn by its icon in its colour
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: Wherever the page names an identity beside its name (the sidebar's History section, the History tab's
+  identity chips, the commit in the detail panel and its git graph), it SHALL draw the identity's kind icon (a person or
+  an agent) in the identity's colour, with no colour dot before it; the marks of the timeline SHALL keep their shapes and
+  colours.
+- **Rationale**: one sign carries both the identity's colour and its kind, and the lists are lighter (owner request of
+  2026-10-24).
+- **Priority**: Must
+- **Acceptance Criteria**: Given an identity in the sidebar, When the page opens, Then its line shows its icon in its
+  colour, its name and its count, and no dot; Given its chip in the History tab, Then the same; Given the timeline, Then
+  its marks are unchanged.
+- **Dependencies**: RQ-HST-014, RQ-HST-010
+
 ---
 
 ## Non-Functional Requirements
@@ -311,8 +404,8 @@ of FTR-TRC-003.
 - **Statement**: The History view SHALL take every colour, size, spacing, stroke and duration from the design tokens of
   the page, in both themes; SHALL give each identity a colour of its own, the same wherever it shows (mark, legend,
   filter, sidebar), distinct from the others' however many there are; SHALL tell a human from an agent by an icon of its
-  own (a person, an agent) beside every identity's name and by the shape of its marks (amended by the owner on
-  2026-10-24); SHALL never tell an identity or its kind by colour alone (the name is written in the tooltip, the legend
+  own (a person, an agent) beside every identity's name, drawn in the identity's colour (RQ-HST-026), and by the shape
+  of its marks (amended by the owner on 2026-10-24); SHALL never tell an identity or its kind by colour alone (the name is written in the tooltip, the legend
   and the filter); SHALL meet the contrast of WCAG 2.1 AA; and SHALL give every control, row and mark a keyboard path
   and an accessible name.
 - **Metric**: contrast of at least 4.5:1 for text and 3:1 for marks in both themes; no raw visual literal in the page's

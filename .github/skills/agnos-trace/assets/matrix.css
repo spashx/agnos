@@ -984,6 +984,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .kind-icon .icon-cut { fill: var(--c-card-bg); }
 .kind-icon.kind-human { color: var(--c-history-human); }
 .kind-icon.kind-agent { color: var(--c-history-agent); }
+.kind-icon.is-identity { color: var(--identity); }                 /* RQ-HST-026: the identity's colour */
 .view-history:not([hidden]) { display: flex; flex-direction: column; gap: var(--s-space-md); overflow: hidden; position: relative; }
 .history-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-space-md); }
 .history-kpis .kpi { padding: var(--s-space-sm) var(--s-space-md); background: var(--c-card-bg); border: var(--s-stroke-hairline) solid var(--c-card-border); border-radius: var(--c-card-radius); }
@@ -1044,7 +1045,8 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
   width: var(--s-stroke-focus);
   background: var(--c-splitter-hover);
 }
-.history-filter { min-width: var(--c-history-label-min); padding: var(--s-space-xs) var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-border);
+/* RQ-HST-022: as wide as the sidebar's search field at the sidebar's default width */
+.history-filter { flex: none; width: calc(var(--c-sidebar-width) - 2 * var(--s-space-lg)); padding: var(--s-space-xs) var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-border);
   border-radius: var(--s-radius-md); background: var(--c-control-bg); color: var(--s-text); font: inherit; font-size: var(--s-text-small); }
 .history-filter:focus { outline: none; border-color: var(--s-focus); box-shadow: 0 0 0 var(--c-focus-ring) var(--s-accent-border); }
 #history-types[hidden] { display: none; }
@@ -1114,7 +1116,6 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-card-subject { font-weight: var(--s-weight-medium); }
 .history-card-muted { color: var(--s-text-muted); }
 .history-person { display: inline-flex; align-items: center; gap: var(--s-space-xs); }
-.history-swatch { flex: none; width: var(--c-dot-size); height: var(--c-dot-size); border-radius: var(--s-radius-pill); background: var(--identity); }
 .history-scope { display: inline-flex; align-items: center; gap: var(--s-space-xs); padding: var(--s-space-hair) var(--s-space-hair) var(--s-space-hair) var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-accent-border); border-radius: var(--c-chip-radius); background: var(--s-accent-subtle); color: var(--s-text); font-size: var(--s-text-small); }
 .history-scope[hidden] { display: none; }
 .history-scope button { padding: var(--s-space-none) var(--s-space-xs); border: none; border-radius: var(--c-chip-radius); background: transparent; color: var(--s-text-muted); font: inherit; cursor: pointer; }

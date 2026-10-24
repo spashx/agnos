@@ -2131,7 +2131,7 @@
   const SVG_TEXT = "text";
   const CLASS_MARK = ".history-mark";
   const CLASS_LABEL = "history-label";
-  const CLASS_SWATCH = "history-swatch";
+  const CLASS_IDENTITY_ICON = "is-identity";
   const IS_PINNED = "is-pinned";
   const EVENT_POINTERDOWN = "pointerdown";
   const KEY_ENTER = "Enter";
@@ -2225,11 +2225,18 @@
     return icon;
   }
 
-  // An identity as the page names it everywhere: its colour, its kind's icon, its name (never the colour alone).
+  // RQ-HST-026: an identity's sign is its kind's icon drawn in its colour, with no dot before it.
+  function identityIcon(index) {
+    const icon = kindIcon(HISTORY.people[index].kind);
+    icon.classList.add(CLASS_IDENTITY_ICON);
+    icon.style.setProperty(CSS_IDENTITY, colourOf[index]);
+    return icon;
+  }
+
+  // An identity as the page names it everywhere: its icon in its colour, its name (never the colour alone).
   function personTag(index) {
     const person = HISTORY.people[index];
-    return richTip(el(TAG_SPAN, { class: "history-person", tabindex: "0" },
-      el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
+    return richTip(el(TAG_SPAN, { class: "history-person", tabindex: "0" }, identityIcon(index),
       el(TAG_SPAN, { text: person.name })), () => linesTip(identityLines(index)), CSS_TIP_DELAY);
   }
 
@@ -2476,8 +2483,7 @@
     clear($("history-shortcuts")).append(...HISTORY.people.map((person, i) => {
       const item = el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON, [ATTR_PERSON]: i, [VALUE_ARIA_LABEL]: identityLines(i).join(". "),
         on: { [EVENT_CLICK]: () => openForPerson(i) } },
-      el(TAG_SPAN, { class: "history-person-line" }, el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[i] } }),
-        kindIcon(person.kind), el(TAG_SPAN, { class: CLASS_NAME, text: person.name })),
+      el(TAG_SPAN, { class: "history-person-line" }, identityIcon(i), el(TAG_SPAN, { class: CLASS_NAME, text: person.name })),
       el(TAG_SPAN, { class: "badge badge-neutral chip-count", text: person.commits + person.coCommits }));
       item.addEventListener(EVENT_MOUSEOVER, () => {
         scheduleRichTip(item, () => linesTip(identityLines(i)), CSS_TIP_DELAY);
@@ -2501,8 +2507,7 @@
     const person = HISTORY.people[index];
     return richTip(el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON, [ATTR_PERSON]: index, [VALUE_ARIA_PRESSED]: String(hist.people.has(index)),
       [VALUE_ARIA_LABEL]: identityLines(index).join(". "), on: { [EVENT_CLICK]: onClick } },
-    el(TAG_SPAN, { class: CLASS_SWATCH, style: { [CSS_IDENTITY]: colourOf[index] } }), kindIcon(person.kind),
-    el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: person.commits + person.coCommits })),
+    identityIcon(index), el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT, text: person.commits + person.coCommits })),
     () => linesTip(identityLines(index)), CSS_TIP_DELAY);
   }
 

@@ -280,7 +280,7 @@ out.bars = String(band.querySelectorAll(".history-bar").length > 0);
             got = self.run_script("""
 const chips = [...document.querySelectorAll("#history-people [data-person]")];
 out.chips = String(chips.length);
-out.colours = String(new Set(chips.map((c) => getComputedStyle(c.querySelector(".history-swatch")).backgroundColor)).size);
+out.colours = String(new Set(chips.map((c) => getComputedStyle(c.querySelector(".kind-icon")).color)).size);   // RQ-HST-026
 out.icons = chips.map((c) => c.querySelector(".kind-icon").classList.contains("kind-agent") ? "a" : "h").join("");
 """, "chips", "colours", "icons", path=page)
         self.assertEqual(("20", "20"), (got["chips"], got["colours"]))

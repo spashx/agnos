@@ -168,6 +168,12 @@
           <button type="button" data-grouping="files" aria-pressed="true" title="One row per file and function">By file</button>
           <button type="button" data-grouping="requirements" title="One row per element the code cites, with the changes of the code citing it">By requirement</button>
         </fieldset>
+        <!-- RQ-HST-022: the selectors stand together -->
+        <fieldset class="segmented" id="history-kind" aria-label="Kind" title="Keep the commits made with a human, or with an agent">
+          <button type="button" data-kind="all" aria-pressed="true" title="Every commit">All</button>
+          <button type="button" data-kind="human" title="The commits a human made, alone or with an agent">Humans</button>
+          <button type="button" data-kind="agent" title="The commits an agent made, alone or with a human">Agents</button>
+        </fieldset>
         <!-- RQ-HST-011: the element the tab is scoped to, removable -->
         <span class="history-scope" id="history-scope" hidden></span>
         <span class="toolbar-spacer"></span>
@@ -179,12 +185,7 @@
       <div class="history-filters" id="history-filters">
         <div class="chips history-people" id="history-people" role="group" aria-label="Identities"></div>
         <div class="history-filter-line">
-          <fieldset class="segmented" id="history-kind" aria-label="Kind" title="Keep the commits made with a human, or with an agent">
-            <button type="button" data-kind="all" aria-pressed="true" title="Every commit">All</button>
-            <button type="button" data-kind="human" title="The commits a human made, alone or with an agent">Humans</button>
-            <button type="button" data-kind="agent" title="The commits an agent made, alone or with a human">Agents</button>
-          </fieldset>
-          <!-- RQ-HST-021: the rows' own filter, by text and, with the requirements angle, by type -->
+          <!-- RQ-HST-021: the rows' own filter, by text and, with the requirements angle, by type; RQ-HST-022: first -->
           <input class="history-filter" id="history-filter" type="search" placeholder="Filter rows: ID, title, path…" autocomplete="off" spellcheck="false"
                  aria-label="Filter the rows" title="Keep the rows whose ID, title, file path or function name holds this text">
           <div class="chips" id="history-types" role="group" aria-label="Element types"></div>

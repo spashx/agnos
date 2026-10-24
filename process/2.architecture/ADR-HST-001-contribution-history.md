@@ -77,7 +77,7 @@ distinct and still comes from the design system. The colour is computed once per
 legend, the filter chips and the sidebar. Beside every identity's name, an inline SVG icon tells its kind (a person
 for a human, an agent glyph for an agent), drawn with the page's icon tokens. The wheel zooms around the pointer with the page's wheel-sensitivity token;
 dragging or the arrow keys pan; `+`, `-` and `0` zoom and fit. Hover raises the page's tooltip after its token delay;
-click pins a commit card. All visual values are tokens of ADR-TRC-002, new ones added in its tiers. Fulfils RQ-HST-007,
+click pins a commit card (replaced on 2026-10-24 by the commit's selection in the detail panel, DEC-HST-009). All visual values are tokens of ADR-TRC-002, new ones added in its tiers. Fulfils RQ-HST-007,
 RQ-HST-008 and RQ-HST-014.
 
 ### DEC-HST-006: One view state, three entry points
@@ -113,6 +113,45 @@ and type chips filter the rows before the identity and kind filters: a row stays
 name holds the text (ignoring case), and a heading or folder stays when a row below it stays. Fulfils RQ-HST-019 to
 RQ-HST-021.
 
+### DEC-HST-009: A commit is a selection of the detail panel
+Owner request of 2026-10-24. A commit becomes a key of the page's selection, `commit:<short hash>`, beside the
+elements, files, functions and boxes (DEC-TRC-022): `select` accepts it, the address keeps it (`#commit:…`), and the
+detail panel renders it with the band and body of RQ-TRC-054 and the tags of RQ-TRC-055. The band holds the commit's
+kind, hash, subject, date, contributors (each a person tag of DEC-HST-007) and lines; the body holds the git graph
+(DEC-HST-011) and one group per type of what the commit changed, from an index commit → `[key, lines]` built once from
+the `interventions` (functions included with a call graph). A click on a mark selects the commit and keeps the History
+tab in view; the mark of the selected commit is marked in the timeline at each redraw. The pinned card, its element
+and its styles are removed. The graph, the matrix and the History tab's rows ignore a commit selection. Fulfils
+RQ-HST-023 and the amended RQ-HST-007.
+
+### DEC-HST-010: Branches from the tips, the merges' messages and the first parents
+Owner request of 2026-10-24. The history module adds to the block a `graph`: `branches`, the names in the order they
+were found (`null` for an unnamed branch), and `nodes`, one per commit of the graph, merges included, in newest-first
+topological order: short hash, the indexes of its parents among the nodes (a parent outside the graph read is left
+out), its branch index, its index in `commits` or `null`, and, when it is `null` (a merge, or a commit that changed no
+folder read), its date and subject. The path-limited log of DEC-HST-002 cannot give the graph: git's history
+simplification rewrites its parents and drops merges (found on the demo on 2026-10-24: a merge left with one parent,
+another gone). The graph is therefore read by a second, light `git log` with no path and no patch (hash, parents,
+author date, subject), with the same `--since`, newest first, cut below the oldest commit of `commits`. The tips come
+from one `git for-each-ref refs/heads`, the default branch first (`main`, `master`, then the branch checked out: constants of
+the module), the other tips by their age (the oldest first, so that a branch made from another keeps only its own
+commits); from each tip, and then from the second parent of each merge, newest first, whose subject names a branch
+(three patterns, constants of the module), the first parents are followed until a commit already claimed; the commits
+left take one unnamed branch per first-parent chain. Fulfils RQ-HST-024 and the amended RQ-HST-006.
+
+### DEC-HST-011: The git graph drawn in inline SVG, lanes by branch, a window around the commit
+Owner request of 2026-10-24. The page draws the graph with no library, as the timeline (DEC-HST-005). The lanes are
+computed once over all the nodes: the default branch is lane 0; every other branch takes, from its newest to its oldest
+node, the leftmost lane free over that span, so that lanes are reused once a branch has ended. The graph shows a window
+of nodes around the selected commit (a count of the page's constants before and after it). Each row is a token height;
+a dot sits at its lane's x; a line from a node to its first parent runs down its own lane and curves into the parent's
+lane in the last row before the parent (a branch's start); a line to a second parent curves out in the first row below
+the merge and runs down the parent's lane (a merge); a line whose end is outside the window runs to the window's edge.
+Lane colours are a set of branch tokens (`--c-history-branch-1…n`, aliases of the categorical tokens, reused in turn);
+the label of a branch is a pill in its lane colour at its newest node in view; the selected node has the ring and the
+row the selected background of the page's tokens. Each row is a button naming the commit, so that the graph is reached
+by the keyboard. Fulfils RQ-HST-025.
+
 ## Consequences
 - The attribution is per line, as precise as `git log -L`, for all ranges in one git process; its cost grows with the
   size of the diffs read, bounded by `--history-since` and `--history-depth`.
@@ -123,6 +162,8 @@ RQ-HST-021.
   for it stays out of scope.
 - The page grows by the view's code in every case, and by the history data only when it is built.
 - E-mail addresses of contributors appear in the page's tooltips, as they do in the repository itself.
+- A commit's branch is inferred (DEC-HST-010): a branch deleted after a fast-forward merge, or merged with a message
+  that names nothing, leaves its commits on the branch they were fast-forwarded into, or on an unnamed branch.
 
 ## Alternatives Considered
 - **`git log -L` once per range**: exact, but one process per element or function; tens of thousands of processes on
@@ -135,6 +176,10 @@ RQ-HST-021.
 - **Committer instead of author**: credits the person or service that rebased or merged. Rejected (RQ-HST-004).
 - **A timeline library (vis-timeline, D3)**: hundreds of kilobytes in an offline page for one view, and its styles
   outside the tokens. Rejected.
+- **`git log --graph` text, or `git name-rev` per commit, for the branches**: the first is ASCII art to parse; the
+  second names a commit by a tip that reaches it, not by the branch it was made on, and costs a process. Rejected for
+  the first-parent walk of DEC-HST-010.
+- **A git-graph library (gitgraph.js)**: archived, and its styles outside the tokens. Rejected (DEC-HST-011).
 - **Canvas instead of SVG**: faster for millions of marks, but no focusable marks and no accessible names
   (RQ-HST-014); row virtualisation keeps SVG within the time budget. Rejected.
 
@@ -150,7 +195,10 @@ flowchart LR
     L --> T[Track ranges back<br/>credit overlapping hunks]
     T --> P[Identities<br/>mailmap, e-mail, agents.json]
     P --> H[(history block)]
+    L --> B[Branches<br/>tips, merge messages, first parents]
+    B --> H
   end
+  TL -->|click a mark| CD[Detail panel: the commit, what it changed, git graph]
   H --> D[Data file + summary line]
   H --> V[History tab]
   SB[Sidebar: identities] -->|filter| V
