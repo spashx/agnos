@@ -19,7 +19,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DMO-011: The engine's new keys, the scenario's DSN and WEB sessions and their content
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add to `replay.ps1` the keys of DEC-DMO-007 (`label`, `branch.from`, `merge.into`,
   `merge.resolveFiles`) from the sub-agent's `apply-extension.ps1`; add `rob-ux` to the identities, the DSN and WEB
   steps to `scenario.json` (with the labels on the NTF merge and the typed-client commit), and their files to
@@ -33,8 +33,8 @@ This plan implements the tasks in the format specified below.
   replayed twice, Then the two HEAD commit IDs are equal.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `replay.ps1` on the new scenario (90 steps; `rob-ux` added; labels `ntf-merged` on the NTF merge and `cli-client` on the typed-client commit; the 30 DSN and WEB steps appended) into a temporary folder: 85 commits, branches feature/BKG, CLI, DSN, NTF, WEB and main; its last commits (authors, dates, subjects) are those of the demo the sub-agent left, and `diff -r` of `process/` (index included), `client/`, `service/`, `docs/` and `README.md` against that demo shows no difference but its local `__pycache__`. Two replays end on the same HEAD `8702175`. 28 content files added to `assets/content/`, the two that already existed with another text renamed under `drafts/` (`README.web.md`, `METRICS_LOG.web.md`) so that the earlier commits keep theirs.
+- **Assumptions**: A merge first runs as before (`git merge -m`), so that the three earlier merges stay byte-identical; only a merge that stops on a conflict is resolved by `Resolve-Conflicts` and committed with the same message and identity. `scenario.json` is rewritten by a JSON tool with an indentation of 2, its content otherwise unchanged. The engine's new keys are tested by the replays and by `verify` (TASK-DMO-013), the repository having no PowerShell test framework.
 
 ### TASK-DMO-012: Verification of the new role and of the current summary line
 - **Tier**: M

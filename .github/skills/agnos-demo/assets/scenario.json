@@ -1,193 +1,1266 @@
 {
   "defaultBranch": "main",
   "utcOffset": "+02:00",
-  "period": { "start": "2026-08-24", "end": "2026-10-23", "workFrom": "09:00", "workTo": "18:00" },
+  "period": {
+    "start": "2026-08-24",
+    "end": "2026-10-23",
+    "workFrom": "09:00",
+    "workTo": "18:00"
+  },
   "holidays": [
-    { "date": "2026-09-14", "name": "Founders' Day" },
-    { "date": "2026-10-12", "name": "Harvest Monday" }
+    {
+      "date": "2026-09-14",
+      "name": "Founders' Day"
+    },
+    {
+      "date": "2026-10-12",
+      "name": "Harvest Monday"
+    }
   ],
   "identities": {
-    "linda-po":  { "email": "linda-po@agnos-demo.example",  "role": "po" },
-    "omar-arch": { "email": "omar-arch@agnos-demo.example", "role": "arch" },
-    "nina-dev":  { "email": "nina-dev@agnos-demo.example",  "role": "dev" },
-    "paul-dev":  { "email": "paul-dev@agnos-demo.example",  "role": "dev" },
-    "john-qa":   { "email": "john-qa@agnos-demo.example",   "role": "qa" },
-    "sara-qa":   { "email": "sara-qa@agnos-demo.example",   "role": "qa" }
+    "linda-po": {
+      "email": "linda-po@agnos-demo.example",
+      "role": "po"
+    },
+    "omar-arch": {
+      "email": "omar-arch@agnos-demo.example",
+      "role": "arch"
+    },
+    "nina-dev": {
+      "email": "nina-dev@agnos-demo.example",
+      "role": "dev"
+    },
+    "paul-dev": {
+      "email": "paul-dev@agnos-demo.example",
+      "role": "dev"
+    },
+    "john-qa": {
+      "email": "john-qa@agnos-demo.example",
+      "role": "qa"
+    },
+    "sara-qa": {
+      "email": "sara-qa@agnos-demo.example",
+      "role": "qa"
+    },
+    "rob-ux": {
+      "email": "rob-ux@agnos-demo.example",
+      "role": "ux"
+    }
   },
-  "baselineExclude": [ "^process/", "^\\.github/skills/agnos-demo/", "^\\.claude/skills/agnos-demo/", "^README\\.md$" ],
+  "baselineExclude": [
+    "^process/",
+    "^\\.github/skills/agnos-demo/",
+    "^\\.claude/skills/agnos-demo/",
+    "^README\\.md$"
+  ],
   "steps": [
-    { "op": "baseline", "date": "2026-08-24", "time": "09:17", "by": "omar-arch", "message": "chore: import the AGNOS toolkit" },
-    { "op": "commit", "date": "2026-08-24", "time": "11:42", "by": "linda-po", "message": "docs: add the demo README and the working calendar",
-      "add": ["README.md", "docs/WORKING_CALENDAR.md"] },
-
-    { "op": "branch", "name": "feature/BKG" },
-    { "op": "commit", "date": "2026-08-25", "time": "09:48", "by": "nina-dev", "message": "chore(BKG): start session BKG",
-      "add": ["process/_sessionstate/session.yaml"] },
-    { "op": "commit", "date": "2026-08-25", "time": "14:05", "by": "linda-po", "message": "docs(BKG): FTR-BKG-001 room reservation, RQ-BKG-001 to RQ-BKG-006",
-      "add": ["process/1.requirements/FTR-BKG-001-room-reservation.md"],
-      "edits": [ { "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
-                   "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must",
-                   "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-08-26", "time": "10:30", "by": "omar-arch", "message": "docs(BKG): ADR-BKG-001 layered architecture with ports",
-      "add": ["process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"], "index": true },
-    { "op": "commit", "date": "2026-08-26", "time": "16:10", "by": "linda-po", "message": "docs(BKG): RQ-BKG-004 raised to Must after review with the office",
-      "edits": [ { "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
-                   "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should",
-                   "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-08-27", "time": "09:55", "by": "omar-arch", "message": "docs(BKG): ADR-BKG-002 in-memory reservation storage",
-      "add": ["process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"],
-      "edits": [ { "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
-                   "find": "## Status\nSuperseded by ADR-BKG-003", "replace": "## Status\nAccepted" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-08-28", "time": "11:20", "by": "nina-dev", "message": "docs(BKG): PLAN-BKG-001 core booking",
-      "add": ["process/3.plan/PLAN-BKG-001-core-booking.md"], "index": true },
-
-    { "op": "commit", "date": "2026-08-31", "time": "09:40", "by": "john-qa", "message": "test(BKG): ADR-BKG-001/TASK-BKG-001 tests for the domain and the room catalog",
-      "add": ["service/tests/__init__.py", "service/tests/test_domain.py", "service/tests/test_catalog.py"] },
-    { "op": "commit", "date": "2026-08-31", "time": "15:25", "by": "nina-dev", "message": "feat(BKG): ADR-BKG-001/TASK-BKG-001 domain model and room catalog",
-      "add": ["service/pyproject.toml", "service/roombook/__init__.py", "service/roombook/domain.py", "service/roombook/errors.py", "service/roombook/catalog.py"],
-      "edits": [ { "path": "service/roombook/errors.py",
-                   "find": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked by reservation {conflicting_id}\"",
-                   "replace": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked\"" } ],
-      "closeTasks": ["TASK-BKG-001"], "index": true },
-
-    { "op": "commit", "date": "2026-09-01", "time": "10:05", "by": "sara-qa", "message": "test(BKG): ADR-BKG-002/TASK-BKG-002 tests for the repository and the create use case",
-      "add": ["service/tests/test_memory_repository.py", "service/tests/test_create_reservation.py"] },
-    { "op": "commit", "date": "2026-09-02", "time": "14:30", "by": "paul-dev", "message": "feat(BKG): ADR-BKG-002/TASK-BKG-002 repository port, in-memory adapter and create use case",
-      "add": ["service/roombook/ports.py", "service/roombook/memory_repository.py", "service/roombook/rules/__init__.py", "service/roombook/use_cases/__init__.py", "service/roombook/use_cases/create_reservation.py"],
-      "closeTasks": ["TASK-BKG-002"], "index": true },
-
-    { "op": "commit", "date": "2026-09-03", "time": "09:25", "by": "john-qa", "message": "test(BKG): ADR-BKG-001/TASK-BKG-003 tests for the overlap rule",
-      "add": ["service/tests/test_overlap_rule.py"] },
-    { "op": "commit", "date": "2026-09-03", "time": "16:40", "by": "nina-dev", "message": "feat(BKG): ADR-BKG-001/TASK-BKG-003 overlap rule",
-      "add": ["service/roombook/rules/overlap_rule.py"], "closeTasks": ["TASK-BKG-003"], "index": true },
-
-    { "op": "commit", "date": "2026-09-07", "time": "10:15", "by": "sara-qa", "message": "test(BKG): ADR-BKG-001/TASK-BKG-004 tests for the capacity and closed-room rules",
-      "add": ["service/tests/test_capacity_rule.py", "service/tests/test_room_open_rule.py"] },
-    { "op": "commit", "date": "2026-09-08", "time": "11:50", "by": "paul-dev", "message": "feat(BKG): ADR-BKG-001/TASK-BKG-004 capacity and closed-room rules",
-      "add": ["service/roombook/rules/capacity_rule.py", "service/roombook/rules/room_open_rule.py"], "closeTasks": ["TASK-BKG-004"], "index": true },
-
-    { "op": "commit", "date": "2026-09-09", "time": "09:35", "by": "john-qa", "message": "test(BKG): ADR-BKG-001/TASK-BKG-005 tests for the cancel use case",
-      "add": ["service/tests/test_cancel_reservation.py"] },
-    { "op": "commit", "date": "2026-09-10", "time": "15:05", "by": "nina-dev", "message": "feat(BKG): ADR-BKG-001/TASK-BKG-005 cancel use case and system clock",
-      "add": ["service/roombook/clock.py", "service/roombook/use_cases/cancel_reservation.py"], "closeTasks": ["TASK-BKG-005"], "index": true },
-
-    { "op": "commit", "date": "2026-09-11", "time": "10:45", "by": "paul-dev", "message": "fix(BKG): TASK-BKG-006 name the existing reservation in the conflict message",
-      "edits": [ { "path": "service/roombook/errors.py",
-                   "find": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked\"",
-                   "replace": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked by reservation {conflicting_id}\"" } ],
-      "closeTasks": ["TASK-BKG-006"], "index": true },
-
-    { "op": "commit", "date": "2026-09-15", "time": "09:30", "by": "linda-po", "message": "docs(BKG): FTR-BKG-002 reservations survive a restart, RQ-BKG-007",
-      "add": ["process/1.requirements/FTR-BKG-002-reservation-persistence.md"], "index": true },
-    { "op": "commit", "date": "2026-09-16", "time": "10:20", "by": "omar-arch", "message": "docs(BKG): ADR-BKG-003 JSON file reservation storage",
-      "add": ["process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"], "index": true },
-    { "op": "commit", "date": "2026-09-16", "time": "14:55", "by": "omar-arch", "message": "docs(BKG): ADR-BKG-002 superseded by ADR-BKG-003",
-      "edits": [ { "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
-                   "find": "## Status\nAccepted", "replace": "## Status\nSuperseded by ADR-BKG-003" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-09-16", "time": "16:30", "by": "paul-dev", "message": "docs(BKG): PLAN-BKG-002 durable reservations",
-      "add": ["process/3.plan/PLAN-BKG-002-persistence.md"], "index": true },
-
-    { "op": "commit", "date": "2026-09-17", "time": "09:20", "by": "sara-qa", "message": "test(BKG): ADR-BKG-003/TASK-BKG-007 tests for the atomic writer and the file repository",
-      "add": ["service/tests/test_atomic_file.py", "service/tests/test_file_repository.py"] },
-    { "op": "commit", "date": "2026-09-17", "time": "15:40", "by": "paul-dev", "message": "feat(BKG): ADR-BKG-003/TASK-BKG-007 JSON file repository with atomic save",
-      "add": ["service/roombook/atomic_file.py", "service/roombook/file_repository.py"], "closeTasks": ["TASK-BKG-007"], "index": true },
-
-    { "op": "commit", "date": "2026-09-18", "time": "09:50", "by": "john-qa", "message": "test(BKG): ADR-BKG-003/TASK-BKG-008 tests for the repository factory",
-      "add": ["service/tests/test_repository_factory.py"] },
-    { "op": "commit", "date": "2026-09-18", "time": "13:15", "by": "nina-dev", "message": "feat(BKG): ADR-BKG-003/TASK-BKG-008 repository factory",
-      "add": ["service/roombook/repository_factory.py"], "closeTasks": ["TASK-BKG-008"], "index": true },
-    { "op": "commit", "date": "2026-09-18", "time": "16:20", "by": "nina-dev", "message": "docs(BKG): session BKG friction metrics",
-      "appendLines": [ { "path": "process/_sessionstate/METRICS_LOG.md", "lines": [
-        "# AGNOS Session Friction Metrics Log", "",
-        "| Date | TRI | AskUserQuestion | Error Recovery | Re-tiered | Verification discrepancies |",
-        "|------|-----|:---:|:---:|:---:|:---:|",
-        "| 2026-09-18 | BKG | 2 | 1 | 0 | 1 |" ] } ] },
-    { "op": "merge", "date": "2026-09-18", "time": "17:10", "by": "nina-dev", "branch": "feature/BKG", "message": "Merge branch 'feature/BKG'" },
-
-    { "op": "branch", "name": "feature/NTF" },
-    { "op": "commit", "date": "2026-09-21", "time": "09:35", "by": "linda-po", "message": "docs(NTF): FTR-NTF-001 reservation reminders, RQ-NTF-001 to RQ-NTF-004",
-      "add": ["process/1.requirements/FTR-NTF-001-reservation-reminders.md"],
-      "edits": [ { "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md", "find": "retry until 3 attempts have", "replace": "retry until 2 attempts have" },
-                 { "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md", "find": "**Then** 3 attempts are made", "replace": "**Then** 2 attempts are made" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-09-22", "time": "10:10", "by": "linda-po", "message": "docs(NTF): RQ-NTF-003 retry count raised to 3 attempts",
-      "edits": [ { "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md", "find": "retry until 2 attempts have", "replace": "retry until 3 attempts have" },
-                 { "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md", "find": "**Then** 2 attempts are made", "replace": "**Then** 3 attempts are made" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-09-22", "time": "15:20", "by": "omar-arch", "message": "docs(NTF): ADR-NTF-001 in-process events and notifier port",
-      "add": ["process/2.architecture/ADR-NTF-001-in-process-events-and-notifier-port.md"], "index": true },
-    { "op": "commit", "date": "2026-09-23", "time": "09:30", "by": "paul-dev", "message": "docs(NTF): PLAN-NTF-001 reminders",
-      "add": ["process/3.plan/PLAN-NTF-001-reminders.md"], "index": true },
-
-    { "op": "commit", "date": "2026-09-23", "time": "14:10", "by": "john-qa", "message": "test(NTF): ADR-NTF-001/TASK-NTF-001 tests for the event bus and the publishing decorator",
-      "add": ["service/tests/test_events.py", "service/tests/test_publishing_create.py"] },
-    { "op": "commit", "date": "2026-09-24", "time": "11:00", "by": "nina-dev", "message": "feat(NTF): ADR-NTF-001/TASK-NTF-001 event bus and publishing decorator",
-      "add": ["service/roombook/events.py", "service/roombook/publishing_create.py"], "closeTasks": ["TASK-NTF-001"], "index": true },
-
-    { "op": "commit", "date": "2026-09-25", "time": "09:45", "by": "sara-qa", "message": "test(NTF): ADR-NTF-001/TASK-NTF-002 tests for the notifier and the reminder scheduler",
-      "add": ["service/tests/test_notifier.py", "service/tests/test_reminder_scheduler.py"] },
-    { "op": "commit", "date": "2026-09-28", "time": "10:30", "by": "paul-dev", "message": "feat(NTF): ADR-NTF-001/TASK-NTF-002 notifier port and reminder scheduler",
-      "add": ["service/roombook/notifier.py", "service/roombook/reminder_scheduler.py"],
-      "edits": [ { "path": "service/roombook/reminder_scheduler.py", "find": "REMINDER_LEAD_MINUTES = 15", "replace": "REMINDER_LEAD_MINUTES = 10" } ],
-      "closeTasks": ["TASK-NTF-002"], "index": true },
-
-    { "op": "commit", "date": "2026-09-29", "time": "09:15", "by": "john-qa", "message": "test(NTF): ADR-NTF-001/TASK-NTF-003 tests for the retrying notifier",
-      "add": ["service/tests/test_retrying_notifier.py"] },
-    { "op": "commit", "date": "2026-09-29", "time": "16:35", "by": "nina-dev", "message": "feat(NTF): ADR-NTF-001/TASK-NTF-003 retrying notifier",
-      "add": ["service/roombook/retrying_notifier.py"], "closeTasks": ["TASK-NTF-003"], "index": true },
-
-    { "op": "commit", "date": "2026-09-30", "time": "11:25", "by": "paul-dev", "message": "fix(NTF): TASK-NTF-004 reminder lead time set to the 15 minutes required",
-      "edits": [ { "path": "service/roombook/reminder_scheduler.py", "find": "REMINDER_LEAD_MINUTES = 10", "replace": "REMINDER_LEAD_MINUTES = 15" } ],
-      "closeTasks": ["TASK-NTF-004"], "index": true },
-    { "op": "commit", "date": "2026-10-02", "time": "14:30", "by": "nina-dev", "message": "docs(NTF): session NTF friction metrics",
-      "appendLines": [ { "path": "process/_sessionstate/METRICS_LOG.md", "lines": [ "| 2026-10-02 | NTF | 1 | 0 | 0 | 1 |" ] } ] },
-    { "op": "merge", "date": "2026-10-02", "time": "16:45", "by": "nina-dev", "branch": "feature/NTF", "message": "Merge branch 'feature/NTF'" },
-
-    { "op": "branch", "name": "feature/CLI" },
-    { "op": "commit", "date": "2026-10-05", "time": "10:00", "by": "linda-po", "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-005",
-      "add": ["process/1.requirements/FTR-CLI-001-api-client-and-cli.md"],
-      "edits": [ { "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md", "find": "within 5 seconds", "replace": "within 10 seconds" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-10-06", "time": "11:30", "by": "linda-po", "message": "docs(CLI): RQ-CLI-004 timeout lowered to 5 seconds",
-      "edits": [ { "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md", "find": "within 10 seconds", "replace": "within 5 seconds" } ],
-      "index": true },
-    { "op": "commit", "date": "2026-10-06", "time": "15:45", "by": "omar-arch", "message": "docs(CLI): ADR-CLI-001 HTTP/JSON contract and typed client",
-      "add": ["process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"], "index": true },
-    { "op": "commit", "date": "2026-10-07", "time": "09:40", "by": "nina-dev", "message": "docs(CLI): PLAN-CLI-001 HTTP API, client and command line",
-      "add": ["process/3.plan/PLAN-CLI-001-http-api-client-cli.md"], "index": true },
-
-    { "op": "commit", "date": "2026-10-07", "time": "14:20", "by": "sara-qa", "message": "test(CLI): ADR-CLI-001/TASK-CLI-001 tests for the HTTP adapter",
-      "add": ["service/tests/test_api.py"] },
-    { "op": "commit", "date": "2026-10-08", "time": "10:50", "by": "paul-dev", "message": "feat(CLI): ADR-CLI-001/TASK-CLI-001 HTTP adapter of the service",
-      "add": ["service/roombook/api.py"], "closeTasks": ["TASK-CLI-001"], "index": true },
-
-    { "op": "commit", "date": "2026-10-09", "time": "09:30", "by": "john-qa", "message": "test(CLI): ADR-CLI-001/TASK-CLI-002 tests for the transport",
-      "add": ["client/tests/transport.test.ts"] },
-    { "op": "commit", "date": "2026-10-13", "time": "10:20", "by": "nina-dev", "message": "feat(CLI): ADR-CLI-001/TASK-CLI-002 TypeScript project, transport with timeout and errors",
-      "add": ["client/package.json", "client/tsconfig.json", "client/src/constants.ts", "client/src/errors.ts", "client/src/transport.ts"],
-      "closeTasks": ["TASK-CLI-002"], "index": true },
-
-    { "op": "commit", "date": "2026-10-14", "time": "09:50", "by": "sara-qa", "message": "test(CLI): ADR-CLI-001/TASK-CLI-003 tests for the typed client",
-      "add": ["client/tests/client.test.ts"] },
-    { "op": "commit", "date": "2026-10-15", "time": "14:15", "by": "paul-dev", "message": "feat(CLI): ADR-CLI-001/TASK-CLI-003 typed client",
-      "add": ["client/src/types.ts", "client/src/client.ts"], "closeTasks": ["TASK-CLI-003"], "index": true },
-
-    { "op": "commit", "date": "2026-10-16", "time": "10:05", "by": "john-qa", "message": "test(CLI): ADR-CLI-001/TASK-CLI-004 tests for the command-line tool",
-      "add": ["client/tests/cli.test.ts"] },
-    { "op": "commit", "date": "2026-10-19", "time": "11:35", "by": "nina-dev", "message": "feat(CLI): ADR-CLI-001/TASK-CLI-004 command-line tool",
-      "add": ["client/src/cli.ts"],
-      "edits": [ { "path": "client/src/cli.ts", "find": "usage: roombook <rooms", "replace": "usage: roombok <rooms" } ],
-      "closeTasks": ["TASK-CLI-004"], "index": true },
-
-    { "op": "commit", "date": "2026-10-20", "time": "09:55", "by": "paul-dev", "message": "fix(CLI): TASK-CLI-005 usage text names the program roombook",
-      "edits": [ { "path": "client/src/cli.ts", "find": "usage: roombok <rooms", "replace": "usage: roombook <rooms" } ],
-      "closeTasks": ["TASK-CLI-005"], "index": true },
-    { "op": "commit", "date": "2026-10-23", "time": "11:10", "by": "nina-dev", "message": "docs(CLI): session CLI friction metrics",
-      "appendLines": [ { "path": "process/_sessionstate/METRICS_LOG.md", "lines": [ "| 2026-10-23 | CLI | 1 | 0 | 0 | 1 |" ] } ] },
-    { "op": "merge", "date": "2026-10-23", "time": "15:30", "by": "nina-dev", "branch": "feature/CLI", "message": "Merge branch 'feature/CLI'" }
+    {
+      "op": "baseline",
+      "date": "2026-08-24",
+      "time": "09:17",
+      "by": "omar-arch",
+      "message": "chore: import the AGNOS toolkit"
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-24",
+      "time": "11:42",
+      "by": "linda-po",
+      "message": "docs: add the demo README and the working calendar",
+      "add": [
+        "README.md",
+        "docs/WORKING_CALENDAR.md"
+      ]
+    },
+    {
+      "op": "branch",
+      "name": "feature/BKG"
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-25",
+      "time": "09:48",
+      "by": "nina-dev",
+      "message": "chore(BKG): start session BKG",
+      "add": [
+        "process/_sessionstate/session.yaml"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-25",
+      "time": "14:05",
+      "by": "linda-po",
+      "message": "docs(BKG): FTR-BKG-001 room reservation, RQ-BKG-001 to RQ-BKG-006",
+      "add": [
+        "process/1.requirements/FTR-BKG-001-room-reservation.md"
+      ],
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
+          "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must",
+          "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-26",
+      "time": "10:30",
+      "by": "omar-arch",
+      "message": "docs(BKG): ADR-BKG-001 layered architecture with ports",
+      "add": [
+        "process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-26",
+      "time": "16:10",
+      "by": "linda-po",
+      "message": "docs(BKG): RQ-BKG-004 raised to Must after review with the office",
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
+          "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should",
+          "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-27",
+      "time": "09:55",
+      "by": "omar-arch",
+      "message": "docs(BKG): ADR-BKG-002 in-memory reservation storage",
+      "add": [
+        "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"
+      ],
+      "edits": [
+        {
+          "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
+          "find": "## Status\nSuperseded by ADR-BKG-003",
+          "replace": "## Status\nAccepted"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-28",
+      "time": "11:20",
+      "by": "nina-dev",
+      "message": "docs(BKG): PLAN-BKG-001 core booking",
+      "add": [
+        "process/3.plan/PLAN-BKG-001-core-booking.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-31",
+      "time": "09:40",
+      "by": "john-qa",
+      "message": "test(BKG): ADR-BKG-001/TASK-BKG-001 tests for the domain and the room catalog",
+      "add": [
+        "service/tests/__init__.py",
+        "service/tests/test_domain.py",
+        "service/tests/test_catalog.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-08-31",
+      "time": "15:25",
+      "by": "nina-dev",
+      "message": "feat(BKG): ADR-BKG-001/TASK-BKG-001 domain model and room catalog",
+      "add": [
+        "service/pyproject.toml",
+        "service/roombook/__init__.py",
+        "service/roombook/domain.py",
+        "service/roombook/errors.py",
+        "service/roombook/catalog.py"
+      ],
+      "edits": [
+        {
+          "path": "service/roombook/errors.py",
+          "find": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked by reservation {conflicting_id}\"",
+          "replace": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked\""
+        }
+      ],
+      "closeTasks": [
+        "TASK-BKG-001"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-01",
+      "time": "10:05",
+      "by": "sara-qa",
+      "message": "test(BKG): ADR-BKG-002/TASK-BKG-002 tests for the repository and the create use case",
+      "add": [
+        "service/tests/test_memory_repository.py",
+        "service/tests/test_create_reservation.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-02",
+      "time": "14:30",
+      "by": "paul-dev",
+      "message": "feat(BKG): ADR-BKG-002/TASK-BKG-002 repository port, in-memory adapter and create use case",
+      "add": [
+        "service/roombook/ports.py",
+        "service/roombook/memory_repository.py",
+        "service/roombook/rules/__init__.py",
+        "service/roombook/use_cases/__init__.py",
+        "service/roombook/use_cases/create_reservation.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-002"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-03",
+      "time": "09:25",
+      "by": "john-qa",
+      "message": "test(BKG): ADR-BKG-001/TASK-BKG-003 tests for the overlap rule",
+      "add": [
+        "service/tests/test_overlap_rule.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-03",
+      "time": "16:40",
+      "by": "nina-dev",
+      "message": "feat(BKG): ADR-BKG-001/TASK-BKG-003 overlap rule",
+      "add": [
+        "service/roombook/rules/overlap_rule.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-003"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-07",
+      "time": "10:15",
+      "by": "sara-qa",
+      "message": "test(BKG): ADR-BKG-001/TASK-BKG-004 tests for the capacity and closed-room rules",
+      "add": [
+        "service/tests/test_capacity_rule.py",
+        "service/tests/test_room_open_rule.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-08",
+      "time": "11:50",
+      "by": "paul-dev",
+      "message": "feat(BKG): ADR-BKG-001/TASK-BKG-004 capacity and closed-room rules",
+      "add": [
+        "service/roombook/rules/capacity_rule.py",
+        "service/roombook/rules/room_open_rule.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-004"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-09",
+      "time": "09:35",
+      "by": "john-qa",
+      "message": "test(BKG): ADR-BKG-001/TASK-BKG-005 tests for the cancel use case",
+      "add": [
+        "service/tests/test_cancel_reservation.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-10",
+      "time": "15:05",
+      "by": "nina-dev",
+      "message": "feat(BKG): ADR-BKG-001/TASK-BKG-005 cancel use case and system clock",
+      "add": [
+        "service/roombook/clock.py",
+        "service/roombook/use_cases/cancel_reservation.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-005"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-11",
+      "time": "10:45",
+      "by": "paul-dev",
+      "message": "fix(BKG): TASK-BKG-006 name the existing reservation in the conflict message",
+      "edits": [
+        {
+          "path": "service/roombook/errors.py",
+          "find": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked\"",
+          "replace": "CONFLICT_MESSAGE_TEMPLATE = \"room already booked by reservation {conflicting_id}\""
+        }
+      ],
+      "closeTasks": [
+        "TASK-BKG-006"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-15",
+      "time": "09:30",
+      "by": "linda-po",
+      "message": "docs(BKG): FTR-BKG-002 reservations survive a restart, RQ-BKG-007",
+      "add": [
+        "process/1.requirements/FTR-BKG-002-reservation-persistence.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-16",
+      "time": "10:20",
+      "by": "omar-arch",
+      "message": "docs(BKG): ADR-BKG-003 JSON file reservation storage",
+      "add": [
+        "process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-16",
+      "time": "14:55",
+      "by": "omar-arch",
+      "message": "docs(BKG): ADR-BKG-002 superseded by ADR-BKG-003",
+      "edits": [
+        {
+          "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
+          "find": "## Status\nAccepted",
+          "replace": "## Status\nSuperseded by ADR-BKG-003"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-16",
+      "time": "16:30",
+      "by": "paul-dev",
+      "message": "docs(BKG): PLAN-BKG-002 durable reservations",
+      "add": [
+        "process/3.plan/PLAN-BKG-002-persistence.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-17",
+      "time": "09:20",
+      "by": "sara-qa",
+      "message": "test(BKG): ADR-BKG-003/TASK-BKG-007 tests for the atomic writer and the file repository",
+      "add": [
+        "service/tests/test_atomic_file.py",
+        "service/tests/test_file_repository.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-17",
+      "time": "15:40",
+      "by": "paul-dev",
+      "message": "feat(BKG): ADR-BKG-003/TASK-BKG-007 JSON file repository with atomic save",
+      "add": [
+        "service/roombook/atomic_file.py",
+        "service/roombook/file_repository.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-007"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-18",
+      "time": "09:50",
+      "by": "john-qa",
+      "message": "test(BKG): ADR-BKG-003/TASK-BKG-008 tests for the repository factory",
+      "add": [
+        "service/tests/test_repository_factory.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-18",
+      "time": "13:15",
+      "by": "nina-dev",
+      "message": "feat(BKG): ADR-BKG-003/TASK-BKG-008 repository factory",
+      "add": [
+        "service/roombook/repository_factory.py"
+      ],
+      "closeTasks": [
+        "TASK-BKG-008"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-18",
+      "time": "16:20",
+      "by": "nina-dev",
+      "message": "docs(BKG): session BKG friction metrics",
+      "appendLines": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "lines": [
+            "# AGNOS Session Friction Metrics Log",
+            "",
+            "| Date | TRI | AskUserQuestion | Error Recovery | Re-tiered | Verification discrepancies |",
+            "|------|-----|:---:|:---:|:---:|:---:|",
+            "| 2026-09-18 | BKG | 2 | 1 | 0 | 1 |"
+          ]
+        }
+      ]
+    },
+    {
+      "op": "merge",
+      "date": "2026-09-18",
+      "time": "17:10",
+      "by": "nina-dev",
+      "branch": "feature/BKG",
+      "message": "Merge branch 'feature/BKG'"
+    },
+    {
+      "op": "branch",
+      "name": "feature/NTF"
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-21",
+      "time": "09:35",
+      "by": "linda-po",
+      "message": "docs(NTF): FTR-NTF-001 reservation reminders, RQ-NTF-001 to RQ-NTF-004",
+      "add": [
+        "process/1.requirements/FTR-NTF-001-reservation-reminders.md"
+      ],
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "find": "retry until 3 attempts have",
+          "replace": "retry until 2 attempts have"
+        },
+        {
+          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "find": "**Then** 3 attempts are made",
+          "replace": "**Then** 2 attempts are made"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-22",
+      "time": "10:10",
+      "by": "linda-po",
+      "message": "docs(NTF): RQ-NTF-003 retry count raised to 3 attempts",
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "find": "retry until 2 attempts have",
+          "replace": "retry until 3 attempts have"
+        },
+        {
+          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "find": "**Then** 2 attempts are made",
+          "replace": "**Then** 3 attempts are made"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-22",
+      "time": "15:20",
+      "by": "omar-arch",
+      "message": "docs(NTF): ADR-NTF-001 in-process events and notifier port",
+      "add": [
+        "process/2.architecture/ADR-NTF-001-in-process-events-and-notifier-port.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-23",
+      "time": "09:30",
+      "by": "paul-dev",
+      "message": "docs(NTF): PLAN-NTF-001 reminders",
+      "add": [
+        "process/3.plan/PLAN-NTF-001-reminders.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-23",
+      "time": "14:10",
+      "by": "john-qa",
+      "message": "test(NTF): ADR-NTF-001/TASK-NTF-001 tests for the event bus and the publishing decorator",
+      "add": [
+        "service/tests/test_events.py",
+        "service/tests/test_publishing_create.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-24",
+      "time": "11:00",
+      "by": "nina-dev",
+      "message": "feat(NTF): ADR-NTF-001/TASK-NTF-001 event bus and publishing decorator",
+      "add": [
+        "service/roombook/events.py",
+        "service/roombook/publishing_create.py"
+      ],
+      "closeTasks": [
+        "TASK-NTF-001"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-25",
+      "time": "09:45",
+      "by": "sara-qa",
+      "message": "test(NTF): ADR-NTF-001/TASK-NTF-002 tests for the notifier and the reminder scheduler",
+      "add": [
+        "service/tests/test_notifier.py",
+        "service/tests/test_reminder_scheduler.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-28",
+      "time": "10:30",
+      "by": "paul-dev",
+      "message": "feat(NTF): ADR-NTF-001/TASK-NTF-002 notifier port and reminder scheduler",
+      "add": [
+        "service/roombook/notifier.py",
+        "service/roombook/reminder_scheduler.py"
+      ],
+      "edits": [
+        {
+          "path": "service/roombook/reminder_scheduler.py",
+          "find": "REMINDER_LEAD_MINUTES = 15",
+          "replace": "REMINDER_LEAD_MINUTES = 10"
+        }
+      ],
+      "closeTasks": [
+        "TASK-NTF-002"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-29",
+      "time": "09:15",
+      "by": "john-qa",
+      "message": "test(NTF): ADR-NTF-001/TASK-NTF-003 tests for the retrying notifier",
+      "add": [
+        "service/tests/test_retrying_notifier.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-29",
+      "time": "16:35",
+      "by": "nina-dev",
+      "message": "feat(NTF): ADR-NTF-001/TASK-NTF-003 retrying notifier",
+      "add": [
+        "service/roombook/retrying_notifier.py"
+      ],
+      "closeTasks": [
+        "TASK-NTF-003"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-30",
+      "time": "11:25",
+      "by": "paul-dev",
+      "message": "fix(NTF): TASK-NTF-004 reminder lead time set to the 15 minutes required",
+      "edits": [
+        {
+          "path": "service/roombook/reminder_scheduler.py",
+          "find": "REMINDER_LEAD_MINUTES = 10",
+          "replace": "REMINDER_LEAD_MINUTES = 15"
+        }
+      ],
+      "closeTasks": [
+        "TASK-NTF-004"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-02",
+      "time": "14:30",
+      "by": "nina-dev",
+      "message": "docs(NTF): session NTF friction metrics",
+      "appendLines": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "lines": [
+            "| 2026-10-02 | NTF | 1 | 0 | 0 | 1 |"
+          ]
+        }
+      ]
+    },
+    {
+      "op": "merge",
+      "date": "2026-10-02",
+      "time": "16:45",
+      "by": "nina-dev",
+      "branch": "feature/NTF",
+      "message": "Merge branch 'feature/NTF'",
+      "label": "ntf-merged"
+    },
+    {
+      "op": "branch",
+      "name": "feature/CLI"
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-05",
+      "time": "10:00",
+      "by": "linda-po",
+      "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-005",
+      "add": [
+        "process/1.requirements/FTR-CLI-001-api-client-and-cli.md"
+      ],
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
+          "find": "within 5 seconds",
+          "replace": "within 10 seconds"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-06",
+      "time": "11:30",
+      "by": "linda-po",
+      "message": "docs(CLI): RQ-CLI-004 timeout lowered to 5 seconds",
+      "edits": [
+        {
+          "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
+          "find": "within 10 seconds",
+          "replace": "within 5 seconds"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-06",
+      "time": "15:45",
+      "by": "omar-arch",
+      "message": "docs(CLI): ADR-CLI-001 HTTP/JSON contract and typed client",
+      "add": [
+        "process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-07",
+      "time": "09:40",
+      "by": "nina-dev",
+      "message": "docs(CLI): PLAN-CLI-001 HTTP API, client and command line",
+      "add": [
+        "process/3.plan/PLAN-CLI-001-http-api-client-cli.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-07",
+      "time": "14:20",
+      "by": "sara-qa",
+      "message": "test(CLI): ADR-CLI-001/TASK-CLI-001 tests for the HTTP adapter",
+      "add": [
+        "service/tests/test_api.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-08",
+      "time": "10:50",
+      "by": "paul-dev",
+      "message": "feat(CLI): ADR-CLI-001/TASK-CLI-001 HTTP adapter of the service",
+      "add": [
+        "service/roombook/api.py"
+      ],
+      "closeTasks": [
+        "TASK-CLI-001"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-09",
+      "time": "09:30",
+      "by": "john-qa",
+      "message": "test(CLI): ADR-CLI-001/TASK-CLI-002 tests for the transport",
+      "add": [
+        "client/tests/transport.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-13",
+      "time": "10:20",
+      "by": "nina-dev",
+      "message": "feat(CLI): ADR-CLI-001/TASK-CLI-002 TypeScript project, transport with timeout and errors",
+      "add": [
+        "client/package.json",
+        "client/tsconfig.json",
+        "client/src/constants.ts",
+        "client/src/errors.ts",
+        "client/src/transport.ts"
+      ],
+      "closeTasks": [
+        "TASK-CLI-002"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-14",
+      "time": "09:50",
+      "by": "sara-qa",
+      "message": "test(CLI): ADR-CLI-001/TASK-CLI-003 tests for the typed client",
+      "add": [
+        "client/tests/client.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-15",
+      "time": "14:15",
+      "by": "paul-dev",
+      "message": "feat(CLI): ADR-CLI-001/TASK-CLI-003 typed client",
+      "add": [
+        "client/src/types.ts",
+        "client/src/client.ts"
+      ],
+      "closeTasks": [
+        "TASK-CLI-003"
+      ],
+      "index": true,
+      "label": "cli-client"
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-16",
+      "time": "10:05",
+      "by": "john-qa",
+      "message": "test(CLI): ADR-CLI-001/TASK-CLI-004 tests for the command-line tool",
+      "add": [
+        "client/tests/cli.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-19",
+      "time": "11:35",
+      "by": "nina-dev",
+      "message": "feat(CLI): ADR-CLI-001/TASK-CLI-004 command-line tool",
+      "add": [
+        "client/src/cli.ts"
+      ],
+      "edits": [
+        {
+          "path": "client/src/cli.ts",
+          "find": "usage: roombook <rooms",
+          "replace": "usage: roombok <rooms"
+        }
+      ],
+      "closeTasks": [
+        "TASK-CLI-004"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-20",
+      "time": "09:55",
+      "by": "paul-dev",
+      "message": "fix(CLI): TASK-CLI-005 usage text names the program roombook",
+      "edits": [
+        {
+          "path": "client/src/cli.ts",
+          "find": "usage: roombok <rooms",
+          "replace": "usage: roombook <rooms"
+        }
+      ],
+      "closeTasks": [
+        "TASK-CLI-005"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-23",
+      "time": "11:10",
+      "by": "nina-dev",
+      "message": "docs(CLI): session CLI friction metrics",
+      "appendLines": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "lines": [
+            "| 2026-10-23 | CLI | 1 | 0 | 0 | 1 |"
+          ]
+        }
+      ]
+    },
+    {
+      "op": "merge",
+      "date": "2026-10-23",
+      "time": "15:30",
+      "by": "nina-dev",
+      "branch": "feature/CLI",
+      "message": "Merge branch 'feature/CLI'"
+    },
+    {
+      "op": "branch",
+      "name": "feature/DSN",
+      "from": "ntf-merged"
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-05",
+      "time": "10:20",
+      "by": "linda-po",
+      "message": "docs(DSN): FTR-DSN-001 design system, RQ-DSN-001 to RQ-DSN-005",
+      "add": [
+        {
+          "from": "drafts/FTR-DSN-001.d1.md",
+          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-06",
+      "time": "11:05",
+      "by": "omar-arch",
+      "message": "docs(DSN): ADR-DSN-001 design tokens in three tiers, generated as CSS custom properties",
+      "add": [
+        "process/2.architecture/ADR-DSN-001-design-tokens-in-three-tiers.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-06",
+      "time": "16:30",
+      "by": "linda-po",
+      "message": "docs(DSN): RQ-DSN-004 contrast threshold raised to 4.5:1 after review with the UX designer",
+      "add": [
+        {
+          "from": "drafts/FTR-DSN-001.d2.md",
+          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-07",
+      "time": "15:40",
+      "by": "rob-ux",
+      "message": "docs(DSN): FTR-DSN-001 foundations of the design system, first tokens.json",
+      "add": [
+        {
+          "from": "drafts/FTR-DSN-001.d3.md",
+          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+        },
+        "client/design/tokens.json"
+      ],
+      "edits": [
+        {
+          "path": "client/design/tokens.json",
+          "find": "\"colour.amber.800\": \"#92400e\",",
+          "replace": "\"colour.amber.600\": \"#d97706\","
+        },
+        {
+          "path": "client/design/tokens.json",
+          "find": "\"colour.warning.strong\": \"{colour.amber.800}\"",
+          "replace": "\"colour.warning.strong\": \"{colour.amber.600}\""
+        },
+        {
+          "path": "client/design/tokens.json",
+          "find": "  ],\n  \"notes\": {\n    \"colour.amber.800\": \"Added for TASK-DSN-003 (RQ-DSN-004): amber 600 on amber 50 reached only 3.1:1, below the 4.5:1 threshold; amber 800 gives 6.8:1. Deviation from the first mockup value, recorded here by the UX designer.\"\n  }\n}",
+          "replace": "  ]\n}"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-08",
+      "time": "10:15",
+      "by": "nina-dev",
+      "message": "docs(DSN): PLAN-DSN-001 design system tokens and stylesheet",
+      "add": [
+        "process/3.plan/PLAN-DSN-001-design-system.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-08",
+      "time": "16:10",
+      "by": "rob-ux",
+      "message": "docs(DSN): FTR-DSN-001 interaction states, component catalogue and governance",
+      "add": [
+        {
+          "from": "drafts/FTR-DSN-001.d4.md",
+          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+        }
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-09",
+      "time": "14:30",
+      "by": "john-qa",
+      "message": "test(DSN): ADR-DSN-001/TASK-DSN-001 tests for the token module",
+      "add": [
+        "client/tests/tokens.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-13",
+      "time": "11:45",
+      "by": "nina-dev",
+      "message": "feat(DSN): ADR-DSN-001/TASK-DSN-001 token module",
+      "add": [
+        "client/src/ui/tokens.ts"
+      ],
+      "closeTasks": [
+        "TASK-DSN-001"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-14",
+      "time": "09:50",
+      "by": "sara-qa",
+      "message": "test(DSN): ADR-DSN-001/TASK-DSN-002 tests for the stylesheet generator and the literal check",
+      "add": [
+        "client/tests/stylesheet.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-14",
+      "time": "15:10",
+      "by": "rob-ux",
+      "message": "fix(DSN): TASK-DSN-003 warning text darkened to reach the 4.5:1 contrast",
+      "edits": [
+        {
+          "path": "client/design/tokens.json",
+          "find": "\"colour.amber.600\": \"#d97706\",",
+          "replace": "\"colour.amber.800\": \"#92400e\","
+        },
+        {
+          "path": "client/design/tokens.json",
+          "find": "\"colour.warning.strong\": \"{colour.amber.600}\"",
+          "replace": "\"colour.warning.strong\": \"{colour.amber.800}\""
+        },
+        {
+          "path": "client/design/tokens.json",
+          "find": "  ]\n}",
+          "replace": "  ],\n  \"notes\": {\n    \"colour.amber.800\": \"Added for TASK-DSN-003 (RQ-DSN-004): amber 600 on amber 50 reached only 3.1:1, below the 4.5:1 threshold; amber 800 gives 6.8:1. Deviation from the first mockup value, recorded here by the UX designer.\"\n  }\n}"
+        },
+        {
+          "path": "process/1.requirements/FTR-DSN-001-design-system.md",
+          "find": "amber 50, 600",
+          "replace": "amber 50, 800"
+        }
+      ],
+      "closeTasks": [
+        "TASK-DSN-003"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-14",
+      "time": "17:05",
+      "by": "paul-dev",
+      "message": "feat(DSN): ADR-DSN-001/TASK-DSN-002 stylesheet generator and shared class names",
+      "add": [
+        "client/src/ui/classes.ts",
+        "client/src/ui/stylesheet.ts"
+      ],
+      "closeTasks": [
+        "TASK-DSN-002"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-15",
+      "time": "11:20",
+      "by": "nina-dev",
+      "message": "docs(DSN): session DSN friction metrics",
+      "appendLines": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "lines": [
+            "| 2026-10-15 | DSN | 1 | 1 | 0 | 1 |"
+          ]
+        }
+      ]
+    },
+    {
+      "op": "branch",
+      "name": "feature/WEB",
+      "from": "cli-client"
+    },
+    {
+      "op": "merge",
+      "date": "2026-10-16",
+      "time": "09:30",
+      "by": "nina-dev",
+      "into": "feature/WEB",
+      "branch": "feature/DSN",
+      "message": "Merge branch 'feature/DSN' into feature/WEB"
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-16",
+      "time": "14:10",
+      "by": "linda-po",
+      "message": "docs(WEB): FTR-WEB-001 booking web interface, RQ-WEB-001 to RQ-WEB-006",
+      "add": [
+        "process/1.requirements/FTR-WEB-001-booking-web-interface.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-19",
+      "time": "10:30",
+      "by": "omar-arch",
+      "message": "docs(WEB): ADR-WEB-001 server-rendered web interface on the typed client",
+      "add": [
+        "process/2.architecture/ADR-WEB-001-server-rendered-web-interface.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-19",
+      "time": "15:45",
+      "by": "rob-ux",
+      "message": "docs(WEB): screens, flows and states of the booking interface",
+      "add": [
+        "client/design/SCREENS.md"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-19",
+      "time": "16:20",
+      "by": "rob-ux",
+      "message": "docs(DSN): FTR-DSN-001 component catalogue names the requirement that owns each behaviour",
+      "add": [
+        "process/1.requirements/FTR-DSN-001-design-system.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-20",
+      "time": "10:20",
+      "by": "paul-dev",
+      "message": "docs(WEB): PLAN-WEB-001 booking interface",
+      "add": [
+        "process/3.plan/PLAN-WEB-001-booking-interface.md"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-20",
+      "time": "15:00",
+      "by": "john-qa",
+      "message": "test(WEB): ADR-WEB-001/TASK-WEB-001 tests for the labels and views",
+      "add": [
+        "client/tests/views.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-21",
+      "time": "11:15",
+      "by": "nina-dev",
+      "message": "feat(WEB): ADR-WEB-001/TASK-WEB-001 labels, routes and views",
+      "add": [
+        "client/src/ui/labels.ts",
+        "client/src/ui/routes.ts",
+        "client/src/ui/views.ts"
+      ],
+      "edits": [
+        {
+          "path": "client/src/ui/labels.ts",
+          "find": "bookButton: \"Book this room\",",
+          "replace": "bookButton: \"Submit\","
+        }
+      ],
+      "closeTasks": [
+        "TASK-WEB-001"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-21",
+      "time": "16:30",
+      "by": "sara-qa",
+      "message": "test(WEB): ADR-WEB-001/TASK-WEB-002 tests for the booking application",
+      "add": [
+        "client/tests/fake-service.ts",
+        "client/tests/app.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-22",
+      "time": "10:40",
+      "by": "paul-dev",
+      "message": "feat(WEB): ADR-WEB-001/TASK-WEB-002 booking application on the typed client",
+      "add": [
+        "client/src/ui/app.ts"
+      ],
+      "closeTasks": [
+        "TASK-WEB-002"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-22",
+      "time": "14:15",
+      "by": "john-qa",
+      "message": "test(WEB): ADR-WEB-001/TASK-WEB-003 tests for the HTTP server",
+      "add": [
+        "client/tests/server.test.ts"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-22",
+      "time": "17:20",
+      "by": "nina-dev",
+      "message": "feat(WEB): ADR-WEB-001/TASK-WEB-003 HTTP server and entry point",
+      "add": [
+        "client/src/ui/server.ts"
+      ],
+      "edits": [
+        {
+          "path": "client/package.json",
+          "find": "\"build\": \"tsc\"",
+          "replace": "\"build\": \"tsc\",\n    \"ui\": \"node src/ui/server.ts\""
+        }
+      ],
+      "closeTasks": [
+        "TASK-WEB-003"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-23",
+      "time": "09:35",
+      "by": "rob-ux",
+      "message": "fix(WEB): TASK-WEB-004 booking button reads Book this room",
+      "edits": [
+        {
+          "path": "client/src/ui/labels.ts",
+          "find": "bookButton: \"Submit\",",
+          "replace": "bookButton: \"Book this room\","
+        }
+      ],
+      "closeTasks": [
+        "TASK-WEB-004"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-23",
+      "time": "11:50",
+      "by": "nina-dev",
+      "message": "docs(WEB): session WEB friction metrics",
+      "appendLines": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "lines": [
+            "| 2026-10-23 | WEB | 2 | 0 | 1 | 1 |"
+          ]
+        }
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-23",
+      "time": "14:20",
+      "by": "linda-po",
+      "message": "docs: README presents the web interface, the design system and the UX designer",
+      "add": [
+        {
+          "from": "drafts/README.web.md",
+          "to": "README.md"
+        }
+      ]
+    },
+    {
+      "op": "merge",
+      "date": "2026-10-23",
+      "time": "16:40",
+      "by": "nina-dev",
+      "into": "main",
+      "branch": "feature/WEB",
+      "message": "Merge branch 'feature/WEB'",
+      "resolveFiles": [
+        {
+          "path": "process/_sessionstate/METRICS_LOG.md",
+          "from": "drafts/METRICS_LOG.web.md"
+        }
+      ]
+    }
   ]
 }
