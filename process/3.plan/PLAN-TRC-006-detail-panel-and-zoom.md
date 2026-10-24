@@ -28,7 +28,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-042: A fixed, highlighted band for the selected element
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Split the detail panel into a fixed band (identity and tags) and a scrolling body, and give the
   band its type-colour bar, tinted background and larger title.
 - **Requirement refs**: RQ-TRC-054
@@ -37,7 +37,7 @@ This plan implements the tasks in the format specified below.
   band stays at the top, unmoved; Given any selection, Then the band's title is larger than the rows' text.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 133 tests, 1 failure (RQ-TRC-026 data hash, failing before this plan), 1 skipped. `DetailBandTest` passes in headless Edge: with the body limited to 40 px, its content overflows and scrolls while the band keeps its top position; `.detail` has overflow hidden, `.detail-body` auto; the band title is larger than a link row, its left bar colour equals the type dot colour. Screenshot of the demo trace checked: band fixed over scrolled links.
 - **Assumptions**: None
 
 ### TASK-TRC-043: Tags that filter the groups

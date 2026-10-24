@@ -261,6 +261,6 @@ TASK-TRC-040|32-45|Done|Move columns, remember the order, reset
 @process/3.plan/PLAN-TRC-006-detail-panel-and-zoom.md
 PLAN-TRC-006|1-70||Feature Titles, Fixed Detail Band, Tag Filters, Finer Wheel Zoom
 TASK-TRC-041|16-28|Done|The feature's title in the matrix
-TASK-TRC-042|29-42|Not Started|A fixed, highlighted band for the selected element
+TASK-TRC-042|29-42|Done|A fixed, highlighted band for the selected element
 TASK-TRC-043|43-57|Not Started|Tags that filter the groups
 TASK-TRC-044|58-70|Not Started|A finer wheel zoom

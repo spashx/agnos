@@ -631,6 +631,48 @@ class FeatureTitleTest(unittest.TestCase):
         self.assertEqual("Demo Feature", found["feature-title"])
 
 
+FIXED_BAND = """
+agnosTrace.select("RQ-DEM-001");
+const out = document.documentElement.dataset;
+const detail = document.getElementById("detail");
+const band = detail.querySelector(".detail-top");
+const body = detail.querySelector(".detail-body");
+body.style.maxHeight = "40px";                                      // a body shorter than its links, as a long list is
+const topBefore = band.getBoundingClientRect().band;
+out.overflows = String(body.scrollHeight > body.clientHeight);
+body.scrollTop = body.scrollHeight;
+out.scrolled = String(body.scrollTop > 0);
+out.bandFixed = String(band.getBoundingClientRect().band === topBefore);
+out.panelScrolls = getComputedStyle(detail).overflowY;
+out.bodyScrolls = getComputedStyle(body).overflowY;
+const size = (node) => Number.parseFloat(getComputedStyle(node).fontSize);
+out.titleLarger = String(size(band.querySelector(".detail-title")) > size(body.querySelector(".link-rel")));
+out.barColour = String(getComputedStyle(band).borderLeftColor === getComputedStyle(band.querySelector(".detail-kind .dot")).backgroundColor);
+out.barWidth = String(Number.parseFloat(getComputedStyle(band).borderLeftWidth) > 0);
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class DetailBandTest(unittest.TestCase):
+    """TASK-TRC-042: RQ-TRC-054 (DEC-TRC-030)."""
+
+    def test_RQ_TRC_054_given_a_selection_when_the_links_scroll_then_the_band_stays_and_stands_out(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(overflows|scrolled|band-fixed|panel-scrolls|body-scrolls|title-larger|bar-colour|bar-width)="([^"]*)"',
+                                    rendered_dom_after(path, FIXED_BAND)))
+        self.assertEqual("true", found["overflows"])
+        self.assertEqual("true", found["scrolled"])
+        self.assertEqual("true", found["band-fixed"])                 # the links scroll under the band
+        self.assertEqual("hidden", found["panel-scrolls"])            # only the body scrolls
+        self.assertEqual("auto", found["body-scrolls"])
+        self.assertEqual("true", found["title-larger"])
+        self.assertEqual("true", found["bar-colour"])                 # the bar is in the element's type colour
+        self.assertEqual("true", found["bar-width"])
+
+
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
                    "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")

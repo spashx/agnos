@@ -1663,7 +1663,13 @@
     const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
     summary.append(...callSections.map((s) => s.badge));
     if (CALL_GRAPH && n.type === "RQ" && !groups.has("FN")) summary.append(noFunctionBadge(key));   // RQ-TRC-041
-    panel.append(head, summary, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t))));
+    panel.append(detailBand(n.type, head, summary),
+      el("div", { class: "detail-body" }, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t)))));
+  }
+
+  // RQ-TRC-054, DEC-TRC-030: the identity and the tags stand in a band that does not scroll, over the body of links.
+  function detailBand(type, head, summary) {
+    return el("div", { class: `detail-top t-${type}` }, head, summary);
   }
 
   // {type: {linked key: [links]}} of an element's links.
@@ -1742,13 +1748,13 @@
     const summary = el("div", { class: "detail-summary" }, badge("FN", `Inner scopes ${inner.length}`),
       badge("FN", `${plural("FN", members.length)} ${members.length}`), badge("RQ", `${plural("RQ", cited.length)} ${cited.length}`),
       badge("FN", `Callers ${callers.length}`), badge("FN", `Callees ${callees.length}`));
-    panel.append(...[head, summary,
+    panel.append(detailBand("FN", head, summary), el("div", { class: "detail-body" }, ...[
       box.parent ? listGroup("Enclosing scope", [box.parent], keyItem) : null,              // RQ-TRC-048
       inner.length ? listGroup("Inner scopes", inner, keyItem) : null,
       listGroup(plural("FN", own.length), own.sort(byKeyLabel), keyItem),
       listGroup("Callers by scope", callers, boxCallItem("called by")),
       listGroup("Callees by scope", callees, boxCallItem("calls")),
-      listGroup(plural("RQ", cited.length), cited, keyItem, "RQ")].filter(Boolean));
+      listGroup(plural("RQ", cited.length), cited, keyItem, "RQ")].filter(Boolean)));
   }
 
   // The calls into and out of a box's functions, by the box of the other end at the box's own level, with their

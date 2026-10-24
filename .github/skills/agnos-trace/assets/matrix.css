@@ -728,9 +728,27 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 /* ---- detail panel ------------------------------------------------------------------------------------------ */
 .detail {
   grid-area: detail;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--s-space-none);
+  overflow: hidden;                        /* RQ-TRC-054: only .detail-body scrolls */
   background: var(--c-detail-bg);
 }
+
+/* RQ-TRC-054, DEC-TRC-030: the selected element's band, fixed over the links, with a bar in its type colour */
+.detail-top {
+  flex: none;
+  max-height: 50%;
+  overflow-y: auto;
+  border-left: calc(var(--s-stroke-focus) * 3) solid var(--type-color);
+  border-bottom: var(--s-stroke-hairline) solid var(--s-border-strong);
+  background: var(--s-surface-subtle);
+  box-shadow: var(--s-shadow);
+}
+.detail-top .detail-head { border-bottom: none; }
+.detail-top .detail-title { font-size: var(--s-text-heading); font-weight: var(--s-weight-strong); }
+.detail-top .detail-summary { border-bottom: none; padding-top: var(--s-space-none); }
+.detail-body { flex: 1; min-height: var(--s-space-none); overflow-y: auto; }
 
 .detail-empty { display: flex; flex-direction: column; gap: var(--s-space-sm); padding: var(--s-space-xl); color: var(--s-text-subtle); font-size: var(--s-text-small); }
 .detail-empty-title { color: var(--s-text); font-size: var(--s-text-heading); font-weight: var(--s-weight-strong); }
