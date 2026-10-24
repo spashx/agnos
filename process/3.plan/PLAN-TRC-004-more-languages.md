@@ -138,3 +138,15 @@ This plan implements the tasks in the format specified below.
   `cytoscape.min.js` alone gives 1,369 functions and most of 1,440 ambiguous calls.
 - **Assumptions**: the run excludes the skills' fixtures (their IDs are examples) and the vendored library; the
   worktree's `tools/` holds the four scripts of this branch.
+
+### TASK-TRC-038: Ellipsis on long names in the Untraced functions list
+- **Tier**: S
+- **Status**: Done
+- **Description**: In the gaps view, a long function name overlapped the next column; the name now ends in an ellipsis (`matrix.css`, 3 lines).
+- **Requirement refs**: RQ-TRC-035
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-018)
+- **Acceptance Criteria**: Given the demo repository scanned with `--call-graph`, When the Untraced functions list is shown in full, Then no name overlaps its neighbour and long names end in an ellipsis.
+- **Dependencies**: TASK-TRC-037
+- **Assignee**: AI
+- **Verification**: N/A (Tier S). Checked in headless Edge on the 154-item list: every long test-function name ends in an ellipsis, no overlap.
+- **Assumptions**: None

@@ -705,7 +705,9 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 }
 
 .gap-item:hover { background: var(--c-table-row-hover); }
-.gap-item-title { color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gap-items > li { min-width: var(--s-space-none); }   /* a long function name ends in an ellipsis, it never spills into the next cell */
+.gap-item .id { flex: 0 1 auto; min-width: var(--s-space-none); overflow: hidden; text-overflow: ellipsis; }
+.gap-item-title { flex: 0 100 auto; min-width: var(--s-space-none); color: var(--s-text-muted); font-size: var(--s-text-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gap-none { color: var(--s-status-ok); font-size: var(--s-text-small); font-weight: var(--s-weight-medium); }
 
 .link-button {
