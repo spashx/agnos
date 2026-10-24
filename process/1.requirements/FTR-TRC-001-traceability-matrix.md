@@ -351,6 +351,56 @@ ADR-TRC-003).
   still there after the page is reloaded; When "Reset columns" is pressed, Then the default order and widths come back.
 - **Dependencies**: RQ-TRC-014, RQ-TRC-018, RQ-TRC-043, RQ-TRC-045, RQ-TRC-051, ADR-TRC-006, DEC-TRC-028
 
+### RQ-TRC-053: A feature's title in the matrix
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The matrix SHALL show, under the ID of each feature in its Feature column, the feature's title, in the
+  same way as it shows a requirement's title under the requirement's ID.
+- **Rationale**: an ID such as FTR-BKG-001 says nothing; its title tells which feature a row belongs to without opening it.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the matrix, When the row of a requirement is read, Then its Feature cell holds the
+  feature's ID and, under it, the feature's title, and the title is cut with an ellipsis when the column is narrow.
+- **Dependencies**: RQ-TRC-014, RQ-TRC-043, RQ-TRC-051, ADR-TRC-007, DEC-TRC-029
+
+### RQ-TRC-054: A selected element that stays in view
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE an element is selected, the detail panel SHALL show the element's identity (type, ID, title,
+  location, status and coverage, actions) and its tags (the count of its links by type) in a band that stands out from
+  the links below it, by a larger title, a bar in the element's type colour and a tinted background, and SHALL keep that
+  band fixed and visible at the top of the panel while only the links below it scroll.
+- **Rationale**: the reader scrolling a long list of links must still see which element they belong to.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a selected element with more links than the panel can show, When the links are
+  scrolled down, Then the identity and the tags stay at the top of the panel, unmoved, and the links scroll under them;
+  Given any selection, Then the band's title is larger than the link rows' text and its bar uses the type colour.
+- **Dependencies**: RQ-TRC-016, RQ-TRC-018, RQ-TRC-025, ADR-TRC-002, ADR-TRC-007, DEC-TRC-030
+
+### RQ-TRC-055: Tags that filter the links
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the user clicks a tag of the detail panel, the page SHALL show below it only the group of links
+  that the tag counts (the tags clicked together show their groups together), mark the tag as pressed, show all the
+  groups again when the pressed tag is clicked again, and drop the filter when another element is selected.
+- **Rationale**: a requirement cited by hundreds of lines is read one type at a time.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a requirement with ADRs, tasks and files, When the "Tasks" tag is clicked, Then only
+  the Tasks group is shown and the tag is pressed; When it is clicked again, Then every group is shown; When another
+  element is selected, Then no tag is pressed.
+- **Dependencies**: RQ-TRC-016, RQ-TRC-033, RQ-TRC-041, RQ-TRC-045, RQ-TRC-047, RQ-TRC-054, ADR-TRC-007, DEC-TRC-030
+
+### RQ-TRC-056: A finer wheel zoom in the graph
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the user turns the mouse wheel over the graph, the page SHALL zoom by a step smaller than the
+  default of the graph library, the wheel sensitivity being a design token (0.1, about 10 % of zoom per wheel notch instead of 150 %), still within the minimum and maximum
+  zoom of the tokens.
+- **Rationale**: one notch of the default wheel jumps over the level of detail the reader wanted.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the graph, When the wheel turns by one notch, Then the zoom changes by less than it
+  did with the library's default sensitivity; Given the tokens, Then the wheel sensitivity is 0.1.
+- **Dependencies**: RQ-TRC-012, RQ-TRC-018, ADR-TRC-002, ADR-TRC-007, DEC-TRC-031
+
 ---
 
 ## Non-Functional Requirements

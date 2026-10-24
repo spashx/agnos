@@ -1310,7 +1310,8 @@
   // ordered list of keys (DEFAULT_COLUMN_ORDER, then the reader's order, RQ-TRC-052), so a header and its cells never part.
   const MATRIX_COLUMNS = [
     { key: "feature", label: "Feature", value: (r) => r.feature.join(" "), hint: "The feature that contains it",
-      cell: (r) => el("td", {}, idList(r.feature)) },
+      cell: (r) => el("td", {}, idList(r.feature), ...r.feature.map((key) => nodes.get(key).title)   // RQ-TRC-053, DEC-TRC-029
+        .filter(Boolean).map((title) => el("div", { class: "cell-title", text: title }))) },
     { key: "id", label: "Requirement", value: (r) => r.id, hint: "The requirement, its title and status",
       cell: (r) => el("td", { class: "cell-requirement" }, idButton(r.id),
         el("div", { class: "cell-title", text: r.title }),

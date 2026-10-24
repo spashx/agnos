@@ -607,6 +607,30 @@ class ColumnOrderTest(unittest.TestCase):
         self.assertEqual("", found["stored-after"])
 
 
+FEATURE_TITLE = """
+agnosTrace.showView("matrix");
+const heads = [...document.querySelectorAll("#matrix-table th")];
+const row = document.querySelector('#matrix-table tbody tr[data-key="RQ-DEM-001"]');
+const cell = row.children[heads.findIndex((th) => th.dataset.column === "feature")];
+document.documentElement.dataset.featureId = cell.querySelector(".id")?.textContent || "";
+document.documentElement.dataset.featureTitle = cell.querySelector(".cell-title")?.textContent || "";
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class FeatureTitleTest(unittest.TestCase):
+    """TASK-TRC-041: RQ-TRC-053 (DEC-TRC-029)."""
+
+    def test_RQ_TRC_053_given_the_matrix_then_a_feature_shows_its_title_under_its_id(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(feature-id|feature-title)="([^"]*)"', rendered_dom_after(path, FEATURE_TITLE)))
+        self.assertEqual("FTR-DEM-001", found["feature-id"])
+        self.assertEqual("Demo Feature", found["feature-title"])
+
+
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
                    "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")
