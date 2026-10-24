@@ -2194,9 +2194,12 @@
   const BAND_STACK = [KIND_HUMAN, KIND_TOGETHER, KIND_AGENT];   // from the bottom of a bar
   const hist = {
     angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, baseRows: [], rows: [], built: false,
-    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null,
+    pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null, closed: new Set(),
   };
   const MERGED_TEXT = { email: "e-mail", mailmap: ".mailmap" };
+  const FOLDER_PREFIX = "dir:";
+  const isFolder = (row) => row.folder !== undefined;
+  const isEntry = (row) => !row.group && !isFolder(row);           // a row of an element, a file or a function
   const commitTime = HISTORY ? HISTORY.commits.map((c) => Date.parse(c.date)) : [];
   const fnIndex = new Map(fnKeys.map((key, i) => [key, i]));
   const maxLines = HISTORY ? Object.values(HISTORY.interventions).flatMap((byKey) => Object.values(byKey))
@@ -2259,15 +2262,39 @@
       if (!functionsOf.has(file)) functionsOf.set(file, []);
       functionsOf.get(file).push(key);
     }
-    const rows = [];
+    // RQ-HST-019, DEC-HST-008: a tree of the files' folders; a folder holding one folder and no file joins it (a/b/c).
+    const root = { path: "", dirs: new Map(), files: [] };
     for (const f of DATA.files) {
-      const key = FILE_PREFIX + f.path;
-      const cut = f.path.lastIndexOf("/") + 1;                 // the file name first, its folder after it, muted
-      rows.push({ key, label: f.path.slice(cut), name: f.path.slice(0, cut), title: f.path, depth: 0, marks: fileMarks(key) });
-      for (const fn of functionsOf.get(key) || []) {
-        rows.push({ key: fn, label: nodes.get(fn).label, name: "", depth: 1, marks: functionMarks(fn) });
+      let dir = root;
+      for (const part of f.path.split("/").slice(0, -1)) {
+        if (!dir.dirs.has(part)) dir.dirs.set(part, { name: part, path: dir.path ? `${dir.path}/${part}` : part, dirs: new Map(), files: [] });
+        dir = dir.dirs.get(part);
       }
+      dir.files.push(f);
     }
+    const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true });
+    const rows = [];
+    const walk = (dir, depth, ancestors) => {
+      for (const sub of [...dir.dirs.values()].sort(byName)) {
+        let folder = sub;
+        let label = sub.name;
+        while (!folder.files.length && folder.dirs.size === 1) {
+          folder = [...folder.dirs.values()][0];
+          label += `/${folder.name}`;
+        }
+        rows.push({ key: FOLDER_PREFIX + folder.path, folder: folder.path, label, name: "", title: folder.path, depth, ancestors,
+          marks: [] });
+        walk(folder, depth + 1, [...ancestors, folder.path]);
+      }
+      for (const f of [...dir.files].sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }))) {
+        const key = FILE_PREFIX + f.path;
+        rows.push({ key, label: f.path.slice(f.path.lastIndexOf("/") + 1), name: "", title: f.path, depth, ancestors, marks: fileMarks(key) });
+        for (const fn of functionsOf.get(key) || []) {
+          rows.push({ key: fn, label: nodes.get(fn).label, name: "", depth: depth + 1, ancestors, marks: functionMarks(fn) });
+        }
+      }
+    };
+    walk(root, 0, []);
     return rows;
   }
 
@@ -2348,30 +2375,50 @@
     const rows = [];
     const scope = scopeKeys();
     let heading = null;
+    const open = [];                                       // the folders above the current row, outermost first
     for (const row of hist.baseRows) {
       if (row.group) {
         heading = { ...row, count: 0 };
         rows.push(heading);
+        open.length = 0;
+        continue;
+      }
+      while (open.length && open.at(-1).depth >= row.depth) open.pop();
+      const folded = (row.ancestors || []).some((path) => hist.closed.has(path));
+      if (isFolder(row)) {
+        const folder = { ...row, count: 0, lists: [] };
+        if (!folded) rows.push(folder);
+        open.push(folder);
         continue;
       }
       if (scope && !scope.has(row.key)) continue;
       const marks = row.marks.filter(([ci]) => hist.kept[ci]);
       if (!marks.length && filtering() && !hist.showEmpty) continue;
-      rows.push({ ...row, marks });
       if (heading) heading.count += 1;
+      for (const folder of open) {                         // a folder carries the changes of the files below it
+        folder.count += 1;
+        if (row.key.startsWith(FILE_PREFIX)) folder.lists.push(marks);
+      }
+      if (!folded) rows.push({ ...row, marks });
     }
-    return rows.filter((row) => !row.group || row.count);
+    for (const row of rows) if (isFolder(row)) row.marks = mergeMarks(row.lists);
+    return rows.filter((row) => isEntry(row) || row.count);
+  }
+
+  function toggleFolder(path) {
+    if (hist.closed.has(path)) hist.closed.delete(path); else hist.closed.add(path);
+    applyFilters();
   }
 
   function applyFilters() {
     hist.kept = keptCommits();
     hist.rows = shownRows();
-    hist.shown = [...new Set(hist.rows.flatMap((row) => (row.group ? [] : row.marks.map(([ci]) => ci))))].sort((a, b) => a - b);
+    hist.shown = [...new Set(hist.rows.flatMap((row) => (isEntry(row) ? row.marks.map(([ci]) => ci) : [])))].sort((a, b) => a - b);
     for (const chipNode of $(ID_HISTORY_PEOPLE).querySelectorAll("[data-person]")) {
       chipNode.setAttribute(VALUE_ARIA_PRESSED, String(hist.people.has(Number(chipNode.dataset.person))));
     }
     for (const b of $(ID_HISTORY_KIND).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.kind === hist.kind));
-    const active = hist.rows.filter((row) => !row.group).length;
+    const active = hist.rows.filter(isEntry).length;
     $("history-kept").textContent = `${rowCount(active)} · ${commitCount(hist.shown.length)}${filtering() ? TEXT_KEPT_SPACED : ""}`;
     renderFigures();
     renderScope();
@@ -2653,8 +2700,10 @@
       return el("div", { class: "history-row is-group", style: { top } },
         el(TAG_SPAN, { class: CLASS_LABEL }, row.label, el(TAG_SPAN, { class: CLASS_COUNT, text: row.count })), el("div"));
     }
-    const label = el(TAG_BUTTON, { class: CLASS_LABEL, type: TAG_BUTTON,
-      style: { "--history-depth": row.depth }, on: { [EVENT_CLICK]: () => select(row.key) } },
+    const folder = isFolder(row);
+    const label = el(TAG_BUTTON, { class: `${CLASS_LABEL}${folder ? " history-folder" : ""}`, type: TAG_BUTTON,
+      [VALUE_ARIA_EXPANDED]: folder ? String(!hist.closed.has(row.folder)) : null,
+      style: { "--history-depth": row.depth }, on: { [EVENT_CLICK]: () => (folder ? toggleFolder(row.folder) : select(row.key)) } },
     el(TAG_SPAN, { class: "history-id", text: row.label }), row.name ? el(TAG_SPAN, { class: CLASS_NAME, text: row.name }) : null,
     el(TAG_SPAN, { class: CLASS_COUNT, text: row.marks.length || "" }));
     const width = plotWidth();
@@ -2682,7 +2731,7 @@
 
   function historyStatus() {
     const shown = hist.shown.filter((ci) => commitTime[ci] >= hist.span[0] && commitTime[ci] <= hist.span[1]).length;
-    const active = hist.rows.filter((r) => !r.group && r.marks.length).length;
+    const active = hist.rows.filter((r) => isEntry(r) && r.marks.length).length;
     $("history-status").textContent = `${rowCount(active)} with changes · ${commitCount(shown)} in view · `
       + `${DAY_TEXT.format(hist.span[0])} – ${DAY_TEXT.format(hist.span[1])}`;
   }

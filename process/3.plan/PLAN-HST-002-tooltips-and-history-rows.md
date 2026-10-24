@@ -57,7 +57,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-011: Files in a folder tree
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Build the code angle by file as a tree of folders, each folder row carrying the merged interventions
   below it, opened by default and closed or opened by a click or Enter, the closed folders kept across redraws; files by
   their name under their folder, functions below them.
@@ -69,8 +69,8 @@ This plan implements the tasks in the format specified below.
   closed.
 - **Dependencies**: TASK-HST-009
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 230 tests, 0 failure, 1 skipped. `FolderTreeTest` (2, headless Edge, files `src/a/x.py`, `src/a/y.py`, `src/b/z.py`, `tools/deep/er/w.py`): the rows are `dir:src` (depth 0), `dir:src/a` (1), `x.py`, `y.py` (2), `dir:src/b` (1), `z.py` (2), `dir:tools/deep/er` (0, three folders joined), `w.py` (1); `src/a` carries the marks of commits 1 and 3 of its files; closed (`aria-expanded=false`), it hides `x.py` and `y.py`, keeps its marks, and stays closed after a change of period and of the kind filter; opened again, its files show. The tests reading the code angle's files now leave the folder rows aside (RQ-HST-019). Screenshot of this repository: `.github/skills` joined, `agnos-demo` closed, files by name under their folders, functions below them.
+- **Assumptions**: A folder holding one folder and no file joins it on one row (`a/b/c`), as editors' explorers do; in a folder, its sub-folders come before its files, each by name. A folder's marks merge those of the files below it (a function's changes are already its file's). A click on a folder opens or closes it; it selects nothing, a folder being no element of the page.
 
 ### TASK-HST-012: A resizable label column and a filter on the rows
 - **Tier**: M

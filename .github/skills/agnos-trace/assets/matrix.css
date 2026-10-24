@@ -1054,6 +1054,10 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-label:hover .history-id { color: var(--s-accent); }
 .history-label:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: calc(-1 * var(--s-stroke-focus)); }
 .history-row.is-group .history-label { color: var(--s-text-subtle); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); text-transform: uppercase; letter-spacing: var(--s-tracking-kicker); cursor: default; }
+/* RQ-HST-019: a folder of the tree, opened or closed */
+.history-folder .history-id { font-family: var(--s-font-sans); font-weight: var(--s-weight-strong); color: var(--s-text-muted); }
+.history-folder::before { content: "\25BE"; flex: none; color: var(--s-text-subtle); }
+.history-folder[aria-expanded="false"]::before { content: "\25B8"; }
 .history-id { flex: none; max-width: 100%; font-family: var(--s-font-mono); font-weight: var(--s-weight-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .history-name { min-width: var(--s-space-none); color: var(--s-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .history-count { margin-left: auto; color: var(--s-text-subtle); font-size: var(--s-text-caption); font-variant-numeric: tabular-nums; }

@@ -123,10 +123,10 @@ out.tab = document.querySelector('.tab[data-view="history"]').hidden ? "hidden" 
         got = self.run_script("""
 document.querySelector('#history-angle [data-angle="code"]').click();
 const rows = document.getElementById("history-rows");
-out.total = rows.dataset.total;
-out.first = rows.querySelector(".history-row[data-key]")?.dataset.key || "";
-""", "total", "first")
-        self.assertEqual(str(len(self.data["files"])), got["total"])
+out.files = String(rows.querySelectorAll('.history-row[data-key^="file:"]').length);   // RQ-HST-019: under their folders
+out.first = rows.querySelector('.history-row[data-key^="file:"]')?.dataset.key || "";
+""", "files", "first")
+        self.assertEqual(str(len(self.data["files"])), got["files"])
         self.assertTrue(got["first"].startswith("file:"), got["first"])
 
     def test_RQ_HST_007_given_the_wheel_over_the_timeline_then_it_zooms_around_the_pointer(self):
@@ -340,7 +340,8 @@ out.keys = [...document.querySelectorAll("#history-rows .history-row[data-key]")
         got = self.run_script("""
 agnosTrace.select("FTR-DEM-001");
 document.querySelector('#detail [data-action="history"]').click();
-const keys = () => [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+const keys = () => [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key)
+  .filter((key) => !key.startsWith("dir:")).join(",");                              // RQ-HST-019: the folders aside
 out.opened = agnosTrace.state.view;
 out.keys = keys();
 out.chip = document.getElementById("history-scope").textContent;
@@ -379,7 +380,8 @@ out.back = String(rows.dataset.total === out.all);
 agnosTrace.select({json.dumps(first)});
 document.querySelector('#detail [data-action="history"]').click();
 out.anglepressed = document.querySelector('#history-angle [aria-pressed="true"]').dataset.angle;
-out.keys = [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+out.keys = [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key)
+  .filter((key) => !key.startsWith("dir:")).join(",");                              // RQ-HST-019: the folders aside
 """, "anglepressed", "keys")
         self.assertEqual(("code", first), (got["anglepressed"], got["keys"]))
 
@@ -583,6 +585,71 @@ for (const selector of {json.dumps(list(RICH_TARGETS))}) {{
 out.bad = [...new Set(bad)].join(",");
 """, "bad")
         self.assertEqual("", got["bad"])
+
+
+TREE_FILES = ["src/a/x.py", "src/a/y.py", "src/b/z.py", "tools/deep/er/w.py"]
+
+
+def tree_history(data):
+    """The fixture's data given four files in folders, and commits on them: 1 on x.py, 3 on y.py, 4 on z.py."""
+    data["files"] = [{"path": path, "ids": 0} for path in TREE_FILES]
+    return history_block(data, {}, {"src/a/x.py": [[1, 2]], "src/a/y.py": [[3, 4]], "src/b/z.py": [[4, 1]],
+                                    "tools/deep/er/w.py": [[0, 1]]})
+
+
+TREE_ROWS = """
+const rows = () => [...document.querySelectorAll("#history-rows .history-row")].map((r) =>
+  (r.dataset.key || "") + ":" + (r.querySelector(".history-label")?.style.getPropertyValue("--history-depth") || ""));
+const marksOf = (key) => [...document.querySelectorAll(`#history-rows .history-row[data-key="${key}"] .history-mark`)]
+  .map((m) => m.dataset.commit).join(",");
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class FolderTreeTest(unittest.TestCase):
+    """TASK-HST-011: RQ-HST-019."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_history(cls.path, tree_history)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, START + TREE_ROWS + """
+agnosTrace.showView("history");
+document.querySelector('#history-angle [data-angle="code"]').click();
+""" + script), *names)
+
+    def test_RQ_HST_019_given_files_in_folders_then_the_rows_are_a_tree_indented_by_depth(self):
+        got = self.run_script("out.rows = rows().join(\"|\");", "rows")
+        self.assertEqual("dir:src:0|dir:src/a:1|file:src/a/x.py:2|file:src/a/y.py:2|dir:src/b:1|file:src/b/z.py:2|"
+                         "dir:tools/deep/er:0|file:tools/deep/er/w.py:1", got["rows"])
+
+    def test_RQ_HST_019_given_a_folder_closed_then_its_files_hide_and_it_keeps_their_marks(self):
+        got = self.run_script("""
+const folder = () => document.querySelector('#history-rows .history-row[data-key="dir:src/a"] .history-label');
+out.marks = marksOf("dir:src/a");
+folder().click();
+out.closed = rows().join("|");
+out.expanded = folder().getAttribute("aria-expanded");
+out.closedmarks = marksOf("dir:src/a");
+agnosTrace.historyView.setSpan(agnosTrace.historyView.span()[0], 20 * 86400000);
+document.querySelector('#history-kind [data-kind="human"]').click();
+out.still = String(!rows().some((r) => r.startsWith("file:src/a/")));
+document.querySelector('#history-kind [data-kind="all"]').click();
+folder().click();
+out.opened = String(rows().some((r) => r.startsWith("file:src/a/x.py")));
+""", "marks", "closed", "expanded", "closedmarks", "still", "opened")
+        self.assertEqual("1,3", got["marks"])
+        self.assertNotIn("file:src/a/x.py", got["closed"])
+        self.assertIn("file:src/b/z.py", got["closed"])
+        self.assertEqual(("false", "1,3", "true", "true"), (got["expanded"], got["closedmarks"], got["still"], got["opened"]))
 
 
 class WordingTest(unittest.TestCase):
