@@ -35,6 +35,7 @@ KEY_SUBJECT = "subject"
 KEY_CO_AUTHORS = "coAuthors"
 KEY_SPELLINGS = "spellings"
 REV_PARSE = "rev-parse"
+TOPO_ORDER = "--topo-order"
 
 AGENTS_PATH = Path(__file__).resolve().parent.parent / "assets" / "agents.json"     # DEC-HST-003
 
@@ -165,7 +166,7 @@ def parse_header(record):
 
 def log_args(since=None, depth=None, paths=(), options=()):
     """The options of `git log` for the history read (RQ-HST-001): git applies both limits."""
-    args = [*QUOTE_OFF, "log", f"--format={LOG_FORMAT}", "--topo-order", *options]
+    args = [*QUOTE_OFF, "log", f"--format={LOG_FORMAT}", TOPO_ORDER, *options]
     if since:
         args.append(f"--since={since}")
     if depth:
@@ -503,6 +504,117 @@ def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
     return commits, tally
 
 
+# ---- the commit graph --------------------------------------------------------------------------------------------
+# RQ-HST-024, DEC-HST-010: the path-limited log's parents are rewritten by git's history simplification, so the graph
+# is read by a light log of its own, with no path and no patch.
+KEY_GRAPH = "graph"
+KEY_BRANCHES = "branches"
+KEY_NODES = "nodes"
+KEY_BRANCH = "branch"
+KEY_COMMIT = "commit"
+DEFAULT_BRANCHES = ("main", "master")
+GRAPH_FORMAT = RECORD + "%x1f".join(("%H", "%P", "%aI", "%s"))
+TIP_FORMAT = "%(objectname)%1f%(refname:short)"
+MERGE_NAMES = (re.compile(r"^Merge branch '([^']+)'"),                   # git merge
+               re.compile(r"^Merge pull request #\d+ from [^/\s]+/(\S+)"),  # GitHub
+               re.compile(r"^Merge (?!branch )(\S+) into \S+"))             # Merge X into Y
+
+
+def read_graph(repo, since=None):
+    """The commits of the repository from HEAD, newest first in topological order: hash, parents, date, subject."""
+    out = git(["log", f"--format={GRAPH_FORMAT}", TOPO_ORDER, *([f"--since={since}"] if since else [])], repo.top)
+    nodes = []
+    for record in out.split(RECORD):
+        if record.strip():
+            full, parents, date, subject = record.rstrip("\n").split(FIELD)
+            nodes.append({KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_DATE: date, KEY_SUBJECT: subject})
+    return nodes
+
+
+def branch_tips(repo):
+    """[(tip hash, name)] of the local branches, and the name of the branch checked out, or None."""
+    out = git(["for-each-ref", f"--format={TIP_FORMAT}", "refs/heads"], repo.top)
+    tips = [tuple(line.split(FIELD, 1)) for line in out.splitlines() if FIELD in line]
+    try:
+        current = git(["symbolic-ref", "-q", "--short", HEAD], repo.top).strip() or None
+    except GitError:
+        current = None                                       # a detached HEAD
+    return tips, current
+
+
+def merge_name(subject):
+    """The branch a merge's message names as merged, or None."""
+    for pattern in MERGE_NAMES:
+        m = pattern.match(subject)
+        if m:
+            return m.group(1)
+    return None
+
+
+def assign_branches(nodes, tips, current):
+    """(names, branch of each node): from the default branch's tip, the other tips oldest first, then the second parent
+    of each merge naming its branch, newest first, the first parents are followed until a commit already claimed; the
+    commits left take one unnamed branch (None) per first-parent chain."""
+    index = {n[KEY_HASH]: i for i, n in enumerate(nodes)}
+    branch_of = [None] * len(nodes)
+    names, numbers = [], {}
+
+    def claim(start, name):
+        if start is None or branch_of[start] is not None:
+            return
+        if name is None or name not in numbers:
+            names.append(name)
+            if name is not None:
+                numbers[name] = len(names) - 1
+        number = len(names) - 1 if name is None else numbers[name]
+        i = start
+        while i is not None and branch_of[i] is None:
+            branch_of[i] = number
+            parents = nodes[i][KEY_PARENTS]
+            i = index.get(parents[0]) if parents else None
+
+    present = {name: index[tip] for tip, name in tips if tip in index}
+    default = next((b for b in DEFAULT_BRANCHES if b in present), current if current in present else None)
+    if default is not None:
+        claim(present[default], default)
+    for name in sorted((n for n in present if n != default), key=lambda n: (-present[n], n)):
+        claim(present[name], name)
+    for node in nodes:
+        name = merge_name(node[KEY_SUBJECT]) if len(node[KEY_PARENTS]) > 1 else None
+        if name is not None:
+            claim(index.get(node[KEY_PARENTS][1]), name)
+    for i in range(len(nodes)):
+        claim(i, None)
+    return names, branch_of
+
+
+def graph_block(nodes, names, branch_of, position):
+    """The data file's graph: the nodes down to the oldest commit of the timeline, each with its parents among them, its
+    branch and its commit index, or, with no commit index, its date and subject; the branches in the order found."""
+    last = max((i for i, n in enumerate(nodes) if n[KEY_HASH] in position), default=-1)
+    kept = nodes[:last + 1]
+    index = {n[KEY_HASH]: i for i, n in enumerate(kept)}
+    used = sorted({branch_of[i] for i in range(len(kept))})
+    renumber = {old: new for new, old in enumerate(used)}
+    result = []
+    for i, node in enumerate(kept):
+        commit = position.get(node[KEY_HASH])
+        item = {KEY_HASH: node[KEY_HASH][:SHORT_HASH], KEY_PARENTS: [index[p] for p in node[KEY_PARENTS] if p in index],
+                KEY_BRANCH: renumber[branch_of[i]], KEY_COMMIT: commit}
+        if commit is None:
+            item[KEY_DATE] = node[KEY_DATE]
+            item[KEY_SUBJECT] = node[KEY_SUBJECT]
+        result.append(item)
+    return {KEY_BRANCHES: [names[old] for old in used], KEY_NODES: result}
+
+
+def build_graph(repo, since, position):
+    nodes = read_graph(repo, since)
+    tips, current = branch_tips(repo)
+    names, branch_of = assign_branches(nodes, tips, current)
+    return graph_block(nodes, names, branch_of, position)
+
+
 # ---- the history block -------------------------------------------------------------------------------------------
 # RQ-HST-006, DEC-HST-004
 KIND_ELEMENT = "elements"
@@ -558,7 +670,8 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
     dates = [c[KEY_DATE] for c in listed]
     limits = {"since": since or None, "depth": depth or None, KEY_COMMITS: len(listed),
               "first": dates[0] if dates else None, "last": dates[-1] if dates else None, "shallow": repo.shallow}
-    return {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions}
+    return {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions,
+            KEY_GRAPH: build_graph(repo, since, position)}
 
 
 def summary(block):

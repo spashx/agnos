@@ -73,6 +73,14 @@ class GitRepo:
             "GIT_COMMITTER_NAME": committer_name, "GIT_COMMITTER_EMAIL": committer_mail.rstrip(">"),
             "GIT_COMMITTER_DATE": DAY.format(self.day)})
 
+    def merge(self, branch, message):
+        """A merge commit of branch into the branch checked out, by Dan, a day after the last commit."""
+        self.day += 1
+        self.git("merge", "-q", "--no-ff", "-m", message, branch, env={
+            "GIT_AUTHOR_NAME": "Dan", "GIT_AUTHOR_EMAIL": "dan@example.com", "GIT_AUTHOR_DATE": DAY.format(self.day),
+            "GIT_COMMITTER_NAME": "Dan", "GIT_COMMITTER_EMAIL": "dan@example.com",
+            "GIT_COMMITTER_DATE": DAY.format(self.day)})
+
 
 def setUpModule():
     folder = tempfile.mkdtemp(prefix="agnos-history-config-")
@@ -398,7 +406,7 @@ class GeneratorTest(RepoTestCase):
         code, out, err = self.run_generator("--history")
         self.assertEqual(0, code, err)
         block = self.data()["history"]
-        self.assertEqual({"limits", "people", "commits", "interventions"}, set(block))
+        self.assertEqual({"limits", "people", "commits", "interventions", "graph"}, set(block))   # RQ-HST-024
         self.assertEqual({"since": None, "depth": None, "commits": 2, "first": "2026-10-01T10:00:00Z", "last": "2026-10-02T10:00:00Z",
                           "shallow": False}, block["limits"])
         self.assertEqual(["Alice", "Carol", "Claude Opus 5.5"], sorted(p["name"] for p in block["people"]))
@@ -461,6 +469,80 @@ class GeneratorTest(RepoTestCase):
         authors = {name: sorted(people[commits[c]["author"]]["name"] for c, _ in functions[str(n)])
                    for n, name in enumerate(names)}
         self.assertEqual({"f": ["Carol"], "g": ["Bob", "Carol"]}, authors)
+
+
+class BranchGraphTest(RepoTestCase):
+    """TASK-HST-015: RQ-HST-024 (DEC-HST-010)."""
+
+    def graph(self):
+        """{subject: (branch name, [parents' subjects], commit index or None)} of the history block's graph."""
+        block = history.build(self.repo.top, {}, {}, [], [self.repo.top / "process"])
+        graph, commits = block["graph"], block["commits"]
+        subject = [n["subject"] if n["commit"] is None else commits[n["commit"]]["subject"] for n in graph["nodes"]]
+        for node in graph["nodes"]:
+            if node["commit"] is not None:
+                self.assertEqual(commits[node["commit"]]["hash"], node["hash"])
+        return {subject[i]: (graph["branches"][n["branch"]], [subject[p] for p in n["parents"]], n["commit"])
+                for i, n in enumerate(graph["nodes"])}
+
+    def feature_merged(self, message="Merge branch 'feature/A'"):
+        self.repo.commit({FEATURE: "1\n"}, message="m1")
+        self.repo.git("checkout", "-q", "-b", "feature/A")
+        self.repo.commit({FEATURE: "1\n2\n"}, message="a1")
+        self.repo.commit({FEATURE: "1\n2\n3\n"}, message="a2")
+        self.repo.git("checkout", "-q", "main")
+        self.repo.commit({"process/other.md": "x\n"}, message="m2")
+        self.repo.merge("feature/A", message)
+        self.repo.git("branch", "-q", "-D", "feature/A")
+
+    def test_RQ_HST_024_given_a_branch_merged_then_deleted_then_its_commits_are_on_it_by_the_merge_message(self):
+        self.feature_merged()
+        got = self.graph()
+        self.assertEqual({"m1": "main", "m2": "main", "Merge branch 'feature/A'": "main", "a1": "feature/A",
+                          "a2": "feature/A"}, {s: b for s, (b, _, _) in got.items()})
+        self.assertEqual(["m2", "a2"], got["Merge branch 'feature/A'"][1])
+        self.assertEqual(["m1"], got["a1"][1])
+        self.assertIsNone(got["Merge branch 'feature/A'"][2])               # a merge is no commit of the timeline
+
+    def test_RQ_HST_024_given_other_merge_messages_then_they_name_the_branch(self):
+        for message in ("Merge pull request #4 from spashx/feature/A", "Merge feature/A into main"):
+            with self.subTest(message=message):
+                self.setUp()
+                self.feature_merged(message)
+                self.assertEqual("feature/A", self.graph()["a2"][0])
+
+    def test_RQ_HST_024_given_a_branch_not_merged_and_checked_out_then_its_commits_are_on_it(self):
+        self.repo.commit({FEATURE: "1\n"}, message="m1")
+        self.repo.git("checkout", "-q", "-b", "feature/B")                # the history read is HEAD's: feature/B
+        self.repo.commit({FEATURE: "1\n2\n"}, message="b1")
+        self.repo.commit({FEATURE: "1\n2\n3\n"}, message="b2")
+        got = self.graph()
+        self.assertEqual(("feature/B", ["b1"]), got["b2"][:2])
+        self.assertEqual(("feature/B", ["m1"]), got["b1"][:2])
+        self.assertEqual("main", got["m1"][0])
+
+    def test_RQ_HST_024_given_a_branch_made_from_another_then_each_keeps_its_own_commits(self):
+        self.repo.commit({FEATURE: "1\n"}, message="m1")
+        self.repo.git("checkout", "-q", "-b", "feature/T")
+        self.repo.commit({FEATURE: "1\n2\n"}, message="t1")
+        self.repo.git("checkout", "-q", "-b", "feature/H")
+        self.repo.commit({FEATURE: "1\n2\n3\n"}, message="h1")
+        got = self.graph()
+        self.assertEqual(("main", "feature/T", "feature/H"), (got["m1"][0], got["t1"][0], got["h1"][0]))
+
+    def test_RQ_HST_024_given_a_merge_naming_no_branch_then_its_side_is_on_an_unnamed_branch(self):
+        self.feature_merged("merge side")
+        got = self.graph()
+        self.assertEqual((None, None), (got["a1"][0], got["a2"][0]))
+        self.assertEqual("main", got["merge side"][0])
+
+    def test_RQ_HST_024_given_a_commit_outside_the_folders_read_then_it_is_in_the_graph_and_not_in_the_timeline(self):
+        self.repo.commit({FEATURE: "1\n"}, message="m1")
+        self.repo.commit({"elsewhere.txt": "x\n"}, message="outside")
+        self.repo.commit({FEATURE: "1\n2\n"}, message="m3")
+        got = self.graph()
+        self.assertEqual(("main", ["m1"], None), got["outside"])
+        self.assertEqual(["outside"], got["m3"][1])
 
 
 class IndependenceTest(unittest.TestCase):

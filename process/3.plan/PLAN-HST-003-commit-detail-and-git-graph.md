@@ -55,7 +55,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-015: The commit graph in the history block
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In `history.py`, read the local branch tips, find each commit's branch by the first-parent walk of
   DEC-HST-010, and write the `graph` block (`branches`, `nodes`) from the commits already read; tests on git repositories
   in temporary folders.
@@ -68,8 +68,14 @@ This plan implements the tasks in the format specified below.
   data files are equal; Given a run without `--history`, Then the RQ-TRC-026 sentinel is unchanged.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `BranchGraphTest`, 6 tests OK: a branch merged then deleted (m1, m2 and the merge on `main`, a1 and
+  a2 on `feature/A`, the merge's parents m2 and a2, the merge with no commit index); the GitHub and "Merge X into Y"
+  messages; a branch checked out; a branch made from another; a merge naming nothing (its side unnamed); a commit outside
+  the folders (in the graph, no commit index). `test_RQ_HST_006_given_two_runs…` OK (same bytes); the sentinel test of
+  RQ-TRC-026 OK; whole suite 246 tests OK, 2 skipped. On the demo: 6 branches found, the WEB commits on `feature/WEB`.
+- **Assumptions**: The graph is HEAD's history, as the timeline is: a local branch HEAD does not reach brings no node.
+  The path-limited log rewrites parents and drops merges (seen on the demo), so the graph is read by a second log with
+  no path and no patch; DEC-HST-010 amended accordingly.
 
 ### TASK-HST-016: The commit in the detail panel
 - **Tier**: L
