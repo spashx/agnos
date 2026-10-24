@@ -633,9 +633,9 @@ Generate the traceability matrix for src and tests.
 result line as it is:
 
 ```text
-agnos-trace: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; gaps: uncovered 0,
-untasked 0, task-no-rq 0, adr-no-rq 0, empty 0, isolated 0, undefined 0, untraced-files 0;
-process/TRACEABILITY.html written
+agnos-trace: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
+checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>,
+files-traced <s>; findings 0; process/TRACEABILITY.html written
 ```
 
 **What you get — `process/TRACEABILITY.html`**, a complete offline application (open it from disk
@@ -644,10 +644,10 @@ same data for any other tool):
 
 | View | What it answers |
 |---|---|
-| **Overview** | How much is covered? Element counts, share of requirements covered / indirectly covered / uncovered, gap counts, coverage per trigram. |
+| **Overview** | How much is covered? Element counts, share of requirements covered / indirectly covered / uncovered, the quality score and grade, coverage per trigram. |
 | **Graph** | How is this element wired? The selected element's links as columns — features, requirements, ADRs and decisions, plans and tasks, source files — at depth 1 to 3. |
 | **Matrix** | One row per requirement with its feature, ADRs, decisions, tasks, source files and lines, and coverage — sortable, searchable, exportable as CSV. |
-| **Gaps** | What breaks the zero-tolerance rule? Each gap list links to its elements. |
+| **Quality** | How good is the traceability? A report card with a grade from A to E, the checks behind the score, each with its findings, and charts per feature area. Each finding links to its element. |
 | **Detail panel** | Everything about the selection: type, title, status, location, links grouped by type. |
 
 **Down to the functions — `--call-graph`.** Add this option and the functions of the scanned
@@ -659,9 +659,9 @@ no functions. The option needs the tree-sitter packages, installed once with
 `pip install -r .github/skills/agnos-trace/requirements-callgraph.txt`; without them the page is
 written all the same, without functions.
 
-**Your job here — read the gaps, every non-zero one is a defect to fix or to justify:**
+**Your job here — read the findings, every non-zero one is a defect to fix or to justify:**
 
-| Gap | Meaning | Typical fix |
+| Finding | Meaning | Typical fix |
 |---|---|---|
 | `uncovered` | No source file cites the requirement, directly or through its task, ADR or decision | Implement it, or cite the ID where it is implemented |
 | `untasked` | No task cites the requirement | Plan it |
@@ -747,7 +747,7 @@ One row per stage. This is the whole human side of a session.
 | 5. Implement | `TASK-EXP-001 approved. Implement it.` | Source with ID comments, named constants |
 | 6. Test | `Run the tests.` | Gherkin-named tests, run under `session.platform` |
 | 7. Commit | *(agent proposes)* `commit-task TASK-EXP-001 ADR-EXP-001 <description>` | `feat(EXP): ADR-EXP-001/TASK-EXP-001 <description>` |
-| 8. Trace | `Generate the traceability matrix for src and tests.` | `TRACEABILITY.html` — coverage, gaps, graph down to functions |
+| 8. Trace | `Generate the traceability matrix for src and tests.` | `TRACEABILITY.html` — coverage, quality score and grade, graph down to functions |
 | 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics |
 
 Corrections at any point are just sentences: *"RQ-EXP-002 should be 20 MB, not 50."* —

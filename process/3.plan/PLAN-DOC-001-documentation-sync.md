@@ -45,3 +45,16 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `python -m unittest discover -s .github/skills/agnos-docs-sync/tests`: 12 tests, 0 failure. `SkillTest`: the skill is a maintainer skill whose body names the four documents, "Keep a Changelog", "Unreleased", "maintainer", `changes_since.py`, "never commit" and the ban on unsupported statements; the `.claude/skills` pointer has the same name and description and points to the canonical file; AGENTS.md and CLAUDE.md do not list it. `AgentTest`: `.claude/agents/agnos-docs-sync.md` has model haiku, tools within Read, Grep, Glob, Edit, Bash (no Write), a prompt that sends it to the skill, names the four files and says never commit, never push, only these four files. Not run end to end: the agent was not launched on the repository.
 - **Assumptions**: the skill is a maintainer skill like `agnos-demo`: not listed in `AGENTS.md` or `CLAUDE.md`.
+
+### TASK-DOC-003: First run of the sub-agent on the repository
+- **Tier**: S
+- **Status**: Done
+- **Description**: Run the `agnos-docs-sync` sub-agent on the repository and keep its edits of `CHANGELOG.md` and
+  `GETTING_STARTED.MD` (an `[Unreleased]` section from 81 commits; the Quality wording in the trace stage).
+- **Requirement refs**: RQ-DOC-003
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the sub-agent run, Then only the four documents differ and nothing is committed by it.
+- **Dependencies**: TASK-DOC-002
+- **Assignee**: AI
+- **Verification**: N/A (Tier S). After the run `git status` showed only CHANGELOG.md and GETTING_STARTED.MD modified; AGENTS.md and CLAUDE.md needed nothing.
+- **Assumptions**: None
