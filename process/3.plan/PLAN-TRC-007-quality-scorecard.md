@@ -116,7 +116,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-052: Remediation: named constants in the skill's code
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Remove the duplicated string and number literals from the skill's scripts (`trace_matrix.py`,
   `callgraph.py`, `scorecard.py`) and page script (`matrix.js`) by naming them, and add the test that lists the repeated
   literals of each. Done after TASK-TRC-051, on the code as it then stands (owner remark of 2026-10-24).
@@ -126,6 +126,6 @@ This plan implements the tasks in the format specified below.
   list is empty; Given the whole test suite, Then it passes unchanged in behaviour.
 - **Dependencies**: TASK-TRC-051
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: New `tests/test_literals.py` (Python by syntax tree, the page script by a tokenizer; docstrings, comments, template literals and the definitions of named constants left aside): before the change it listed 22 repeated literals in `trace_matrix.py`, 15 in `callgraph.py`, 16 in `scorecard.py` and 107 in `matrix.js`; after, both tests pass with none repeated. The literals were named by a throw-away script (reusing an existing constant of the same value where there was one; `INDEX_TITLE_FIELD`, `RANK_TITLE`, `RANK_NONE`, `RESULT_NODE` named by hand for the number 3). `python -m unittest discover -s tests` (skill folder): 161 tests, 0 failure, 1 skipped, the browser tests included (the page script still runs).
 - **Assumptions**: Tier M: the work stays inside one skill and adds no public behaviour; "duplicated" read as written more
   than once, with the exceptions of RQ-TRC-067.

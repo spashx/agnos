@@ -20,11 +20,35 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))    # scorecard.py, beside this script (ADR-TRC-008)
 import scorecard  # noqa: E402
 
+# RQ-TRC-067: a literal written more than once is a named constant.
+KEY_UNCOVERED = "uncovered"
+KEY_COVERED = "covered"
+KEY_INDIRECT = "indirect"
+KEY_UNDEFINED = "undefined"
+KEY_COVERAGE = "coverage"
+KEY_KIND = "kind"
+KEY_TYPE = "type"
+KEY_FIRST = "first"
+KEY_LAST = "last"
+KEY_STATUS = "status"
+KEY_TITLE = "title"
+KEY_CODE = "code"
+KEY_GLOBAL = "global"
+ENCODING = "utf-8"
+KEY_APPEND = "append"
+KEY_ELEMENT = "element"
+KEY_CONTAINS = "contains"
+KEY_REFS = "refs"
+KEY_SEMANTIC = "semantic"
+KEY_REPLACE = "replace"
+TYPE_TASK = "TASK"
+
 INDEX_NAME = "INDEX.idx.md"
 DEFAULT_OUT_NAME = "TRACEABILITY.html"
 TYPES = ("FTR", "RQ", "ADR", "DEC", "PLAN", "TASK")
 ID_PATTERN = r"(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}"
 NUMBER_LENGTH = 3
+INDEX_TITLE_FIELD = 3                          # "ID|first-last|status|title": the title is the fourth field
 PREFIX_CUT = -(NUMBER_LENGTH + 1)              # "RQ-ABC-001"[:PREFIX_CUT] == "RQ-ABC"
 LINE_TEXT_MAX = 200                            # characters of a line kept as evidence (DEC-TRC-003)
 
@@ -110,9 +134,9 @@ class Model:
     def ensure(self, element_id):
         """The element of an ID, made an undefined element when the index does not define it (RQ-TRC-007)."""
         if element_id not in self.elements:
-            self.add_element({"id": element_id, "kind": "undefined", "type": id_type(element_id),
-                              "tri": element_id.split("-")[1], "doc": "", "first": 0, "last": 0, "status": "",
-                              "title": "Not defined in the index"})
+            self.add_element({"id": element_id, KEY_KIND: KEY_UNDEFINED, KEY_TYPE: id_type(element_id),
+                              "tri": element_id.split("-")[1], "doc": "", KEY_FIRST: 0, KEY_LAST: 0, KEY_STATUS: "",
+                              KEY_TITLE: "Not defined in the index"})
         return self.elements[element_id]
 
     def add_edge(self, source, target, kind, proof=None):
@@ -126,17 +150,17 @@ class Model:
 def parse_index(index_path):
     """The rows of INDEX.idx.md: one element per 'ID|first-last|status|title' row, under its '@document' line."""
     rows, doc = [], ""
-    for raw in index_path.read_text(encoding="utf-8").splitlines():
+    for raw in index_path.read_text(encoding=ENCODING).splitlines():
         if raw.startswith("@"):
             doc = raw[1:].strip()
             continue
-        parts = raw.split("|", 3)
+        parts = raw.split("|", INDEX_TITLE_FIELD)
         if len(parts) != 4 or not FULL_ID_RE.match(parts[0]):
             continue
         first, _, last = parts[1].partition("-")
-        rows.append({"id": parts[0], "kind": "element", "type": id_type(parts[0]), "tri": parts[0].split("-")[1],
-                     "doc": doc, "first": int(first), "last": int(last or first), "status": parts[2].strip(),
-                     "title": parts[3].strip()})
+        rows.append({"id": parts[0], KEY_KIND: KEY_ELEMENT, KEY_TYPE: id_type(parts[0]), "tri": parts[0].split("-")[1],
+                     "doc": doc, KEY_FIRST: int(first), KEY_LAST: int(last or first), KEY_STATUS: parts[2].strip(),
+                     KEY_TITLE: parts[INDEX_TITLE_FIELD].strip()})
     return rows
 
 
@@ -151,26 +175,26 @@ def resolve_document(process_dir, doc):
 def add_containment(model, members):
     """Links each element of one document to the element whose range most closely encloses its own."""
     for child in members:
-        parents = [p for p in members if p is not child and p["first"] <= child["first"] and child["last"] <= p["last"]
-                   and (p["first"], p["last"]) != (child["first"], child["last"])]
+        parents = [p for p in members if p is not child and p[KEY_FIRST] <= child[KEY_FIRST] and child[KEY_LAST] <= p[KEY_LAST]
+                   and (p[KEY_FIRST], p[KEY_LAST]) != (child[KEY_FIRST], child[KEY_LAST])]
         if parents:
-            parent = min(parents, key=lambda p: p["last"] - p["first"])
-            model.add_edge(parent["id"], child["id"], "contains")
+            parent = min(parents, key=lambda p: p[KEY_LAST] - p[KEY_FIRST])
+            model.add_edge(parent["id"], child["id"], KEY_CONTAINS)
 
 
 # RQ-TRC-005, RQ-TRC-007, DEC-TRC-003
 def add_document_references(model, members, lines, defined):
     """Links each element to the IDs of its own lines: those of its range that no element it contains holds."""
     owner = [None] * (len(lines) + 1)
-    for element in sorted(members, key=lambda e: e["last"] - e["first"], reverse=True):
-        for ln in range(element["first"], min(element["last"], len(lines)) + 1):
+    for element in sorted(members, key=lambda e: e[KEY_LAST] - e[KEY_FIRST], reverse=True):
+        for ln in range(element[KEY_FIRST], min(element[KEY_LAST], len(lines)) + 1):
             owner[ln] = element["id"]
     for ln, text in enumerate(lines, 1):
         if owner[ln] is None:
             continue
         for target in sorted(extract_ids(text, defined) - {owner[ln]}):
             model.ensure(target)
-            model.add_edge(owner[ln], target, "refs", evidence(ln, text))
+            model.add_edge(owner[ln], target, KEY_REFS, evidence(ln, text))
 
 
 def build_process_model(process_dir):
@@ -193,7 +217,7 @@ def build_process_model(process_dir):
         if path is None:
             print(f"agnos-trace: warning: {doc} not found, its references are not read", file=sys.stderr)
             continue
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        lines = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines()
         add_document_references(model, members, lines, defined)
     return model
 
@@ -224,7 +248,7 @@ def read_source(path):
     data = path.read_bytes()
     if b"\x00" in data[:BINARY_PROBE_BYTES]:
         return None
-    return data.decode("utf-8", errors="replace").splitlines()
+    return data.decode(ENCODING, errors=KEY_REPLACE).splitlines()
 
 
 def display_path(path, root, base):
@@ -240,7 +264,7 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
     """Links every scanned source file to the IDs its lines hold, with the line numbers and texts; returns the files
     scanned, [(shown path, path)], for the call graph (DEC-TRC-013: no second walk)."""
     base = Path(base) if base is not None else Path.cwd()
-    defined = {i for i, e in model.elements.items() if e["kind"] == "element"}
+    defined = {i for i, e in model.elements.items() if e[KEY_KIND] == KEY_ELEMENT}
     extensions = {e.lower() if e.startswith(".") else "." + e.lower() for e in extensions}
     scanned = []
     for root in map(Path, roots):
@@ -253,7 +277,7 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
             for ln, text in enumerate(lines, 1):
                 for target in sorted(extract_ids(text, defined)):
                     model.ensure(target)
-                    model.add_edge(shown, target, "code", evidence(ln, text))
+                    model.add_edge(shown, target, KEY_CODE, evidence(ln, text))
                     count += 1
             model.files[shown] = {"path": shown, "ids": count}
             scanned.append((shown, path))
@@ -265,7 +289,7 @@ def code_citations(model):
     """{source file: [(line, ID, proof)]} in line order, from the files' code links."""
     cited = {}
     for (src, dst, kind), proofs in model.edges.items():
-        if kind == "code":
+        if kind == KEY_CODE:
             cited.setdefault(src, []).extend((proof[0], dst, proof) for proof in proofs)
     return {path: sorted(lines) for path, lines in cited.items()}
 
@@ -290,10 +314,10 @@ class Links:
     def __init__(self, model):
         self.children, self.parent, self.refs_out, self.refs_in, self.code_in = {}, {}, {}, {}, {}
         for (src, dst, kind) in model.edges:
-            if kind == "contains":
+            if kind == KEY_CONTAINS:
                 self.children.setdefault(src, []).append(dst)
                 self.parent[dst] = src
-            elif kind == "refs":
+            elif kind == KEY_REFS:
                 self.refs_out.setdefault(src, set()).add(dst)
                 self.refs_in.setdefault(dst, set()).add(src)
             else:
@@ -317,52 +341,52 @@ def rate(rq, links, model):
     """covered: code cites the requirement; indirect: code cites a decision, task, ADR, plan or feature linked to it or
     holding it (another requirement does not count); else uncovered."""
     if links.code_in.get(rq):
-        return "covered"
+        return KEY_COVERED
     neighbours = links.refs_in.get(rq, set()) | links.refs_out.get(rq, set())
     ancestor = links.parent.get(rq)
     while ancestor:
         neighbours.add(ancestor)
         ancestor = links.parent.get(ancestor)
-    if any(model.elements[n]["type"] in COVERING_TYPES and links.code_in.get(n) for n in neighbours):
-        return "indirect"
-    return "uncovered"
+    if any(model.elements[n][KEY_TYPE] in COVERING_TYPES and links.code_in.get(n) for n in neighbours):
+        return KEY_INDIRECT
+    return KEY_UNCOVERED
 
 
 def refs_to_type(links, model, element_id, wanted):
-    return any(model.elements[t]["type"] == wanted for t in links.refs_out.get(element_id, ()))
+    return any(model.elements[t][KEY_TYPE] == wanted for t in links.refs_out.get(element_id, ()))
 
 
 # RQ-TRC-009, DEC-TRC-004 (TASK-TRC-003)
 def analyse(model):
     """The coverage of every requirement and the findings of each rule, IDs in index order, undefined IDs and files by name."""
     links = Links(model)
-    defined = [e for e in model.elements.values() if e["kind"] == "element"]
-    coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e["type"] == "RQ"}
-    of_type = lambda t: [e["id"] for e in defined if e["type"] == t]  # noqa: E731
+    defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
+    coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e[KEY_TYPE] == "RQ"}
+    of_type = lambda t: [e["id"] for e in defined if e[KEY_TYPE] == t]  # noqa: E731
     findings = {
-        "uncovered": [rq for rq, r in coverage.items() if r == "uncovered"],
+        KEY_UNCOVERED: [rq for rq, r in coverage.items() if r == KEY_UNCOVERED],
         "untasked": [rq for rq in of_type("RQ")
-                     if not any(model.elements[s]["type"] == "TASK" for s in links.refs_in.get(rq, ()))],
-        "task-no-rq": [t for t in of_type("TASK") if not refs_to_type(links, model, t, "RQ")],
+                     if not any(model.elements[s][KEY_TYPE] == TYPE_TASK for s in links.refs_in.get(rq, ()))],
+        "task-no-rq": [t for t in of_type(TYPE_TASK) if not refs_to_type(links, model, t, "RQ")],
         "adr-no-rq": [a for a in of_type("ADR") if not any(refs_to_type(links, model, x, "RQ")
                                                            for x in [a] + links.descendants(a))],
-        "empty": [e["id"] for e in defined if e["type"] in CONTAINED_TYPE
-                  and not any(model.elements[c]["type"] == CONTAINED_TYPE[e["type"]]
+        "empty": [e["id"] for e in defined if e[KEY_TYPE] in CONTAINED_TYPE
+                  and not any(model.elements[c][KEY_TYPE] == CONTAINED_TYPE[e[KEY_TYPE]]
                               for c in links.children.get(e["id"], ()))],
         "isolated": [e["id"] for e in defined
                      if not any(links.touched(x) for x in [e["id"]] + links.descendants(e["id"]))],
-        "undefined": sorted(i for i, e in model.elements.items() if e["kind"] == "undefined"),
+        KEY_UNDEFINED: sorted(i for i, e in model.elements.items() if e[KEY_KIND] == KEY_UNDEFINED),
         "untraced-files": sorted(p for p, f in model.files.items() if not f["ids"]),
     }
-    return {"coverage": coverage, "findings": findings}
+    return {KEY_COVERAGE: coverage, "findings": findings}
 
 
 def summary(model, analysis, quality):
     """The one line the generator ends with: element and file counts, coverage, the quality score (RQ-TRC-017, RQ-TRC-064)."""
-    defined = sum(e["kind"] == "element" for e in model.elements.values())
-    rated = list(analysis["coverage"].values())
+    defined = sum(e[KEY_KIND] == KEY_ELEMENT for e in model.elements.values())
+    rated = list(analysis[KEY_COVERAGE].values())
     return (f"agnos-trace: {defined} elements, {len(model.files)} files; RQ {len(rated)}: covered "
-            f"{rated.count('covered')}, indirect {rated.count('indirect')}, uncovered {rated.count('uncovered')}; "
+            f"{rated.count(KEY_COVERED)}, indirect {rated.count(KEY_INDIRECT)}, uncovered {rated.count(KEY_UNCOVERED)}; "
             f"{scorecard.summary_part(quality)}")
 
 
@@ -370,22 +394,22 @@ def summary(model, analysis, quality):
 # RQ-TRC-018, DEC-TRC-009
 def load_tokens(path):
     try:
-        return json.loads(Path(path).read_text(encoding="utf-8"))
+        return json.loads(Path(path).read_text(encoding=ENCODING))
     except (OSError, ValueError) as error:
         raise InputError(f"design tokens {path}: {error}") from error
 
 
 def global_value(tokens, ref, owner):
-    if ref not in tokens["global"]:
+    if ref not in tokens[KEY_GLOBAL]:
         raise InputError(f"design token '{owner}' refers to '{ref}', which is not a global token")
-    return tokens["global"][ref]
+    return tokens[KEY_GLOBAL][ref]
 
 
 def tokens_css(tokens):
     """The custom properties of the page: --s-<semantic> per theme, --c-<component> as var(--s-<semantic>); an
     unresolved reference is an input error (DEC-TRC-009)."""
     light, dark = [], []
-    for name, ref in tokens["semantic"].items():
+    for name, ref in tokens[KEY_SEMANTIC].items():
         if not TOKEN_NAME_RE.match(name):
             raise InputError(f"design token name '{name}' is not kebab-case")
         if isinstance(ref, dict):
@@ -396,7 +420,7 @@ def tokens_css(tokens):
         else:
             light.append(f"  --s-{name}: {global_value(tokens, ref, name)};")
     for name, ref in tokens["component"].items():
-        if not TOKEN_NAME_RE.match(name) or ref not in tokens["semantic"]:
+        if not TOKEN_NAME_RE.match(name) or ref not in tokens[KEY_SEMANTIC]:
             raise InputError(f"component token '{name}' refers to '{ref}', which is not a semantic token")
         light.append(f"  --c-{name}: var(--s-{ref});")
     dark_block = ["  color-scheme: dark;", *dark]
@@ -408,23 +432,23 @@ def tokens_css(tokens):
 # ---- page --------------------------------------------------------------------------------------------------------
 def library_label():
     """'Cytoscape.js 3.30.2', read from VENDOR.md so that the version is written once (RQ-TRC-024)."""
-    text = (VENDOR_DIR / "VENDOR.md").read_text(encoding="utf-8")
+    text = (VENDOR_DIR / "VENDOR.md").read_text(encoding=ENCODING)
     m = re.search(rf"^\| `{re.escape(LIBRARY_FILE)}` \| ([^|]+?) \| ([^|]+?) \|", text, re.M)
     return f"{m.group(1)} {m.group(2)}" if m else LIBRARY_FILE
 
 
 # DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
 def page_data(model, analysis, quality, meta, call_graph=None):
-    defined = [e for e in model.elements.values() if e["kind"] == "element"]
-    undefined = sorted((e for e in model.elements.values() if e["kind"] == "undefined"), key=lambda e: e["id"])
-    fields = ("id", "kind", "type", "tri", "doc", "first", "last", "status", "title")
+    defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
+    undefined = sorted((e for e in model.elements.values() if e[KEY_KIND] == KEY_UNDEFINED), key=lambda e: e["id"])
+    fields = ("id", KEY_KIND, KEY_TYPE, "tri", "doc", KEY_FIRST, KEY_LAST, KEY_STATUS, KEY_TITLE)
     paths = sorted(model.files)
     data = {
         "meta": meta,
         "elements": [{f: e[f] for f in fields} for e in defined + undefined],
         "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
-        "coverage": analysis["coverage"],
+        KEY_COVERAGE: analysis[KEY_COVERAGE],
         "quality": quality,
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
@@ -447,13 +471,13 @@ def render_page(title, data_script):
     data_script is the file name of the data script written beside it."""
     parts = {
         "TOKENS": tokens_css(load_tokens(TOKENS_PATH)),
-        "CSS": (ASSETS_DIR / "matrix.css").read_text(encoding="utf-8"),
-        "LIBRARY": embed_script((VENDOR_DIR / LIBRARY_FILE).read_text(encoding="utf-8")),
-        "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding="utf-8")),
+        "CSS": (ASSETS_DIR / "matrix.css").read_text(encoding=ENCODING),
+        "LIBRARY": embed_script((VENDOR_DIR / LIBRARY_FILE).read_text(encoding=ENCODING)),
+        "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding=ENCODING)),
         "TITLE": html.escape(title),
         "DATA_SCRIPT": html.escape(data_script),
     }
-    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+    template = TEMPLATE_PATH.read_text(encoding=ENCODING)
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], template)
 
 
@@ -467,9 +491,9 @@ def write_outputs(path, data, title):
     json_path, script_path = data_paths(path)
     text = embed_json(data)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_page(title, script_path.name), encoding="utf-8", newline="\n")
-    json_path.write_text(text + "\n", encoding="utf-8", newline="\n")
-    script_path.write_text(f"{DATA_GLOBAL} = {text};\n", encoding="utf-8", newline="\n")
+    path.write_text(render_page(title, script_path.name), encoding=ENCODING, newline="\n")
+    json_path.write_text(text + "\n", encoding=ENCODING, newline="\n")
+    script_path.write_text(f"{DATA_GLOBAL} = {text};\n", encoding=ENCODING, newline="\n")
 
 
 # ---- command line ------------------------------------------------------------------------------------------------
@@ -477,10 +501,10 @@ def write_outputs(path, data, title):
 def parse_args(argv):
     parser = argparse.ArgumentParser(prog="trace_matrix.py", description="AGNOS traceability matrix (FTR-TRC-001)")
     parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
-    parser.add_argument("--sources", required=True, action="append", help="source folder to scan (repeatable)")
+    parser.add_argument("--sources", required=True, action=KEY_APPEND, help="source folder to scan (repeatable)")
     parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
-    parser.add_argument("--ext", action="append", help="source extension to scan, replaces the default list (repeatable)")
-    parser.add_argument("--exclude", action="append",
+    parser.add_argument("--ext", action=KEY_APPEND, help="source extension to scan, replaces the default list (repeatable)")
+    parser.add_argument("--exclude", action=KEY_APPEND,
                         help="file or folder name pattern to skip, replaces the default list (repeatable)")
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
     parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
@@ -517,7 +541,7 @@ def main(argv=None):
         line = summary(model, analysis, quality)
         if graph is not None:
             line += "; " + graph.summary()
-        meta = {"title": title, "generatedAt": generated_at, "process": process.as_posix(),
+        meta = {KEY_TITLE: title, "generatedAt": generated_at, "process": process.as_posix(),
                 "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
         data = page_data(model, analysis, quality, meta, graph)
     except (InputError, scorecard.ScoringError) as error:

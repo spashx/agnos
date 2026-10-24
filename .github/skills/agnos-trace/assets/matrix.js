@@ -8,6 +8,114 @@
 "use strict";
 
 (function () {
+
+  // RQ-TRC-067: a literal written more than once is a named constant.
+  const CSS_VAR_C_GRAPH_ARROW_SCALE = "--c-graph-arrow-scale";
+  const CSS_VAR_C_GRAPH_BOX_FILL_OPACITY = "--c-graph-box-fill-opacity";
+  const CSS_VAR_C_GRAPH_BOX_LABEL_GAP = "--c-graph-box-label-gap";
+  const CSS_VAR_C_GRAPH_BOX_LABEL_SIZE = "--c-graph-box-label-size";
+  const CSS_VAR_C_GRAPH_BOX_PADDING = "--c-graph-box-padding";
+  const CSS_VAR_C_GRAPH_DIM = "--c-graph-dim";
+  const CSS_VAR_C_GRAPH_LABEL_SIZE = "--c-graph-label-size";
+  const CSS_VAR_C_GRAPH_NODE_FILL = "--c-graph-node-fill";
+  const CSS_VAR_C_GRAPH_NODE_HEIGHT = "--c-graph-node-height";
+  const CSS_VAR_C_GRAPH_NODE_SIZE_FILE = "--c-graph-node-size-file";
+  const CSS_VAR_C_GRAPH_ROW_GAP = "--c-graph-row-gap";
+  const CSS_VAR_C_GRAPH_SELECTED_BORDER = "--c-graph-selected-border";
+  const CSS_VAR_C_GRAPH_SELECTED_BORDER_WIDTH = "--c-graph-selected-border-width";
+  const CSS_VAR_S_FONT_MONO = "--s-font-mono";
+  const CSS_VAR_S_SPACE_XL = "--s-space-xl";
+  const CSS_VAR_S_WEIGHT_STRONG = "--s-weight-strong";
+  const VALUE_ITEM = ".item";
+  const KEY_ARROWLEFT = "ArrowLeft";
+  const KEY_ARROWRIGHT = "ArrowRight";
+  const TYPE_FILE = "FILE";
+  const VALUE_IMPLEMENTATION_DETAIL = "Implementation detail";
+  const TYPE_UNDEFINED = "UNDEFINED";
+  const VALUE_ARIA_EXPANDED = "aria-expanded";
+  const VALUE_ARIA_LABEL = "aria-label";
+  const VALUE_ARIA_PRESSED = "aria-pressed";
+  const VALUE_ARIA_SELECTED = "aria-selected";
+  const TAG_ARTICLE = "article";
+  const STYLE_BACKGROUND_COLOR = "background-color";
+  const STYLE_BACKGROUND_FILL = "background-fill";
+  const STYLE_BACKGROUND_OPACITY = "background-opacity";
+  const STYLE_BORDER_COLOR = "border-color";
+  const STYLE_BORDER_STYLE = "border-style";
+  const STYLE_BORDER_WIDTH = "border-width";
+  const VALUE_BOXKEY = "boxKey";
+  const VALUE_BUTT = "butt";
+  const TAG_BUTTON = "button";
+  const VALUE_CALL_SITE = "call site";
+  const VALUE_CALL_SITES = "call sites";
+  const VALUE_CALLS = "calls";
+  const VALUE_CENTER = "center";
+  const EVENT_CHANGE = "change";
+  const VALUE_CHECKBOX = "checkbox";
+  const EVENT_CLICK = "click";
+  const LINK_KIND_CODE = "code";
+  const VALUE_CONTAINS = "contains";
+  const VALUE_COVERAGE_FILTER = "coverage-filter";
+  const VALUE_COVERAGE_ITEM = "coverage-item";
+  const VALUE_COVERAGE_ITEM_LABEL = "coverage-item-label";
+  const VALUE_COVERAGE_ITEM_VALUE = "coverage-item-value";
+  const STYLE_CURVE_STYLE = "curve-style";
+  const VALUE_DASHED = "dashed";
+  const CY_DATA_LABEL = "data(label)";
+  const CY_DATA_WIDTH = "data(width)";
+  const VALUE_DEPTH = "depth";
+  const VALUE_DETAIL_LEVEL = "detail-level";
+  const VALUE_DROP_TARGET = "drop-target";
+  const VALUE_EDGE = "edge";
+  const VALUE_EDGES = "edges";
+  const VALUE_ELEMENT = "element";
+  const VALUE_FADED = "faded";
+  const STYLE_FONT_FAMILY = "font-family";
+  const STYLE_FONT_SIZE = "font-size";
+  const STYLE_FONT_WEIGHT = "font-weight";
+  const VALUE_GRAPH = "graph";
+  const VALUE_GRAPH_SCROLL = "graph-scroll";
+  const TAG_HEADER = "header";
+  const VALUE_HOVER = "hover";
+  const DOM_INPUT = "input";
+  const VALUE_ITEM_2 = "item";
+  const EVENT_KEYDOWN = "keydown";
+  const VALUE_KPI_SUB = "kpi-sub";
+  const TAG_LABEL = "label";
+  const VALUE_LEGEND_ITEM = "legend-item";
+  const VALUE_LINE = "line";
+  const STYLE_LINE_COLOR = "line-color";
+  const VALUE_MATRIX = "matrix";
+  const VALUE_MATRIX_TABLE = "matrix-table";
+  const EVENT_MOUSEOUT = "mouseout";
+  const EVENT_MOUSEOVER = "mouseover";
+  const VALUE_NEAR = "near";
+  const VALUE_NODE_ITEM = "node.item";
+  const VALUE_NODES = "nodes";
+  const VALUE_NONE = "none";
+  const VALUE_OVERVIEW = "overview";
+  const EVENT_POINTERCANCEL = "pointercancel";
+  const EVENT_POINTERMOVE = "pointermove";
+  const EVENT_POINTERUP = "pointerup";
+  const VALUE_ROUND = "round";
+  const VALUE_ROUND_RECTANGLE = "round-rectangle";
+  const VALUE_SEARCH_EMPTY = "search-empty";
+  const VALUE_SELECTED = "selected";
+  const VALUE_SHOW_ENCLOSING = "show-enclosing";
+  const VALUE_SHOW_FILES = "show-files";
+  const VALUE_SHOW_FUNCTIONS = "show-functions";
+  const VALUE_SHOW_HIERARCHY = "show-hierarchy";
+  const VALUE_SOLID = "solid";
+  const TAG_SPAN = "span";
+  const STYLE_TARGET_ARROW_SHAPE = "target-arrow-shape";
+  const TAG_TBODY = "tbody";
+  const STYLE_TEXT_HALIGN = "text-halign";
+  const STYLE_TEXT_VALIGN = "text-valign";
+  const TAG_THEAD = "thead";
+  const VALUE_TOGGLE = "toggle";
+  const VALUE_TRI_TABLE = "tri-table";
+  const VALUE_TRUE = "true";
+  const VALUE_WIDTH = "width";
   const STARTED = performance.now();
   // RQ-TRC-010, DEC-TRC-005 as amended: the data come from <page>.data.js, written beside the page.
   const DATA = window.AGNOS_TRACE_DATA;
@@ -48,6 +156,9 @@
   const FIX_FIRST_SHOWN = 3;
   const SEARCH_LIMIT = 60;
   const CELL_LIMIT = 3;
+  const RANK_TITLE = 3;                 // a search match: ID equal 0, ID start 1, ID part 2, title part 3, none -1
+  const RANK_NONE = -1;
+  const RESULT_NODE = 3;                // a search result is [rank, type order, label, node]
   const FINDINGS_SHOWN = 60;
   const EVIDENCE_SHOWN = 3;
   const PERCENT = 100;
@@ -114,13 +225,13 @@
   const links = new Map();
   for (const e of DATA.elements) {
     nodes.set(e.id, {
-      key: e.id, label: e.id, type: e.kind === "undefined" ? "UNDEFINED" : e.type, elementType: e.type,
+      key: e.id, label: e.id, type: e.kind === "undefined" ? TYPE_UNDEFINED : e.type, elementType: e.type,
       kind: e.kind, title: e.title, tri: e.tri, status: e.status, doc: e.doc, first: e.first, last: e.last,
     });
   }
   for (const f of DATA.files) {
     const key = FILE_PREFIX + f.path;
-    nodes.set(key, { key, label: f.path, type: "FILE", kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
+    nodes.set(key, { key, label: f.path, type: TYPE_FILE, kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
   }
   const fnKeys = addFunctions();
   for (const key of nodes.keys()) links.set(key, []);
@@ -138,7 +249,7 @@
 
   function addEdges() {
     for (const [source, target, kind, lines] of DATA.edges) {
-      const from = kind === "code" ? FILE_PREFIX + source : source;
+      const from = kind === LINK_KIND_CODE ? FILE_PREFIX + source : source;
       if (nodes.has(from) && nodes.has(target)) addLink(from, target, kind, lines);
     }
   }
@@ -150,10 +261,10 @@
     }
   }
   const typeOrder = (type) => NODE_TYPES.indexOf(type);
-  const requirements = DATA.elements.filter((e) => e.kind === "element" && e.type === "RQ").map((e) => nodes.get(e.id));
+  const requirements = DATA.elements.filter((e) => e.kind === VALUE_ELEMENT && e.type === "RQ").map((e) => nodes.get(e.id));
   const counts = Object.fromEntries(NODE_TYPES.map((t) => [t, 0]));
   for (const n of nodes.values()) counts[n.type] += 1;
-  const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === "element").map((e) => e.tri))]
+  const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === VALUE_ELEMENT).map((e) => e.tri))]
     .sort((a, b) => a.localeCompare(b));
   const CHECKS = DATA.quality.checks;
   const checkBadgeClass = (check) => "badge badge-" + (check.findings.length ? CHECK_BADGE[check.risk] : "ok");
@@ -186,7 +297,7 @@
     const proofs = new Map();
     const proofsOf = (fileKey, id) => {
       if (!proofs.has(fileKey)) {
-        proofs.set(fileKey, new Map(links.get(fileKey).filter((l) => l.kind === "code" && l.dir === "out")
+        proofs.set(fileKey, new Map(links.get(fileKey).filter((l) => l.kind === LINK_KIND_CODE && l.dir === "out")
           .map((l) => [l.key, l.lines])));
       }
       return proofs.get(fileKey).get(id) || [];
@@ -195,7 +306,7 @@
       const key = fnKeys[index];
       if (!nodes.has(id)) continue;
       const wanted = new Set(lineNumbers);
-      addLink(key, id, "code", proofsOf(nodes.get(key).file, id).filter(([no]) => wanted.has(no)));
+      addLink(key, id, LINK_KIND_CODE, proofsOf(nodes.get(key).file, id).filter(([no]) => wanted.has(no)));
     }
   }
 
@@ -304,7 +415,7 @@
 
   // ---- state --------------------------------------------------------------------------------------------------
   const state = {
-    selected: null, view: "overview", search: "", coverage: "all", sort: { column: "id", dir: 1 },
+    selected: null, view: VALUE_OVERVIEW, search: "", coverage: "all", sort: { column: "id", dir: 1 },
     types: new Set(NODE_TYPES.filter((t) => t !== "FN")),   // functions off at load (RQ-TRC-034, DEC-TRC-017)
     tris: new Set(trigrams), openChecks: new Set(), moreFindings: new Set(),
   };
@@ -349,7 +460,7 @@
   const graph = createGraph();
 
   function shortLabel(n) {
-    return clip(n.type === "FILE" ? n.label.split("/").pop() : n.label);
+    return clip(n.type === TYPE_FILE ? n.label.split("/").pop() : n.label);
   }
 
   function clip(text) {
@@ -424,7 +535,7 @@
     const edges = [];
     calls.each(index, (other, ambiguous, dir) => {
       if (dir === "out" && other !== key && kept.has(other)) {       // a recursive call is not drawn
-        edges.push({ group: "edges", data: { id: `${key}>${other}>calls`, source: key, target: other, kind: "calls",
+        edges.push({ group: VALUE_EDGES, data: { id: `${key}>${other}>calls`, source: key, target: other, kind: VALUE_CALLS,
           ambiguous: ambiguous === 1, curve: 0 } });
       }
     });
@@ -434,7 +545,7 @@
   function createGraph() {
     const container = $("cy");
     const tip = el("div", { class: "graph-tip", role: "tooltip", hidden: true });
-    $("graph-scroll").after(tip);
+    $(VALUE_GRAPH_SCROLL).after(tip);
     let tipTimer = null;
     let cy = null;
     let whole = false;
@@ -445,70 +556,70 @@
     let dirty = true;
     const prop = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const num = (name) => Number.parseFloat(prop(name));
-    const showFiles = () => $("show-files").checked;
-    const showHierarchy = () => $("show-hierarchy").checked;
+    const showFiles = () => $(VALUE_SHOW_FILES).checked;
+    const showHierarchy = () => $(VALUE_SHOW_HIERARCHY).checked;
     const columnOf = (type) => COLUMNS.findIndex((c) => c.includes(type));
 
     function style() {
-      const fontSize = num("--c-graph-label-size");
-      const fill = prop("--c-graph-node-fill");
+      const fontSize = num(CSS_VAR_C_GRAPH_LABEL_SIZE);
+      const fill = prop(CSS_VAR_C_GRAPH_NODE_FILL);
       const typeStyles = NODE_TYPES.map((t) => {
         const colour = prop(`--s-type-${t.toLowerCase()}`);
-        return { selector: `node.item[type = "${t}"]`, style: { "border-color": colour,
+        return { selector: `node.item[type = "${t}"]`, style: { [STYLE_BORDER_COLOR]: colour,
           "background-gradient-stop-colors": [colour, colour, fill, fill],
           "background-gradient-stop-positions": [0, STRIPE_PERCENT, STRIPE_PERCENT, PERCENT] } };
       });
       return [
-        { selector: "node.item", style: {
-          shape: "round-rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
-          "background-color": prop("--c-graph-node-fill"), "background-fill": "linear-gradient",
-          "background-gradient-direction": "to-right", "border-width": num("--s-stroke-hairline"),
-          color: prop("--c-graph-node-text"), "font-family": prop("--s-font-mono"), "font-size": fontSize,
-          "font-weight": prop("--s-weight-medium"), "text-valign": "center", "text-halign": "center",
+        { selector: VALUE_NODE_ITEM, style: {
+          shape: VALUE_ROUND_RECTANGLE, label: CY_DATA_LABEL, width: CY_DATA_WIDTH, height: num(CSS_VAR_C_GRAPH_NODE_HEIGHT),
+          [STYLE_BACKGROUND_COLOR]: prop(CSS_VAR_C_GRAPH_NODE_FILL), [STYLE_BACKGROUND_FILL]: "linear-gradient",
+          "background-gradient-direction": "to-right", [STYLE_BORDER_WIDTH]: num("--s-stroke-hairline"),
+          color: prop("--c-graph-node-text"), [STYLE_FONT_FAMILY]: prop(CSS_VAR_S_FONT_MONO), [STYLE_FONT_SIZE]: fontSize,
+          [STYLE_FONT_WEIGHT]: prop("--s-weight-medium"), [STYLE_TEXT_VALIGN]: VALUE_CENTER, [STYLE_TEXT_HALIGN]: VALUE_CENTER,
           "min-zoomed-font-size": num("--s-space-xs") } },
         ...typeStyles,
-        { selector: 'node.item[type = "UNDEFINED"]', style: { "border-style": "dashed" } },
+        { selector: 'node.item[type = "UNDEFINED"]', style: { [STYLE_BORDER_STYLE]: VALUE_DASHED } },
         // RQ-TRC-047, DEC-TRC-020: a box in the colour of its kind, as a pill or as the frame around its contents.
-        ...BOX_KINDS.map((kind) => ({ selector: `node.box-${kind}`, style: { "border-color": prop(`--c-graph-box-${kind}`) } })),
+        ...BOX_KINDS.map((kind) => ({ selector: `node.box-${kind}`, style: { [STYLE_BORDER_COLOR]: prop(`--c-graph-box-${kind}`) } })),
         { selector: "node:parent", style: {
-          shape: "round-rectangle", "background-fill": "solid", "background-opacity": num("--c-graph-box-fill-opacity"),
-          "border-width": num("--c-graph-box-border-width"), padding: num("--c-graph-box-padding"), label: "data(label)",
-          "font-family": prop("--s-font-mono"), "font-size": num("--c-graph-box-label-size"),
-          "font-weight": prop("--s-weight-strong"), "text-valign": "top", "text-halign": "center",
-          "text-margin-y": -num("--c-graph-box-label-gap") } },
+          shape: VALUE_ROUND_RECTANGLE, [STYLE_BACKGROUND_FILL]: VALUE_SOLID, [STYLE_BACKGROUND_OPACITY]: num(CSS_VAR_C_GRAPH_BOX_FILL_OPACITY),
+          [STYLE_BORDER_WIDTH]: num("--c-graph-box-border-width"), padding: num(CSS_VAR_C_GRAPH_BOX_PADDING), label: CY_DATA_LABEL,
+          [STYLE_FONT_FAMILY]: prop(CSS_VAR_S_FONT_MONO), [STYLE_FONT_SIZE]: num(CSS_VAR_C_GRAPH_BOX_LABEL_SIZE),
+          [STYLE_FONT_WEIGHT]: prop(CSS_VAR_S_WEIGHT_STRONG), [STYLE_TEXT_VALIGN]: "top", [STYLE_TEXT_HALIGN]: VALUE_CENTER,
+          "text-margin-y": -num(CSS_VAR_C_GRAPH_BOX_LABEL_GAP) } },
         ...BOX_KINDS.map((kind) => ({ selector: `node:parent.box-${kind}`,
-          style: { "background-color": prop(`--c-graph-box-${kind}`), color: prop(`--c-graph-box-${kind}`) } })),
-        { selector: `node:parent.box-${NAMESPACE_KIND}`, style: { "border-style": "dashed" } },
+          style: { [STYLE_BACKGROUND_COLOR]: prop(`--c-graph-box-${kind}`), color: prop(`--c-graph-box-${kind}`) } })),
+        { selector: `node:parent.box-${NAMESPACE_KIND}`, style: { [STYLE_BORDER_STYLE]: VALUE_DASHED } },
         // Its own frame, label and fill only: an opacity on a compound node would fade its pills a second time.
-        { selector: "node:parent.faint", style: { "border-opacity": num("--c-graph-dim"), "text-opacity": num("--c-graph-dim"),
-          "background-opacity": num("--c-graph-box-fill-opacity") * num("--c-graph-dim") } },
-        { selector: "node:parent.selected", style: { "border-width": num("--c-graph-selected-border-width"),
-          "border-color": prop("--c-graph-selected-border") } },
+        { selector: "node:parent.faint", style: { "border-opacity": num(CSS_VAR_C_GRAPH_DIM), "text-opacity": num(CSS_VAR_C_GRAPH_DIM),
+          [STYLE_BACKGROUND_OPACITY]: num(CSS_VAR_C_GRAPH_BOX_FILL_OPACITY) * num(CSS_VAR_C_GRAPH_DIM) } },
+        { selector: "node:parent.selected", style: { [STYLE_BORDER_WIDTH]: num(CSS_VAR_C_GRAPH_SELECTED_BORDER_WIDTH),
+          [STYLE_BORDER_COLOR]: prop(CSS_VAR_C_GRAPH_SELECTED_BORDER) } },
         { selector: "node.header", style: {
-          shape: "rectangle", label: "data(label)", width: "data(width)", height: num("--c-graph-node-height"),
-          "background-opacity": 0, "border-width": 0, color: prop("--c-graph-header-color"),
-          "font-family": prop("--s-font-sans"), "font-size": fontSize, "font-weight": prop("--s-weight-strong"),
-          "text-transform": "uppercase", "text-valign": "center", "text-halign": "center", events: "no" } },
+          shape: "rectangle", label: CY_DATA_LABEL, width: CY_DATA_WIDTH, height: num(CSS_VAR_C_GRAPH_NODE_HEIGHT),
+          [STYLE_BACKGROUND_OPACITY]: 0, [STYLE_BORDER_WIDTH]: 0, color: prop("--c-graph-header-color"),
+          [STYLE_FONT_FAMILY]: prop("--s-font-sans"), [STYLE_FONT_SIZE]: fontSize, [STYLE_FONT_WEIGHT]: prop(CSS_VAR_S_WEIGHT_STRONG),
+          "text-transform": "uppercase", [STYLE_TEXT_VALIGN]: VALUE_CENTER, [STYLE_TEXT_HALIGN]: VALUE_CENTER, events: "no" } },
         ...NODE_TYPES.map((t) => ({ selector: `node.dot[type = "${t}"]`,
-          style: { "background-color": prop(`--s-type-${t.toLowerCase()}`) } })),
-        { selector: "node.dot", style: { label: "", width: num("--c-graph-node-size-file"), height: num("--c-graph-node-size-file"),
-          shape: "ellipse", "background-fill": "solid", "border-width": 0 } },
-        { selector: "edge", style: {
-          width: num("--c-graph-edge-width"), "line-color": prop("--c-graph-edge"), "curve-style": "unbundled-bezier",
+          style: { [STYLE_BACKGROUND_COLOR]: prop(`--s-type-${t.toLowerCase()}`) } })),
+        { selector: "node.dot", style: { label: "", width: num(CSS_VAR_C_GRAPH_NODE_SIZE_FILE), height: num(CSS_VAR_C_GRAPH_NODE_SIZE_FILE),
+          shape: "ellipse", [STYLE_BACKGROUND_FILL]: VALUE_SOLID, [STYLE_BORDER_WIDTH]: 0 } },
+        { selector: VALUE_EDGE, style: {
+          width: num("--c-graph-edge-width"), [STYLE_LINE_COLOR]: prop("--c-graph-edge"), [STYLE_CURVE_STYLE]: "unbundled-bezier",
           "control-point-distances": "data(curve)", "control-point-weights": BOW_WEIGHT, opacity: num("--s-opacity-muted") } },
         ...Object.entries(EDGE_LOOK).map(([kind, look]) => ({ selector: EDGE_SELECTOR[kind] || `edge[kind = "${kind}"]`,
           style: edgeLook(look) })),
         // Calls: straight, the cheapest edge that still carries an arrow (DEC-TRC-017).
-        { selector: 'edge[kind = "calls"]', style: { "curve-style": "straight" } },
-        { selector: ".dim", style: { opacity: num("--c-graph-dim") } },
+        { selector: 'edge[kind = "calls"]', style: { [STYLE_CURVE_STYLE]: "straight" } },
+        { selector: ".dim", style: { opacity: num(CSS_VAR_C_GRAPH_DIM) } },
         { selector: ".faded", style: { opacity: num("--c-graph-faded") } },
         // A link away from the selection is a faint trace without arrow: only the selection's links stand out.
-        { selector: "edge.faded", style: { opacity: num("--c-graph-edge-faded"), "target-arrow-shape": "none" } },
+        { selector: "edge.faded", style: { opacity: num("--c-graph-edge-faded"), [STYLE_TARGET_ARROW_SHAPE]: VALUE_NONE } },
         // A highlighted link keeps its relation's colour (RQ-TRC-044): wider and opaque only.
         { selector: "edge.near", style: { width: num("--c-graph-edge-width-highlight"), opacity: 1 } },
-        { selector: "node.item.selected", style: { "border-width": num("--c-graph-selected-border-width"),
-          "border-color": prop("--c-graph-selected-border"), "font-weight": prop("--s-weight-bold") } },
-        { selector: "node.item.hover", style: { "border-width": num("--c-graph-node-border-width") } },
+        { selector: "node.item.selected", style: { [STYLE_BORDER_WIDTH]: num(CSS_VAR_C_GRAPH_SELECTED_BORDER_WIDTH),
+          [STYLE_BORDER_COLOR]: prop(CSS_VAR_C_GRAPH_SELECTED_BORDER), [STYLE_FONT_WEIGHT]: prop("--s-weight-bold") } },
+        { selector: "node.item.hover", style: { [STYLE_BORDER_WIDTH]: num("--c-graph-node-border-width") } },
       ];
     }
 
@@ -516,9 +627,9 @@
 
     function edgeLook(look) {
       const colour = prop(look.colour);
-      return { "line-style": look.dash ? "dashed" : "solid", ...(look.dash ? { "line-dash-pattern": dashOf(look) } : {}),
-        "line-cap": look.dash === EDGE_LOOK.code.dash ? "round" : "butt", "line-color": colour,
-        "target-arrow-shape": look.arrow, "target-arrow-color": colour, "arrow-scale": num("--c-graph-arrow-scale") };
+      return { "line-style": look.dash ? VALUE_DASHED : VALUE_SOLID, ...(look.dash ? { "line-dash-pattern": dashOf(look) } : {}),
+        "line-cap": look.dash === EDGE_LOOK.code.dash ? VALUE_ROUND : VALUE_BUTT, [STYLE_LINE_COLOR]: colour,
+        [STYLE_TARGET_ARROW_SHAPE]: look.arrow, "target-arrow-color": colour, "arrow-scale": num(CSS_VAR_C_GRAPH_ARROW_SCALE) };
     }
 
     // The legend's sample of a relation: the same dash, colour, width, opacity and arrow as the graph draws it.
@@ -529,7 +640,7 @@
         Object.entries(attributes).forEach(([k, v]) => node.setAttribute(k, String(v)));
         return node;
       };
-      const scale = num("--c-graph-arrow-scale");          // the graph's arrow size, so the sample's matches it
+      const scale = num(CSS_VAR_C_GRAPH_ARROW_SCALE);          // the graph's arrow size, so the sample's matches it
       const middle = SAMPLE_HEIGHT / 2;
       const half = middle * scale;
       const length = SAMPLE_ARROW * scale;
@@ -538,20 +649,20 @@
       const head = look.arrow === "vee"
         ? `${base},${middle - half} ${tip},${middle} ${base},${middle + half} ${base + length / 2},${middle}`
         : `${base},${middle - half} ${tip},${middle} ${base},${middle + half}`;
-      const line = svg("line", { x1: 0, y1: middle, x2: base, y2: middle, "stroke-width": num("--c-graph-legend-edge-width"),   // a little thicker than the graph's, to read
-        "stroke-dasharray": dashOf(look).join(" ") || "none",
-        "stroke-linecap": look.dash === EDGE_LOOK.code.dash ? "round" : "butt" });
+      const line = svg(VALUE_LINE, { x1: 0, y1: middle, x2: base, y2: middle, "stroke-width": num("--c-graph-legend-edge-width"),   // a little thicker than the graph's, to read
+        "stroke-dasharray": dashOf(look).join(" ") || VALUE_NONE,
+        "stroke-linecap": look.dash === EDGE_LOOK.code.dash ? VALUE_ROUND : VALUE_BUTT });
       line.style.stroke = `var(${look.colour})`;
       const arrow = svg("polygon", { points: head });
       arrow.style.fill = `var(${look.colour})`;
-      const box = svg("svg", { class: "legend-edge", viewBox: `0 0 ${SAMPLE_WIDTH} ${SAMPLE_HEIGHT}`, "aria-hidden": "true" });
+      const box = svg("svg", { class: "legend-edge", viewBox: `0 0 ${SAMPLE_WIDTH} ${SAMPLE_HEIGHT}`, "aria-hidden": VALUE_TRUE });
       box.append(line, arrow);
       return box;
     }
 
     // RQ-TRC-048: the specification hierarchy only when asked; a file's "defines" goes with the file (nodeAllowed).
-    function edgeAllowed(l) { return l.kind !== "contains" || showHierarchy(); }
-    function nodeAllowed(node) { return isVisible(node) && (node.type !== "FILE" || showFiles()); }
+    function edgeAllowed(l) { return l.kind !== VALUE_CONTAINS || showHierarchy(); }
+    function nodeAllowed(node) { return isVisible(node) && (node.type !== TYPE_FILE || showFiles()); }
 
     // Every neighbour of a node: its links, and for a function its calls (from the typed arrays).
     function eachNeighbour(key, visit) {
@@ -583,7 +694,7 @@
     // An edge between two nodes of one column bows out to the left of it, so that it does not run over the column.
     function bow(from, to) {
       if (!from || !to || from.x !== to.x) return 0;
-      const size = Math.abs(to.y - from.y) * BOW_RATIO + num("--c-graph-node-height");
+      const size = Math.abs(to.y - from.y) * BOW_RATIO + num(CSS_VAR_C_GRAPH_NODE_HEIGHT);
       return to.y > from.y ? size : -size;
     }
 
@@ -594,7 +705,7 @@
         for (const l of links.get(key)) {
           if (l.dir === "out" && kept.has(l.key) && edgeAllowed(l)) {
             const curve = positions ? bow(positions.get(key), positions.get(l.key)) : 0;
-            edges.push({ group: "edges", data: { id: `${key}>${l.key}>${l.kind}`, source: key, target: l.key, kind: l.kind,
+            edges.push({ group: VALUE_EDGES, data: { id: `${key}>${l.key}>${l.kind}`, source: key, target: l.key, kind: l.kind,
               curve } });
           }
         }
@@ -642,8 +753,8 @@
       const add = (from, to, kind) => {
         const id = `${from}>${to}>${kind}`;
         if (!edges.has(id)) {
-          const curve = kind === "calls" ? 0 : bow(positions.get(from), positions.get(to));
-          edges.set(id, { group: "edges", data: { id, source: from, target: to, kind, curve } });
+          const curve = kind === VALUE_CALLS ? 0 : bow(positions.get(from), positions.get(to));
+          edges.set(id, { group: VALUE_EDGES, data: { id, source: from, target: to, kind, curve } });
         }
         return edges.get(id).data;
       };
@@ -661,12 +772,12 @@
       for (const l of links.get(key)) if (l.dir === "out" && edgeAllowed(l) && to(l.key) !== from) add(from, to(l.key), l.kind);
       const index = calls.index.get(key);
       for (const c of index === undefined ? [] : calls.callees(index)) {
-        if (to(c.key) !== from) mergeCall(add(from, to(c.key), "calls"), c, `${key}:`, sites);
+        if (to(c.key) !== from) mergeCall(add(from, to(c.key), VALUE_CALLS), c, `${key}:`, sites);
       }
     }
 
     function pillWidth(label) {
-      return label.length * num("--c-graph-label-size") * MONO_CHAR_RATIO + 2 * num("--c-graph-node-padding");
+      return label.length * num(CSS_VAR_C_GRAPH_LABEL_SIZE) * MONO_CHAR_RATIO + 2 * num("--c-graph-node-padding");
     }
 
     // The flow's columns. Around a selected function, its column splits in three — callers, the function, callees —
@@ -709,19 +820,19 @@
       const placed = boxed ? boxedRows(shown, chains, flow.left, widest, c) : gridRows(shown, flow.left, widest);
       const centre = flow.left + placed.span / 2;
       const header = `${name} · ${keys.length}`;
-      flow.elements.push({ group: "nodes", classes: "header", data: { id: `header:${c}`, label: header, width: pillWidth(header) },
+      flow.elements.push({ group: VALUE_NODES, classes: TAG_HEADER, data: { id: `header:${c}`, label: header, width: pillWidth(header) },
         position: { x: centre, y: -num("--c-graph-header-gap") } });
       for (const [id, frame] of placed.frames) {
         const box = boxes.get(frame.box);
         const label = frame.parent ? clip(nameIn(box.label, boxName(frame.outer))) : shortLabel(box);
-        flow.elements.push({ group: "nodes", classes: `box box-${box.box}`, data: { id, label, name: box.label, box: box.box,
+        flow.elements.push({ group: VALUE_NODES, classes: `box box-${box.box}`, data: { id, label, name: box.label, box: box.box,
           boxKey: frame.box, ...(frame.parent ? { parent: frame.parent } : {}) } });
       }
       shown.forEach((key, i) => {
         const n = nodeOf(key);
         const position = placed.points[i];
         const parent = placed.parents[i];
-        flow.elements.push({ group: "nodes", classes: n.box ? `item box box-${n.box}` : "item", data: { id: key, type: n.type,
+        flow.elements.push({ group: VALUE_NODES, classes: n.box ? `item box box-${n.box}` : VALUE_ITEM_2, data: { id: key, type: n.type,
           label: labels[i], name: n.label, width: pillWidth(labels[i]), level: flow.levels.get(key),
           ...(n.box ? { box: n.box } : {}), ...(parent ? { parent } : {}) }, position });
         flow.positions.set(key, position);
@@ -729,7 +840,7 @@
       });
       if (keys.length > shown.length) {
         const more = `+${keys.length - shown.length} more`;
-        flow.elements.push({ group: "nodes", classes: "header", data: { id: `more:${c}`, label: more, width: pillWidth(more) },
+        flow.elements.push({ group: VALUE_NODES, classes: TAG_HEADER, data: { id: `more:${c}`, label: more, width: pillWidth(more) },
           position: { x: centre, y: placed.bottom } });
       }
       flow.left += Math.max(placed.span, pillWidth(header)) + num("--c-graph-column-gap");
@@ -737,7 +848,7 @@
 
     // Pills in rows, a taller column wrapping into sub-columns.
     function gridRows(shown, left, widest) {
-      const rowGap = num("--c-graph-row-gap");
+      const rowGap = num(CSS_VAR_C_GRAPH_ROW_GAP);
       const subColumns = Math.ceil(shown.length / MAX_ROWS);
       const rows = Math.ceil(shown.length / subColumns);
       const step = widest + num("--c-graph-sub-gap");
@@ -748,9 +859,9 @@
     // Pills one under the other, each run of one box kept together, room left for the frames that close and open
     // between two pills; a box drawn as a pill of this column is its own frame, the others get one per column.
     function boxedRows(shown, chains, left, widest, c) {
-      const rowGap = num("--c-graph-row-gap");
-      const pad = num("--c-graph-box-padding");
-      const open = pad + num("--c-graph-box-label-size") + num("--c-graph-box-label-gap");
+      const rowGap = num(CSS_VAR_C_GRAPH_ROW_GAP);
+      const pad = num(CSS_VAR_C_GRAPH_BOX_PADDING);
+      const open = pad + num(CSS_VAR_C_GRAPH_BOX_LABEL_SIZE) + num(CSS_VAR_C_GRAPH_BOX_LABEL_GAP);
       const depth = Math.max(...shown.map((key) => chains.get(key).length));
       const items = new Set(shown);
       const frameId = (box) => (items.has(box) ? box : `${box}@${c}`);
@@ -778,7 +889,7 @@
 
     function wholeElements() {
       const keys = [...nodes.keys()].filter((k) => nodeAllowed(nodes.get(k)));
-      return { elements: [...keys.map((key) => ({ group: "nodes", classes: "item dot",
+      return { elements: [...keys.map((key) => ({ group: VALUE_NODES, classes: "item dot",
         data: { id: key, type: nodes.get(key).type, label: shortLabel(nodes.get(key)), width: 0 } })), ...edgesAmong(keys)],
       drawn: keys.length, total: keys.length };
     }
@@ -790,26 +901,26 @@
         boxSelectionEnabled: false, autoungrabify: true, hideEdgesOnViewport: Boolean(CALL_GRAPH) });   // DEC-TRC-017
       // A pill selects its element; a frame selects its box (DEC-TRC-022). A tap bubbles to the frames around its
       // target, which keeps the target: one selection.
-      cy.on("tap", "node.item, node.box", (event) => select(event.target.data("boxKey") || event.target.id()));
-      cy.on("mouseover", "node.item", (event) => {
+      cy.on("tap", "node.item, node.box", (event) => select(event.target.data(VALUE_BOXKEY) || event.target.id()));
+      cy.on(EVENT_MOUSEOVER, VALUE_NODE_ITEM, (event) => {
         const n = nodeOf(event.target.id());
-        event.target.addClass("hover");
-        event.target.connectedEdges().addClass("near");
+        event.target.addClass(VALUE_HOVER);
+        event.target.connectedEdges().addClass(VALUE_NEAR);
         container.title = n.title ? `${n.label} — ${n.title}` : n.label;
       });
-      cy.on("mouseout", "node.item", (event) => {
-        event.target.removeClass("hover");
-        if (event.target.id() !== centre) event.target.connectedEdges().removeClass("near");
+      cy.on(EVENT_MOUSEOUT, VALUE_NODE_ITEM, (event) => {
+        event.target.removeClass(VALUE_HOVER);
+        if (event.target.id() !== centre) event.target.connectedEdges().removeClass(VALUE_NEAR);
         highlight(centre);
         container.title = "";
       });
       // RQ-TRC-046: a link's tooltip once the pointer rests on it for the token delay.
-      cy.on("mouseover", "edge", (event) => {
+      cy.on(EVENT_MOUSEOVER, VALUE_EDGE, (event) => {
         clearTimeout(tipTimer);
         const at = event.renderedPosition;
         tipTimer = setTimeout(() => showTip(event.target.id(), at), num("--c-graph-tip-delay"));
       });
-      cy.on("mouseout", "edge", hideTip);
+      cy.on(EVENT_MOUSEOUT, VALUE_EDGE, hideTip);
       cy.on("viewport", hideTip);
       return cy;
     }
@@ -818,24 +929,24 @@
     function tipFor(edgeId) {
       const edge = cy.getElementById(edgeId);
       const kind = edge.data("kind");
-      const look = kind === "calls" && edge.data("ambiguous") ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind];
+      const look = kind === VALUE_CALLS && edge.data("ambiguous") ? EDGE_LOOK.ambiguous : EDGE_LOOK[kind];
       const source = edge.data("source");
       const target = edge.data("target");
       const merged = edge.data("count");               // a link merging calls between boxes (DEC-TRC-021)
       let proofs = merged ?? 0;
-      if (merged === undefined && kind === "calls") proofs = callSites(source, target);
+      if (merged === undefined && kind === VALUE_CALLS) proofs = callSites(source, target);
       else if (merged === undefined && links.has(source)) {
         proofs = links.get(source).filter((l) => l.dir === "out" && l.key === target && l.kind === kind)
           .reduce((sum, l) => sum + l.lines.length, 0);
       }
-      let unit = proofs === 1 ? "line" : "lines";
-      if (merged !== undefined) unit = proofs === 1 ? "call site" : "call sites";      // RQ-TRC-046: the merged count
+      let unit = proofs === 1 ? VALUE_LINE : "lines";
+      if (merged !== undefined) unit = proofs === 1 ? VALUE_CALL_SITE : VALUE_CALL_SITES;      // RQ-TRC-046: the merged count
       const lines = proofs ? ` · ${proofs} ${unit}` : "";
       return `${look.meaning}: ${nodeOf(source).label} → ${nodeOf(target).label}${lines}`;
     }
 
     function showTip(edgeId, at) {
-      const scroller = $("graph-scroll");
+      const scroller = $(VALUE_GRAPH_SCROLL);
       tip.textContent = tipFor(edgeId);
       tip.style.left = `${at.x - scroller.scrollLeft}px`;
       tip.style.top = `${at.y - scroller.scrollTop}px`;
@@ -850,17 +961,17 @@
     function highlight(key) {
       cy.elements().removeClass("selected near faded dim faint");
       // The drawn node, or the frames of a selected box with what they hold (DEC-TRC-022).
-      const frames = key ? cy.nodes().filter((n) => n.data("boxKey") === key && !n.hasClass("item")) : cy.collection();
+      const frames = key ? cy.nodes().filter((n) => n.data(VALUE_BOXKEY) === key && !n.hasClass(VALUE_ITEM_2)) : cy.collection();
       const own = key ? cy.getElementById(key).union(frames) : cy.collection();
       const centre = own.union(frames.descendants());
       if (centre.empty()) return;
       const near = centre.closedNeighborhood();
-      cy.nodes(".item").not(near).addClass(whole ? "faded" : "dim");
+      cy.nodes(VALUE_ITEM).not(near).addClass(whole ? VALUE_FADED : "dim");
       // DEC-TRC-020: a frame holding nothing near the selection is faint like its pills, not a veil drawn over them.
-      cy.nodes(".box").not(".item").filter((frame) => frame.descendants(".item").intersection(near).empty()).addClass("faint");
-      cy.edges().not(centre.connectedEdges()).addClass("faded");
-      own.addClass("selected");
-      centre.connectedEdges().addClass("near");
+      cy.nodes(".box").not(VALUE_ITEM).filter((frame) => frame.descendants(VALUE_ITEM).intersection(near).empty()).addClass("faint");
+      cy.edges().not(centre.connectedEdges()).addClass(VALUE_FADED);
+      own.addClass(VALUE_SELECTED);
+      centre.connectedEdges().addClass(VALUE_NEAR);
     }
 
     function draw() {
@@ -896,13 +1007,13 @@
     // Fit the drawing; in the flow view never below a readable zoom: the canvas then grows to the whole flow at that
     // zoom and the frame scrolls to its top-left corner (RQ-TRC-042).
     function frame() {
-      const padding = num("--s-space-xl");
+      const padding = num(CSS_VAR_S_SPACE_XL);
       fitCanvas();
       cy.fit(undefined, padding);
       const floor = num("--c-graph-flow-min-zoom");
       if (!whole && cy.zoom() < floor) {
         const box = cy.elements().boundingBox();
-        const scroller = $("graph-scroll");
+        const scroller = $(VALUE_GRAPH_SCROLL);
         container.style.width = `${Math.ceil(Math.max(scroller.clientWidth, box.w * floor + 2 * padding))}px`;
         container.style.height = `${Math.ceil(Math.max(scroller.clientHeight, box.h * floor + 2 * padding))}px`;
         cy.resize();
@@ -915,47 +1026,47 @@
 
     // The canvas back to the frame's size.
     function fitCanvas() {
-      container.style.removeProperty("width");
+      container.style.removeProperty(VALUE_WIDTH);
       container.style.removeProperty("height");
       cy.resize();
     }
 
-    const visible = () => state.view === "graph";
+    const visible = () => state.view === VALUE_GRAPH;
 
-    $("depth").addEventListener("click", (event) => {
-      const b = event.target.closest("button");
+    $(VALUE_DEPTH).addEventListener(EVENT_CLICK, (event) => {
+      const b = event.target.closest(TAG_BUTTON);
       if (!b) return;
       depth = Number(b.dataset.depth);
-      for (const other of $("depth").querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === b));
+      for (const other of $(VALUE_DEPTH).querySelectorAll(TAG_BUTTON)) other.setAttribute(VALUE_ARIA_PRESSED, String(other === b));
       whole = false;
       dirty = true;
       if (visible()) draw();          // a hidden frame has no size: drawn when the view is shown
     });
-    $("show-files").addEventListener("change", () => draw());
+    $(VALUE_SHOW_FILES).addEventListener(EVENT_CHANGE, () => draw());
     if (CALL_GRAPH) {       // RQ-TRC-041: the Function type filter, at hand in the graph's own toolbar
-      const toggle = el("input", { type: "checkbox", id: "show-functions" });
-      toggle.addEventListener("change", () => {
+      const toggle = el(DOM_INPUT, { type: VALUE_CHECKBOX, id: VALUE_SHOW_FUNCTIONS });
+      toggle.addEventListener(EVENT_CHANGE, () => {
         if (toggle.checked) state.types.add("FN"); else state.types.delete("FN");
         renderFilters();
         filtersChanged();
       });
-      $("show-files").closest("label").after(el("label", { class: "toggle", title: IMPLEMENTATION_HINT }, toggle,
+      $(VALUE_SHOW_FILES).closest(TAG_LABEL).after(el(TAG_LABEL, { class: VALUE_TOGGLE, title: IMPLEMENTATION_HINT }, toggle,
         " Implementation"));                                   // RQ-TRC-048
     }
     if (CALL_GRAPH) {       // RQ-TRC-047, RQ-TRC-048, DEC-TRC-022: the implementation detail and the enclosing scopes
-      const choice = el("fieldset", { class: "segmented", id: "detail-level", "aria-label": "Implementation detail",
+      const choice = el("fieldset", { class: "segmented", id: VALUE_DETAIL_LEVEL, [VALUE_ARIA_LABEL]: VALUE_IMPLEMENTATION_DETAIL,
         title: DETAIL_HINT },
-      el("span", { class: "segmented-label", text: "Implementation detail" }),
-      ...DETAIL_CHOICES.map(([level, label, hint]) => el("button", { type: "button", "data-detail": level,
-        "aria-pressed": String(level === detail), title: hint, text: label })));
-      choice.addEventListener("click", (event) => {
-        const b = event.target.closest("button");
+      el(TAG_SPAN, { class: "segmented-label", text: VALUE_IMPLEMENTATION_DETAIL }),
+      ...DETAIL_CHOICES.map(([level, label, hint]) => el(TAG_BUTTON, { type: TAG_BUTTON, "data-detail": level,
+        [VALUE_ARIA_PRESSED]: String(level === detail), title: hint, text: label })));
+      choice.addEventListener(EVENT_CLICK, (event) => {
+        const b = event.target.closest(TAG_BUTTON);
         if (b) applyDetail(b.dataset.detail);
       });
-      const box = el("input", { type: "checkbox", id: "show-enclosing", checked: true });
-      box.addEventListener("change", () => applyEnclosing(box.checked));
+      const box = el(DOM_INPUT, { type: VALUE_CHECKBOX, id: VALUE_SHOW_ENCLOSING, checked: true });
+      box.addEventListener(EVENT_CHANGE, () => applyEnclosing(box.checked));
       $("display").after(choice);                         // Depth, Display, Implementation detail: the reading order
-      $("show-hierarchy").closest("label").after(el("label", { class: "toggle", title: ENCLOSING_HINT }, box,
+      $(VALUE_SHOW_HIERARCHY).closest(TAG_LABEL).after(el(TAG_LABEL, { class: VALUE_TOGGLE, title: ENCLOSING_HINT }, box,
         " Enclosing scopes"));
       syncImplementationControls();
     }
@@ -965,18 +1076,18 @@
     function syncImplementationControls() {
       if (!CALL_GRAPH) return;
       const drawn = state.types.has("FN");
-      const choice = $("detail-level");
+      const choice = $(VALUE_DETAIL_LEVEL);
       choice.disabled = !drawn;
       choice.title = drawn ? DETAIL_HINT : DETAIL_OFF_HINT;
-      const box = $("show-enclosing");
+      const box = $(VALUE_SHOW_ENCLOSING);
       box.disabled = !drawn || detail === DETAIL.namespace;
-      box.closest("label").classList.toggle("is-disabled", box.disabled);
+      box.closest(TAG_LABEL).classList.toggle("is-disabled", box.disabled);
     }
 
     // The level of detail, its button pressed.
     function applyDetail(level) {
       detail = level;
-      for (const b of document.querySelectorAll("#detail-level button")) b.setAttribute("aria-pressed", String(b.dataset.detail === level));
+      for (const b of document.querySelectorAll("#detail-level button")) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.detail === level));
       syncImplementationControls();
       dirty = true;
       if (visible()) draw();
@@ -984,29 +1095,29 @@
 
     function applyEnclosing(on) {
       enclosing = on;
-      if ($("show-enclosing")) $("show-enclosing").checked = on;
+      if ($(VALUE_SHOW_ENCLOSING)) $(VALUE_SHOW_ENCLOSING).checked = on;
       dirty = true;
       if (visible()) draw();
     }
-    $("show-hierarchy").addEventListener("change", () => draw());
-    $("fit").addEventListener("click", () => {          // the whole drawing in the frame, any zoom
+    $(VALUE_SHOW_HIERARCHY).addEventListener(EVENT_CHANGE, () => draw());
+    $("fit").addEventListener(EVENT_CLICK, () => {          // the whole drawing in the frame, any zoom
       if (!cy) return;
       fitCanvas();
-      cy.fit(undefined, num("--s-space-xl"));
+      cy.fit(undefined, num(CSS_VAR_S_SPACE_XL));
     });
-    $("whole").addEventListener("click", () => {
+    $("whole").addEventListener(EVENT_CLICK, () => {
       const count = [...nodes.values()].filter(nodeAllowed).length;
       if (count > WHOLE_GRAPH_WARN && !window.confirm(`Draw all ${count} elements? The layout may take a while.`)) return;
       whole = true;
       draw();
     });
 
-    clear($("legend")).append(...NODE_TYPES.map((t) => el("span", { class: "legend-item" },
-      el("span", { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
-    ...Object.values(EDGE_LOOK).map((look) => el("span", { class: "legend-item", title: look.meaning },
+    clear($("legend")).append(...NODE_TYPES.map((t) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM },
+      el(TAG_SPAN, { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
+    ...Object.values(EDGE_LOOK).map((look) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM, title: look.meaning },
       edgeSample(look), look.meaning)),
-    ...(CALL_GRAPH ? BOX_KINDS.map((kind) => el("span", { class: "legend-item", title: BOX_HINT[kind] },   // RQ-TRC-047
-      el("span", { class: `legend-box box-${kind}` }), BOX_NAME[kind])) : []));
+    ...(CALL_GRAPH ? BOX_KINDS.map((kind) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM, title: BOX_HINT[kind] },   // RQ-TRC-047
+      el(TAG_SPAN, { class: `legend-box box-${kind}` }), BOX_NAME[kind])) : []));
 
     return {
       tipFor,
@@ -1031,7 +1142,7 @@
   function renderHeader() {
     const meta = DATA.meta;
     const item = (label, value, title) => el("div", { class: "meta-item", title: title || value },
-      el("span", { class: "meta-label", text: label }), el("span", { class: "meta-value", text: value }));
+      el(TAG_SPAN, { class: "meta-label", text: label }), el(TAG_SPAN, { class: "meta-value", text: value }));
     clear($("meta")).append(item("Generated", meta.generatedAt), item("Process", meta.process),
       item("Sources", meta.sources.join(", ")));
     $("about").append(el("div", { text: `Generated by agnos-trace · graph by ${meta.library} (MIT)` }));
@@ -1047,70 +1158,70 @@
 
   function stackBar(c, total) {
     return el("div", { class: "stack", role: "img",
-      "aria-label": `${c.covered} covered, ${c.indirect} indirect, ${c.uncovered} uncovered of ${total}` },
+      [VALUE_ARIA_LABEL]: `${c.covered} covered, ${c.indirect} indirect, ${c.uncovered} uncovered of ${total}` },
       ...Object.keys(COVERAGE).map((k) => el("div", { class: `stack-part stack-${k}`, title: `${COVERAGE[k][0]}: ${c[k]}`,
         style: { width: `${total ? (PERCENT * c[k]) / total : 0}%` } })));
   }
 
   function searchPrefix(type) {
-    if (type === "FILE") return FILE_PREFIX;
-    if (type === "UNDEFINED" || type === "FN") return "";
+    if (type === TYPE_FILE) return FILE_PREFIX;
+    if (type === TYPE_UNDEFINED || type === "FN") return "";
     return `${type}-`;
   }
 
   function renderOverview() {
     const c = coverageCounts(requirements);
     const total = requirements.length;
-    const coverageCard = el("article", { class: "card kpi" },
-      el("span", { class: "kpi-label", text: "Requirements covered by source" }),
-      el("span", { class: "kpi-value", text: `${pct(c.covered, total)} %` }),
-      el("span", { class: "kpi-sub", text: `${c.covered} of ${total} cited by a source file · ${c.indirect} more indirectly` }));
-    const typeTiles = el("article", { class: "card kpis-types" },
-      ...NODE_TYPES.map((t) => el("button", { class: `kpi-type t-${t}`, type: "button",
+    const coverageCard = el(TAG_ARTICLE, { class: "card kpi" },
+      el(TAG_SPAN, { class: "kpi-label", text: "Requirements covered by source" }),
+      el(TAG_SPAN, { class: "kpi-value", text: `${pct(c.covered, total)} %` }),
+      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${c.covered} of ${total} cited by a source file · ${c.indirect} more indirectly` }));
+    const typeTiles = el(TAG_ARTICLE, { class: "card kpis-types" },
+      ...NODE_TYPES.map((t) => el(TAG_BUTTON, { class: `kpi-type t-${t}`, type: TAG_BUTTON,
         title: `Search ${plural(t, 2).toLowerCase()}`, on: { click: () => searchFor(searchPrefix(t), t) } },
-        el("span", { class: "kpi-type-value", text: counts[t] }), el("span", { class: "kpi-type-label", text: plural(t, counts[t]) }))));
+        el(TAG_SPAN, { class: "kpi-type-value", text: counts[t] }), el(TAG_SPAN, { class: "kpi-type-label", text: plural(t, counts[t]) }))));
     clear($("kpis")).append(coverageCard, typeTiles);
 
     clear($("coverage-chart")).append(stackBar(c, total), el("div", { class: "coverage-legend" },
-      ...Object.keys(COVERAGE).map((k) => el("button", { class: "coverage-item", type: "button", title: COVERAGE[k][1],
-        on: { click: () => { setCoverageFilter(k); showView("matrix"); } } },
-        el("span", { class: "coverage-item-label" }, el("span", { class: `legend-swatch stack-${k}` }), COVERAGE[k][0]),
-        el("span", { class: "coverage-item-value", text: `${c[k]}` }),
-        el("span", { class: "kpi-sub", text: `${pct(c[k], total)} % of ${total}` })))));
+      ...Object.keys(COVERAGE).map((k) => el(TAG_BUTTON, { class: VALUE_COVERAGE_ITEM, type: TAG_BUTTON, title: COVERAGE[k][1],
+        on: { click: () => { setCoverageFilter(k); showView(VALUE_MATRIX); } } },
+        el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL }, el(TAG_SPAN, { class: `legend-swatch stack-${k}` }), COVERAGE[k][0]),
+        el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: `${c[k]}` }),
+        el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${pct(c[k], total)} % of ${total}` })))));
 
     clear($("quality-summary")).append(el("div", { class: "check-rows" }, ...CHECKS.map((check) =>
-      el("button", { class: "check-row", type: "button", on: { click: () => openCheck(check.key) } },
-        el("span", { class: "check-row-label", text: check.title }),
-        el("span", { class: "check-row-hint", text: check.rule }),
-        el("span", { class: checkBadgeClass(check), text: check.findings.length })))));
+      el(TAG_BUTTON, { class: "check-row", type: TAG_BUTTON, on: { click: () => openCheck(check.key) } },
+        el(TAG_SPAN, { class: "check-row-label", text: check.title }),
+        el(TAG_SPAN, { class: "check-row-hint", text: check.rule }),
+        el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
 
     const rows = trigrams.map((tri) => {
       const list = requirements.filter((r) => r.tri === tri);
       const tc = coverageCounts(list);
       return el("tr", { title: `Show the requirements of ${tri} in the matrix`, on: { click: () => onlyTrigram(tri) } },
-        el("td", {}, el("span", { class: "id", text: tri })),
+        el("td", {}, el(TAG_SPAN, { class: "id", text: tri })),
         el("td", { class: "num", text: list.length }), el("td", { class: "num", text: tc.covered }),
         el("td", { class: "num", text: tc.indirect }), el("td", { class: "num", text: tc.uncovered }),
         el("td", { class: "num", text: list.length ? `${pct(tc.covered, list.length)} %` : "—" }),
         el("td", { class: "bar-cell" }, stackBar(tc, list.length)));
     });
-    clear($("tri-table")).append(el("table", { class: "simple" },
-      el("thead", {}, el("tr", {}, ...["Trigram", "Requirements", "Covered", "Indirect", "Uncovered", "Coverage", ""].map(
+    clear($(VALUE_TRI_TABLE)).append(el("table", { class: "simple" },
+      el(TAG_THEAD, {}, el("tr", {}, ...["Trigram", "Requirements", "Covered", "Indirect", "Uncovered", "Coverage", ""].map(
         (h, i) => el("th", { class: i > 0 && i < 6 ? "num" : null, text: h })))),
-      el("tbody", {}, rows)));
-    if (CALL_GRAPH) $("tri-table").closest(".card").before(callGraphCard());
+      el(TAG_TBODY, {}, rows)));
+    if (CALL_GRAPH) $(VALUE_TRI_TABLE).closest(".card").before(callGraphCard());
   }
 
   // RQ-TRC-035: the call graph's counts; the untraced functions are an informational check, not counted among the findings.
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
-    const item = (label, value, hint, onClick) => el(onClick ? "button" : "div",
-      { class: "coverage-item", type: onClick ? "button" : null, title: hint, on: onClick ? { click: onClick } : null },
-      el("span", { class: "coverage-item-label", text: label }), el("span", { class: "coverage-item-value", text: value }),
-      el("span", { class: "kpi-sub", text: hint }));
-    return el("article", { class: "card card-wide" },
-      el("header", { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
-        el("span", { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
+    const item = (label, value, hint, onClick) => el(onClick ? TAG_BUTTON : "div",
+      { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, title: hint, on: onClick ? { click: onClick } : null },
+      el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
+      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint }));
+    return el(TAG_ARTICLE, { class: "card card-wide" },
+      el(TAG_HEADER, { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
+        el(TAG_SPAN, { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
       el("div", { class: "coverage-legend call-graph-legend" },
         item("Functions", c.functions, "search them by name", () => searchFor("", "FN")),
         item("Call links", c.calls, "one per caller and callee"),
@@ -1121,9 +1232,9 @@
 
   // ---- sidebar ------------------------------------------------------------------------------------------------
   function chip(label, count, pressed, onClick, cls, title) {
-    return el("button", { class: `chip ${cls || ""}`, type: "button", "aria-pressed": String(pressed), title,
+    return el(TAG_BUTTON, { class: `chip ${cls || ""}`, type: TAG_BUTTON, [VALUE_ARIA_PRESSED]: String(pressed), title,
       on: { click: onClick } },
-    cls ? el("span", { class: `dot ${cls}` }) : null, label, el("span", { class: "chip-count", text: count }));
+    cls ? el(TAG_SPAN, { class: `dot ${cls}` }) : null, label, el(TAG_SPAN, { class: "chip-count", text: count }));
   }
 
   // RQ-TRC-045: what a filter does, said where it is.
@@ -1132,17 +1243,17 @@
     : `Show or hide ${plural(t, 2).toLowerCase()} in the search and the graph`);
 
   function renderFilters() {
-    if (CALL_GRAPH) $("show-functions").checked = state.types.has("FN");
+    if (CALL_GRAPH) $(VALUE_SHOW_FUNCTIONS).checked = state.types.has("FN");
     clear($("type-filters")).append(...NODE_TYPES.map((t) => chip(plural(t, 2), counts[t], state.types.has(t), () => {
       toggle(state.types, t); renderFilters(); filtersChanged();
     }, `t-${t}`, typeHint(t))));
-    const triCount = (tri) => DATA.elements.filter((e) => e.kind === "element" && e.tri === tri).length;
+    const triCount = (tri) => DATA.elements.filter((e) => e.kind === VALUE_ELEMENT && e.tri === tri).length;
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
-    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el("button", { class: "quality-shortcut", type: "button",
-      title: check.rule, on: { click: () => openCheck(check.key) } }, el("span", { text: check.title }),
-      el("span", { class: checkBadgeClass(check), text: check.findings.length })))));
+    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, el(TAG_BUTTON, { class: "quality-shortcut", type: TAG_BUTTON,
+      title: check.rule, on: { click: () => openCheck(check.key) } }, el(TAG_SPAN, { text: check.title }),
+      el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
   }
 
   function toggle(set, value) { if (set.has(value)) set.delete(value); else set.add(value); }
@@ -1153,7 +1264,7 @@
     state.tris = new Set([tri]);
     renderFilters();
     filtersChanged();
-    showView("matrix");
+    showView(VALUE_MATRIX);
   }
 
   // ---- search -------------------------------------------------------------------------------------------------
@@ -1166,7 +1277,7 @@
     if (node.find === q) return 0;
     if (node.find.startsWith(q)) return 1;
     if (node.find.includes(q)) return 2;
-    return node.findTitle.includes(q) ? 3 : -1;
+    return node.findTitle.includes(q) ? RANK_TITLE : RANK_NONE;
   }
 
   // Functions are searched even while their type is off: that filter only keeps them out of the graph (RQ-TRC-033).
@@ -1180,7 +1291,7 @@
       if (r >= 0) found.push([r, typeOrder(node.type), node.label, node]);
     }
     found.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2].localeCompare(b[2]));
-    return found.map((f) => f[3]);
+    return found.map((f) => f[RESULT_NODE]);
   }
 
   // RQ-TRC-049, DEC-TRC-024: a result's tooltip, the page's own, beside the list after the quick delay.
@@ -1195,7 +1306,7 @@
 
   function showSearchTip(item, n) {
     clear(searchTip).append(
-      el("div", { class: "search-tip-kind" }, el("span", { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
+      el("div", { class: "search-tip-kind" }, el(TAG_SPAN, { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
       el("div", { class: "search-tip-name", text: n.label }),
       n.title ? el("div", { class: "search-tip-title", text: n.title }) : null,
       n.doc ? el("div", { class: "search-tip-location", text: `${n.doc}:${n.first}-${n.last}` }) : null);
@@ -1224,29 +1335,29 @@
     active = resultKeys.length ? 0 : -1;
     clear(results).append(...(resultKeys.length ? resultKeys.map((key, i) => {
       const n = nodes.get(key);
-      return el("li", { class: `search-result t-${n.type}`, role: "option", "aria-selected": String(i === active),
+      return el("li", { class: `search-result t-${n.type}`, role: "option", [VALUE_ARIA_SELECTED]: String(i === active),
         on: { mousedown: (event) => { event.preventDefault(); pick(i); },
           mouseenter: (event) => scheduleSearchTip(event.currentTarget, key) } },
-        el("span", { class: "id-link" }, el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: n.label })),
-        n.title ? el("span", { class: "search-result-title", text: n.title }) : null);
-    }) : [el("li", { class: "search-empty", text: "No element matches." })]));
+        el(TAG_SPAN, { class: "id-link" }, el(TAG_SPAN, { class: `dot t-${n.type}` }), el(TAG_SPAN, { class: "id", text: n.label })),
+        n.title ? el(TAG_SPAN, { class: "search-result-title", text: n.title }) : null);
+    }) : [el("li", { class: VALUE_SEARCH_EMPTY, text: "No element matches." })]));
     if (found.length > SEARCH_LIMIT) {
-      results.append(el("li", { class: "search-empty", text: `${found.length - SEARCH_LIMIT} more — refine the search` }));
+      results.append(el("li", { class: VALUE_SEARCH_EMPTY, text: `${found.length - SEARCH_LIMIT} more — refine the search` }));
     }
     results.hidden = false;
-    search.setAttribute("aria-expanded", "true");
+    search.setAttribute(VALUE_ARIA_EXPANDED, VALUE_TRUE);
   }
 
   function closeResults() {
     hideSearchTip();
     results.hidden = true;
-    search.setAttribute("aria-expanded", "false");
+    search.setAttribute(VALUE_ARIA_EXPANDED, "false");
   }
 
   function moveActive(step) {
     if (!resultKeys.length) return;
     active = (active + step + resultKeys.length) % resultKeys.length;
-    [...results.children].forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    [...results.children].forEach((li, i) => li.setAttribute(VALUE_ARIA_SELECTED, String(i === active)));
     results.children[active].scrollIntoView({ block: "nearest" });
     scheduleSearchTip(results.children[active], resultKeys[active]);
   }
@@ -1255,7 +1366,7 @@
     if (i < 0 || i >= resultKeys.length) return;
     closeResults();
     select(resultKeys[i]);
-    if (state.view === "overview") showView("graph");
+    if (state.view === VALUE_OVERVIEW) showView(VALUE_GRAPH);
   }
 
   function searchFor(text, type) {
@@ -1265,34 +1376,34 @@
   }
 
   if (CALL_GRAPH) search.placeholder = "Search ID, title, file or function…";
-  search.addEventListener("input", () => renderResults());
+  search.addEventListener(DOM_INPUT, () => renderResults());
   search.addEventListener("focus", () => { if (search.value.trim()) renderResults(); });
   search.addEventListener("blur", closeResults);
-  search.addEventListener("keydown", (event) => {
+  search.addEventListener(EVENT_KEYDOWN, (event) => {
     if (event.key === "ArrowDown") { event.preventDefault(); moveActive(1); }
     else if (event.key === "ArrowUp") { event.preventDefault(); moveActive(-1); }
     else if (event.key === "Enter") { event.preventDefault(); pick(active); }
     else if (event.key === "Escape") { closeResults(); search.blur(); }
   });
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener(EVENT_KEYDOWN, (event) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if (event.key === "/" && !typing) { event.preventDefault(); search.focus(); search.select(); }
   });
 
   // ---- matrix -------------------------------------------------------------------------------------------------
   // The source files citing an element; a function's citation is one of its file's, not one more (DEC-TRC-018).
-  const fileCitations = (key) => links.get(key).filter((l) => l.kind === "code" && nodes.get(l.key).type === "FILE");
+  const fileCitations = (key) => links.get(key).filter((l) => l.kind === LINK_KIND_CODE && nodes.get(l.key).type === TYPE_FILE);
 
   function matrixRow(rq) {
     const all = links.get(rq.key);
     const ofTypes = (types, dirs) => all.filter((l) => types.includes(nodes.get(l.key).type) && dirs.includes(l.dir)
-      && l.kind !== "code").map((l) => l.key);
+      && l.kind !== LINK_KIND_CODE).map((l) => l.key);
     const cited = fileCitations(rq.key);
     const files = cited.map((l) => l.key);
     const lines = cited.reduce((sum, l) => sum + l.lines.length, 0);
     return {
       node: rq, id: rq.key, title: rq.title, status: rq.status,
-      feature: all.filter((l) => l.kind === "contains" && l.dir === "in").map((l) => l.key),
+      feature: all.filter((l) => l.kind === VALUE_CONTAINS && l.dir === "in").map((l) => l.key),
       decisions: unique(ofTypes(["ADR", "DEC"], ["in", "out"])),
       tasks: unique(ofTypes(["TASK", "PLAN"], ["in"])),
       functions: functionsCiting(rq.key),
@@ -1302,7 +1413,7 @@
 
   // RQ-TRC-041: the functions citing an element, in their lines or the comment just above them.
   function functionsCiting(key) {
-    return unique(links.get(key).filter((l) => l.kind === "code" && l.dir === "in" && nodes.get(l.key).type === "FN")
+    return unique(links.get(key).filter((l) => l.kind === LINK_KIND_CODE && l.dir === "in" && nodes.get(l.key).type === "FN")
       .map((l) => l.key));
   }
 
@@ -1348,22 +1459,22 @@
   }
 
   function idList(keys) {
-    if (!keys.length) return el("span", { class: "cell-empty", text: "—" });
+    if (!keys.length) return el(TAG_SPAN, { class: "cell-empty", text: "—" });
     const shown = keys.slice(0, CELL_LIMIT).map((k) => idButton(k, true));
     return el("div", { class: "cell-list" }, shown,
-      keys.length > CELL_LIMIT ? el("span", { class: "cell-more", text: `+${keys.length - CELL_LIMIT}` }) : null);
+      keys.length > CELL_LIMIT ? el(TAG_SPAN, { class: "cell-more", text: `+${keys.length - CELL_LIMIT}` }) : null);
   }
 
   function idButton(key, short) {
     const n = nodeOf(key);
-    const label = n.type === "FILE" && short ? n.label.split("/").pop() : n.label;
-    return el("button", { class: `id-link t-${n.type}`, type: "button", title: n.title || n.label,
+    const label = n.type === TYPE_FILE && short ? n.label.split("/").pop() : n.label;
+    return el(TAG_BUTTON, { class: `id-link t-${n.type}`, type: TAG_BUTTON, title: n.title || n.label,
       on: { click: (event) => { event.stopPropagation(); select(key); } } },
-      el("span", { class: `dot t-${n.type}` }), el("span", { class: "id", text: label }));
+      el(TAG_SPAN, { class: `dot t-${n.type}` }), el(TAG_SPAN, { class: "id", text: label }));
   }
 
   function coverageBadge(rating) {
-    return el("span", { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
+    return el(TAG_SPAN, { class: `badge badge-${rating}`, title: COVERAGE[rating][1], text: COVERAGE[rating][0] });
   }
 
   // ---- column order (TASK-TRC-040: RQ-TRC-052; DEC-TRC-028) ----------------------------------------------------
@@ -1422,9 +1533,9 @@
     th.addEventListener("dragover", (event) => {
       if (!draggedColumn) return;
       event.preventDefault();
-      th.classList.toggle("drop-target", draggedColumn !== key);
+      th.classList.toggle(VALUE_DROP_TARGET, draggedColumn !== key);
     });
-    th.addEventListener("dragleave", () => th.classList.remove("drop-target"));
+    th.addEventListener("dragleave", () => th.classList.remove(VALUE_DROP_TARGET));
     th.addEventListener("drop", (event) => {
       if (!draggedColumn) return;
       event.preventDefault();
@@ -1432,11 +1543,11 @@
       draggedColumn = null;
       moveColumn(moved, columnOrder.indexOf(key));
     });
-    th.addEventListener("dragend", () => { draggedColumn = null; th.classList.remove("drop-target"); });
-    th.addEventListener("keydown", (event) => {
-      if (!event.altKey || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+    th.addEventListener("dragend", () => { draggedColumn = null; th.classList.remove(VALUE_DROP_TARGET); });
+    th.addEventListener(EVENT_KEYDOWN, (event) => {
+      if (!event.altKey || (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT)) return;
       event.preventDefault();
-      moveColumn(key, columnOrder.indexOf(key) + (event.key === "ArrowRight" ? 1 : -1));
+      moveColumn(key, columnOrder.indexOf(key) + (event.key === KEY_ARROWRIGHT ? 1 : -1));
       document.querySelector(`#matrix-table th[data-column=${key}]`)?.focus();
     });
   }
@@ -1453,16 +1564,16 @@
     const head = el("tr", {}, ...ordered.map((c) => {
       const th = el("th", {
         class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
-        draggable: "true", tabindex: "0", title: `${c.hint} · click to sort · drag, or Alt+arrow, to move`,
+        draggable: VALUE_TRUE, tabindex: "0", title: `${c.hint} · click to sort · drag, or Alt+arrow, to move`,
         on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
       c.label, columnGrip(c));
       columnHeaderMoves(th, c.key);
       return th;
     }));
-    const body = rows.map((r) => el("tr", { class: state.selected === r.id ? "selected" : null, "data-key": r.id,
+    const body = rows.map((r) => el("tr", { class: state.selected === r.id ? VALUE_SELECTED : null, "data-key": r.id,
       on: { click: () => select(r.id) } }, ...ordered.map((c) => c.cell(r))));
-    $("matrix-table").classList.toggle("with-functions", Boolean(CALL_GRAPH));
-    clear($("matrix-table")).append(el("thead", {}, head), el("tbody", {}, body));
+    $(VALUE_MATRIX_TABLE).classList.toggle("with-functions", Boolean(CALL_GRAPH));
+    clear($(VALUE_MATRIX_TABLE)).append(el(TAG_THEAD, {}, head), el(TAG_TBODY, {}, body));
     applyColumnWidths();
     $("matrix-status").textContent = `${rows.length} of ${matrixRows.length} requirements`;
   }
@@ -1473,14 +1584,14 @@
   const COLUMNS_KEY = "agnos-trace-columns";
   const columnWidths = loadColumnWidths();
   const cssNumber = (name) => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-  const headers = () => [...$("matrix-table").querySelectorAll("th[data-column]")];
+  const headers = () => [...$(VALUE_MATRIX_TABLE).querySelectorAll("th[data-column]")];
 
   function applyColumnWidths() {
-    const table = $("matrix-table");
+    const table = $(VALUE_MATRIX_TABLE);
     const custom = Object.keys(columnWidths).length > 0;
     for (const th of headers()) {
       if (!custom) {
-        th.style.removeProperty("width");
+        th.style.removeProperty(VALUE_WIDTH);
         continue;
       }
       columnWidths[th.dataset.column] ??= th.offsetWidth;         // a column not kept yet: as drawn
@@ -1490,7 +1601,7 @@
       table.style.width = `${headers().reduce((sum, th) => sum + (columnWidths[th.dataset.column] || 0), 0)}px`;
       table.style.minWidth = "auto";
     } else {
-      table.style.removeProperty("width");
+      table.style.removeProperty(VALUE_WIDTH);
       table.style.removeProperty("min-width");
     }
   }
@@ -1526,28 +1637,28 @@
     const move = (e) => setColumnWidth(key, width + e.clientX - start);
     const end = () => {
       resizingColumn = false;
-      grip.removeEventListener("pointermove", move);
-      grip.removeEventListener("pointerup", end);
-      grip.removeEventListener("pointercancel", end);
+      grip.removeEventListener(EVENT_POINTERMOVE, move);
+      grip.removeEventListener(EVENT_POINTERUP, end);
+      grip.removeEventListener(EVENT_POINTERCANCEL, end);
     };
-    grip.addEventListener("pointermove", move);
-    grip.addEventListener("pointerup", end);
-    grip.addEventListener("pointercancel", end);
+    grip.addEventListener(EVENT_POINTERMOVE, move);
+    grip.addEventListener(EVENT_POINTERUP, end);
+    grip.addEventListener(EVENT_POINTERCANCEL, end);
   }
 
   function columnGrip(c) {
-    const grip = el("span", { class: "col-grip", role: "separator", tabindex: "0", "aria-orientation": "vertical",
-      "aria-label": `Resize the ${c.label} column`, title: "Drag, or use the arrow keys, to resize · double-click to reset" });
-    grip.addEventListener("click", (event) => event.stopPropagation());          // a grip never sorts
+    const grip = el(TAG_SPAN, { class: "col-grip", role: "separator", tabindex: "0", "aria-orientation": "vertical",
+      [VALUE_ARIA_LABEL]: `Resize the ${c.label} column`, title: "Drag, or use the arrow keys, to resize · double-click to reset" });
+    grip.addEventListener(EVENT_CLICK, (event) => event.stopPropagation());          // a grip never sorts
     grip.addEventListener("dblclick", (event) => { event.stopPropagation(); resetColumnWidths(); });
     grip.addEventListener("pointerdown", (event) => dragColumn(c.key, grip, event));
     grip.addEventListener("mousedown", (event) => event.preventDefault());       // the grip resizes, it never drags the header
-    grip.addEventListener("keydown", (event) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    grip.addEventListener(EVENT_KEYDOWN, (event) => {
+      if (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT) return;
       event.preventDefault();
       event.stopPropagation();
       const step = cssNumber("--c-splitter-step");
-      setColumnWidth(c.key, grip.parentElement.offsetWidth + (event.key === "ArrowRight" ? step : -step));
+      setColumnWidth(c.key, grip.parentElement.offsetWidth + (event.key === KEY_ARROWRIGHT ? step : -step));
     });
     return grip;
   }
@@ -1559,12 +1670,12 @@
 
   function setCoverageFilter(value) {
     state.coverage = value;
-    for (const b of $("coverage-filter").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.coverage === value));
+    for (const b of $(VALUE_COVERAGE_FILTER).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.coverage === value));
     renderMatrix();
   }
 
-  $("coverage-filter").addEventListener("click", (event) => {
-    const b = event.target.closest("button");
+  $(VALUE_COVERAGE_FILTER).addEventListener(EVENT_CLICK, (event) => {
+    const b = event.target.closest(TAG_BUTTON);
     if (b) setCoverageFilter(b.dataset.coverage);
   });
 
@@ -1646,7 +1757,7 @@
           on: { click: toggleCheck } }, el("span", { class: "check-chevron", "aria-hidden": "true" }),
           el("span", { class: "check-card-title", text: check.title })),
         el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk, title: "Risk level of the check: its weight in the overall score" }),
-        el("span", { class: `check-score grade-${grade || "none"}`, title: checkFormula(check) },
+        el("span", { class: `check-score grade-${grade || VALUE_NONE}`, title: checkFormula(check) },
           el("span", { class: "score-bar" }, el("span", { class: "score-fill", style: { "--score": (check.score ?? 0) * PERCENT / SCORE_MAX } })),
           el("span", { class: "score-text", text: scoreText(check) })),
         el("span", { class: checkBadgeClass(check), text: check.findings.length, title: "Findings: elements that fail this check" })),
@@ -1735,7 +1846,7 @@
     });
     const points = scored.map((check, i) => {
       const [x, y] = at(i, check.score / SCORE_MAX);
-      return chartItem(svgEl("circle", { class: `radar-point grade-${isRanked(check) ? gradeOf(check.score) : "none"}`, cx: x, cy: y, r: RADAR.pointRadius, "data-check": check.key }),
+      return chartItem(svgEl("circle", { class: `radar-point grade-${isRanked(check) ? gradeOf(check.score) : VALUE_NONE}`, cx: x, cy: y, r: RADAR.pointRadius, "data-check": check.key }),
         `${check.title}: score ${scoreText(check)} out of ${SCORE_MAX}`, checkTipLines(check), () => openCheck(check.key));
     });
     return chartFrame(RADAR.width, RADAR.height, "Checks radar",
@@ -1748,14 +1859,14 @@
     const bar = ([tri, t], i) => {
       const y = i * AREA.rowHeight;
       const width = AREA.barWidth * ((t.score ?? 0) / SCORE_MAX);
-      const group = svgEl("g", { class: `area-bar grade-${t.grade || "none"}`, "data-tri": tri },
+      const group = svgEl("g", { class: `area-bar grade-${t.grade || VALUE_NONE}`, "data-tri": tri },
         svgEl("text", { class: "area-label", x: 0, y: y + AREA.barHeight, }, tri),
         svgEl("rect", { class: "area-track", x: AREA.labelWidth, y, width: AREA.barWidth, height: AREA.barHeight }),
         svgEl("rect", { class: "area-fill", x: AREA.labelWidth, y, width, height: AREA.barHeight }),
         svgEl("text", { class: "area-value", x: AREA.labelWidth + AREA.barWidth + AREA.textGap, y: y + AREA.barHeight },
           `${t.grade || "–"} ${scoreOut(t.score)}`));
       return chartItem(group, `${tri}: grade ${t.grade}, score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
-        [tri, `grade ${t.grade || "none"} · score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
+        [tri, `grade ${t.grade || VALUE_NONE} · score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
           `${t.checks.reduce((sum, c) => sum + c.findings, 0)} findings in ${t.checks.length} checks`]);
     };
     return chartFrame(AREA.width, Math.max(rows.length, 1) * AREA.rowHeight, "Score by feature area",
@@ -1793,7 +1904,7 @@
   // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).
   function gradeChip(grade, score, extra) {
     const meaning = grade ? `Grade ${grade}: ${DATA.quality.verdicts[grade].toLowerCase()}, score ${score.toFixed(SCORE_DECIMALS)} out of ${SCORE_MAX}` : "Not graded";
-    return el("span", { class: `grade-chip grade-${grade || "none"} ${extra || ""}`, title: meaning, text: grade || "–" });
+    return el("span", { class: `grade-chip grade-${grade || VALUE_NONE} ${extra || ""}`, title: meaning, text: grade || "–" });
   }
 
   const attentionChecks = () => rankedChecks().filter((c) => isRanked(c) && c.score < DATA.quality.attention);
@@ -2043,7 +2154,7 @@
 
   function boxCallItem(rel) {
     return ({ key, count }) => el("li", { class: "link-item" }, idButton(key),
-      el("span", { class: "link-rel", text: `${rel} · ${count} ${count === 1 ? "call site" : "call sites"}` }));
+      el("span", { class: "link-rel", text: `${rel} · ${count} ${count === 1 ? VALUE_CALL_SITE : VALUE_CALL_SITES}` }));
   }
 
   function callItem(c, rel) {

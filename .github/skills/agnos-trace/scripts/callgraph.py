@@ -9,6 +9,22 @@ import json
 import re
 from pathlib import Path
 
+# RQ-TRC-067: a literal written more than once is a named constant.
+KEY_SCOPE = "scope"
+ENCODING = "utf-8"
+KEY_REPLACE = "replace"
+KEY_SCOPES = "scopes"
+KEY_SCOPE_INDEX = "scope_index"
+KEY_FUNCTIONS = "functions"
+KEY_CALLS = "calls"
+KEY_NODE = "node"
+KEY_FILE = "file"
+KEY_FIRST = "first"
+KEY_LAST = "last"
+KEY_QUALIFIED = "qualified"
+KEY_NAME = "name"
+KEY_TEXT = "text"
+
 SKILL_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = SKILL_DIR / "assets" / "callgraph"
 LANGUAGES_PATH = ASSETS_DIR / "languages.json"
@@ -20,7 +36,7 @@ TABLE_NOTE_PREFIX = "_"            # a key of the language table that is a note,
 
 # DEC-TRC-014: the fixed capture names of a query file.
 DEFINITION, DEFINITION_NAME = "definition", "definition.name"
-SCOPE, SCOPE_NAME = "scope", "scope.name"
+SCOPE, SCOPE_NAME = KEY_SCOPE, "scope.name"
 CALL, CALL_NAME = "call", "call.name"
 COMMENT = "comment"
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
@@ -68,12 +84,12 @@ class Grammar:
         self.language = language
         self.query = query
         self.separator = entry["separator"]
-        self.scopes = entry.get("scopes", {})
+        self.scopes = entry.get(KEY_SCOPES, {})
 
 
 def load_table(path=LANGUAGES_PATH):
     """The language table: {language: {extensions, package, module, query, separator[, scopes][, function]}}."""
-    table = json.loads(Path(path).read_text(encoding="utf-8"))
+    table = json.loads(Path(path).read_text(encoding=ENCODING))
     return {name: entry for name, entry in table.items() if not name.startswith(TABLE_NOTE_PREFIX)}
 
 
@@ -88,7 +104,7 @@ def load_grammars(table, api):
             missing.append(entry["package"])
             continue
         language = api.language(module, entry.get("function", LANGUAGE_FUNCTION))
-        query = api.query(language, (ASSETS_DIR / entry["query"]).read_text(encoding="utf-8"))
+        query = api.query(language, (ASSETS_DIR / entry["query"]).read_text(encoding=ENCODING))
         grammar = Grammar(name, entry, language, query)
         for extension in entry["extensions"]:
             grammars[extension] = grammar
@@ -155,7 +171,7 @@ def block_top(tops, first_row):
 
 
 def text_of(node):
-    return node.text.decode("utf-8", "replace")
+    return node.text.decode(ENCODING, KEY_REPLACE)
 
 
 def scope_names(node, scopes):
@@ -169,7 +185,7 @@ def file_functions(shown, grammar, api, data, cited, evidence):
     """The functions defined in one file, in line order, each with the IDs of its lines and of the comment block just
     above it; and the file's calls as (call node, called expression node)."""
     root = api.parse(grammar.language, data)
-    lines = data.decode("utf-8", "replace").split("\n")
+    lines = data.decode(ENCODING, KEY_REPLACE).split("\n")
     caps = captures_of(grammar, api, root)
     tops = comment_tops(caps[COMMENT], lines)
     functions = []
@@ -182,10 +198,10 @@ def file_functions(shown, grammar, api, data, cited, evidence):
         for line, target, proof in cited.get(shown, ()):
             if top <= line <= last:
                 ids.setdefault(target, []).append(proof)
-        functions.append({"file": shown, "first": first, "last": last, "qualified": qualified,
-                          "name": qualified.split(separator)[-1], "scope": separator.join(qualified.split(separator)[:-1]),
-                          "language": grammar.name, "text": evidence(first, lines[first - 1])[1], "ids": ids,
-                          "node": node})
+        functions.append({KEY_FILE: shown, KEY_FIRST: first, KEY_LAST: last, KEY_QUALIFIED: qualified,
+                          KEY_NAME: qualified.split(separator)[-1], KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
+                          LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
+                          KEY_NODE: node})
     return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE])
 
 
@@ -201,12 +217,12 @@ def call_sites(functions, calls):
     holding the call; nodes in start order, one sweep with a stack of the open functions."""
     sites, stack, pending = [], [], list(reversed(functions))
     for call, expression in calls:
-        while pending and pending[-1]["node"].start_byte <= call.start_byte:
+        while pending and pending[-1][KEY_NODE].start_byte <= call.start_byte:
             function = pending.pop()
-            while stack and stack[-1]["node"].end_byte <= function["node"].start_byte:
+            while stack and stack[-1][KEY_NODE].end_byte <= function[KEY_NODE].start_byte:
                 stack.pop()
             stack.append(function)
-        while stack and stack[-1]["node"].end_byte <= call.start_byte:
+        while stack and stack[-1][KEY_NODE].end_byte <= call.start_byte:
             stack.pop()
         name = last_part(plain_name(text_of(expression)))
         if stack and NAME_RE.match(name):
@@ -222,13 +238,13 @@ def folder_of(path):
 def preferred(caller, candidates, separator):
     """The candidates of the first non-empty level: the caller's class, its namespace, its file, its folder, the
     project (DEC-TRC-015, RQ-TRC-029)."""
-    scope = caller["scope"]
+    scope = caller[KEY_SCOPE]
     namespace = scope.rpartition(separator)[0]
     levels = (
-        lambda f: scope and f["scope"] == scope,
-        lambda f: namespace and f["scope"] == namespace,
-        lambda f: f["file"] == caller["file"],
-        lambda f: folder_of(f["file"]) == folder_of(caller["file"]),
+        lambda f: scope and f[KEY_SCOPE] == scope,
+        lambda f: namespace and f[KEY_SCOPE] == namespace,
+        lambda f: f[KEY_FILE] == caller[KEY_FILE],
+        lambda f: folder_of(f[KEY_FILE]) == folder_of(caller[KEY_FILE]),
     )
     for level in levels:
         chosen = [f for f in candidates if level(f)]
@@ -244,15 +260,15 @@ def resolve(graph, sites, separators):
     index = {id(f): n for n, f in enumerate(graph.functions)}
     definitions = {}
     for function in graph.functions:
-        definitions.setdefault((function["language"], function["name"]), []).append(function)
+        definitions.setdefault((function[LANGUAGE_FUNCTION], function[KEY_NAME]), []).append(function)
     grouped = {}
     for caller, name, line in sites:
         grouped.setdefault((index[id(caller)], name), []).append(line)
     links = {}
     for (caller_index, name), lines in grouped.items():
         caller = graph.functions[caller_index]
-        candidates = definitions.get((caller["language"], name), [])
-        chosen = preferred(caller, candidates, separators[caller["language"]]) if candidates else []
+        candidates = definitions.get((caller[LANGUAGE_FUNCTION], name), [])
+        chosen = preferred(caller, candidates, separators[caller[LANGUAGE_FUNCTION]]) if candidates else []
         if not chosen:
             graph.external += 1
         elif len(chosen) > MAX_AMBIGUOUS:
@@ -271,7 +287,7 @@ def assign_keys(functions):
     """fn:<file>:<first line>, made unique by '.<n>' when two definitions start on one line (DEC-TRC-016)."""
     taken = set()
     for function in functions:
-        key = f"{KEY_PREFIX}:{function['file']}:{function['first']}"
+        key = f"{KEY_PREFIX}:{function[KEY_FILE]}:{function[KEY_FIRST]}"
         candidate, n = key, 1
         while candidate in taken:
             n += 1
@@ -288,10 +304,10 @@ def assign_scopes(graph, declared, grammars):
     file declares is a class when it is the innermost part, else a namespace; a class guess wins over a namespace one."""
     kinds = {}
     for function in graph.functions:
-        grammar = grammars[function["language"]]
-        if not (grammar.scopes and function["scope"]):
+        grammar = grammars[function[LANGUAGE_FUNCTION]]
+        if not (grammar.scopes and function[KEY_SCOPE]):
             continue
-        parts = function["scope"].split(grammar.separator)
+        parts = function[KEY_SCOPE].split(grammar.separator)
         for n in range(len(parts)):
             name = grammar.separator.join(parts[:n + 1])
             was_class = kinds.get(name, (None,))[0] == CLASS_KIND
@@ -301,8 +317,8 @@ def assign_scopes(graph, declared, grammars):
     graph.scopes = [[name, kind, index.get(name.rpartition(separator)[0], NO_SCOPE)]
                     for name, (kind, separator) in sorted(kinds.items())]
     for function in graph.functions:
-        scoped = grammars[function["language"]].scopes
-        function["scope_index"] = index.get(function["scope"], NO_SCOPE) if scoped else NO_SCOPE
+        scoped = grammars[function[LANGUAGE_FUNCTION]].scopes
+        function[KEY_SCOPE_INDEX] = index.get(function[KEY_SCOPE], NO_SCOPE) if scoped else NO_SCOPE
 
 
 # ---- the call graph ----------------------------------------------------------------------------------------------
@@ -337,23 +353,23 @@ class CallGraph:
         callee: callee - caller, ambiguous + 2 * line count, each call-site line - the caller's first line;
         ids [function index, ID, [lines]] (the proofs' texts are the file's). The functions citing no ID are the findings of
         the quality block's "functions traced" check, stored there once (ADR-TRC-008)."""
-        languages = sorted({f["language"] for f in self.functions})
-        functions = [[file_index[f["file"]], f["first"], f["last"], f["qualified"], languages.index(f["language"]),
-                      f["text"], f["dup"], f["scope_index"]] for f in self.functions]
+        languages = sorted({f[LANGUAGE_FUNCTION] for f in self.functions})
+        functions = [[file_index[f[KEY_FILE]], f[KEY_FIRST], f[KEY_LAST], f[KEY_QUALIFIED], languages.index(f[LANGUAGE_FUNCTION]),
+                      f[KEY_TEXT], f["dup"], f[KEY_SCOPE_INDEX]] for f in self.functions]
         by_caller = {}
         for caller, callee, ambiguous, lines in self.calls:
             by_caller.setdefault(caller, []).append((callee, ambiguous, lines))
         calls, previous = [], 0
         for caller, callees in by_caller.items():
-            first = self.functions[caller]["first"]
+            first = self.functions[caller][KEY_FIRST]
             calls += [caller - previous, len(callees)]
             for callee, ambiguous, lines in callees:
                 calls += [callee - caller, int(ambiguous) + 2 * len(lines), *(line - first for line in lines)]
             previous = caller
         ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
                for target, proofs in sorted(f["ids"].items())]
-        return {"functions": functions, "languages": languages, "scopes": self.scopes, "calls": calls, "ids": ids,
-                "counts": {"functions": len(self.functions), "calls": len(self.calls), "ambiguous": self.ambiguous,
+        return {KEY_FUNCTIONS: functions, "languages": languages, KEY_SCOPES: self.scopes, KEY_CALLS: calls, "ids": ids,
+                "counts": {KEY_FUNCTIONS: len(self.functions), KEY_CALLS: len(self.calls), "ambiguous": self.ambiguous,
                            "external": self.external}}
 
 
@@ -382,5 +398,5 @@ def analyse(files, cited, evidence, table=None):
     assign_scopes(graph, declared, {g.name: g for g in grammars.values()})
     resolve(graph, sites, {g.name: g.separator for g in grammars.values()})
     for function in graph.functions:
-        del function["node"]
+        del function[KEY_NODE]
     return graph

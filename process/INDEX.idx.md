@@ -292,4 +292,4 @@ TASK-TRC-048|53-67|Done|Check cards, compact or detailed
 TASK-TRC-049|68-84|Done|Report card and grade palette
 TASK-TRC-050|85-99|Done|Charts with tooltips
 TASK-TRC-051|100-116|Done|Fit in the window, speed, final documentation
-TASK-TRC-052|117-131|Not Started|Remediation: named constants in the skill's code
+TASK-TRC-052|117-131|Done|Remediation: named constants in the skill's code
