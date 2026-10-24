@@ -57,7 +57,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-044: A finer wheel zoom
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the token `dimension.graph-wheel-sensitivity` (0.1, about 10 % of zoom per wheel notch instead of 150 %) through the three tiers and give it to the
   graph as its wheel sensitivity; document it in `SKILL.md`.
 - **Requirement refs**: RQ-TRC-056
@@ -66,5 +66,5 @@ This plan implements the tasks in the format specified below.
   Then it uses that value.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 136 tests, 1 failure (RQ-TRC-026 data hash, failing before this plan), 1 skipped. `WheelZoomTest` passes: token `dimension.graph-wheel-sensitivity` = 0.1 with its component token `graph-wheel-sensitivity`; in headless Edge the graph renderer reports 0.1 and one wheel notch (deltaY -100) zooms by a ratio between 1 and 1.2 (the library default of 1 gives 2.5). `SKILL.md` documents the wheel, band, tags and feature titles.
 - **Assumptions**: None

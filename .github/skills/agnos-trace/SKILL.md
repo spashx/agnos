@@ -8,7 +8,8 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 
 <!-- FTR-TRC-001; ADR-TRC-001 (DEC-TRC-001 to DEC-TRC-004), ADR-TRC-002 (DEC-TRC-009 to DEC-TRC-011),
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
-     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052. -->
+     (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052.
+     Detail band, tags, feature titles, wheel zoom: ADR-TRC-007 (DEC-TRC-029 to DEC-TRC-031), RQ-TRC-053 to RQ-TRC-056. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -52,17 +53,19 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 
 - **Overview**: element counts, share of requirements covered, indirectly covered and uncovered, the gap counts, the
   coverage of each trigram.
-- **Graph**: the selected element's links as a flow of columns (features, requirements, ADRs and decisions, plans and
+- **Graph**: the mouse wheel zooms by about 10 % a notch, from the design token `graph-wheel-sensitivity` (RQ-TRC-056). The selected element's links as a flow of columns (features, requirements, ADRs and decisions, plans and
   tasks, source files, undefined IDs), depth 1 to 3; "Whole graph" for everything.
 - **Matrix**: one row per requirement with its feature, ADRs and decisions, plans and tasks, source files and lines,
   coverage; sortable, filtered by the search and the trigram filters, exportable as CSV. The columns stand by default
   in the order of the specification (Feature, Requirement, Coverage, ADRs / decisions, Plans / tasks, Functions,
   Source files, Lines; RQ-TRC-051). Drag a header onto another, or press Alt+← / Alt+→ on a focused header, to move the
   column; the order is remembered in the browser, like the widths, and "Reset columns" brings back the default order and
-  widths (RQ-TRC-052). The CSV keeps its own fixed columns.
+  widths (RQ-TRC-052). The CSV keeps its own fixed columns. The Feature column shows each feature's title under its ID (RQ-TRC-053).
 - **Gaps**: the lists below, each element a link to its detail.
-- **Detail panel**: the selection's type, title, status, location, and its links grouped by type with their count, IDs and
-  the lines that make them. `#<ID>` in the URL selects an element; back and forward follow the selections.
+- **Detail panel**: the selection's type, title, status, location and tags (the count of its links by type) stand in a
+  band, fixed at the top (RQ-TRC-054); below it, only the links scroll, grouped by type with their IDs and the lines that
+  make them. Clicking a tag shows only its group (several tags, several groups), clicking it again shows them all, and
+  a new selection drops the filter (RQ-TRC-055). `#<ID>` in the URL selects an element; back and forward follow the selections.
 - With `--call-graph`: functions are one more element type, found by the search; a function's panel lists its callers
   and callees (ambiguous ones marked, 50 at a time) and the IDs it cites; a requirement's panel lists its functions. The
   Functions filter is off when the page opens: turn it on (or the graph's "Implementation" switch, the same filter) to

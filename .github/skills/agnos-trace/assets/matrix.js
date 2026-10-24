@@ -785,6 +785,7 @@
     function ensure() {
       if (cy) return cy;
       cy = cytoscape({ container, style: style(), minZoom: num("--c-graph-zoom-min"), maxZoom: num("--c-graph-zoom-max"),
+        wheelSensitivity: num("--c-graph-wheel-sensitivity"),            // RQ-TRC-056, DEC-TRC-031
         boxSelectionEnabled: false, autoungrabify: true, hideEdgesOnViewport: Boolean(CALL_GRAPH) });   // DEC-TRC-017
       // A pill selects its element; a frame selects its box (DEC-TRC-022). A tap bubbles to the frames around its
       // target, which keeps the target: one selection.
@@ -1020,6 +1021,8 @@
       refresh() { syncImplementationControls(); dirty = true; if (visible()) draw(); },
       restyle() { if (cy) cy.style(style()); },
       resize() { cy?.resize(); },
+      zoom() { return cy ? cy.zoom() : 1; },
+      wheelSensitivity() { return cy ? cy.renderer().wheelSensitivity : null; },   // RQ-TRC-056: read by the tests
     };
   }
 

@@ -723,6 +723,39 @@ class TagFilterTest(unittest.TestCase):
         self.assertTrue(found["first-title"].strip())                  # RQ-TRC-045
 
 
+WHEEL_ONE_NOTCH = """
+const out = document.documentElement.dataset;
+agnosTrace.select("RQ-DEM-001");
+agnosTrace.showView("graph");
+const frame = document.getElementById("cy");
+const before = agnosTrace.graph.zoom();
+frame.dispatchEvent(new WheelEvent("wheel", { deltaY: -100, clientX: 400, clientY: 300, bubbles: true, cancelable: true }));
+out.ratio = String(agnosTrace.graph.zoom() / before);
+out.wheel = String(agnosTrace.graph.wheelSensitivity());
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class WheelZoomTest(unittest.TestCase):
+    """TASK-TRC-044: RQ-TRC-056 (DEC-TRC-031)."""
+
+    def test_RQ_TRC_056_given_the_tokens_then_the_wheel_sensitivity_is_a_token_of_0_1(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        self.assertEqual("0.1", tokens["global"]["dimension.graph-wheel-sensitivity"])
+        self.assertIn("graph-wheel-sensitivity", tokens["component"])
+
+    def test_RQ_TRC_056_given_the_graph_when_the_wheel_turns_one_notch_then_the_zoom_changes_by_about_ten_percent(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(ratio|wheel)="([^"]*)"', rendered_dom_after(path, WHEEL_ONE_NOTCH)))
+        self.assertEqual(0.1, float(found["wheel"]))
+        ratio = float(found["ratio"])
+        self.assertGreater(ratio, 1.0)                                  # the notch zooms in
+        self.assertLess(ratio, 1.2)                                     # the library's default would give 2.5
+
+
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".gap-shortcut", "#depth", "#depth button",
                    "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns",
                    "#matrix-table th", ".kpi-type", "#search")
