@@ -1116,7 +1116,7 @@
         item("Call links", c.calls, "one per caller and callee"),
         item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
         item("External calls", c.external, "a name defined in no scanned file"),
-        item("Untraced functions", CALL_GRAPH.untraced.length, "citing no ID · informational", () => openCheck(FUNCTIONS_CHECK))));
+        item("Untraced functions", CHECKS.find((c) => c.key === FUNCTIONS_CHECK).findings.length, "citing no ID · informational", () => openCheck(FUNCTIONS_CHECK))));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------
@@ -1659,8 +1659,8 @@
   // Inline SVG drawn from the `quality` block, no library: a radar of the checks, bars per trigram, the coverage shares.
   // Every chart has a title and a description; its items take the keyboard focus and raise the chart tooltip.
   const SVG_NS = "http://www.w3.org/2000/svg";
-  const RADAR = { width: 300, height: 250, radius: 78, ring: 4, labelGap: 12, pointRadius: 4 };
-  const AREA = { width: 260, rowHeight: 30, barHeight: 16, labelWidth: 38, barWidth: 150, textGap: 6 };
+  const RADAR = { width: 300, height: 180, radius: 56, ring: 4, labelGap: 12, pointRadius: 4 };
+  const AREA = { width: 260, rowHeight: 26, barHeight: 14, labelWidth: 38, barWidth: 150, textGap: 6 };
   const SHARE = { width: 260, height: 20, labelHeight: 22 };
   const FULL_TURN = 360;
   const QUARTER_TURN = 90;
@@ -2226,7 +2226,7 @@
 
   // ---- start --------------------------------------------------------------------------------------------------
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
-    FILE_PREFIX };
+    FILE_PREFIX, renderQuality };
   renderHeader();
   renderFilters();
   renderOverview();

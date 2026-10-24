@@ -344,13 +344,13 @@ def find_browser():
 BROWSER = find_browser()
 
 
-def rendered_dom(page_path, fragment=""):
-    """The DOM of the page once its script ran, from a headless browser (--dump-dom)."""
+def rendered_dom(page_path, fragment="", window=BROWSER_WINDOW):
+    """The DOM of the page once its script ran, from a headless browser (--dump-dom) in a window of the given size."""
     import subprocess
     with tempfile.TemporaryDirectory() as profile:
         done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                                f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}",
-                               f"--window-size={BROWSER_WINDOW}", "--dump-dom",
+                               f"--window-size={window}", "--dump-dom",
                                page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False)
     return done.stdout.decode("utf-8", errors="replace")
 
@@ -434,12 +434,12 @@ class GraphViewTest(unittest.TestCase):
         self.assertIn("<canvas", dom)
 
 
-def rendered_dom_after(page_path, script):
+def rendered_dom_after(page_path, script, window=BROWSER_WINDOW):
     """The DOM once the page ran, then the given script (a copy of the page with the script at its end)."""
     copy = page_path.with_name("scripted-" + page_path.name)
     copy.write_text(page_path.read_text(encoding="utf-8").replace("</body>", f"<script>{script}</script></body>"),
                     encoding="utf-8")
-    return rendered_dom(copy)
+    return rendered_dom(copy, window=window)
 
 
 KEY_PRESSES = """

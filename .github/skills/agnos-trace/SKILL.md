@@ -62,8 +62,13 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   Source files, Lines; RQ-TRC-051). Drag a header onto another, or press Alt+← / Alt+→ on a focused header, to move the
   column; the order is remembered in the browser, like the widths, and "Reset columns" brings back the default order and
   widths (RQ-TRC-052). The CSV keeps its own fixed columns. The Feature column shows each feature's title under its ID (RQ-TRC-053).
-- **Quality**: the checks (see "Quality scoring"), each with its score, its rule and its findings, each finding a link to its
-  detail.
+- **Quality** (RQ-TRC-060 to RQ-TRC-063): for the decision maker, a report card at the top (the project's grade A to E on
+  a blue-to-orange scale with its letter always written, its score out of 10, a one-sentence verdict, the grade of each
+  feature area and the three lowest-scored checks as "Fix first"), then three charts (a radar of the checks, bars per
+  feature area, the coverage shares; each with a tooltip on hover and on keyboard focus, a radar axis opens its check);
+  for the technician, the checks (see "Quality scoring") in a grid, lowest score first, each compact (title, risk, score
+  bar, count of findings) and opened by its chevron to the rule, the formula, the figures and the findings, each finding a
+  link to its detail ("Expand all", "Collapse all"). It fits a 1440 by 900 window without vertical scrolling.
 - **Detail panel**: the selection's type, title, status, location and tags (the count of its links by type) stand in a
   band, fixed at the top (RQ-TRC-054); below it, only the links scroll, grouped by type with their IDs and the lines that
   make them. Clicking a tag shows only its group (several tags, several groups), clicking it again shows them all, and

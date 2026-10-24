@@ -268,13 +268,14 @@ class PageDataTest(unittest.TestCase):
 
     def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_an_informational_check(self):
         graph = self.data["callGraph"]
-        names = [graph["functions"][i][3] for i in graph["untraced"]]
+        check = next(c for c in self.data["quality"]["checks"] if c["key"] == "functions-traced")
+        names = [graph["functions"][i][3] for i in check["findings"]]
+        self.assertNotIn("untraced", graph)                     # stored once, in the quality block
         self.assertEqual(9, len(names))                         # src/notrace.py's untraced() since RQ-TRC-050
         self.assertIn("untraced", names)
         self.assertNotIn("covered", names)                      # its docstring cites an ID
         self.assertNotIn("net::Port::send", names)
-        check = next(c for c in self.data["quality"]["checks"] if c["key"] == "functions-traced")
-        self.assertEqual(("informational", "function", graph["untraced"]), (check["risk"], check["items"], check["findings"]))
+        self.assertEqual(("informational", "function"), (check["risk"], check["items"]))
 
 
 def scope_of(graph, qualified):
@@ -812,6 +813,18 @@ class FunctionMatrixTest(unittest.TestCase):
         dom = rendered_dom(self.path, "#RQ-DEM-003")
         self.assertIn("Functions 0", dom)
 
+    def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_nine_checks_show_without_vertical_scroll(self):
+        import re
+        script = ("agnosTrace.showView('quality'); const view = document.getElementById('view-quality');"
+                  "const cards = [...document.querySelectorAll('#quality-list .check-card')];"
+                  "const last = cards.find((c) => c.dataset.check === 'functions-traced');"
+                  "const d = document.documentElement.dataset; d.checks = String(cards.length);"
+                  "d.fits = String(view.scrollHeight <= view.clientHeight);"
+                  "d.visible = String(last.getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom);")
+        dom = rendered_dom_after(self.path, script, "1440,900")
+        found = dict(re.findall(r'data-(checks|fits|visible)="([^"]*)"', dom))
+        self.assertEqual({"checks": "9", "fits": "true", "visible": "true"}, found)
+
     def test_RQ_TRC_041_given_a_page_without_call_graph_then_no_function_column_switch_or_count_appears(self):
         dom = rendered_dom_after(self.plain, "agnosTrace.showView('matrix'); agnosTrace.select('RQ-DEM-003');")
         for absent in ('data-column="functions"', 'id="show-functions"', "Functions 0"):
@@ -884,6 +897,9 @@ class LargeCallGraphTest(unittest.TestCase):
                                     "document.querySelector('#depth button[data-depth=\"2\"]').click();"
                                     "agnosTrace.select([...agnosTrace.nodes.values()].find((n) => n.label === 'hub').key);"
                                     "agnosTrace.showView('graph');" + READ_LEVELS)
+            quality = rendered_dom_live(Path(tmp) / "with.html",
+                                        "const t0 = performance.now(); agnosTrace.renderQuality();"
+                                        "document.documentElement.dataset.quality = String(Math.round(performance.now() - t0));")
         added_time = timings["with"][0] - timings["without"][0]
         added_bytes = timings["with"][1] - timings["without"][1]
         attributes = graph_attributes(dom)
@@ -896,10 +912,11 @@ class LargeCallGraphTest(unittest.TestCase):
         for level, (drawn, ms) in levels.items():                                         # RQ-TRC-047, TASK-TRC-025
             self.assertLessEqual(drawn, 400, level)
             self.assertLess(ms, 500, level)
-        self.assertEqual((20002, 100000), (counts["functions"], counts["calls"]))   # + indirect() of the fixture's src/
+        self.assertEqual((20004, 100000), (counts["functions"], counts["calls"]))   # + the 3 functions of the fixture's src/
         self.assertLess(added_time, 30)                                                       # RQ-TRC-036
         self.assertLessEqual(added_bytes, 120 * counts["functions"] + 16 * counts["calls"])   # RQ-TRC-038
         self.assertLess(ready, 3000)                                                          # RQ-TRC-037
+        self.assertLess(int(re.search(r'data-quality="(\d+)"', quality).group(1)), 200)         # RQ-TRC-066
         self.assertLessEqual(int(attributes["nodes"]), 400)
         self.assertLess(int(attributes["ms"]), 500)
         self.assertRegex(attributes["status"], r"\d+ not drawn")

@@ -99,7 +99,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-051: Fit in the window, speed, final documentation
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Lay the three bands out so that the report card, the charts and all compact checks fit a 1440 by 900
   window, measure the scorecard's cost on the 20,000-function project, and complete `SKILL.md` (view, vocabulary,
   scoring).
@@ -111,7 +111,7 @@ This plan implements the tasks in the format specified below.
   than 200 ms.
 - **Dependencies**: TASK-TRC-050
 - **Assignee**: AI
-- **Verification**: Pending.
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 159 tests, 0 failure, 1 skipped. `FitInWindowTest` in headless Edge at 1440x900: the fixture (8 checks, 3 charts) and a generated process of five feature areas have no vertical scroll in the Quality view (scrollHeight <= clientHeight) and the last check card is visible; with the call graph all 9 checks fit (test_callgraph). Measured on the 20,000-function tree (`perf.py`, best of 3 runs, generator at feature commit 4491747 vs now): 3.90 s vs 3.88 s (-0.7 %), page and data files 5,231,102 vs 5,260,945 bytes (+0.57 %), `renderQuality()` 2 ms; `AGNOS_TRACE_PERF=1` test passes (assertion added: view draws in under 200 ms; the function count expected there corrected from 20002 to 20004, the fixture src/ holds 3 functions). The untraced-function list is stored once, in the quality block (`callGraph.untraced` removed). `SKILL.md` describes the view.
 - **Assumptions**: None
 
 ### TASK-TRC-052: Remediation: named constants in the skill's code

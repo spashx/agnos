@@ -335,7 +335,8 @@ class CallGraph:
         scope index (-1: none)]; scopes [qualified name, kind, parent index (-1: none)] (RQ-TRC-047, DEC-TRC-019);
         calls, one flat list of integers per caller in function order: caller - previous caller, callee count, then per
         callee: callee - caller, ambiguous + 2 * line count, each call-site line - the caller's first line;
-        ids [function index, ID, [lines]] (the proofs' texts are the file's); untraced: functions citing no ID."""
+        ids [function index, ID, [lines]] (the proofs' texts are the file's). The functions citing no ID are the findings of
+        the quality block's "functions traced" check, stored there once (ADR-TRC-008)."""
         languages = sorted({f["language"] for f in self.functions})
         functions = [[file_index[f["file"]], f["first"], f["last"], f["qualified"], languages.index(f["language"]),
                       f["text"], f["dup"], f["scope_index"]] for f in self.functions]
@@ -352,7 +353,6 @@ class CallGraph:
         ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
                for target, proofs in sorted(f["ids"].items())]
         return {"functions": functions, "languages": languages, "scopes": self.scopes, "calls": calls, "ids": ids,
-                "untraced": [n for n, f in enumerate(self.functions) if not f["ids"]],
                 "counts": {"functions": len(self.functions), "calls": len(self.calls), "ambiguous": self.ambiguous,
                            "external": self.external}}
 
