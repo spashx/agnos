@@ -146,7 +146,7 @@ ADR-TRC-003).
 - **Priority**: Must
 - **Acceptance Criteria**: Given the text "a.py", When it is typed, Then `src/a.py` is listed; When it is picked, Then it is
   selected in the graph and the detail panel.
-- **Dependencies**: RQ-TRC-012, RQ-TRC-013
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012, RQ-TRC-013
 
 ### RQ-TRC-012: Interactive graph
 - **Category**: Functional
@@ -158,7 +158,7 @@ ADR-TRC-003).
 - **Priority**: Must
 - **Acceptance Criteria**: Given a requirement linked to one decision and one file, When it is selected at depth 1, Then the
   graph shows those three elements; When the file is clicked, Then the file becomes the selection.
-- **Dependencies**: DEC-TRC-006, RQ-TRC-022
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, DEC-TRC-006, RQ-TRC-022
 
 ### RQ-TRC-013: Detail panel
 - **Category**: Functional
@@ -170,7 +170,7 @@ ADR-TRC-003).
 - **Priority**: Must
 - **Acceptance Criteria**: Given a requirement linked to two tasks and one file, When it is selected, Then the panel shows
   "TASK 2" with both IDs and "File 1" with its lines.
-- **Dependencies**: RQ-TRC-005, RQ-TRC-006
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-005, RQ-TRC-006
 
 ### RQ-TRC-014: Matrix view
 - **Category**: Functional
@@ -182,7 +182,7 @@ ADR-TRC-003).
 - **Priority**: Must
 - **Acceptance Criteria**: Given the matrix, When "Export CSV" is pressed, Then a CSV file with one line per requirement and
   the same columns is downloaded.
-- **Dependencies**: RQ-TRC-008
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-008
 
 ### RQ-TRC-015: Overview
 - **Category**: Functional
@@ -193,7 +193,7 @@ ADR-TRC-003).
 - **Priority**: Should
 - **Acceptance Criteria**: Given 10 requirements of which 7 are covered, When the page opens, Then the overview shows 70 %
   covered.
-- **Dependencies**: RQ-TRC-008, RQ-TRC-009
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-008, RQ-TRC-009
 
 ### RQ-TRC-016: Deep links and history
 - **Category**: Functional
@@ -203,7 +203,7 @@ ADR-TRC-003).
 - **Rationale**: a link to one element can be sent; back undoes a navigation.
 - **Priority**: Should
 - **Acceptance Criteria**: Given `TRACEABILITY.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
-- **Dependencies**: RQ-TRC-012
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012
 
 ### RQ-TRC-017: Skill procedure
 - **Category**: Functional
@@ -293,7 +293,7 @@ ADR-TRC-003).
 - **Rationale**: a reader new to the page learns it by pointing, not by reading a manual.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the page, When its controls are read, Then each one listed has a non-empty title.
-- **Dependencies**: RQ-TRC-010 to RQ-TRC-016
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-010 to RQ-TRC-016
 
 ### RQ-TRC-046: A relation's tooltip
 - **Category**: Functional
@@ -306,7 +306,7 @@ ADR-TRC-003).
 - **Acceptance Criteria**: Given a function's graph with functions on, When the tooltip of the call from
   `net::Port::send` to `net::Port::write` is asked, Then it says "calls (caller → callee)" with both names in that
   order; Given the tokens, Then the delay is 2 s.
-- **Dependencies**: RQ-TRC-012, RQ-TRC-044, RQ-TRC-045
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012, RQ-TRC-044, RQ-TRC-045
 
 ### RQ-TRC-049: A search result's full text
 - **Category**: Functional
@@ -321,7 +321,7 @@ ADR-TRC-003).
 - **Acceptance Criteria**: Given a search whose result's name is longer than the list, When the result is pointed at,
   Then, after the delay, a tooltip holds its type, whole name, whole title and location; When the pointer leaves the
   list, Then it is gone; Given the tokens, Then the delay is 300 ms.
-- **Dependencies**: RQ-TRC-011, RQ-TRC-045
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-011, RQ-TRC-045
 
 ---
 

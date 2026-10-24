@@ -37,7 +37,7 @@ former template path.
   exclusion).
 
 ### TASK-DSY-002: README and GETTING_STARTED aligned with the current process and skills
-- **Tier**: S
+- **Tier**: M
 - **Status**: Done
 - **Description**: Rewrite README.md (positioning, components, tiers) and update GETTING_STARTED.MD
   (agnos-index at session start, DEC headings, commit-time index refresh, new agnos-trace stage,
@@ -50,6 +50,8 @@ former template path.
   - **Then** they describe the four skills and the current procedures without contradiction
 - **Dependencies**: TASK-DSY-001
 - **Assignee**: AI
-- **Verification**: N/A (Tier S)
+- **Verification**: `grep -c` of the four skill names in README.md / GETTING_STARTED.MD: agnos-index 3/3,
+  agnos-git-workflow 4/3, agnos-design-system 2/2, agnos-trace 2/6 (all present in both).
 - **Assumptions**: Documentation-only task, traced to RQ-DSY-001 since it documents the new skill;
-  approved by the user. Tier S kept as no code, no new file, no API.
+  approved by the user. Re-tiered S to M: rewriting README.md exceeds the 5 lines of Tier S (as
+  TASK-TRC-014; TASK-FIX-001, RQ-FIX-002). No unit test: documentation only, nothing executable.

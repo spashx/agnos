@@ -113,7 +113,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Priority**: Must
 - **Acceptance Criteria**: Given a function called by two functions and citing RQ-X-002, When it is selected, Then the
   panel shows "Callers 2" and the requirement; When RQ-X-002 is selected, Then the function is listed under "Functions".
-- **Dependencies**: RQ-TRC-013, RQ-TRC-028 to RQ-TRC-031
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-013, RQ-TRC-028 to RQ-TRC-031
 
 ### RQ-TRC-034: Functions in the graph
 - **Category**: Functional
@@ -125,7 +125,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Priority**: Must
 - **Acceptance Criteria**: Given the page just opened, When a requirement cited by two functions is selected, Then the graph
   shows no function; When the Function filter is turned on, Then the two functions appear in their column.
-- **Dependencies**: RQ-TRC-012, DEC-TRC-017
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012, DEC-TRC-017
 
 ### RQ-TRC-035: Call graph in the overview and the gaps
 - **Category**: Functional
@@ -151,7 +151,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   requirement cited by `net::Port::send` lists that function under "Functions" and the CSV has a "Functions" column;
   When the toolbar's "Functions" switch is turned on, Then the type filter is on too; When a requirement cited by no
   function is selected, Then its panel shows "Functions 0"; Given a page without call graph, Then none of these appear.
-- **Dependencies**: RQ-TRC-014, RQ-TRC-033, RQ-TRC-034; the graph's switch is named "Implementation" by RQ-TRC-048
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-014, RQ-TRC-033, RQ-TRC-034; the graph's switch is named "Implementation" by RQ-TRC-048
 
 ### RQ-TRC-047: Functions grouped in namespace and class boxes, at a chosen level of detail
 - **Category**: Functional
@@ -176,7 +176,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   drawn, inside the `net` box when enclosing boxes are on and alone when they are off; When the level is "function",
   Then `net::Port::send` is drawn inside the `net::Port` box, itself inside `net` when enclosing boxes are on; When a
   requirement cited by `net::Port::send` is drawn at the class level, Then it is linked to the `net::Port` box.
-- **Dependencies**: RQ-TRC-028, RQ-TRC-029, RQ-TRC-034, RQ-TRC-037, RQ-TRC-044, DEC-TRC-014, DEC-TRC-017; the
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-028, RQ-TRC-029, RQ-TRC-034, RQ-TRC-037, RQ-TRC-044, DEC-TRC-014, DEC-TRC-017; the
   choice, the switch and the box kinds are named by RQ-TRC-048 ("Implementation detail", "Enclosing scopes")
 
 ### RQ-TRC-048: Graph toolbar words that tell the specification from the implementation
@@ -209,7 +209,7 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   When "Specification hierarchy" is off and a requirement is drawn, Then its feature is not drawn, and a function is
   still linked to its file by "defines"; When "Source files" is off, Then no file and no "defines" link is drawn; Given
   a page without call graph, Then "Display" holds "Source files" and "Specification hierarchy" only.
-- **Dependencies**: RQ-TRC-041, RQ-TRC-044, RQ-TRC-045, RQ-TRC-047, DEC-TRC-022
+- **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-041, RQ-TRC-044, RQ-TRC-045, RQ-TRC-047, DEC-TRC-022
 
 ### RQ-TRC-050: C#, Java, JavaScript, Python and Rust
 - **Category**: Functional
