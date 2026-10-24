@@ -184,6 +184,10 @@
             <button type="button" data-kind="human" title="The commits a human made, alone or with an agent">Humans</button>
             <button type="button" data-kind="agent" title="The commits an agent made, alone or with a human">Agents</button>
           </fieldset>
+          <!-- RQ-HST-021: the rows' own filter, by text and, with the requirements angle, by type -->
+          <input class="history-filter" id="history-filter" type="search" placeholder="Filter rows: ID, title, path…" autocomplete="off" spellcheck="false"
+                 aria-label="Filter the rows" title="Keep the rows whose ID, title, file path or function name holds this text">
+          <div class="chips" id="history-types" role="group" aria-label="Element types"></div>
           <label class="toggle" title="While a filter is on, also show the rows it leaves without a change"><input type="checkbox" id="history-show-empty"> Rows without changes</label>
           <span class="graph-status" id="history-kept"></span>
           <span class="toolbar-spacer"></span>
@@ -195,6 +199,9 @@
         <div class="history-band-row"><span class="history-corner">Activity</span><svg class="history-band" id="history-band" role="img" aria-label="Commits per period, stacked by human, agent and together"></svg></div>
         <div class="history-axis-row"><span class="history-corner" id="history-limits"></span><svg class="history-axis" id="history-axis" aria-hidden="true"></svg></div>
         <div class="history-scroll" id="history-scroll"><div class="history-rows" id="history-rows"></div></div>
+        <!-- RQ-HST-020: the edge between the labels and the timeline -->
+        <div class="history-split" id="history-split" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize the labels column"
+             title="Drag, or use the arrow keys, to resize the labels column · double-click to reset"></div>
         <div class="history-overview-row"><span class="history-corner">Overview</span><svg class="history-overview" id="history-overview" role="img" aria-label="The whole history; the window is the period in view"></svg></div>
       </div>
       <aside class="card history-card" id="history-card" aria-label="Commit" hidden></aside>

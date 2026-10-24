@@ -2135,6 +2135,9 @@
   const IS_PINNED = "is-pinned";
   const EVENT_POINTERDOWN = "pointerdown";
   const KEY_ENTER = "Enter";
+  const ID_HISTORY_TYPES = "history-types";
+  const ID_HISTORY_SPLIT = "history-split";
+  const ID_HISTORY_FILTER = "history-filter";
   const CLASS_NAME = "history-name";
   const ATTR_PERSON = "data-person";
   const CSS_TIP_DELAY = "--c-history-tip-delay";
@@ -2195,6 +2198,7 @@
   const hist = {
     angle: ANGLE_REQUIREMENTS, grouping: GROUPING_FILES, span: null, full: null, baseRows: [], rows: [], built: false,
     pinned: null, people: new Set(), kind: KIND_ALL, showEmpty: false, kept: [], shown: [], scope: null, closed: new Set(),
+    text: "", types: new Set(TYPES), label: null,
   };
   const MERGED_TEXT = { email: "e-mail", mailmap: ".mailmap" };
   const FOLDER_PREFIX = "dir:";
@@ -2392,6 +2396,7 @@
         continue;
       }
       if (scope && !scope.has(row.key)) continue;
+      if (!rowWanted(row)) continue;
       const marks = row.marks.filter(([ci]) => hist.kept[ci]);
       if (!marks.length && filtering() && !hist.showEmpty) continue;
       if (heading) heading.count += 1;
@@ -2403,6 +2408,25 @@
     }
     for (const row of rows) if (isFolder(row)) row.marks = mergeMarks(row.lists);
     return rows.filter((row) => isEntry(row) || row.count);
+  }
+
+  // RQ-HST-021: a row stays when its ID, title, path or function name holds the text, and, with the requirements angle,
+  // when its type is on.
+  function rowWanted(row) {
+    const n = nodes.get(row.key);
+    if (hist.angle === ANGLE_REQUIREMENTS && n && !hist.types.has(n.type)) return false;
+    if (!hist.text) return true;
+    return [row.key, row.label, row.title, row.name, n?.title, n?.path].some((field) => field && field.toLowerCase().includes(hist.text));
+  }
+
+  function renderTypeChips() {
+    const counts = (type) => DATA.elements.filter((e) => e.kind === VALUE_ELEMENT && e.type === type).length;
+    clear($(ID_HISTORY_TYPES)).append(...TYPES.map((type) => {
+      const node = chip(plural(type, 2), counts(type), hist.types.has(type), () => { toggle(hist.types, type); renderTypeChips(); applyFilters(); },
+        `t-${type}`, `Show or hide the ${plural(type, 2).toLowerCase()} in the timeline`);
+      node.dataset.type = type;
+      return node;
+    }));
   }
 
   function toggleFolder(path) {
@@ -2430,6 +2454,10 @@
     hist.kind = KIND_ALL;
     hist.showEmpty = false;
     $(ID_SHOW_EMPTY).checked = false;
+    hist.text = "";
+    $(ID_HISTORY_FILTER).value = "";
+    hist.types = new Set(TYPES);
+    renderTypeChips();
     applyFilters();
   }
 
@@ -2510,7 +2538,7 @@
 
   // ---- time scale ----
   const rowHeight = () => cssNumber("--c-history-row-height");
-  const labelWidth = () => cssNumber("--c-history-label-width");
+  const labelWidth = () => hist.label ?? cssNumber("--c-history-label-width");
   const plotWidth = () => Math.max(1, $(ID_HISTORY_SCROLL).clientWidth - labelWidth());
   const plotLeft = () => $(ID_HISTORY_SCROLL).getBoundingClientRect().left + labelWidth();
   const spanWidth = () => hist.span[1] - hist.span[0];
@@ -2856,7 +2884,10 @@
       const keys = { "+": () => zoomAround(centre, zoomStep()), "=": () => zoomAround(centre, zoomStep()),
         "-": () => zoomAround(centre, 1 / zoomStep()), 0: fitHistory,
         [KEY_ARROWLEFT]: () => panBy(-PAN_FRACTION), [KEY_ARROWRIGHT]: () => panBy(PAN_FRACTION) };
-      if (keys[event.key] && !event.target.closest(`.${CLASS_LABEL}`)) { event.preventDefault(); keys[event.key](); }
+      if (keys[event.key] && !event.target.closest(`.${CLASS_LABEL}, #${ID_HISTORY_SPLIT}, #${ID_HISTORY_FILTER}`)) {
+        event.preventDefault();
+        keys[event.key]();
+      }
     });
     $("history-fit").addEventListener(EVENT_CLICK, fitHistory);
     $(ID_HISTORY_ANGLE).addEventListener(EVENT_CLICK, (event) => {
@@ -2874,9 +2905,61 @@
     $(ID_SHOW_EMPTY).addEventListener(EVENT_CHANGE, (event) => { hist.showEmpty = event.target.checked; applyFilters(); });
     $("history-reset").addEventListener(EVENT_CLICK, resetFilters);
     renderPeopleChips();
+    renderTypeChips();
+    $(ID_HISTORY_FILTER).addEventListener("input", (event) => { hist.text = event.target.value.trim().toLowerCase(); applyFilters(); });
+    setupLabelSplit();
     new ResizeObserver(() => drawHistory()).observe(plot);
     renderHistoryLegend();
     renderHistoryLimits();
+  }
+
+  const LABEL_KEY = "agnos-trace-history-label";
+
+  function setLabelWidth(width, keep) {
+    hist.label = width === null ? null
+      : Math.round(Math.max(cssNumber("--c-history-label-min"), Math.min(width, cssNumber("--c-history-label-max"))));
+    const view = $("view-history");
+    if (hist.label === null) view.style.removeProperty("--history-label");
+    else view.style.setProperty("--history-label", `${hist.label}px`);
+    $(ID_HISTORY_SPLIT).setAttribute("aria-valuenow", String(Math.round(labelWidth())));
+    if (keep) {
+      try {
+        if (hist.label === null) localStorage.removeItem(LABEL_KEY); else localStorage.setItem(LABEL_KEY, String(hist.label));
+      } catch (error) { /* storage unavailable: the width lasts this visit */ }
+    }
+    drawHistory();
+  }
+
+  function setupLabelSplit() {
+    const bar = $(ID_HISTORY_SPLIT);
+    bar.setAttribute("aria-valuemin", String(cssNumber("--c-history-label-min")));
+    bar.setAttribute("aria-valuemax", String(cssNumber("--c-history-label-max")));
+    bar.addEventListener(EVENT_KEYDOWN, (event) => {
+      if (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT) return;
+      event.preventDefault();
+      const step = cssNumber("--c-splitter-step");
+      setLabelWidth(labelWidth() + (event.key === KEY_ARROWRIGHT ? step : -step), true);
+    });
+    bar.addEventListener("dblclick", () => setLabelWidth(null, true));
+    bar.addEventListener(EVENT_POINTERDOWN, (event) => {
+      event.preventDefault();
+      bar.setPointerCapture(event.pointerId);
+      bar.classList.add("dragging");
+      const left = $("history-plot").getBoundingClientRect().left;
+      const move = (e) => setLabelWidth(e.clientX - left, true);
+      const end = () => {
+        bar.removeEventListener(EVENT_POINTERMOVE, move);
+        bar.removeEventListener(EVENT_POINTERUP, end);
+        bar.removeEventListener(EVENT_POINTERCANCEL, end);
+        bar.classList.remove("dragging");
+      };
+      bar.addEventListener(EVENT_POINTERMOVE, move);
+      bar.addEventListener(EVENT_POINTERUP, end);
+      bar.addEventListener(EVENT_POINTERCANCEL, end);
+    });
+    let saved = null;
+    try { saved = localStorage.getItem(LABEL_KEY); } catch (error) { /* no storage */ }
+    if (saved !== null && Number.isFinite(Number(saved))) setLabelWidth(Number(saved), false);
   }
 
   function setAngle(angle, grouping) {
@@ -2885,6 +2968,7 @@
     for (const b of $(ID_HISTORY_ANGLE).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.angle === angle));
     for (const b of $(ID_HISTORY_GROUPING).querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.grouping === grouping));
     $(ID_HISTORY_GROUPING).hidden = angle !== ANGLE_CODE;
+    $(ID_HISTORY_TYPES).hidden = angle !== ANGLE_REQUIREMENTS;
     hist.baseRows = historyRows();
     $(ID_HISTORY_SCROLL).scrollTop = 0;
     applyFilters();

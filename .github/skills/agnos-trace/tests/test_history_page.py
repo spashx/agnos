@@ -243,10 +243,13 @@ out.withempty = rows.dataset.total;
 const rows = document.getElementById("history-rows");
 const all = rows.dataset.total;
 document.querySelector('#history-kind [data-kind="agent"]').click();
-out.commits = [...new Set([...rows.querySelectorAll(".history-mark")].map((m) => m.dataset.commit))].sort().join(",");
+// the commits of the rows shown, from the view's state: the rows below the window are not in the document (RQ-HST-013)
+const shownCommits = () => [...new Set(agnosTrace.historyView.state.rows.filter((r) => !r.group)
+  .flatMap((r) => r.marks.map(([ci]) => ci)))].sort().join(",");
+out.commits = shownCommits();
 document.getElementById("history-reset").click();
 out.reset = String(rows.dataset.total === all);
-out.after = [...new Set([...rows.querySelectorAll(".history-mark")].map((m) => m.dataset.commit))].sort().join(",");
+out.after = shownCommits();
 """, "commits", "reset", "after")
         self.assertEqual("2,4", got["commits"])
         self.assertEqual("true", got["reset"])
@@ -650,6 +653,97 @@ out.opened = String(rows().some((r) => r.startsWith("file:src/a/x.py")));
         self.assertNotIn("file:src/a/x.py", got["closed"])
         self.assertIn("file:src/b/z.py", got["closed"])
         self.assertEqual(("false", "1,3", "true", "true"), (got["expanded"], got["closedmarks"], got["still"], got["opened"]))
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class LabelColumnAndRowFilterTest(unittest.TestCase):
+    """TASK-HST-012: RQ-HST-020, RQ-HST-021."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        cls.data = add_history(cls.path)
+        tokens = tm.load_tokens(tm.TOKENS_PATH)["global"]
+        cls.px = {name: float(tokens[name].removesuffix("px")) for name in
+                  ("dimension.history-label", "dimension.history-label-min", "dimension.history-label-max", "space.16")}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, START + """
+agnosTrace.showView("history");
+const keys = () => [...document.querySelectorAll("#history-rows .history-row[data-key]")].map((r) => r.dataset.key).join(",");
+const type = (text) => { const box = document.getElementById("history-filter"); box.value = text;
+  box.dispatchEvent(new Event("input", { bubbles: true })); };
+""" + script), *names)
+
+    def test_RQ_HST_020_given_the_splitter_then_the_label_column_resizes_by_steps_stops_at_its_bounds_and_resets(self):
+        got = self.run_script("""
+const bar = document.getElementById("history-split");
+const press = (key, n) => { for (let i = 0; i < n; i += 1) bar.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })); };
+const first = (selector) => Number.parseFloat(getComputedStyle(document.querySelector(selector)).gridTemplateColumns);
+out.start = String(first(".history-axis-row"));
+press("ArrowRight", 3);
+out.three = String(first(".history-axis-row"));
+out.aligned = String([".history-band-row", ".history-overview-row", "#history-rows .history-row"].every((s) => first(s) === first(".history-axis-row")));
+out.stored = localStorage.getItem("agnos-trace-history-label") || "";
+press("ArrowRight", 200);
+out.max = String(first(".history-axis-row"));
+press("ArrowLeft", 400);
+out.min = String(first(".history-axis-row"));
+bar.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+out.reset = String(first(".history-axis-row"));
+out.role = bar.getAttribute("role") + ":" + bar.getAttribute("tabindex");
+""", "start", "three", "aligned", "stored", "max", "min", "reset", "role")
+        base, step = self.px["dimension.history-label"], self.px["space.16"]
+        self.assertEqual(base, float(got["start"]))
+        self.assertEqual(base + 3 * step, float(got["three"]))
+        self.assertEqual("true", got["aligned"])
+        self.assertEqual(base + 3 * step, float(got["stored"]))
+        self.assertEqual(self.px["dimension.history-label-max"], float(got["max"]))
+        self.assertEqual(self.px["dimension.history-label-min"], float(got["min"]))
+        self.assertEqual(base, float(got["reset"]))
+        self.assertEqual("separator:0", got["role"])
+
+    def test_RQ_HST_021_given_a_text_then_only_the_rows_holding_it_stay_and_the_figures_follow(self):
+        got = self.run_script("""
+const all = keys();
+type("covered");
+out.rows = keys();
+out.headings = String(document.querySelectorAll("#history-rows .history-row.is-group").length);
+out.commits = document.querySelector('#history-kpis [data-figure="commits"] .kpi-value').textContent;
+type("");
+out.back = String(keys() === all);
+""", "rows", "headings", "commits", "back")
+        self.assertEqual("RQ-DEM-001,RQ-DEM-002,RQ-DEM-003,RQ-DEM-004", got["rows"])
+        self.assertEqual(("1", "4", "true"), (got["headings"], got["commits"], got["back"]))
+
+    def test_RQ_HST_021_given_a_type_turned_off_then_no_row_of_it_stays(self):
+        got = self.run_script("""
+document.querySelector('#history-types [data-type="TASK"]').click();
+out.tasks = String(keys().split(",").filter((k) => k.startsWith("TASK-")).length);
+out.pressed = document.querySelector('#history-types [data-type="TASK"]').getAttribute("aria-pressed");
+document.querySelector('#history-angle [data-angle="code"]').click();
+out.typeshidden = String(document.getElementById("history-types").hidden);
+""", "tasks", "pressed", "typeshidden")
+        self.assertEqual(("0", "false", "true"), (got["tasks"], got["pressed"], got["typeshidden"]))
+
+    def test_RQ_HST_021_given_the_code_angle_and_a_text_then_only_the_files_holding_it_stay_with_their_folders(self):
+        target = self.data["files"][0]["path"]
+        name = target.rsplit("/", 1)[-1]
+        got = self.run_script(f"""
+document.querySelector('#history-angle [data-angle="code"]').click();
+type({json.dumps(name)});
+out.files = keys().split(",").filter((k) => !k.startsWith("dir:")).join(",");
+out.folders = String(keys().split(",").filter((k) => k.startsWith("dir:")).length > 0);
+""", "files", "folders")
+        expected = ",".join("file:" + f["path"] for f in self.data["files"] if name.lower() in f["path"].lower())
+        self.assertEqual(expected, got["files"])
+        self.assertEqual("true", got["folders"])
 
 
 class WordingTest(unittest.TestCase):

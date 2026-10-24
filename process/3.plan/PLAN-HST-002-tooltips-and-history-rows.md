@@ -74,7 +74,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-HST-012: A resizable label column and a filter on the rows
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the splitter between the History tab's labels and timeline (drag, arrow keys, double click,
   bounds and step from tokens, width kept per viewer, axis, band and overview aligned) and the row filter (a text field
   and, in the requirements angle, type chips) combined with the identity, kind and scope filters.
@@ -88,5 +88,5 @@ This plan implements the tasks in the format specified below.
   cleared, Then every row shows.
 - **Dependencies**: TASK-HST-011
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `python -m unittest discover -s tests` (skill folder): 234 tests, 0 failure, 1 skipped. `LabelColumnAndRowFilterTest` (4, headless Edge): the splitter (`role=separator`, focusable) starts at the 260 px token, three right arrows make 308 px (3 steps of 16), the band, axis, overview and rows keep the same first column, the width is stored (`agnos-trace-history-label` = 308), 200 more steps stop at the 560 px maximum, 400 left steps at the 160 px minimum, a double click returns to 260; "covered" keeps RQ-DEM-001 to 004 under one heading and the figures count their 4 commits, an empty text brings every row back; turning TASK off leaves no TASK row and the type chips hide with the code angle; in the code angle, a file's name keeps the files holding it with their folders. `FiguresAndFiltersTest` now reads the kept commits from the view's state, the taller filter bar leaving the TASK rows below the window. Screenshot of this repository: column widened, splitter focused, "HST" filter.
+- **Assumptions**: The row filter also matches an element's title and a file's path; Reset filters clears it and turns every type back on. The keyboard step is the panels' splitter step token. A width read from storage is clamped to the bounds of the tokens.
