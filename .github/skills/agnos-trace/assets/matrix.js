@@ -3383,7 +3383,7 @@
   const ARROW_DOWN = "▼";
   const ARROW_SAME = "=";
   const FIELD_KIND = "kind";
-  const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false };
+  const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false, sort: { key: null, direction: null } };
   const periodInput = (key, side) => $(`delivery-${side}-${key}`);
   const dataNumber = (value, digits) => (value === null ? "" : digits ? value.toFixed(digits) : String(value));
 
@@ -3667,12 +3667,107 @@
       card("Points over time", "timeline", timelineChart(), "delivery-wide"), card("Lines per task", "size", sizeChart(figures)));
   }
 
+  // ---- delivery table (TASK-TRC-061: RQ-TRC-077, RQ-TRC-079; DEC-TRC-039) ----
+  const REASON_TEXT = {
+    "created-done": "Done from its creation: git holds no change of its status to Done",
+    annotated: "Its status reads more than Done",
+    reopened: "Its status left Done after its delivery",
+    "no-tier": "It has no tier S, M or L",
+  };
+  const SORT_ASCENDING = "ascending";
+  const SORT_DESCENDING = "descending";
+  const deliverers = (r) => r.people.map((i) => HISTORY.people[i].name).join(", ");
+  const periodsOf = (r) => PERIOD_KEYS.filter((key) => inPeriod(r.day, dlv.periods[key])).map((key) => key.toUpperCase()).join(", ");
+  // [key, header, value of a row, shown in the table]; the CSV also writes the commit type.
+  const DELIVERY_COLUMNS = [
+    ["id", "Task", (r) => r.id, true], ["title", "Title", (r) => r.title, true], ["tier", "Tier", (r) => r.tier, true],
+    ["points", "Points", pointsOf, true], ["people", "Delivered by", deliverers, true], ["day", "Date", (r) => r.day, true],
+    ["period", "Period", periodsOf, true], [VALUE_LINES, "Lines", (r) => r.lines, true],
+    ["reworked", "Reworked", (r) => (r.reworked ? "yes" : ""), true], ["type", "Commit type", (r) => r.type, false],
+  ];
+
+  // The tasks of A and B kept by the filters, in the order chosen (by date by default), and those set aside.
+  function deliveryTableRows() {
+    const inAny = (r) => PERIOD_KEYS.some((key) => inPeriod(r.day, dlv.periods[key])) && r.day >= dlv.bounds.first;
+    const kept = deliveryRows.filter((r) => inAny(r) && deliveryKept(r, dlv.filter));
+    const column = DELIVERY_COLUMNS.find((c) => c[0] === dlv.sort.key);
+    if (column) {
+      const value = column[2];
+      kept.sort((a, b) => {
+        const [x, y] = [value(a), value(b)];
+        const order = typeof x === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true });
+        return dlv.sort.direction === SORT_ASCENDING ? order : -order;
+      });
+    }
+    const aside = deliveryRows.filter((r) => r.reason && inAny(r) && deliveryKept({ ...r, reason: null }, dlv.filter));
+    return { kept, aside };
+  }
+
+  function deliveryCsv() {
+    const { kept } = deliveryTableRows();
+    return [DELIVERY_COLUMNS.map((c) => c[1]), ...kept.map((r) => DELIVERY_COLUMNS.map((c) => c[2](r)))]
+      .map((row) => row.map(csvCell).join(",")).join("\r\n");
+  }
+
+  function exportDeliveryCsv() {
+    const url = URL.createObjectURL(new Blob(["﻿", deliveryCsv()], { type: "text/csv;charset=utf-8" }));
+    const a = el("a", { href: url, download: `delivery-${DATA.meta.title}.csv` });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function sortBy(key) {
+    const again = dlv.sort.key === key && dlv.sort.direction === SORT_ASCENDING;
+    dlv.sort = { key, direction: again ? SORT_DESCENDING : SORT_ASCENDING };
+    renderDeliveryTable();
+  }
+
+  const selectOnKey = (id) => (event) => {
+    if (event.key === KEY_ENTER || event.key === " ") { event.preventDefault(); select(id); }
+  };
+
+  function renderDeliveryTable() {
+    const { kept, aside } = deliveryTableRows();
+    const shown = DELIVERY_COLUMNS.filter((c) => c[3]);
+    const head = el(TAG_THEAD, {}, el("tr", {}, ...shown.map(([key, label]) => el("th", { scope: "col", "data-sort": key, tabindex: "0",
+      "aria-sort": dlv.sort.key === key ? dlv.sort.direction : VALUE_NONE, title: `Sort by ${label.toLowerCase()}; again to reverse`,
+      on: { [EVENT_CLICK]: () => sortBy(key), [EVENT_KEYDOWN]: (event) => { if (event.key === KEY_ENTER) sortBy(key); } } }, label))));
+    const rows = kept.map((r) => el("tr", { class: "delivery-row", "data-key": r.id, tabindex: "0",
+      [VALUE_ARIA_LABEL]: `${r.id}, ${r.title}: delivered on ${r.day} by ${deliverers(r)}`,
+      on: { [EVENT_CLICK]: () => select(r.id), [EVENT_KEYDOWN]: selectOnKey(r.id) } },
+    ...shown.map((c) => el("td", { text: c[2](r) }))));
+    const asideRows = aside.length ? [el("tr", {}, el("th", { colspan: shown.length, scope: "colgroup",
+      text: `Set aside: ${taskCount(aside.length)} counted in no figure` })),
+    ...aside.map((r) => el("tr", { class: "delivery-aside", "data-key": r.id, "data-reason": r.reason, tabindex: "0",
+      on: { [EVENT_CLICK]: () => select(r.id), [EVENT_KEYDOWN]: selectOnKey(r.id) } },
+    el("td", { text: r.id }), el("td", { text: r.title }), el("td", { colspan: shown.length - HALF, text: REASON_TEXT[r.reason] || r.reason })))] : [];
+    clear($("delivery-table")).append(
+      el("div", { class: "toolbar" }, el("h3", { class: "card-title", text: "Tasks delivered in A and B" }),
+        el(TAG_SPAN, { class: "graph-status", text: `${taskCount(kept.length)} kept by the filters` }), el(TAG_SPAN, { class: "toolbar-spacer" }),
+        el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, id: "delivery-export", text: "Export CSV",
+          title: "Download the tasks shown as a CSV file (UTF-8, comma-separated)", on: { [EVENT_CLICK]: exportDeliveryCsv } })),
+      el("div", { class: "table-frame" }, el("table", { class: "matrix delivery-tasks" }, head, el(TAG_TBODY, {}, ...rows),
+        el(TAG_TBODY, { class: "delivery-aside-body" }, ...asideRows))));
+  }
+
+  // RQ-TRC-077: the detail panel states a task's delivery, or why the Delivery tab sets it aside.
+  function deliveryLine(key) {
+    const r = deliveryRows.find((row) => row.id === key);
+    if (!r) return null;
+    const text = r.reason ? `Done on ${r.day}, set aside from the Delivery tab: ${REASON_TEXT[r.reason] || r.reason}`
+      : `Delivered on ${r.day} by ${deliverers(r)}: tier ${r.tier}, ${pointsOf(r)} points`;
+    return el("p", { class: "detail-delivery", text });
+  }
+
   function renderDelivery() {
     renderDeliveryPeriods();
     renderDeliveryChips();
     const figures = PERIOD_KEYS.map((key) => deliveryFigures(dlv.periods[key], dlv.filter, dlv.bounds));
     renderDeliveryKpis(figures);
     renderDeliveryCharts(figures);
+    renderDeliveryTable();
   }
 
   function setupDelivery() {
@@ -3730,6 +3825,7 @@
         n.type === "RQ" && DATA.coverage[key] ? coverageBadge(DATA.coverage[key]) : null,
         n.kind === KIND_UNDEFINED ? el("span", { class: "badge badge-error", text: "Not in the index" }) : null),
       n.doc ? el("div", { class: "detail-location", text: `${n.doc}:${n.first}-${n.last}` }) : null,
+      DELIVERY ? deliveryLine(key) : null,
       el("div", { class: "detail-actions" },
         el("button", { class: "button button-primary", type: "button", text: "Show in graph",
           title: "Open the graph on this element and its links", on: { click: () => showView("graph") } }),
@@ -4075,7 +4171,7 @@
 
   // ---- start --------------------------------------------------------------------------------------------------
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
-    FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null };
+    FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv };
   renderHeader();
   renderFilters();
   renderOverview();

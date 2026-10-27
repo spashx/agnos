@@ -38,7 +38,7 @@ COMMITS = [
 ]
 TASKS = [
     ["TASK-DEM-101", "M", False, 1, 12, "feat", False, None],          # period B, Alice
-    ["TASK-DEM-102", "L", True, 2, 40, "feat", False, None],           # period A, Alice and Claude
+    ["TASK-DEM-001", "L", True, 2, 40, "feat", False, None],           # period A, Alice and Claude; a task of the fixture
     ["TASK-DEM-103", "S", False, 3, 5, None, False, None],             # period A, Claude, a subject with no type
     ["TASK-DEM-104", "S", False, 4, 3, "fix", True, None],             # period A, Claude, reworked
     ["TASK-DEM-105", "S", False, 3, 0, "feat", False, "created-done"],  # set aside
@@ -360,3 +360,85 @@ document.querySelector('#delivery-tiers [data-tier="S"]').click();
 out.bar = document.querySelector('#delivery-charts .delivery-bar[data-person="1"][data-period="a"]').dataset.points;
 """, "bar")
         self.assertEqual("2", got["bar"])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class DeliveryTableTest(unittest.TestCase):
+    """TASK-TRC-061: RQ-TRC-077, RQ-TRC-079."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_delivery(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, TAB + """
+const keys = () => [...document.querySelectorAll("#delivery-table tr.delivery-row")].map((r) => r.dataset.key).join(",");
+""" + script), *names)
+
+    def test_RQ_TRC_077_given_the_tab_then_the_table_lists_the_tasks_of_a_and_b_and_below_those_set_aside(self):
+        got = self.run_script("""
+out.rows = keys();
+const row = document.querySelector('#delivery-table tr.delivery-row[data-key="TASK-DEM-001"]');
+out.cells = [...row.cells].map((c) => c.textContent).join("|");
+const aside = [...document.querySelectorAll("#delivery-table tr.delivery-aside")];
+out.aside = aside.map((r) => r.dataset.key + ":" + r.dataset.reason).join(",");
+out.why = aside.length ? aside[0].textContent : "";
+""", "rows", "cells", "aside", "why")
+        self.assertEqual("TASK-DEM-101,TASK-DEM-001,TASK-DEM-103,TASK-DEM-104", got["rows"])
+        for text in ("TASK-DEM-001", "A range of requirements", "L", "8", "Alice", "Claude Opus 5.5", "2026-10-22", "A", "40"):
+            self.assertIn(text, got["cells"], text)
+        self.assertEqual("TASK-DEM-105:created-done", got["aside"])
+        self.assertIn("Done from its creation", got["why"])
+
+    def test_RQ_TRC_077_given_a_header_then_a_click_sorts_and_a_second_reverses(self):
+        got = self.run_script("""
+const header = document.querySelector('#delivery-table th[data-sort="points"]');
+header.click();
+out.up = keys().split(",")[0];
+out.sortup = document.querySelector('#delivery-table th[data-sort="points"]').getAttribute("aria-sort");   // the table is drawn again
+document.querySelector('#delivery-table th[data-sort="points"]').click();
+out.down = keys().split(",")[0];
+out.sortdown = document.querySelector('#delivery-table th[data-sort="points"]').getAttribute("aria-sort");
+""", "up", "sortup", "down", "sortdown")
+        self.assertEqual(("TASK-DEM-103", "ascending"), (got["up"], got["sortup"]))
+        self.assertEqual(("TASK-DEM-001", "descending"), (got["down"], got["sortdown"]))
+
+    def test_RQ_TRC_077_given_a_row_clicked_then_the_detail_panel_selects_the_task_and_states_its_delivery(self):
+        got = self.run_script("""
+document.querySelector('#delivery-table tr.delivery-row[data-key="TASK-DEM-001"]').click();
+out.selected = agnosTrace.state.selected;
+const line = document.querySelector("#detail .detail-delivery");
+out.line = line ? line.textContent : "";
+""", "selected", "line")
+        self.assertEqual("TASK-DEM-001", got["selected"])
+        for text in ("Delivered on 2026-10-22", "Alice", "Claude Opus 5.5", "tier L", "8 points"):
+            self.assertIn(text, got["line"], text)
+
+    def test_RQ_TRC_077_given_the_keyboard_then_enter_on_a_row_selects_it(self):
+        got = self.run_script("""
+const row = document.querySelector('#delivery-table tr.delivery-row[data-key="TASK-DEM-001"]');
+out.focusable = row.getAttribute("tabindex");
+row.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+out.selected = agnosTrace.state.selected;
+""", "focusable", "selected")
+        self.assertEqual(("0", "TASK-DEM-001"), (got["focusable"], got["selected"]))
+
+    def test_RQ_TRC_077_given_the_csv_then_it_holds_the_rows_shown_and_follows_the_filters(self):
+        got = self.run_script("""
+const csv = agnosTrace.deliveryCsv().split("\\r\\n");
+out.header = csv[0]; out.lines = String(csv.length - 1);
+out.task = csv.find((l) => l.startsWith("TASK-DEM-001")) || "";
+document.querySelector('#delivery-tiers [data-tier="S"]').click();
+out.filtered = keys();
+""", "header", "lines", "task", "filtered")
+        self.assertEqual("Task,Title,Tier,Points,Delivered by,Date,Period,Lines,Reworked,Commit type", got["header"])
+        self.assertEqual("4", got["lines"])
+        self.assertTrue(got["task"].startswith("TASK-DEM-001,A range of requirements,L,8,"), got["task"])
+        self.assertEqual("TASK-DEM-103,TASK-DEM-104", got["filtered"])

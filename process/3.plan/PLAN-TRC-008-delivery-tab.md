@@ -141,7 +141,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-061: The table, its CSV and the delivery in the detail panel
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The sortable table of delivered tasks with its CSV and the set-aside rows; a click or Enter selects
   the task in the detail panel, whose band states its delivery.
 - **Requirement refs**: RQ-TRC-077, RQ-TRC-079
@@ -150,8 +150,16 @@ This plan implements the tasks in the format specified below.
   When TASK-A is clicked, Then the detail panel selects it and states its date, deliverers, tier and points.
 - **Dependencies**: TASK-TRC-059
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `DeliveryTableTest` written first (5 failing), then 5 tests OK: rows "TASK-DEM-101, TASK-DEM-001,
+  TASK-DEM-103, TASK-DEM-104" by date, TASK-DEM-001's cells (title, L, 8, Alice, Claude Opus 5.5, 2026-10-22, A, 40);
+  set aside "TASK-DEM-105:created-done", "Done from its creation"; Points sorted ascending (TASK-DEM-103 first,
+  `aria-sort` ascending) then descending (TASK-DEM-001); click and Enter select TASK-DEM-001, the detail panel reads
+  "Delivered on 2026-10-22 by Alice, Claude Opus 5.5: tier L, 8 points"; CSV header "Task,Title,Tier,Points,Delivered
+  by,Date,Period,Lines,Reworked,Commit type", 4 lines, tag S leaves TASK-DEM-103 and 104. Whole suite: 289 tests OK, 2
+  skipped. Screenshot of XS56K: 112 tasks in A and B, a row selected, its delivery in the detail panel.
+- **Assumptions**: the table lists the tasks of A and B together, with a Period column; the set-aside rows follow the
+  same periods and filters (reason aside); the fixture's TASK-DEM-102 became TASK-DEM-001, a task of the fixture's
+  index, so that it can be selected; a sort header is reached with Tab and sorted with Enter.
 
 ### TASK-TRC-062: Speed, documentation and a run on XS56K
 - **Tier**: M

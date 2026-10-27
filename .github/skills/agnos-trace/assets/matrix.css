@@ -1167,3 +1167,11 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-bar:focus, .delivery-column:focus, .delivery-box:focus { outline: none; }
 .delivery-bar:focus .delivery-track, .delivery-column:focus .delivery-seg, .delivery-box:focus .delivery-box-range { stroke: var(--s-focus); stroke-width: var(--s-stroke-focus); }
 .delivery-legend { fill: var(--s-text-muted); font-size: var(--s-text-caption); }
+
+/* ---- delivery table (TASK-TRC-061: RQ-TRC-077, RQ-TRC-079) ------------------------------------------------------- */
+.delivery-table { display: flex; flex-direction: column; gap: var(--s-space-sm); }
+.delivery-tasks th[data-sort] { cursor: pointer; }
+.delivery-tasks tr.delivery-row, .delivery-tasks tr.delivery-aside { cursor: pointer; }
+.delivery-tasks tr.delivery-row:focus, .delivery-tasks tr.delivery-aside:focus { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: calc(-1 * var(--s-stroke-focus)); }
+.delivery-tasks tr.delivery-aside td { color: var(--s-text-muted); }
+.detail-delivery { margin: var(--s-space-none); color: var(--s-text-muted); font-size: var(--s-text-small); }
