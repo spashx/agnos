@@ -1135,3 +1135,16 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .detail-note { margin: var(--s-space-none); padding: var(--s-space-md) var(--s-space-lg); color: var(--s-text-muted); font-size: var(--s-text-small); }
 
 @media (prefers-reduced-motion: reduce) { .chip, .splitter { transition: none; } }
+
+/* ---- delivery view (TASK-TRC-059: RQ-TRC-072, RQ-TRC-074, RQ-TRC-079; DEC-TRC-039) ---------------------------- */
+.view-delivery:not([hidden]) { display: flex; flex-direction: column; gap: var(--s-space-md); }
+.delivery-period { display: inline-flex; align-items: center; gap: var(--s-space-xs); margin: var(--s-space-none); padding: var(--s-space-none); border: none; }
+.delivery-period select, .delivery-period input { height: var(--c-control-height); padding: var(--s-space-none) var(--s-space-xs); border: var(--s-stroke-hairline) solid var(--c-control-border);
+  border-radius: var(--s-radius-md); background: var(--c-control-bg); color: var(--s-text); font: inherit; font-size: var(--s-text-small); }
+.delivery-period select:focus, .delivery-period input:focus { outline: none; border-color: var(--s-focus); box-shadow: 0 0 0 var(--c-focus-ring) var(--s-accent-border); }
+.delivery-versus { color: var(--s-text-muted); font-size: var(--s-text-small); }
+.delivery-message { margin: var(--s-space-none); color: var(--s-status-error); font-size: var(--s-text-small); }
+.delivery-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.delivery-change { font-weight: var(--s-weight-strong); }
+.delivery-change.is-better { color: var(--s-status-ok); }
+.delivery-change.is-worse { color: var(--s-status-error); }

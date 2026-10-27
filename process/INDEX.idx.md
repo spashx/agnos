@@ -404,12 +404,12 @@ TASK-TRC-052|117-132|Done|Remediation: named constants in the skill's code
 TASK-TRC-053|133-147|Done|Grade colours as the food and energy labels
 TASK-TRC-054|148-160|Done|The RQ-TRC-026 sentinel no longer depends on the current folder
 @process/3.plan/PLAN-TRC-008-delivery-tab.md
-PLAN-TRC-008|1-153||Delivery Tab
+PLAN-TRC-008|1-160||Delivery Tab
 TASK-TRC-055|18-31|Done|One human, one agent, one commit in the history's summary line
 TASK-TRC-056|32-47|Done|The Delivery tab specified and decided
 TASK-TRC-057|48-71|Done|Deliveries and the `delivery` block from the history's log
 TASK-TRC-058|72-96|Done|Points, throughput, rework rate and periods in the page
-TASK-TRC-059|97-112|Not Started|The Delivery tab, its toolbar, filters and figures
-TASK-TRC-060|113-126|Not Started|The three charts of the delivery
-TASK-TRC-061|127-140|Not Started|The table, its CSV and the delivery in the detail panel
-TASK-TRC-062|141-153|Not Started|Speed, documentation and a run on XS56K
+TASK-TRC-059|97-119|Done|The Delivery tab, its toolbar, filters and figures
+TASK-TRC-060|120-133|Not Started|The three charts of the delivery
+TASK-TRC-061|134-147|Not Started|The table, its CSV and the delivery in the detail panel
+TASK-TRC-062|148-160|Not Started|Speed, documentation and a run on XS56K

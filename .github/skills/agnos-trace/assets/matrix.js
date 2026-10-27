@@ -3225,6 +3225,7 @@
   const DAY_START = "T00:00:00Z";
   const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
   const LINK_KIND_REFS = "refs";
+  const TYPE_NONE = "none";             // a delivery commit whose subject has no Conventional-Commits type
   const TIERS = DELIVERY ? Object.keys(DELIVERY.settings.points) : [];
 
   const dayMs = (day) => Date.parse(day + DAY_START);
@@ -3241,7 +3242,7 @@
     const plan = own.find((l) => l.kind === VALUE_CONTAINS && l.dir === "in")?.key || "";
     const cited = own.filter((l) => l.kind === LINK_KIND_REFS && l.dir === "out" && nodes.get(l.key)?.type === "RQ")
       .map((l) => l.key);
-    return { id, tier, reTiered, commit, lines, type, reworked, reason, day: c.date.slice(0, ISO_DAY_LENGTH),
+    return { id, tier, reTiered, commit, lines, type: type || TYPE_NONE, reworked, reason, day: c.date.slice(0, ISO_DAY_LENGTH),
       people: [c.author, ...c.coAuthors], kind: c.kind, tri: n ? n.tri : id.split("-")[1], title: n ? n.title : "", plan,
       find: [id, n ? n.title : "", plan, ...cited].join(" ").toLowerCase() };
   }
@@ -3370,6 +3371,175 @@
 
   const deliveryApi = { rows: deliveryRows, bounds: deliveryBounds, presets: presetPeriods, defaults: defaultPeriods, checkDay,
     grains: grainsOf, bucketOf, filter: deliveryFilter, figures: deliveryFigures, variation, perIdentity, pointsOverTime };
+
+  // ---- delivery view (TASK-TRC-059: RQ-TRC-072, RQ-TRC-074, RQ-TRC-076, RQ-TRC-079; DEC-TRC-039) ----
+  const DELIVERY_VIEW = "delivery";
+  const PERIOD_KEYS = ["a", "b"];
+  const PRESET_CUSTOM = "custom";
+  const FIGURE_DIGITS = 3;              // the figures as the band's data attributes hold them
+  const SHOWN_DIGITS = 1;               // the throughput as the band writes it
+  const ARROW_UP = "▲";
+  const ARROW_DOWN = "▼";
+  const ARROW_SAME = "=";
+  const FIELD_KIND = "kind";
+  const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false };
+  const periodInput = (key, side) => $(`delivery-${side}-${key}`);
+  const dataNumber = (value, digits) => (value === null ? "" : digits ? value.toFixed(digits) : String(value));
+
+  function showDeliveryMessage(text) {
+    const message = $("delivery-message");
+    message.textContent = text || "";
+    message.hidden = !text;
+  }
+
+  function renderDeliveryPeriods() {
+    const presets = presetPeriods(dlv.bounds);
+    for (const key of PERIOD_KEYS) {
+      const period = dlv.periods[key];
+      periodInput(key, "from").value = period.from;
+      periodInput(key, "to").value = period.to;
+      const match = presets.find((p) => p.enabled && p.from === period.from && p.to === period.to);
+      $(`delivery-preset-${key}`).value = match ? match.key : PRESET_CUSTOM;
+    }
+  }
+
+  // RQ-TRC-072: a ready-made range beyond the history read is disabled and says why; a date outside it is refused.
+  function setupDeliveryPeriods() {
+    const presets = presetPeriods(dlv.bounds);
+    for (const key of PERIOD_KEYS) {
+      const select = $(`delivery-preset-${key}`);
+      select.append(el("option", { value: PRESET_CUSTOM, text: "Dates chosen" }), ...presets.map((p) => el("option", {
+        value: p.key, text: p.label, disabled: !p.enabled,
+        title: p.enabled ? `${p.from} to ${p.to}` : `${p.from} to ${p.to}: beyond the history read, which starts on ${dlv.bounds.first}` })));
+      select.addEventListener(EVENT_CHANGE, () => {
+        const preset = presets.find((p) => p.key === select.value);
+        if (preset) { dlv.periods[key] = { from: preset.from, to: preset.to }; showDeliveryMessage(null); }
+        renderDelivery();
+      });
+      for (const side of ["from", "to"]) {
+        const input = periodInput(key, side);
+        Object.assign(input, { min: dlv.bounds.first, max: dlv.bounds.last });
+        input.addEventListener(EVENT_CHANGE, () => {
+          const next = { ...dlv.periods[key], [side]: input.value };
+          const refused = checkDay(input.value, dlv.bounds)
+            || (next.from > next.to ? `The first day ${next.from} comes after the last day ${next.to}` : null);
+          showDeliveryMessage(refused);
+          if (!refused) dlv.periods[key] = next;
+          renderDelivery();
+        });
+      }
+    }
+  }
+
+  function setupDeliveryGrains() {
+    const box = $("delivery-grain");
+    box.append(el(TAG_SPAN, { class: "segmented-label", text: "Grain" }), ...grainsOf(dlv.bounds).map((grain) => el(TAG_BUTTON, {
+      type: TAG_BUTTON, "data-grain": grain, text: grain, title: `The points over time, ${grain} by ${grain}`,
+      on: { [EVENT_CLICK]: () => { dlv.grain = grain; renderDelivery(); } } })));
+  }
+
+  function renderDeliveryRead() {
+    const { since, depth, shallow } = HISTORY.limits;
+    const parts = [`History read: ${dlv.bounds.read[0]} to ${dlv.bounds.read[1]}`];
+    if (since) parts.push(`since ${since}`);
+    if (depth) parts.push(`last ${depth} commits`);
+    if (shallow) parts.push("shallow clone");
+    if (dlv.bounds.first !== dlv.bounds.read[0]) parts.push(`periods from ${dlv.bounds.first}, the first day may be cut`);
+    $("delivery-read").textContent = parts.join(" · ");
+  }
+
+  // RQ-TRC-076: the tags of the tab; a tag on keeps its tasks only, several tags of one group keep each one's.
+  function deliveryChip(label, count, set, value, attribute, title) {
+    const node = chip(label, count, set.has(value), () => { toggle(set, value); renderDelivery(); }, null, title);
+    node.dataset[attribute] = value;
+    return node;
+  }
+
+  function renderDeliveryChips() {
+    const counted = deliveryRows.filter((r) => !r.reason);
+    const countOf = (field, value) => counted.filter((r) => r[field] === value).length;
+    const distinct = (field) => [...new Set(counted.map((r) => r[field]))].sort((a, b) => a.localeCompare(b));
+    const f = dlv.filter;
+    clear($("delivery-tiers")).append(...TIERS.map((t) => deliveryChip(t, countOf("tier", t), f.tiers, t, "tier",
+      `Count the tier ${t} tasks (${DELIVERY.settings.points[t]} points each)`)));
+    clear($("delivery-kinds")).append(...[KIND_HUMAN, KIND_AGENT, KIND_TOGETHER].map((k) => deliveryChip(KIND_LABEL[k],
+      countOf(FIELD_KIND, k), f.kinds, k, FIELD_KIND, `Count the tasks delivered by a ${KIND_LABEL[k]} commit`)));
+    clear($("delivery-types")).append(...distinct("type").map((t) => deliveryChip(t, countOf("type", t), f.types, t, "type",
+      `Count the tasks whose delivery commit is of type ${t}`)));
+    clear($("delivery-tris")).append(...distinct("tri").map((t) => deliveryChip(t, countOf("tri", t), f.tris, t, "tri",
+      `Count the tasks of the ${t} trigram`)));
+    clear($("delivery-people")).append(...HISTORY.people.map((person, i) => richTip(el(TAG_BUTTON, { class: "chip", type: TAG_BUTTON,
+      [ATTR_PERSON]: i, [VALUE_ARIA_PRESSED]: String(f.people.has(i)), [VALUE_ARIA_LABEL]: identityLines(i).join(". "),
+      on: { [EVENT_CLICK]: () => { toggle(f.people, i); renderDelivery(); } } },
+    identityIcon(i), el(TAG_SPAN, { text: person.name }), el(TAG_SPAN, { class: CLASS_CHIP_COUNT,
+      text: counted.filter((r) => r.people.includes(i)).length })), () => linesTip(identityLines(i)), CSS_TIP_DELAY)));
+    for (const b of $("delivery-grain").querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.grain === dlv.grain));
+  }
+
+  // RQ-TRC-074: a figure for A, for B and the variation from B to A, its arrow and sign written, never its colour alone.
+  function changeText(change) {
+    if (change === null) return "no variation";
+    const arrow = change > 0 ? ARROW_UP : change < 0 ? ARROW_DOWN : ARROW_SAME;
+    return `${arrow} ${change > 0 ? "+" : ""}${pct(change, 1)} %`;
+  }
+
+  function deliveryFigure(key, label, values, show, lowerIsBetter) {
+    const [a, b] = values;
+    const change = variation(a, b);
+    const better = change !== null && change !== 0 && (change > 0) !== Boolean(lowerIsBetter);
+    const node = el("div", { class: "kpi", "data-figure": key, "data-a": dataNumber(a, show.digits), "data-b": dataNumber(b, show.digits),
+      "data-change": dataNumber(change, FIGURE_DIGITS) },
+    el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }), el(TAG_SPAN, { class: CLASS_KPI_VALUE, text: `A ${show.text(a)}` }),
+    el(TAG_SPAN, { class: VALUE_KPI_SUB }, `B ${show.text(b)} · `, el(TAG_SPAN, {
+      class: `delivery-change${change ? (better ? " is-better" : " is-worse") : ""}`, text: changeText(change) })));
+    return richTip(node, () => ({ head: label, lines: [`Period A, ${dlv.periods.a.from} to ${dlv.periods.a.to}: ${show.text(a)}`,
+      `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeText(change)}`] }));
+  }
+
+  function renderDeliveryKpis(figures) {
+    const [fa, fb] = figures;
+    const count = { digits: 0, text: (v) => String(v) };
+    const rate = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : `${pct(v, 1)} %`) };
+    const perDay = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : v.toFixed(SHOWN_DIGITS)) };
+    clear($("delivery-kpis")).append(
+      deliveryFigure("tasks", "Tasks delivered", [fa.tasks, fb.tasks], count),
+      deliveryFigure("points", "Points", [fa.points, fb.points], count),
+      deliveryFigure("throughput", "Points per active day", [fa.throughput, fb.throughput], perDay),
+      deliveryFigure("rework", "Rework", [fa.reworkRate, fb.reworkRate], rate, true));
+  }
+
+  function renderDelivery() {
+    renderDeliveryPeriods();
+    renderDeliveryChips();
+    const figures = PERIOD_KEYS.map((key) => deliveryFigures(dlv.periods[key], dlv.filter, dlv.bounds));
+    renderDeliveryKpis(figures);
+  }
+
+  function setupDelivery() {
+    dlv.bounds = deliveryBounds();
+    dlv.filter = deliveryFilter();
+    [dlv.periods.a, dlv.periods.b] = defaultPeriods(dlv.bounds);
+    setupDeliveryPeriods();
+    setupDeliveryGrains();
+    renderDeliveryRead();
+    $("delivery-filter").addEventListener(DOM_INPUT, (event) => { dlv.filter.text = event.target.value.trim(); renderDelivery(); });
+    $("delivery-retiered").addEventListener(EVENT_CHANGE, (event) => { dlv.filter.reTiered = event.target.checked; renderDelivery(); });
+    $("delivery-reset").addEventListener(EVENT_CLICK, () => {
+      dlv.filter = deliveryFilter();
+      $("delivery-filter").value = "";
+      $("delivery-retiered").checked = true;
+      renderDelivery();
+    });
+    dlv.built = true;
+  }
+
+  const deliveryView = {
+    show() {
+      if (!DELIVERY) return;
+      if (!dlv.built) setupDelivery();
+      renderDelivery();
+    },
+  };
 
   // ---- detail panel -------------------------------------------------------------------------------------------
   function renderDetail() {
@@ -3630,6 +3800,7 @@
     for (const section of document.querySelectorAll(".view")) section.hidden = section.id !== `view-${view}`;
     if (view === "graph") graph.show();
     if (view === HISTORY_VIEW) historyView.show();
+    if (view === DELIVERY_VIEW) deliveryView.show();
   }
 
   document.querySelector(".tabs").addEventListener("click", (event) => {
@@ -3752,6 +3923,7 @@
   renderQuality();
   renderDetail();
   setupPanels();
+  document.querySelector(`.tab[data-view="${DELIVERY_VIEW}"]`).hidden = !DELIVERY;     // RQ-TRC-074
   const initial = hashKey();
   if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
   const readyMs = Math.round(performance.now());   // since the navigation started, the page's parsing included

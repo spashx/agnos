@@ -39,7 +39,7 @@ COMMITS = [
 TASKS = [
     ["TASK-DEM-101", "M", False, 1, 12, "feat", False, None],          # period B, Alice
     ["TASK-DEM-102", "L", True, 2, 40, "feat", False, None],           # period A, Alice and Claude
-    ["TASK-DEM-103", "S", False, 3, 5, "feat", False, None],           # period A, Claude
+    ["TASK-DEM-103", "S", False, 3, 5, None, False, None],             # period A, Claude, a subject with no type
     ["TASK-DEM-104", "S", False, 4, 3, "fix", True, None],             # period A, Claude, reworked
     ["TASK-DEM-105", "S", False, 3, 0, "feat", False, "created-done"],  # set aside
 ]
@@ -166,3 +166,116 @@ out.lastweek = [lastWeek.bucket, lastWeek.byTier.S, lastWeek.byTier.M, lastWeek.
         self.assertEqual("day,week,month", got["twenty"])
         self.assertEqual(("2026-10-19", "2026-10"), (got["week"], got["month"]))
         self.assertEqual("2026-10-26:1:0:0", got["lastweek"])
+
+
+TAB = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("delivery");
+const figure = (key) => document.querySelector(`#delivery-kpis [data-figure="${key}"]`);
+const ab = (key) => { const f = figure(key); return f ? [f.dataset.a, f.dataset.b, f.dataset.change].join("|") : ""; };
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class DeliveryTabTest(unittest.TestCase):
+    """TASK-TRC-059: RQ-TRC-072, RQ-TRC-074, RQ-TRC-076, RQ-TRC-079."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.plain = Path(cls.tmp.name) / "plain.html"
+        generate(cls.plain)
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_delivery(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names, path=None):
+        return found(rendered_dom_after(path or self.path, TAB + script), *names)
+
+    def test_RQ_TRC_074_given_a_delivery_block_then_the_tab_stands_between_history_and_quality(self):
+        got = self.run_script("""
+out.tabs = [...document.querySelectorAll(".tab")].filter((t) => !t.hidden).map((t) => t.dataset.view).join(",");
+out.shown = document.getElementById("view-delivery").hidden ? "hidden" : "shown";
+""", "tabs", "shown")
+        self.assertEqual("overview,graph,matrix,history,delivery,quality", got["tabs"])
+        self.assertEqual("shown", got["shown"])
+
+    def test_RQ_TRC_074_given_no_delivery_block_then_there_is_no_delivery_tab(self):
+        got = found(rendered_dom_after(self.plain, """
+const out = document.documentElement.dataset;
+const tab = document.querySelector('.tab[data-view="delivery"]');
+out.tab = tab && !tab.hidden ? "shown" : "none";
+"""), "tab")
+        self.assertEqual("none", got["tab"])
+
+    def test_RQ_TRC_074_given_the_tab_then_the_band_gives_the_four_figures_for_a_b_and_their_variation(self):
+        got = self.run_script("""
+out.tasks = ab("tasks"); out.points = ab("points"); out.throughput = ab("throughput"); out.rework = ab("rework");
+out.text = figure("throughput").textContent;
+""", "tasks", "points", "throughput", "rework", "text")
+        self.assertEqual("3|1|2.000", got["tasks"])
+        self.assertEqual("10|3|2.333", got["points"])
+        self.assertEqual("3.333|3.000|0.111", got["throughput"])
+        self.assertEqual("0.333|0.000|", got["rework"])                 # no variation from zero
+        self.assertIn("+11 %", got["text"])
+
+    def test_RQ_TRC_076_given_the_tag_l_alone_then_the_band_counts_l_tasks_only(self):
+        got = self.run_script("""
+document.querySelector('#delivery-tiers [data-tier="L"]').click();
+out.tasks = ab("tasks"); out.points = ab("points");
+document.getElementById("delivery-filter").value = "TASK-DEM-104";
+document.getElementById("delivery-filter").dispatchEvent(new Event("input"));
+out.text = ab("tasks");
+""", "tasks", "points", "text")
+        self.assertEqual("1|0|", got["tasks"])
+        self.assertEqual("8|0|", got["points"])
+        self.assertEqual("0|0|", got["text"])                           # TASK-DEM-104 is an S task: the tag L leaves it out
+
+    def test_RQ_TRC_076_given_a_delivery_commit_with_no_type_then_its_tag_is_none(self):
+        got = self.run_script("""
+out.types = [...document.querySelectorAll("#delivery-types [data-type]")].map((c) => c.dataset.type).join(",");
+""", "types")
+        self.assertEqual("feat,fix,none", got["types"])
+
+    def test_RQ_TRC_072_given_a_date_outside_the_history_read_then_it_is_refused_and_the_period_kept(self):
+        got = self.run_script("""
+const from = document.getElementById("delivery-from-a");
+out.min = from.min; out.max = from.max;
+from.value = "2026-09-01";
+from.dispatchEvent(new Event("change"));
+const message = document.getElementById("delivery-message");
+out.message = message.hidden ? "" : message.textContent;
+out.kept = from.value;
+""", "min", "max", "message", "kept")
+        self.assertEqual(("2026-09-16", "2026-10-27"), (got["min"], got["max"]))
+        self.assertIn("outside the history read", got["message"])
+        self.assertEqual("2026-10-21", got["kept"])
+
+    def test_RQ_TRC_072_given_the_ready_made_ranges_then_one_beyond_the_history_is_disabled_and_says_why(self):
+        got = self.run_script("""
+const option = document.querySelector('#delivery-preset-a option[value="last-90"]');
+out.disabled = String(option.disabled); out.why = option.title;
+const select = document.getElementById("delivery-preset-b");
+select.value = "previous-14"; select.dispatchEvent(new Event("change"));
+out.periodb = document.getElementById("delivery-from-b").value + ".." + document.getElementById("delivery-to-b").value;
+out.read = document.getElementById("delivery-read").textContent;
+""", "disabled", "why", "periodb", "read")
+        self.assertEqual("true", got["disabled"])
+        self.assertIn("beyond the history read", got["why"])
+        self.assertEqual("2026-09-30..2026-10-13", got["periodb"])
+        self.assertIn("2026-09-15", got["read"])
+        self.assertIn("2026-10-27", got["read"])
+
+    def test_RQ_TRC_079_given_the_toolbar_then_every_control_has_an_accessible_name(self):
+        got = self.run_script("""
+const controls = [...document.querySelectorAll("#view-delivery input, #view-delivery select, #view-delivery button")];
+out.unnamed = controls.filter((c) => !(c.getAttribute("aria-label") || c.closest("label") || c.textContent.trim()))
+  .map((c) => c.id || c.outerHTML.slice(0, 40)).join(",");
+out.count = String(controls.length);
+""", "unnamed", "count")
+        self.assertEqual("", got["unnamed"])
+        self.assertGreater(int(got["count"]), 10)

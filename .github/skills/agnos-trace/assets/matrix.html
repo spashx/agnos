@@ -80,6 +80,9 @@
       <!-- RQ-HST-007, DEC-HST-005: shown only when the data hold a history (--history); TASK-HST-008: Quality comes last -->
       <button class="tab" role="tab" type="button" data-view="history" aria-selected="false" hidden
               title="Who worked on each element and on the code, and when: humans, agents, and both together">History</button>
+      <!-- RQ-TRC-074, DEC-TRC-039: shown only when the data hold a delivery (--history) -->
+      <button class="tab" role="tab" type="button" data-view="delivery" aria-selected="false" hidden
+              title="The tasks delivered (their status turned to Done) in two periods: points per active day, by tier and identity">Delivery</button>
       <button class="tab" role="tab" type="button" data-view="quality" aria-selected="false"
               title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span id="quality-grade"></span> <span class="tab-count" id="quality-count"></span></button>
     </nav>
@@ -205,6 +208,46 @@
              title="Drag, or use the arrow keys, to resize the labels column · double-click to reset"></div>
         <div class="history-overview-row"><span class="history-corner">Overview</span><svg class="history-overview" id="history-overview" role="img" aria-label="The whole history; the window is the period in view"></svg></div>
       </div>
+    </section>
+
+    <!-- FTR-TRC-004: RQ-TRC-072 to RQ-TRC-077, DEC-TRC-038, DEC-TRC-039 -->
+    <section class="view view-delivery" id="view-delivery" role="tabpanel" hidden>
+      <div class="toolbar">
+        <fieldset class="delivery-period" id="delivery-period-a" aria-label="Period A" title="The period compared: a ready-made range or two dates within the history read">
+          <span class="segmented-label delivery-mark-a">A</span>
+          <select id="delivery-preset-a" aria-label="Period A: ready-made range"></select>
+          <input type="date" id="delivery-from-a" aria-label="Period A: first day">
+          <input type="date" id="delivery-to-a" aria-label="Period A: last day">
+        </fieldset>
+        <span class="delivery-versus">vs</span>
+        <fieldset class="delivery-period" id="delivery-period-b" aria-label="Period B" title="The period A is compared with">
+          <span class="segmented-label delivery-mark-b">B</span>
+          <select id="delivery-preset-b" aria-label="Period B: ready-made range"></select>
+          <input type="date" id="delivery-from-b" aria-label="Period B: first day">
+          <input type="date" id="delivery-to-b" aria-label="Period B: last day">
+        </fieldset>
+        <fieldset class="segmented" id="delivery-grain" aria-label="Grain" title="The points over time are grouped by day, week or month"></fieldset>
+        <span class="toolbar-spacer"></span>
+        <span class="graph-status" id="delivery-read"></span>
+      </div>
+      <p class="delivery-message" id="delivery-message" role="alert" hidden></p>
+      <div class="history-kpis delivery-kpis" id="delivery-kpis"></div>
+      <div class="history-filters" id="delivery-filters">
+        <div class="chips history-people" id="delivery-people" role="group" aria-label="Identities"></div>
+        <div class="history-filter-line">
+          <input class="history-filter" id="delivery-filter" type="search" placeholder="Filter tasks: ID, title, plan, requirement…" autocomplete="off" spellcheck="false"
+                 aria-label="Filter the tasks" title="Keep the tasks whose ID, title, plan or requirements hold this text">
+          <div class="chips" id="delivery-tiers" role="group" aria-label="Tiers"></div>
+          <div class="chips" id="delivery-kinds" role="group" aria-label="Kinds"></div>
+          <div class="chips" id="delivery-types" role="group" aria-label="Commit types"></div>
+          <div class="chips" id="delivery-tris" role="group" aria-label="Trigrams"></div>
+          <label class="toggle" title="Count the tasks whose tier was changed before their delivery"><input type="checkbox" id="delivery-retiered" checked> Re-tiered tasks</label>
+          <span class="toolbar-spacer"></span>
+          <button class="button" type="button" id="delivery-reset" title="Every tier, kind, type, trigram and identity: all the tasks delivered again">Reset filters</button>
+        </div>
+      </div>
+      <div class="delivery-charts" id="delivery-charts"></div>
+      <div class="delivery-table" id="delivery-table"></div>
     </section>
   </main>
 

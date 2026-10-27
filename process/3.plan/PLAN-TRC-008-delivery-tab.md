@@ -96,7 +96,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-059: The Delivery tab, its toolbar, filters and figures
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The tab between History and Quality, absent without `delivery`; its toolbar (periods, grain, text,
   tags, identities, re-tiered switch), the statement of the history read, and the band of four figures for A, B and
   their variation; tokens for every visual value.
@@ -107,8 +107,15 @@ This plan implements the tasks in the format specified below.
   `--history`, Then there is no Delivery tab.
 - **Dependencies**: TASK-TRC-058
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `DeliveryTabTest` written first (6 failing), then 8 tests OK: tabs "overview,graph,matrix,history,delivery,
+  quality"; no tab on a page without `delivery`; band tasks "3|1|2.000", points "10|3|2.333", throughput "3.333|3.000|
+  0.111" written "+11 %", rework "0.333|0.000|" (no variation from zero); tag L "1|0|"; type tags "feat,fix,none";
+  2026-09-01 refused, the first day kept at 2026-10-21, min/max 2026-09-16/2026-10-27; "last-90" disabled "beyond the
+  history read"; every control named. Whole suite: 279 tests OK, 2 skipped (literal and token tests included).
+  Screenshot of XS56K (6 weeks): the band A 57 tasks / 186 points / 31.0 per active day / 5 %, B 55 / 199 / 28.4 / 4 %;
+  it first showed no band, a delivery commit with no type broke the tags: caught, fixed (type "none") and tested.
+- **Assumptions**: variation from B to A as (A − B) / B, none when B is 0; for the rework a rise is worse; arrows and
+  signs are written beside the colour; a reversed period (first day after last) is refused like a date outside.
 
 ### TASK-TRC-060: The three charts of the delivery
 - **Tier**: M
