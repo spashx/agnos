@@ -691,7 +691,7 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
 
 
 def summary(block):
-    """The part of the generator's last line about the history (RQ-HST-006)."""
+    """The part of the generator's last line about the history (RQ-HST-006), each noun singular for one (TASK-TRC-055)."""
     kinds = Counter(p[KEY_KIND] for p in block[KEY_PEOPLE])
-    return (f"history: {block[KEY_LIMITS][KEY_COMMITS]} commits, {kinds[KIND_HUMAN]} humans, "
-            f"{kinds[KIND_AGENT]} agents")
+    counts = ((block[KEY_LIMITS][KEY_COMMITS], "commit"), (kinds[KIND_HUMAN], "human"), (kinds[KIND_AGENT], "agent"))
+    return "history: " + ", ".join(f"{n} {noun}{'' if n == 1 else 's'}" for n, noun in counts)

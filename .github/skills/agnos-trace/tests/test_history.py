@@ -420,7 +420,7 @@ class GeneratorTest(RepoTestCase):
         self.assertEqual({p["path"] for p in self.data()["files"]}, set(files))
         self.assertEqual([[0, 8]], next(iter(files.values())))
         self.assertNotIn("functions", block["interventions"])
-        self.assertIn("history: 2 commits, 2 humans, 1 agents", out)
+        self.assertIn("history: 2 commits, 2 humans, 1 agent;", out)   # TASK-TRC-055: singular for one
 
     def test_RQ_HST_001_given_limits_then_they_are_applied_and_written(self):
         code, _, err = self.run_generator("--history", "--history-depth", "1", "--history-since", "2026-10-01")
