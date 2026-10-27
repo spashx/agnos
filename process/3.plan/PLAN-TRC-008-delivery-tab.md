@@ -163,7 +163,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-062: Speed, documentation and a run on XS56K
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Extend the performance test to 1,000 delivered tasks, document the Delivery tab and `delivery.json`
   in `SKILL.md`, and generate the page of XS56K with `--call-graph --history --history-since 6.weeks`.
 - **Requirement refs**: RQ-TRC-078, RQ-TRC-017
@@ -172,5 +172,12 @@ This plan implements the tasks in the format specified below.
   `SKILL.md`, Then it describes the tab, its rules and `delivery.json`; Given the XS56K run, Then exit 0 and the tab shows.
 - **Dependencies**: TASK-TRC-060, TASK-TRC-061
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `AGNOS_TRACE_PERF=1 test_delivery_perf.py` (1,000 tasks delivered, 1,000 counted): the delivery adds 0.18 s
+  (< 2) and 54 KiB (< 300), tab drawn in 18 ms (< 300), P95 of 50 filter, grain and period changes 12.2 ms (< 50);
+  `test_history_perf.py` still OK (2.32 s, 457 KiB, 58 ms, 37.5 ms; "10 humans, 2 agents"). `SKILL.md`: description,
+  `--history` option, "Delivery" in what the page shows and a "Delivery" section (rules, set-aside reasons,
+  `delivery.json`, data keys), tests; the Claude Code pointer's description aligned. XS56K with `--call-graph --history
+  --history-since 6.weeks`: exit 0, "history: 398 commits, 1 human, 6 agents", the Delivery tab shown (screenshots of
+  TASK-TRC-059 to 061). This repository's trace: RQ-TRC-068 to RQ-TRC-079 all covered.
+- **Assumptions**: the delivery's own cost is measured as the same `--history` run with and without the task tiers
+  (`task_tiers` mocked to None); its size as the bytes of the `delivery` block alone.

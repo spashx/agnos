@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them; with --history, who (humans and agents) changed each element and its code, and when. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them; with --history, who (humans and agents) changed each element and its code, and when, and what was delivered: the tasks closed per period, tier and identity. Independent of the product developed."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
 ---
 
@@ -10,7 +10,8 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
      ADR-TRC-003 (DEC-TRC-005 to DEC-TRC-008). RQ-TRC-017: this procedure. Call graph: FTR-TRC-002, ADR-TRC-004
      (DEC-TRC-013 to DEC-TRC-018), RQ-TRC-026; its boxes: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022), RQ-TRC-047. Matrix columns: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028), RQ-TRC-051, RQ-TRC-052.
      Detail band, tags, feature titles, wheel zoom: ADR-TRC-007 (DEC-TRC-029 to DEC-TRC-031), RQ-TRC-053 to RQ-TRC-056.
-     History: FTR-HST-001, ADR-HST-001 (DEC-HST-001 to DEC-HST-011), RQ-HST-001 to RQ-HST-026. -->
+     History: FTR-HST-001, ADR-HST-001 (DEC-HST-001 to DEC-HST-011), RQ-HST-001 to RQ-HST-026.
+     Delivery: FTR-TRC-004, ADR-TRC-009 (DEC-TRC-036 to DEC-TRC-039), RQ-TRC-068 to RQ-TRC-079. -->
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-trace/`) and Claude Code
 (`.claude/skills/agnos-trace/`, which points here). The skill knows the AGNOS ID grammar and the `INDEX.idx.md` format
@@ -38,7 +39,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      below). It needs the packages pinned in `requirements-callgraph.txt`, installed once with
      `pip install -r .github/skills/agnos-trace/requirements-callgraph.txt` (prebuilt wheels, no compiler); without them
      the page is written all the same, without functions.
-   - `--history` adds who worked on each element, file and function, read from git (see "History" below).
+   - `--history` adds who worked on each element, file and function, read from git (see "History" below), and the tasks
+     delivered (see "Delivery" below).
      `--history-since <date or duration>` (a form git reads: `6.months`, `2.weeks`, `2026-01-01`) keeps the commits
      authored since then, `--history-depth <n>` the `n` most recent; both apply together. Either one without
      `--history`, or a depth that is not a positive integer, is an input error.
@@ -97,6 +99,17 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   how they were merged, when they were): a click opens the tab filtered on that one. The detail panel's **History**
   button opens the tab on the selected element and what it contains (or a file and its functions), shown as a chip
   that removes the scope.
+- **Delivery**, with `--history` (FTR-TRC-004; between History and Quality): what was delivered, not how long it took.
+  Two periods, A and B, chosen among ready-made ranges or as two dates, never beyond the history read: a range that
+  reaches beyond is disabled and says why, a date outside is refused with a message (RQ-TRC-072); the history read is
+  stated. A band gives, for A, for B and from B to A (arrow and sign written, green or red), the tasks delivered, the
+  points, the points per active day and the rework rate. Three charts: points per active day of each identity, stacked
+  by tier (the tier told by the opacity of the identity's History colour), A plain and B hatched; points over time by
+  day, week or month (month beyond 12 weeks read) with A and B shaded; lines changed per task, median and quartiles per
+  tier. Filters: text (ID, title, plan, requirements), tags for tiers, kinds, commit types and trigrams, identities,
+  re-tiered tasks. A table of the tasks of A and B (sortable, CSV), then those set aside with their reason; a click or
+  Enter selects the task, whose detail panel then says when, by whom, at which tier and for how many points it was
+  delivered.
 - **Tooltips** (FTR-HST-002): every piece of business information (an element, a file, a function, a relation, a
   figure, a grade, an identity, a commit) has a rich tooltip, its first line bold and its details below, on hover and
   on keyboard focus; the browser's plain tooltip only says what a control does. Never two at once.
@@ -190,6 +203,25 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   first, then the second parent of each merge whose message names its branch (`Merge branch 'X'`, `Merge pull request
   #n from owner/X`, `Merge X into Y`); a commit keeps the first branch that reaches it.
 
+## Delivery (FTR-TRC-004; ADR-TRC-009: DEC-TRC-036 to DEC-TRC-038)
+
+- A task's **delivery** is the first commit of the history read that turns its `- **Status**:` line to `Done`,
+  found in the same log as the history (no other git command). Its date is the commit's author date (the author's own
+  day), its deliverers the commit's identities, its tier the `- **Tier**: S|M|L` line of the working tree; a commit
+  that changed that line marks it **re-tiered**. Git records when a task is closed, never when its execution began: the
+  tab measures throughput, never a duration.
+- **Set aside**, shown in the table and counted in no figure: `created-done` (Done from the commit that created it),
+  `annotated` (text after Done), `reopened` (its status left Done later), `no-tier`.
+- **Points** per tier, **throughput** = points ÷ active days, an **active day** being a day with a commit authored or
+  co-authored by an identity the filters keep; when the history read is cut (`--history-since`, `--history-depth`,
+  shallow clone) its first day is left out of the periods. A task is **reworked** when a `fix` commit names it, or a
+  requirement it cites, in its subject within the rework window.
+- `assets/delivery.json` holds the tiers and their points (S 1, M 3, L 8), the rework window (14 days), the month
+  threshold (12 weeks), the ready-made ranges and the two default ones: change a number there, never in the code.
+- Written to the data file beside `history` as `delivery`: `tasks` as `[ID, tier, re-tiered, commit index into
+  history.commits, lines changed in the scanned files, commit type or null, reworked, reason set aside or null]`,
+  `activeDays` (`{person index: [day, …]}`) and `settings` (a copy of `delivery.json`). Without `--history`, nothing.
+
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 
 - A link is an ID written in an element's own lines (its line range without the ranges of the elements it contains), or
@@ -232,7 +264,8 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 `tests/fixtures/repo` plants one element of every finding. The page tests run in a headless Chromium-family browser (Edge,
 Chrome, Chromium; `AGNOS_TRACE_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
 (`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_TRACE_PERF=1` adds the measure on a
-generated tree of 20,000 functions and 100,000 calls (about a minute).
+generated tree of 20,000 functions and 100,000 calls (about a minute), and the measures of the history (`test_history_perf.py`,
+2,000 commits) and of the delivery (`test_delivery_perf.py`, 1,000 tasks delivered; RQ-TRC-078).
 
 ## Updating the graph library
 
