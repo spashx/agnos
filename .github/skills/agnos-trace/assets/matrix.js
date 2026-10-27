@@ -3215,6 +3215,162 @@
     renderHistorySidebar();
   }
 
+  // ---- delivery figures (TASK-TRC-058: RQ-TRC-070 to RQ-TRC-073; DEC-TRC-038) ------------------------------------
+  // The `delivery` block (FTR-TRC-004, DEC-TRC-037): the tasks closed in git, the identities' active days and the
+  // settings. The page computes the points, the throughput, the rework rate and the grains, within the history read.
+  const DELIVERY = DATA.delivery || null;
+  const GRAIN_DAY = "day";
+  const ISO_DAY_LENGTH = 10;            // "2026-10-27"
+  const ISO_MONTH_LENGTH = 7;           // "2026-10"
+  const DAY_START = "T00:00:00Z";
+  const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+  const LINK_KIND_REFS = "refs";
+  const TIERS = DELIVERY ? Object.keys(DELIVERY.settings.points) : [];
+
+  const dayMs = (day) => Date.parse(day + DAY_START);
+  const dayOf = (ms) => new Date(ms).toISOString().slice(0, ISO_DAY_LENGTH);
+  const addDays = (day, n) => dayOf(dayMs(day) + n * DAY_MS);
+  const daysBetween = (from, to) => Math.round((dayMs(to) - dayMs(from)) / DAY_MS) + 1;
+  const pointsOf = (row) => DELIVERY.settings.points[row.tier] || 0;
+
+  // A task of the block, with what the filters read: its commit's day, identities and kind, its trigram, title, plan.
+  function deliveryRow([id, tier, reTiered, commit, lines, type, reworked, reason]) {
+    const c = HISTORY.commits[commit];
+    const n = nodes.get(id);
+    const own = links.get(id) || [];
+    const plan = own.find((l) => l.kind === VALUE_CONTAINS && l.dir === "in")?.key || "";
+    const cited = own.filter((l) => l.kind === LINK_KIND_REFS && l.dir === "out" && nodes.get(l.key)?.type === "RQ")
+      .map((l) => l.key);
+    return { id, tier, reTiered, commit, lines, type, reworked, reason, day: c.date.slice(0, ISO_DAY_LENGTH),
+      people: [c.author, ...c.coAuthors], kind: c.kind, tri: n ? n.tri : id.split("-")[1], title: n ? n.title : "", plan,
+      find: [id, n ? n.title : "", plan, ...cited].join(" ").toLowerCase() };
+  }
+  const deliveryRows = DELIVERY ? DELIVERY.tasks.map(deliveryRow) : [];
+
+  // RQ-TRC-072: the days a period may hold; the first day is left out when the history read may have cut it.
+  function deliveryBounds() {
+    const { since, depth, shallow, first, last } = HISTORY.limits;
+    const read = [first.slice(0, ISO_DAY_LENGTH), last.slice(0, ISO_DAY_LENGTH)];
+    const cut = Boolean(since || depth || shallow);
+    return { first: cut && read[0] < read[1] ? addDays(read[0], 1) : read[0], last: read[1], cut, read };
+  }
+
+  function presetPeriods(bounds) {
+    return DELIVERY.settings.periods.map((p) => {
+      const to = addDays(bounds.last, -p.offset);
+      const from = addDays(to, 1 - p.days);
+      return { key: p.key, label: p.label, from, to, enabled: from >= bounds.first };
+    });
+  }
+
+  // [A, B]: the settings' two ranges when both fit, else the two halves of the days read (A the later one).
+  function defaultPeriods(bounds) {
+    const presets = presetPeriods(bounds);
+    const [a, b] = DELIVERY.settings.defaultPeriods.map((key) => presets.find((p) => p.key === key));
+    if (a?.enabled && b?.enabled) return [{ from: a.from, to: a.to }, { from: b.from, to: b.to }];
+    const n = daysBetween(bounds.first, bounds.last);
+    if (n < 2) return [{ from: bounds.first, to: bounds.last }, { from: bounds.first, to: bounds.last }];
+    const half = Math.floor(n / 2);
+    return [{ from: addDays(bounds.last, 1 - half), to: bounds.last }, { from: bounds.first, to: addDays(bounds.first, n - half - 1) }];
+  }
+
+  // A date entered is refused, never moved: the message says why, or null when the date may be used.
+  function checkDay(day, bounds) {
+    if (!ISO_DAY_RE.test(day) || Number.isNaN(dayMs(day))) return `${day} is not a date (year-month-day)`;
+    if (day < bounds.first || day > bounds.last) return `${day} is outside the history read, from ${bounds.first} to ${bounds.last}`;
+    return null;
+  }
+
+  // RQ-TRC-073: day and week, and month when the days read span more than the settings' weeks.
+  function grainsOf(bounds) {
+    const weeks = daysBetween(bounds.first, bounds.last) / WEEK_DAYS;
+    return weeks > DELIVERY.settings.monthAfterWeeks ? [GRAIN_DAY, UNIT_WEEK, UNIT_MONTH] : [GRAIN_DAY, UNIT_WEEK];
+  }
+
+  // The day, the Monday of its week, or its month.
+  function bucketOf(day, grain) {
+    if (grain === UNIT_MONTH) return day.slice(0, ISO_MONTH_LENGTH);
+    if (grain !== UNIT_WEEK) return day;
+    const index = Math.floor(dayMs(day) / DAY_MS);
+    return dayOf((index - (((index - MONDAY_OFFSET_DAYS) % WEEK_DAYS) + WEEK_DAYS) % WEEK_DAYS) * DAY_MS);
+  }
+
+  // RQ-TRC-076: the filters of the tab; an empty set keeps everything.
+  const deliveryFilter = () => ({ text: "", tiers: new Set(), kinds: new Set(), tris: new Set(), types: new Set(),
+    people: new Set(), reTiered: true });
+  const kindAllowed = (kind, kinds) => !kinds.size || kinds.has(kind) || kinds.has(KIND_TOGETHER);
+
+  function deliveryKept(row, filter) {
+    if (row.reason || (!filter.reTiered && row.reTiered)) return false;
+    if (filter.tiers.size && !filter.tiers.has(row.tier)) return false;
+    if (filter.kinds.size && !filter.kinds.has(row.kind)) return false;
+    if (filter.tris.size && !filter.tris.has(row.tri)) return false;
+    if (filter.types.size && !filter.types.has(row.type)) return false;
+    if (filter.people.size && !row.people.some((i) => filter.people.has(i))) return false;
+    return !filter.text || row.find.includes(filter.text.toLowerCase());
+  }
+  const inPeriod = (day, period) => day >= period.from && day <= period.to;
+
+  // RQ-TRC-070: the days of the period on which an identity kept by the filters authored or co-authored a commit.
+  function activeDays(period, filter, bounds, only) {
+    const days = new Set();
+    for (const [person, list] of Object.entries(DELIVERY.activeDays)) {
+      const i = Number(person);
+      if (only !== undefined ? i !== only : (filter.people.size && !filter.people.has(i))) continue;
+      if (!kindAllowed(HISTORY.people[i].kind, filter.kinds)) continue;
+      for (const day of list) if (inPeriod(day, period) && day >= bounds.first) days.add(day);
+    }
+    return days.size;
+  }
+
+  // RQ-TRC-070, RQ-TRC-071, RQ-TRC-074: the four figures of a period, and its tasks.
+  function deliveryFigures(period, filter, bounds) {
+    const rows = deliveryRows.filter((r) => deliveryKept(r, filter) && inPeriod(r.day, period) && r.day >= bounds.first);
+    const points = rows.reduce((sum, r) => sum + pointsOf(r), 0);
+    const days = activeDays(period, filter, bounds);
+    return { tasks: rows.length, points, activeDays: days, throughput: days ? points / days : null,
+      reworkRate: rows.length ? rows.filter((r) => r.reworked).length / rows.length : null, rows };
+  }
+  const variation = (a, b) => (a === null || b === null || b === 0 ? null : (a - b) / b);
+
+  // RQ-TRC-075: per identity of the period, its points by tier, its active days and its throughput.
+  function perIdentity(period, filter, bounds) {
+    const { rows } = deliveryFigures(period, filter, bounds);
+    const byPerson = new Map();
+    for (const r of rows) {
+      for (const i of r.people) {
+        if (filter.people.size && !filter.people.has(i)) continue;
+        if (!byPerson.has(i)) byPerson.set(i, { person: i, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), points: 0, tasks: 0 });
+        const entry = byPerson.get(i);
+        entry.byTier[r.tier] += pointsOf(r);
+        entry.points += pointsOf(r);
+        entry.tasks += 1;
+      }
+    }
+    return [...byPerson.values()].map((e) => {
+      const days = activeDays(period, filter, bounds, e.person);
+      return { ...e, activeDays: days, throughput: days ? e.points / days : null };
+    }).sort((a, b) => a.person - b.person);
+  }
+
+  // RQ-TRC-075: the points of every bucket of the days read, by tier, empty buckets included.
+  function pointsOverTime(filter, grain, bounds) {
+    const buckets = new Map();
+    for (let day = bounds.first; day <= bounds.last; day = addDays(day, 1)) {
+      const key = bucketOf(day, grain);
+      if (!buckets.has(key)) buckets.set(key, Object.fromEntries(TIERS.map((t) => [t, 0])));
+    }
+    for (const r of deliveryRows) {
+      if (deliveryKept(r, filter) && buckets.has(bucketOf(r.day, grain)) && r.day >= bounds.first) {
+        buckets.get(bucketOf(r.day, grain))[r.tier] += pointsOf(r);
+      }
+    }
+    return [...buckets.entries()].map(([bucket, byTier]) => ({ bucket, byTier }));
+  }
+
+  const deliveryApi = { rows: deliveryRows, bounds: deliveryBounds, presets: presetPeriods, defaults: defaultPeriods, checkDay,
+    grains: grainsOf, bucketOf, filter: deliveryFilter, figures: deliveryFigures, variation, perIdentity, pointsOverTime };
+
   // ---- detail panel -------------------------------------------------------------------------------------------
   function renderDetail() {
     const panel = clear($("detail"));
@@ -3588,7 +3744,7 @@
 
   // ---- start --------------------------------------------------------------------------------------------------
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
-    FILE_PREFIX, renderQuality, historyView };
+    FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null };
   renderHeader();
   renderFilters();
   renderOverview();

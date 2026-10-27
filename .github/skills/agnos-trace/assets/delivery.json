@@ -3,6 +3,7 @@
   "points": {"S": 1, "M": 3, "L": 8},
   "reworkDays": 14,
   "monthAfterWeeks": 12,
+  "defaultPeriods": ["last-7", "previous-7"],
   "periods": [
     {"key": "last-7", "label": "Last 7 days", "days": 7, "offset": 0},
     {"key": "previous-7", "label": "The 7 days before", "days": 7, "offset": 7},

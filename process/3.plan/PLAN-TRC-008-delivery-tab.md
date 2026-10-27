@@ -71,7 +71,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-058: Points, throughput, rework rate and periods in the page
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Pure functions of `matrix.js` computing, from the `delivery` block and the filters, the points, the
   active days, the throughput, the rework rate and the grains of a period, and the bounds, defaults and refusals of the
   periods A and B.
@@ -82,8 +82,17 @@ This plan implements the tasks in the format specified below.
   2026-09-01 refused; Given 6 weeks, Then grains day and week only.
 - **Dependencies**: TASK-TRC-057
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `tests/test_delivery_page.py`, 8 tests OK in the headless browser: A 10 points over 3 active days,
+  throughput 3.333, rework 0.333; B 3 over 1 day; variation 0.111; tag L "1,8,3,2.667"; text TASK-DEM-103 kept alone;
+  per identity Alice L 8 over 1 day, Claude 10 over 3; bounds from 2026-09-16 (cut history) to 2026-10-27, A
+  10-21..10-27, B 10-14..10-20; halves of a short history; "last-90" disabled, "last-30" enabled; 2026-09-01 refused,
+  2026-13-45 not a date; grains "day,week" over 6 weeks, "day,week,month" over 21; Monday 2026-10-19 and month 2026-10.
+  Whole suite: 271 tests OK, 2 skipped. Deviation: the functions were written before their tests (test-first rule not
+  followed); the tests were written from the acceptance criteria and the figures computed by hand, not read from the code.
+- **Assumptions**: a period's active days are the calendar days on which any identity kept by the filters worked (not
+  person-days); a kind filter keeps the identities of that kind, "together" all of them; when the history read is cut
+  (`since`, `depth`, shallow) its first day is left out of the periods; the default periods come from
+  `delivery.json` (`defaultPeriods`).
 
 ### TASK-TRC-059: The Delivery tab, its toolbar, filters and figures
 - **Tier**: M
