@@ -267,11 +267,11 @@ DEC-TRC-033|36-43||One `quality` block replaces `gaps` in the data file and the 
 DEC-TRC-034|44-55||The Quality view in three bands, without scrolling
 DEC-TRC-035|56-66||A green-to-red grade palette like the food and energy labels; charts are inline SVG
 @process/2.architecture/ADR-TRC-009-delivery-tab.md
-ADR-TRC-009|1-83|Accepted — approved by the owner on 2026-10-27; owner request of 2026-10-27 (compare what was delivered between two periods, by tier and by identity),|Delivery Tab — Tasks Closed in Git, Points per Active Day, Periods Within the History Read
-DEC-TRC-036|19-29||Deliveries read from the history's own log
-DEC-TRC-037|30-37||A compact `delivery` block, weights in a data file
-DEC-TRC-038|38-44||Figures computed in the page, bounded by the history read
-DEC-TRC-039|45-53||The Delivery view shares the History view's state and drawing
+ADR-TRC-009|1-84|Accepted — approved by the owner on 2026-10-27; owner request of 2026-10-27 (compare what was delivered between two periods, by tier and by identity),|Delivery Tab — Tasks Closed in Git, Points per Active Day, Periods Within the History Read
+DEC-TRC-036|19-30||Deliveries read from the history's own log
+DEC-TRC-037|31-38||A compact `delivery` block, weights in a data file
+DEC-TRC-038|39-45||Figures computed in the page, bounded by the history read
+DEC-TRC-039|46-54||The Delivery view shares the History view's state and drawing
 @process/3.plan/PLAN-AGT-001-agent-entry-points.md
 PLAN-AGT-001|1-30||Agent entry points
 TASK-AGT-001|14-30|Done|AGENTS.md and CLAUDE.md skill alignment
@@ -404,12 +404,12 @@ TASK-TRC-052|117-132|Done|Remediation: named constants in the skill's code
 TASK-TRC-053|133-147|Done|Grade colours as the food and energy labels
 TASK-TRC-054|148-160|Done|The RQ-TRC-026 sentinel no longer depends on the current folder
 @process/3.plan/PLAN-TRC-008-delivery-tab.md
-PLAN-TRC-008|1-138||Delivery Tab
+PLAN-TRC-008|1-144||Delivery Tab
 TASK-TRC-055|18-31|Done|One human, one agent, one commit in the history's summary line
 TASK-TRC-056|32-47|Done|The Delivery tab specified and decided
-TASK-TRC-057|48-65|Not Started|Deliveries and the `delivery` block from the history's log
-TASK-TRC-058|66-81|Not Started|Points, throughput, rework rate and periods in the page
-TASK-TRC-059|82-97|Not Started|The Delivery tab, its toolbar, filters and figures
-TASK-TRC-060|98-111|Not Started|The three charts of the delivery
-TASK-TRC-061|112-125|Not Started|The table, its CSV and the delivery in the detail panel
-TASK-TRC-062|126-138|Not Started|Speed, documentation and a run on XS56K
+TASK-TRC-057|48-71|Done|Deliveries and the `delivery` block from the history's log
+TASK-TRC-058|72-87|Not Started|Points, throughput, rework rate and periods in the page
+TASK-TRC-059|88-103|Not Started|The Delivery tab, its toolbar, filters and figures
+TASK-TRC-060|104-117|Not Started|The three charts of the delivery
+TASK-TRC-061|118-131|Not Started|The table, its CSV and the delivery in the detail panel
+TASK-TRC-062|132-144|Not Started|Speed, documentation and a run on XS56K

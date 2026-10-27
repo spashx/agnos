@@ -24,7 +24,8 @@ the task's `**Tier**` line in the working tree; any commit that changed it marks
 replacing `Done` by another value, a status line with text after its value, or a `Done` added in the commit that added
 the task's heading sets the task aside with that reason. The commit type is the Conventional-Commits word before `(` in
 the subject. A task is reworked when a later `fix` commit, within the days of the data file, cites the task or a
-requirement the task cites, in its subject or its changed lines. No other git command is run. Fulfils RQ-TRC-068 and
+requirement the task cites, in its subject (an AGNOS commit message names its task and often its requirements; reading
+the changed lines of every commit would cost a scan of the whole patch text). No other git command is run. Fulfils RQ-TRC-068 and
 RQ-TRC-071.
 
 ### DEC-TRC-037: A compact `delivery` block, weights in a data file

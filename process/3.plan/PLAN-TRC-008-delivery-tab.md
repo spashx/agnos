@@ -47,7 +47,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-057: Deliveries and the `delivery` block from the history's log
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In `history.py`, read the `**Status**` and `**Tier**` lines in each task's followed hunks, find each
   delivery, re-tier, reason set aside, commit type, rework and the active days; add `assets/delivery.json` and write the
   `delivery` block (tests first, on a fixture repository of four tasks).
@@ -60,8 +60,14 @@ This plan implements the tasks in the format specified below.
   unchanged.
 - **Dependencies**: TASK-TRC-056
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `tests/test_delivery.py` written first (8 failures, `KeyError: 'delivery'`), then 9 tests OK: TASK-A
+  commit "feat(ABC): TASK-ABC-001 one" by Alice and Claude, `("L", True, 2, "feat", None)`; created-done, reopened,
+  annotated; active days per identity; settings equal to `delivery.json`; no `delivery` without `--history`; reworked
+  on day 5, not on day 25. Whole suite: 263 tests OK, 2 skipped. XS56K, 6 weeks: 266 tasks (213 counted: M 166, L 36,
+  S 11; created-done 52, annotated 1), whole run 2.6 s.
+- **Assumptions**: rework read in the fix commit's subject only (ADR-TRC-009 DEC-TRC-036 amended); the tier is read
+  with `- **Tier**: S|M|L` at the head of a line, else the task is set aside `no-tier`; the lines of a delivery are
+  those of the scanned source files.
 
 ### TASK-TRC-058: Points, throughput, rework rate and periods in the page
 - **Tier**: M

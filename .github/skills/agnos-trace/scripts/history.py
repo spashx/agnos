@@ -78,6 +78,14 @@ ESCAPES = {b"t": b"\t", b"n": b"\n", b"r": b"\r", b"a": b"\a", b"b": b"\b", b"f"
 OCTAL = 8
 OCTAL_DIGITS = 3
 
+# FTR-TRC-004, DEC-TRC-036: the status and tier lines of a task, read in the hunks the history already follows.
+MARK_PREFIX = "- **"
+MARK_RE = re.compile(r"- \*\*(Status|Tier)\*\*:(.*)")
+FIELD_STATUS = "Status"
+FIELD_TIER = "Tier"
+SIGN_ADDED = "+"
+SIGN_REMOVED = "-"
+
 
 class HistoryUnavailable(Exception):
     """The repository cannot give a history; the page is built without one (RQ-HST-012)."""
@@ -307,22 +315,37 @@ def same_path(header):
 
 
 class FileDiff:
-    """One file of a patch: its old and new paths (None when absent) and its hunks (old start, old count, new start,
-    new count)."""
+    """One file of a patch: its old and new paths (None when absent), its hunks (old start, old count, new start,
+    new count) and its marks (sign, line number on that side, field, value): the status and tier lines it changed."""
 
     def __init__(self, path):
         self.old = self.new = path
         self.hunks = []
+        self.marks = []
+
+
+def read_hunk_line(diff, line, old_next, new_next):
+    """(old_next, new_next) after one changed line of a hunk, the numbers its next removed and added lines will have;
+    a status or tier line is kept in diff's marks with its number (DEC-TRC-036)."""
+    removed = line.startswith(SIGN_REMOVED)
+    m = MARK_RE.match(line, 1) if line.startswith(MARK_PREFIX, 1) else None
+    if m:
+        diff.marks.append((SIGN_REMOVED if removed else SIGN_ADDED, old_next if removed else new_next, m.group(1),
+                           m.group(2).strip()))
+    return (old_next + 1, new_next) if removed else (old_next, new_next + 1)
 
 
 def parse_patch(lines):
-    """[(header record or None, [FileDiff])] in the order of the output; a hunk's lines are counted, never parsed, so
-    that a changed line that looks like a header is read as a line."""
+    """[(header record or None, [FileDiff])] in the order of the output; a hunk's lines are counted, never parsed as
+    headers, so that a changed line that looks like a header is read as a line; its status and tier lines are kept
+    as marks (DEC-TRC-036)."""
     entries, diffs, diff, pending = [], None, None, 0
+    old_next = new_next = 0
     for line in lines:
         if pending:
             if not line.startswith(NO_NEWLINE):
                 pending -= 1
+                old_next, new_next = read_hunk_line(diff, line, old_next, new_next)
             continue
         if line.startswith(RECORD):
             diffs, diff = [], None
@@ -350,6 +373,7 @@ def parse_patch(lines):
                 old_start, old_count, new_start, new_count = (int(g) if g is not None else 1 for g in m.groups())
                 diff.hunks.append((old_start, old_count, new_start, new_count))
                 pending = old_count + new_count
+                old_next, new_next = old_start, new_start
     return entries
 
 
@@ -391,9 +415,20 @@ def shift(first, last, hunks):
     return ((low, high) if low is not None else None), changed
 
 
-def transform(state, diffs, commit, tally):
+def note_marks(events, key, commit, diff, first, last, span):
+    """Records in events {key: {commit: (added, removed, created)}} the status and tier lines the commit added in the
+    task's range or removed from its old range, and whether it added the whole range (DEC-TRC-036)."""
+    added = [(field, value) for sign, n, field, value in diff.marks if sign == SIGN_ADDED and first <= n <= last]
+    removed = [(field, value) for sign, n, field, value in diff.marks
+               if sign == SIGN_REMOVED and span is not None and span[0] <= n <= span[1]]
+    if added or removed or span is None:
+        events.setdefault(key, {})[commit] = (added, removed, span is None)
+
+
+def transform(state, diffs, commit, tally, events=None, watch=frozenset()):
     """The ranges of state, {path: [(key, first, last)]} in a version's coordinates (first None: the whole file), in the
-    coordinates of the version the diffs start from; each range the diffs touch is credited to commit in tally, unless None."""
+    coordinates of the version the diffs start from; each range the diffs touch is credited to commit in tally, unless None;
+    the ranges of watch also note their marks in events (TASK-TRC-057)."""
     by_new = {d.new: d for d in diffs if d.new is not None}
     moved = {}
     for path, items in state.items():
@@ -410,6 +445,8 @@ def transform(state, diffs, commit, tally):
             if commit is not None and changed:
                 by_commit = tally.setdefault(key, {})
                 by_commit[commit] = by_commit.get(commit, 0) + changed
+            if commit is not None and key in watch:
+                note_marks(events, key, commit, diff, first, last, span)
             if span is not None:
                 kept.append((key, *span))
         if diff.old is not None and kept:
@@ -482,11 +519,12 @@ def tracked_files(repo, paths):
     return set(filter(None, out.split("\0")))
 
 
-def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
+def read_history(repo, ranges, wholes, paths=(), since=None, depth=None, events=None, watch=frozenset()):
     """(commits, credits): the commits authored in the period read, newest first, merges included; and
     {key: {full hash: changed lines}}, the non-merge commits that changed each range. ranges is {path: [(key, first,
     last)]} and wholes {path: [key]}, at the working tree, paths relative to the top of the repository; paths limits
-    the history read to these folders. The uncommitted changes credit no one."""
+    the history read to these folders. The uncommitted changes credit no one. The keys of watch note their status and
+    tier lines in events, as those commits do (TASK-TRC-057)."""
     tracked = tracked_files(repo, paths)
     state = {}
     for path, items in ranges.items():
@@ -512,11 +550,11 @@ def read_history(repo, ranges, wholes, paths=(), since=None, depth=None):
         parents = commit[KEY_PARENTS]
         credited = commit[KEY_HASH] if authored and not commit[KEY_MERGE] else None
         if not parents:
-            transform(here, per_parent[0], credited, tally)
+            transform(here, per_parent[0], credited, tally, events, watch)
             continue
         for number, parent in enumerate(parents):
             diffs = per_parent[number] if number < len(per_parent) else []
-            union(states.setdefault(parent, {}), transform(here, diffs, credited, tally))
+            union(states.setdefault(parent, {}), transform(here, diffs, credited, tally, events, watch))
     return commits, tally
 
 
@@ -666,15 +704,103 @@ def ranges_to_track(top, documents, files, functions):
     return ranges, wholes
 
 
-def build(folder, documents, files, functions, scope, since=None, depth=None, patterns=None):
+# ---- the delivery block ------------------------------------------------------------------------------------------
+# FTR-TRC-004: RQ-TRC-068, RQ-TRC-069, RQ-TRC-071; ADR-TRC-009: DEC-TRC-036, DEC-TRC-037 (TASK-TRC-057)
+DELIVERY_PATH = Path(__file__).resolve().parent.parent / "assets" / "delivery.json"
+KEY_DELIVERY = "delivery"
+DONE = "Done"
+FIX_TYPE = "fix"
+REASON_CREATED_DONE = "created-done"
+REASON_ANNOTATED = "annotated"
+REASON_REOPENED = "reopened"
+REASON_NO_TIER = "no-tier"
+DAY_LENGTH = 10                                    # "2026-10-27" at the head of an ISO author date: the author's own day
+SECONDS_PER_DAY = 86400
+COMMIT_TYPE_RE = re.compile(r"^([a-z]+)(?:\([^)]*\))?!?:")
+ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}(?![0-9])")
+
+
+def load_delivery_settings(path=DELIVERY_PATH):
+    return json.loads(Path(path).read_text(encoding=ENCODING))
+
+
+def commit_type(subject):
+    """The Conventional-Commits type of a subject ('feat' of 'feat(TRC): ...'), or None."""
+    m = COMMIT_TYPE_RE.match(subject)
+    return m.group(1) if m else None
+
+
+def first_delivery(timeline):
+    """(commit index, status value, created) of the first commit adding a status that starts with Done, or None."""
+    for index, (added, _, created) in timeline:
+        for field, value in added:
+            if field == FIELD_STATUS and value.startswith(DONE):
+                return index, value, created
+    return None
+
+
+def set_aside(timeline, index, value, created, tier):
+    """Why a delivered task counts in no figure, or None: created Done, a comment after Done, its status left Done
+    later, or no tier (RQ-TRC-068)."""
+    if created:
+        return REASON_CREATED_DONE
+    if value != DONE:
+        return REASON_ANNOTATED
+    if any(field == FIELD_STATUS and not v.startswith(DONE)
+           for i, (added, _, _) in timeline if i > index for field, v in added):
+        return REASON_REOPENED
+    return None if tier else REASON_NO_TIER
+
+
+def active_days(listed):
+    """{person index as text: [day, ...]}: the days each identity authored or co-authored a commit (RQ-TRC-069)."""
+    days = {}
+    for commit in listed:
+        for person in [commit[KEY_AUTHOR], *commit[KEY_CO_AUTHORS]]:
+            days.setdefault(person, set()).add(commit[KEY_DATE][:DAY_LENGTH])
+    return {str(person): sorted(found) for person, found in sorted(days.items())}
+
+
+def delivery_block(tasks, events, tally, authored, listed, settings):
+    """The data file's delivery block: each task delivered in the history read, as [ID, tier, re-tiered, commit index,
+    lines changed in the scanned files, commit type, reworked, reason set aside or None], in the order of tasks
+    {ID: (tier or None, [requirement IDs])}; the active days of each identity; the settings (DEC-TRC-037)."""
+    position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
+    file_lines = Counter()
+    for (kind, _), by_commit in tally.items():
+        if kind == KIND_FILE:
+            file_lines.update(by_commit)
+    fixes = [(n, set(ID_RE.findall(c[KEY_SUBJECT]))) for n, c in enumerate(authored)
+             if commit_type(c[KEY_SUBJECT]) == FIX_TYPE]
+    window = settings["reworkDays"] * SECONDS_PER_DAY
+    rows = []
+    for task_id, (tier, requirements) in tasks.items():
+        by_commit = events.get((KIND_ELEMENT, task_id), {})
+        timeline = sorted((position[h], e) for h, e in by_commit.items() if h in position)
+        found = first_delivery(timeline)
+        if found is None:
+            continue
+        index, value, created = found
+        commit = authored[index]
+        re_tiered = any(field == FIELD_TIER for _, (added, _, new) in timeline if not new for field, _ in added)
+        cited, limit = {task_id, *requirements}, timestamp(commit) + window
+        reworked = any(n > index and timestamp(authored[n]) <= limit and ids & cited for n, ids in fixes)
+        rows.append([task_id, tier, re_tiered, index, file_lines[commit[KEY_HASH]], commit_type(commit[KEY_SUBJECT]),
+                     reworked, set_aside(timeline, index, value, created, tier)])
+    return {"tasks": rows, "activeDays": active_days(listed), "settings": settings}
+
+
+def build(folder, documents, files, functions, scope, since=None, depth=None, patterns=None, tasks=None):
     """The data file's history block, for the repository holding folder. documents is {path: [(ID, first, last)]} of
     the process documents, files {shown path: path} of the scanned files, functions [(shown path, first, last)] of the
-    call graph in its order (empty without one), scope the folders whose history is read. HistoryUnavailable or
-    GitError when the repository cannot be read (RQ-HST-012)."""
+    call graph in its order (empty without one), scope the folders whose history is read; with tasks {ID: (tier,
+    [requirement IDs])}, the block also holds the delivery (TASK-TRC-057). HistoryUnavailable or GitError when the
+    repository cannot be read (RQ-HST-012)."""
     repo = check_repository(folder)
     ranges, wholes = ranges_to_track(repo.top, documents, files, functions)
     paths = sorted({p for p in (relative_to(f, repo.top) for f in scope) if p is not None}) or ["."]
-    commits, tally = read_history(repo, ranges, wholes, paths, since, depth)
+    events, watch = {}, frozenset((KIND_ELEMENT, t) for t in tasks or ())
+    commits, tally = read_history(repo, ranges, wholes, paths, since, depth, events, watch)
     authored = sorted((c for c in commits if not is_merge(c)), key=lambda c: (timestamp(c), c[KEY_HASH]))
     people, listed = identify(repo, authored, patterns or load_agent_patterns())
     position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
@@ -686,8 +812,11 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
     dates = [c[KEY_DATE] for c in listed]
     limits = {"since": since or None, "depth": depth or None, KEY_COMMITS: len(listed),
               "first": dates[0] if dates else None, "last": dates[-1] if dates else None, "shallow": repo.shallow}
-    return {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions,
-            KEY_GRAPH: build_graph(repo, since, position)}
+    block = {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions,
+             KEY_GRAPH: build_graph(repo, since, position)}
+    if tasks is not None:
+        block[KEY_DELIVERY] = delivery_block(tasks, events, tally, authored, listed, load_delivery_settings())
+    return block
 
 
 def summary(block):

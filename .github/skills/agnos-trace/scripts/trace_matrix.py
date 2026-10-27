@@ -43,6 +43,9 @@ KEY_REFS = "refs"
 KEY_SEMANTIC = "semantic"
 KEY_REPLACE = "replace"
 TYPE_TASK = "TASK"
+TYPE_RQ = "RQ"
+TIER_RE = re.compile(r"^- \*\*Tier\*\*:\s*([SML])\b")     # RQ-TRC-068: a task's tier, as the AGNOS template writes it
+KEY_DELIVERY = "delivery"
 
 INDEX_NAME = "INDEX.idx.md"
 DEFAULT_OUT_NAME = "TRACEABILITY.html"
@@ -324,6 +327,26 @@ def history_depth(text):
     return int(text)
 
 
+# RQ-TRC-068, RQ-TRC-071, DEC-TRC-036 (TASK-TRC-057)
+def task_tiers(process, model):
+    """{task ID: (tier S, M or L, or None; [requirement IDs it cites])} in index order, the tier read from the task's
+    lines in the working tree."""
+    links = Links(model)
+    lines_of = {}
+    tasks = {}
+    for element in model.elements.values():
+        if element[KEY_KIND] != KEY_ELEMENT or element[KEY_TYPE] != TYPE_TASK:
+            continue
+        path = resolve_document(process, element["doc"])
+        if path not in lines_of:
+            lines_of[path] = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines() if path else []
+        own = lines_of[path][element[KEY_FIRST] - 1:element[KEY_LAST]]
+        tier = next((m.group(1) for m in map(TIER_RE.match, own) if m), None)
+        cited = sorted(t for t in links.refs_out.get(element["id"], ()) if model.elements[t][KEY_TYPE] == TYPE_RQ)
+        tasks[element["id"]] = (tier, cited)
+    return tasks
+
+
 # RQ-HST-002, RQ-HST-003, RQ-HST-012 (TASK-HST-003)
 def build_history(args, process, model, scanned, graph):
     """The data file's history block, or None with a warning when the repository cannot be read."""
@@ -338,7 +361,8 @@ def build_history(args, process, model, scanned, graph):
         [(f["file"], f[KEY_FIRST], f[KEY_LAST]) for f in graph.functions]
     try:
         return module, module.build(process, documents, dict(scanned), functions, [process, *map(Path, args.sources)],
-                                    args.history_since, history_depth(args.history_depth))
+                                    args.history_since, history_depth(args.history_depth),
+                                    tasks=task_tiers(process, model))
     except (module.HistoryUnavailable, module.GitError) as error:
         print(f"agnos-trace: warning: no history: {error}", file=sys.stderr)
         return module, None
@@ -496,7 +520,9 @@ def page_data(model, analysis, quality, meta, call_graph=None, history=None):
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data["callGraph"] = call_graph.page_data({p: n for n, p in enumerate(paths)})
     if history is not None:                                         # RQ-HST-015: no key at all without a history
-        data["history"] = history
+        data["history"] = {k: v for k, v in history.items() if k != KEY_DELIVERY}
+        if KEY_DELIVERY in history:                                 # RQ-TRC-069, DEC-TRC-037: beside the history
+            data[KEY_DELIVERY] = history[KEY_DELIVERY]
     return data
 
 
