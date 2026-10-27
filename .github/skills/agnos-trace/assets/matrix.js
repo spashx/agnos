@@ -3226,7 +3226,7 @@
   const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
   const LINK_KIND_REFS = "refs";
   const TYPE_NONE = "none";             // a delivery commit whose subject has no Conventional-Commits type
-  const TIERS = DELIVERY ? Object.keys(DELIVERY.settings.points) : [];
+  const TIERS = DELIVERY ? DELIVERY.settings.tiers : [];     // in their order: the data file's keys are sorted
 
   const dayMs = (day) => Date.parse(day + DAY_START);
   const dayOf = (ms) => new Date(ms).toISOString().slice(0, ISO_DAY_LENGTH);
@@ -3341,8 +3341,9 @@
     for (const r of rows) {
       for (const i of r.people) {
         if (filter.people.size && !filter.people.has(i)) continue;
-        if (!byPerson.has(i)) byPerson.set(i, { person: i, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), points: 0, tasks: 0 });
+        if (!byPerson.has(i)) byPerson.set(i, { person: i, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), tasksByTier: {}, points: 0, tasks: 0 });
         const entry = byPerson.get(i);
+        entry.tasksByTier[r.tier] = (entry.tasksByTier[r.tier] || 0) + 1;
         entry.byTier[r.tier] += pointsOf(r);
         entry.points += pointsOf(r);
         entry.tasks += 1;
@@ -3498,7 +3499,7 @@
 
   function renderDeliveryKpis(figures) {
     const [fa, fb] = figures;
-    const count = { digits: 0, text: (v) => String(v) };
+    const count = { digits: 0, text: String };
     const rate = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : `${pct(v, 1)} %`) };
     const perDay = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : v.toFixed(SHOWN_DIGITS)) };
     clear($("delivery-kpis")).append(
@@ -3508,11 +3509,170 @@
       deliveryFigure("rework", "Rework", [fa.reworkRate, fb.reworkRate], rate, true));
   }
 
+  // ---- delivery charts (TASK-TRC-060: RQ-TRC-075, RQ-TRC-079; DEC-TRC-039) ----
+  // Geometry in the charts' own viewBox units; colours, opacities and strokes come from the tokens through the CSS.
+  const DCHART = { width: 400, wide: 800, labelWidth: 150, nameLength: 20, barHeight: 12, barGap: 3, rowGap: 12, textGap: 4,
+    plotHeight: 140, axisHeight: 18, columnGap: 1, boxHeight: 14, legendHeight: 22, hatch: 4 };
+  const ELLIPSIS = "…";
+  const shortName = (name) => (name.length > DCHART.nameLength ? name.slice(0, DCHART.nameLength - 1) + ELLIPSIS : name);
+  const HATCH_ID = "delivery-hatch-pattern";
+  const PERIOD_NAME = { a: "Period A", b: "Period B" };
+  const QUARTILES = [0.25, 0.5, 0.75];
+  const taskCount = (n) => `${n} ${n === 1 ? "task" : "tasks"}`;
+  const periodText = (key) => `${PERIOD_NAME[key]}, ${dlv.periods[key].from} to ${dlv.periods[key].to}`;
+
+  function hatchDefs() {
+    return svgEl("defs", {}, svgEl("pattern", { id: HATCH_ID, patternUnits: "userSpaceOnUse", width: DCHART.hatch, height: DCHART.hatch,
+      patternTransform: "rotate(45)" }, svgEl(VALUE_LINE, { class: "delivery-hatch-line", x1: 0, y1: 0, x2: 0, y2: DCHART.hatch })));
+  }
+
+  function tierLegend(y) {
+    const step = (DCHART.width - DCHART.labelWidth) / (TIERS.length + 1);
+    return [...TIERS.map((t, i) => svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.labelWidth + step * i, y },
+      `${t} ${DELIVERY.settings.points[t]} pt`)),
+    svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.labelWidth + step * TIERS.length, y }, "B hatched")];
+  }
+
+  // A bar of stacked tier segments from x, each `scale` units per point; B is hatched over.
+  function stackedBar(byTier, x, y, scale, hatched) {
+    let at = x;
+    const parts = TIERS.map((t) => {
+      const width = byTier[t] * scale;
+      const rect = svgEl(SVG_RECT, { class: `delivery-seg tier-${t}`, x: at, y, width, height: DCHART.barHeight });
+      at += width;
+      return rect;
+    });
+    const total = at - x;
+    return [svgEl(SVG_RECT, { class: "delivery-track", x, y, width: total, height: DCHART.barHeight }), ...parts,
+      hatched ? svgEl(SVG_RECT, { class: "delivery-hatch", x, y, width: total, height: DCHART.barHeight }) : null];
+  }
+
+  function identityTipLines(entry, key) {
+    const name = HISTORY.people[entry.person].name;
+    const rate = entry.throughput === null ? "no active day" : `${entry.throughput.toFixed(SHOWN_DIGITS)} points per active day`;
+    return [name, periodText(key), `${entry.points} points over ${entry.activeDays} active days: ${rate}`,
+      ...TIERS.map((t) => `${t}: ${taskCount(entry.tasksByTier[t] || 0)}, ${entry.byTier[t]} points`)];
+  }
+
+  // RQ-TRC-075: per identity, its points per active day stacked by tier, A then B hatched, in its History colour.
+  function throughputChart() {
+    const per = Object.fromEntries(PERIOD_KEYS.map((key) => [key, perIdentity(dlv.periods[key], dlv.filter, dlv.bounds)]));
+    const people = [...new Set(PERIOD_KEYS.flatMap((key) => per[key].map((e) => e.person)))].sort((a, b) => a - b);
+    const max = Math.max(1, ...PERIOD_KEYS.flatMap((key) => per[key].map((e) => e.throughput || 0)));
+    const scale = (DCHART.width - DCHART.labelWidth) / max;
+    const rowHeight = HALF * DCHART.barHeight + DCHART.barGap + DCHART.rowGap;
+    const rows = people.map((person, n) => {
+      const y = n * rowHeight;
+      const bars = PERIOD_KEYS.map((key, k) => {
+        const entry = per[key].find((e) => e.person === person)
+          || { person, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), tasksByTier: {}, points: 0, activeDays: 0, throughput: null };
+        const days = entry.activeDays || 1;
+        const group = svgEl(SVG_GROUP, { class: "delivery-bar", "data-person": person, "data-period": key, "data-points": entry.points,
+          "data-throughput": dataNumber(entry.throughput, FIGURE_DIGITS) },
+        ...stackedBar(Object.fromEntries(TIERS.map((t) => [t, entry.byTier[t] / days])), DCHART.labelWidth,
+          y + k * (DCHART.barHeight + DCHART.barGap), scale, key === PERIOD_KEYS[1]));
+        group.style.setProperty(CSS_IDENTITY, colourOf[person]);
+        const lines = identityTipLines(entry, key);
+        return chartItem(group, lines.slice(0, 3).join(". "), lines);
+      });
+      return svgEl(SVG_GROUP, {}, svgEl(SVG_TEXT, { class: "area-label", x: 0, y: y + DCHART.barHeight },
+        shortName(HISTORY.people[person].name)), ...bars);
+    });
+    const height = Math.max(people.length, 1) * rowHeight + DCHART.legendHeight;
+    return chartFrame(DCHART.width, height, "Points per active day, by identity",
+      "For each identity, the points it delivered per active day in period A and, hatched, in period B, stacked by tier.",
+      hatchDefs(), ...rows, ...tierLegend(height - DCHART.textGap));
+  }
+
+  // RQ-TRC-075: the points of every bucket of the history read, stacked by tier, periods A and B shown behind.
+  function timelineChart() {
+    const buckets = pointsOverTime(dlv.filter, dlv.grain, dlv.bounds);
+    const step = DCHART.wide / Math.max(buckets.length, 1);
+    const index = new Map(buckets.map((b, i) => [b.bucket, i]));
+    const totals = buckets.map((b) => TIERS.reduce((sum, t) => sum + b.byTier[t], 0));
+    const scale = DCHART.plotHeight / Math.max(1, ...totals);
+    const spans = PERIOD_KEYS.map((key) => {
+      const from = index.get(bucketOf(dlv.periods[key].from, dlv.grain)) ?? 0;
+      const to = index.get(bucketOf(dlv.periods[key].to, dlv.grain)) ?? buckets.length - 1;
+      return svgEl(SVG_GROUP, { class: `delivery-span period-${key}`, "data-period": key },
+        svgEl(SVG_RECT, { x: from * step, y: 0, width: (to - from + 1) * step, height: DCHART.plotHeight }),
+        svgEl(SVG_TEXT, { class: "delivery-legend", x: from * step + DCHART.textGap, y: DCHART.axisHeight }, key.toUpperCase()));
+    });
+    const columns = buckets.map((b, i) => {
+      let y = DCHART.plotHeight;
+      const parts = TIERS.map((t) => {
+        const height = b.byTier[t] * scale;
+        y -= height;
+        return svgEl(SVG_RECT, { class: `delivery-seg tier-${t}`, x: i * step, y, width: Math.max(step - DCHART.columnGap, 0), height });
+      });
+      const lines = [`${dlv.grain} of ${b.bucket}`, `${totals[i]} points`, ...TIERS.map((t) => `${t}: ${b.byTier[t]} points`)];
+      return chartItem(svgEl(SVG_GROUP, { class: "delivery-column", "data-bucket": b.bucket, "data-points": totals[i] }, ...parts),
+        `${lines[0]}: ${lines[1]}`, lines);
+    });
+    const axisY = DCHART.plotHeight + DCHART.axisHeight;
+    const axis = buckets.length ? [svgEl(SVG_TEXT, { class: "delivery-legend", x: 0, y: axisY }, buckets[0].bucket),
+      svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.wide, y: axisY, "text-anchor": "end" }, buckets.at(-1).bucket)] : [];
+    return chartFrame(DCHART.wide, axisY + DCHART.textGap, "Points delivered over time",
+      `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded.`,
+      ...spans, ...columns, ...axis);
+  }
+
+  function quartiles(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    return QUARTILES.map((p) => {
+      const at = (sorted.length - 1) * p;
+      const low = Math.floor(at);
+      return sorted[low] + (sorted[Math.min(low + 1, sorted.length - 1)] - sorted[low]) * (at - low);
+    });
+  }
+
+  // RQ-TRC-075: the lines changed per delivered task, median and quartiles, per tier for A and B.
+  function sizeChart(figures) {
+    const lines = Object.fromEntries(PERIOD_KEYS.map((key, k) => [key, Object.fromEntries(TIERS.map((t) =>
+      [t, figures[k].rows.filter((r) => r.tier === t).map((r) => r.lines)]))]));
+    const all = PERIOD_KEYS.flatMap((key) => TIERS.map((t) => lines[key][t])).filter((v) => v.length);
+    const max = Math.max(1, ...all.map((v) => quartiles(v)[QUARTILES.length - 1]));
+    const scale = (DCHART.width - DCHART.labelWidth) / max;
+    const rowHeight = DCHART.boxHeight + DCHART.barGap;
+    const rows = TIERS.flatMap((t, ti) => PERIOD_KEYS.map((key, k) => {
+      const y = (ti * PERIOD_KEYS.length + k) * rowHeight + ti * DCHART.rowGap;
+      const values = lines[key][t];
+      const label = svgEl(SVG_TEXT, { class: "area-label", x: 0, y: y + DCHART.boxHeight }, `${t} ${key.toUpperCase()}`);
+      if (!values.length) {
+        return chartItem(svgEl(SVG_GROUP, { class: "delivery-box", "data-tier": t, "data-period": key, "data-count": 0 }, label),
+          `${t}, ${PERIOD_NAME[key]}: no task`, [`Tier ${t}`, periodText(key), "No task delivered"]);
+      }
+      const [q1, median, q3] = quartiles(values);
+      const x = (v) => DCHART.labelWidth + v * scale;
+      const group = svgEl(SVG_GROUP, { class: "delivery-box", "data-tier": t, "data-period": key, "data-count": values.length,
+        "data-q1": q1, "data-median": median, "data-q3": q3 }, label,
+      svgEl(SVG_RECT, { class: "delivery-box-range", x: x(q1), y, width: Math.max((q3 - q1) * scale, DCHART.columnGap), height: DCHART.boxHeight }),
+      key === PERIOD_KEYS[1] ? svgEl(SVG_RECT, { class: "delivery-hatch", x: x(q1), y, width: Math.max((q3 - q1) * scale, DCHART.columnGap), height: DCHART.boxHeight }) : null,
+      svgEl(VALUE_LINE, { class: "delivery-box-median", x1: x(median), y1: y, x2: x(median), y2: y + DCHART.boxHeight }));
+      return chartItem(group, `${t}, ${PERIOD_NAME[key]}: median ${median} lines`,
+        [`Tier ${t}`, periodText(key), `${taskCount(values.length)}: median ${median} lines changed`, `Quartiles ${q1} to ${q3} lines`]);
+    }));
+    const height = TIERS.length * (PERIOD_KEYS.length * rowHeight + DCHART.rowGap);
+    return chartFrame(DCHART.width, height, "Lines changed per task, by tier",
+      "For each tier, the median and the quartiles of the lines changed by each delivered task, in period A and, hatched, in B.",
+      hatchDefs(), ...rows);
+  }
+
+  function renderDeliveryCharts(figures) {
+    const card = (title, key, svg, wide) => {
+      svg.setAttribute("data-chart", key);
+      return el(TAG_ARTICLE, { class: `card chart-card ${wide || ""}` }, el(TAG_HEADER, { class: "card-header" }, el("h3", { class: "card-title", text: title })), svg);
+    };
+    clear($("delivery-charts")).append(card("Points per active day", "throughput", throughputChart()),
+      card("Points over time", "timeline", timelineChart(), "delivery-wide"), card("Lines per task", "size", sizeChart(figures)));
+  }
+
   function renderDelivery() {
     renderDeliveryPeriods();
     renderDeliveryChips();
     const figures = PERIOD_KEYS.map((key) => deliveryFigures(dlv.periods[key], dlv.filter, dlv.bounds));
     renderDeliveryKpis(figures);
+    renderDeliveryCharts(figures);
   }
 
   function setupDelivery() {

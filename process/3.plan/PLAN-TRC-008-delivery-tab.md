@@ -119,7 +119,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-060: The three charts of the delivery
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Inline-SVG charts: throughput per identity stacked by tier for A and B, points over time in the
   grain with A and B highlighted, lines per task by tier; History's identity colours and icons; rich tooltips, keyboard.
 - **Requirement refs**: RQ-TRC-075, RQ-TRC-079
@@ -128,8 +128,16 @@ This plan implements the tasks in the format specified below.
   History colour, and focusing a bar shows its identity, period, tier, tasks and points.
 - **Dependencies**: TASK-TRC-059
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `DeliveryChartsTest` written first (5 failing), then 5 tests OK: charts "throughput,timeline,size", each
+  `role="img"` and named; Claude's A bar `var(--c-history-identity-2)`, 10 points, 3.333, focusable, tooltip "Claude Opus
+  5.5 / Period A / L: 1 task, 8 points / S: 2 tasks, 2 points / 3 active days"; Alice's B bar hatched; timeline 42 day
+  columns, 7 weeks, last week 2026-10-26 with 1 point, spans a and b; S A quartiles 3.5:4:4.5 over 2 tasks, L A median
+  40, M B 12, L B count 0; tag S leaves Claude's A bar 2 points. Delivery tests 30 OK; literal test OK. Screenshots of
+  XS56K in both themes read: first version too small, names over the bars and tiers in L, M, S order (sorted keys of
+  the data file): fixed (two columns, timeline full width, names cut at 20 characters, `tiers` order in `delivery.json`).
+- **Assumptions**: a tier is told by the opacity of the identity's colour (tokens `delivery-tier-*-opacity`), with the
+  legend and the tooltip writing it; the size chart shows the quartiles without whiskers; the timeline has no click
+  (not required by RQ-TRC-075).
 
 ### TASK-TRC-061: The table, its CSV and the delivery in the detail panel
 - **Tier**: M
