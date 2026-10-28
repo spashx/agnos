@@ -3666,6 +3666,17 @@
   }
 
   const legendGap = () => cssSize("--s-space-2xl");
+  const SVG_XMLNS = "http://www.w3.org/2000/svg";
+  const DATA_SVG = "data:image/svg+xml;charset=utf-8,";
+
+  // RQ-HST-026 (TASK-TRC-071): an identity's kind icon, the page's own symbol, filled with the identity's colour and its
+  // cut-outs with the card's, as an image that a library chart's text can show.
+  function identityImage(index) {
+    const symbol = document.getElementById(`icon-${HISTORY.people[index].kind}`);
+    const svg = `<svg xmlns="${SVG_XMLNS}" viewBox="${symbol.getAttribute(ATTR_VIEWBOX)}" fill="${resolvedColour(colourOf[index])}">`
+      + `<style>.icon-cut{fill:${resolvedColour(cssValue(CSS_VAR_C_CARD_BG))}}</style>${[...symbol.children].map((child) => new XMLSerializer().serializeToString(child)).join("")}</svg>`;
+    return DATA_SVG + encodeURIComponent(svg);
+  }
   const legendRoom = () => cssSize("--s-space-3xl");                  // a legend on two lines
   const chartLabelWidth = () => cssSize("--c-delivery-label-width");
   const chartMargin = () => cssSize("--s-space-lg");                  // the first letter of a label is never cut
@@ -3701,7 +3712,10 @@
       tooltip: { trigger: "item", formatter: tip },
       xAxis: { type: AXIS_VALUE, name: "points per active day", nameLocation: "middle", nameGap: legendGap() },
       yAxis: { type: AXIS_CATEGORY, data: people.map((p) => HISTORY.people[p].name), inverse: true,
-        axisLabel: { ...theme.caption, width: chartLabelWidth(), overflow: "truncate" } },
+        axisLabel: { ...theme.caption, width: chartLabelWidth(), overflow: "truncate",
+          formatter: (name, i) => `{p${i}|} ${name}`,                  // TASK-TRC-071: the identity's icon first
+          rich: Object.fromEntries(people.map((p, i) => [`p${i}`, { width: cssSize("--c-history-icon-size"),
+            height: cssSize("--c-history-icon-size"), backgroundColor: { image: identityImage(p) } }])) } },
       series,
     };
   }

@@ -345,6 +345,18 @@ out.labelled = String(ofPeriod("a").at(-1).label.show && ofPeriod("b").at(-1).la
         self.assertEqual(("3.333", "0.000"), (got["rate_a"], got["rate_b"]))
         self.assertEqual(("true", "0.4,0.7,1", "true", "true"), (got["colours"], got["shades"], got["nopattern"], got["labelled"]))
 
+    def test_RQ_HST_026_given_the_throughput_chart_then_each_name_is_led_by_its_identity_s_icon_in_its_colour(self):
+        got = self.run_script("""
+const axis = [].concat(optionOf("throughput").yAxis)[0];
+const image = (i) => decodeURIComponent(axis.axisLabel.rich[`p${i}`].backgroundColor.image);
+out.richkeys = Object.keys(axis.axisLabel.rich).join(",");
+out.iconlabel = axis.axisLabel.formatter(axis.data[1], 1);
+out.human = String(image(0).includes("<circle") && image(0).includes(resolved(css("--c-history-identity-1"))));
+out.agent = String(image(1).includes("<rect") && image(1).includes(resolved(css("--c-history-identity-2"))));
+""", "richkeys", "iconlabel", "human", "agent")
+        self.assertEqual(("p0,p1", "{p1|} Claude Opus 5.5"), (got["richkeys"], got["iconlabel"]))
+        self.assertEqual(("true", "true"), (got["human"], got["agent"]))
+
     def test_RQ_TRC_083_given_the_header_then_a_and_b_have_their_colours_as_in_the_charts(self):
         got = self.run_script("""
 out.mark_a = String(getComputedStyle(document.querySelector(".delivery-mark-a")).backgroundColor === periodColour("a"));

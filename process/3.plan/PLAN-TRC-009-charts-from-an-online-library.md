@@ -137,6 +137,20 @@ This plan implements the tasks in the format specified below.
   one colour-blind readers tell apart best; the text on a mark is white in light and `slate-950` in dark; the timeline's
   columns turn neutral (slate) so that blue is never read as period A outside it.
 
+### TASK-TRC-071: An identity's icon before its name in the throughput chart
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner request of 2026-10-28: each name of the "Points per active day" axis is led by its kind's icon
+  (human or agent), drawn in the identity's colour as everywhere else in the page; the bars keep the periods' colours.
+- **Requirement refs**: RQ-TRC-083, RQ-HST-026
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043)
+- **Acceptance Criteria**: Given the throughput chart, Then each axis label starts with an image of its identity's kind
+  icon (human or agent) filled with the identity's resolved colour, then the name.
+- **Dependencies**: TASK-TRC-070
+- **Assignee**: AI
+- **Verification**: Test first (1 error), then OK: rich keys p0,p1, label "{p1|} Claude Opus 5.5", Alice's image a human icon in `--c-history-identity-1`, Claude's an agent icon in `--c-history-identity-2`. Whole suite 298 OK, 3 skipped (one failure on the way: `innerHTML` forbidden by RQ-TRC-022, replaced by `XMLSerializer`). Screenshots of XS56K light and dark: icons before every name.
+- **Assumptions**: owner choice of 2026-10-28: the icon in the identity's colour; its cut-outs in the card's colour.
+
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M
 - **Status**: Not Started
