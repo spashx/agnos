@@ -49,6 +49,10 @@ grouped bars of tasks per tier for A and B; "lines changed per task" is removed.
 indicator per scored check, its score series, the tooltip of RQ-TRC-084, and `click` opening the check. Keyboard: each
 chart container has `tabindex="0"`, an accessible name and a description; the arrow keys move through its data items by
 `dispatchAction` (`highlight`, `showTip`), Enter emits the item's click. Fulfils RQ-TRC-083, RQ-TRC-084, RQ-TRC-087.
+Amended at the owner's review of 2026-10-28 (TASK-TRC-070): two semantic tokens, `period-a` (the accent blue) and
+`period-b` (amber), with their on-colours, mark A and B in the header and colour the charts; the tiers are the
+`delivery-tier-*-opacity` shades of the period's colour; decals are off, values are written on the bars; identity
+colours stay in the History tab.
 
 ### DEC-TRC-044: Grouped marks in the History timeline
 The timeline stays the page's own inline SVG (DEC-HST-005). When drawing a row, marks are walked in time order; a mark

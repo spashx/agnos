@@ -113,6 +113,23 @@ This plan implements the tasks in the format specified below.
   token `delivery-hatch-opacity` removed (no longer read), `delivery-chart-height`, `delivery-row-height` and
   `delivery-label-width` added.
 
+### TASK-TRC-070: One colour per period, shades for the tiers
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner review of 2026-10-28: tokens `period-a` and `period-b` mark A and B in the header (period
+  marks, band of figures) and colour the Delivery charts, the tiers as shades of them; no pattern and no identity colour
+  in the charts; the points over time keep their form, columns neutral, areas in the periods' colours.
+- **Requirement refs**: RQ-TRC-083, RQ-TRC-087, RQ-TRC-085
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010)
+- **Acceptance Criteria**: Given the tab, Then the A and B marks of the header take `period-a` and `period-b`, and the A
+  bars of every chart the colour of `period-a`, the B bars that of `period-b`; Given a tier, Then its bars are its
+  period's colour at its tier's opacity; Given the charts, Then no series has a decal and each bar writes its value;
+  Given both themes, Then each mark's text meets 4.5:1 on its colour.
+- **Dependencies**: TASK-TRC-066
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M
 - **Status**: Not Started

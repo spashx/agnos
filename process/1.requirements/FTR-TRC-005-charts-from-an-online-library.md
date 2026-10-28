@@ -75,6 +75,10 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
   read "S, small task, 1 point", "M, medium task, 3 points", "L, large task, 8 points", the third chart has one A and
   one B value per tier, and the font size of their texts is the page's caption or small size.
 - **Dependencies**: RQ-TRC-075, RQ-TRC-080, RQ-TRC-085
+- **Amendment**: owner review of 2026-10-28 (TASK-TRC-070): period A and period B each have one colour of the design
+  system, shown first in the tab's header (the period marks and the band of figures) and reused by the charts; a
+  tier is a shade of its period's colour (light S, medium M, full L); the points over time keep their form, their
+  columns neutral and the A and B areas in the periods' colours; no identity colour and no pattern in these charts.
 
 ### RQ-TRC-084: Readable checks radar
 - **Category**: Functional
@@ -133,6 +137,8 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
 - **Acceptance Criteria**: Given the Delivery tab, When the first chart is focused and the right arrow pressed, Then the
   tooltip of its first data item shows; When Enter is pressed on a radar point, Then its check opens.
 - **Dependencies**: RQ-TRC-061, RQ-TRC-079, RQ-TRC-083, RQ-TRC-084
+- **Amendment**: owner review of 2026-10-28 (TASK-TRC-070): patterns were found unreadable; a series is told by its
+  legend's text, its fixed place (A before B) and the value written on its bar, as well as by its colour.
 
 ### RQ-TRC-088: Speed with the libraries
 - **Category**: Non-Functional

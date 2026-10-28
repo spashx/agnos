@@ -286,6 +286,10 @@ const chartOf = (key) => echarts.getInstanceByDom(document.querySelector(`#deliv
 const optionOf = (key) => chartOf(key).getOption();
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const sumOf = (series, index) => series.reduce((sum, s) => sum + (s.data[index]?.value ?? s.data[index] ?? 0), 0);
+const resolved = (colour) => { const p = document.createElement("span"); p.style.color = colour; document.body.append(p);
+  const value = getComputedStyle(p).color; p.remove(); return value; };
+const periodColour = (key) => resolved(css(`--c-delivery-period-${key}`));
+const noPattern = (option) => option.series.every((s) => !s.itemStyle || !s.itemStyle.decal || s.itemStyle.decal.symbol === "none");
 """
 
 
@@ -325,18 +329,35 @@ out.caption = String([].concat(optionOf("timeline").legend)[0].textStyle.fontSiz
         self.assertEqual("S, small task, 1 point|M, medium task, 3 points|L, large task, 8 points", got["legend"])
         self.assertEqual(("true", "true"), (got["text"], got["caption"]))
 
-    def test_RQ_TRC_083_given_an_identity_then_its_bars_give_its_points_per_active_day_in_its_history_colour(self):
+    def test_RQ_TRC_083_given_an_identity_then_its_bars_give_its_points_per_active_day_in_its_period_s_colour(self):
         got = self.run_script("""
 const option = optionOf("throughput");
 const names = [].concat(option.yAxis)[0].data;
 const claude = names.indexOf("Claude Opus 5.5");
 const ofPeriod = (p) => option.series.filter((s) => s.stack === p);
 out.rate_a = sumOf(ofPeriod("a"), claude).toFixed(3); out.rate_b = sumOf(ofPeriod("b"), claude).toFixed(3);
-out.decal = String(ofPeriod("b").every((s) => s.itemStyle && s.itemStyle.decal));
-const probe = document.createElement("span"); probe.style.color = css("--c-history-identity-2"); document.body.append(probe);
-out.colour = String(ofPeriod("a")[0].data[claude].itemStyle.color === getComputedStyle(probe).color);
-""", "rate_a", "rate_b", "decal", "colour")
-        self.assertEqual(("3.333", "0.000", "true", "true"), (got["rate_a"], got["rate_b"], got["decal"], got["colour"]))
+out.colours = String(ofPeriod("a").every((s) => s.itemStyle.color === periodColour("a"))
+  && ofPeriod("b").every((s) => s.itemStyle.color === periodColour("b")));
+out.shades = ofPeriod("a").map((s) => s.itemStyle.opacity).join(",");
+out.nopattern = String(noPattern(option));
+out.labelled = String(ofPeriod("a").at(-1).label.show && ofPeriod("b").at(-1).label.show);
+""", "rate_a", "rate_b", "colours", "shades", "nopattern", "labelled")
+        self.assertEqual(("3.333", "0.000"), (got["rate_a"], got["rate_b"]))
+        self.assertEqual(("true", "0.4,0.7,1", "true", "true"), (got["colours"], got["shades"], got["nopattern"], got["labelled"]))
+
+    def test_RQ_TRC_083_given_the_header_then_a_and_b_have_their_colours_as_in_the_charts(self):
+        got = self.run_script("""
+out.mark_a = String(getComputedStyle(document.querySelector(".delivery-mark-a")).backgroundColor === periodColour("a"));
+out.mark_b = String(getComputedStyle(document.querySelector(".delivery-mark-b")).backgroundColor === periodColour("b"));
+const band = document.querySelector('#delivery-kpis [data-figure="tasks"]');
+out.band = String(Boolean(band.querySelector(".delivery-mark-a") && band.querySelector(".delivery-mark-b")));
+const tiers = optionOf("tiers");
+out.tiers = String(tiers.series[0].itemStyle.color === periodColour("a") && tiers.series[1].itemStyle.color === periodColour("b")
+  && noPattern(tiers) && tiers.series.every((s) => s.label.show));
+const areas = optionOf("timeline").series[0].markArea.data;
+out.areas = String(areas[0][0].itemStyle.color === periodColour("a") && areas[1][0].itemStyle.color === periodColour("b"));
+""", "mark_a", "mark_b", "band", "tiers", "areas")
+        self.assertEqual({"mark_a": "true", "mark_b": "true", "band": "true", "tiers": "true", "areas": "true"}, got)
 
     def test_RQ_TRC_083_given_a_grain_then_the_timeline_has_one_bar_per_bucket_and_marks_a_and_b(self):
         got = self.run_script("""

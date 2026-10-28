@@ -160,7 +160,7 @@
 
   // ---- library charts (TASK-TRC-065: RQ-TRC-085, RQ-TRC-087; DEC-TRC-042, DEC-TRC-043) --------------------------
   // An ECharts chart drawn in SVG, its look read from the resolved design tokens, drawn again when the theme changes,
-  // with ARIA and decals, and a keyboard path over its data items. No visual value is written here.
+  // with ARIA (no pattern: TASK-TRC-070), and a keyboard path over its data items. No visual value is written here.
   const GLOBAL_ECHARTS = "echarts";
   const CHART_RENDERER = "svg";
   const CHART_NEXT_KEYS = new Set(["ArrowRight", "ArrowDown"]);
@@ -196,7 +196,7 @@
     const withAxis = (axis) => ({ ...theme.axis, ...axis });
     const themed = { ...option, animation: false, backgroundColor: "transparent", textStyle: theme.textStyle,
       tooltip: { ...theme.tooltip, ...(option.tooltip || {}) },
-      aria: { enabled: true, decal: { show: true }, label: { enabled: true, description } } };
+      aria: { enabled: true, decal: { show: false }, label: { enabled: true, description } } };   // TASK-TRC-070: no pattern
     if (option.legend) themed.legend = { ...theme.legend, ...option.legend };
     for (const key of CHART_AXES) {
       if (option[key]) themed[key] = Array.isArray(option[key]) ? option[key].map(withAxis) : withAxis(option[key]);
@@ -3603,14 +3603,18 @@
     return `${arrow} ${change > 0 ? "+" : ""}${pct(change, 1)} %`;
   }
 
+  // TASK-TRC-070: a period's mark, in its colour, wherever A and B are written.
+  const periodBadge = (key) => el(TAG_SPAN, { class: `delivery-badge delivery-mark-${key}`, text: key.toUpperCase() });
+
   function deliveryFigure(key, label, values, show, lowerIsBetter) {
     const [a, b] = values;
     const change = variation(a, b);
     const better = change !== null && change !== 0 && (change > 0) !== Boolean(lowerIsBetter);
     const node = el("div", { class: "kpi", "data-figure": key, "data-a": dataNumber(a, show.digits), "data-b": dataNumber(b, show.digits),
       "data-change": dataNumber(change, FIGURE_DIGITS) },
-    el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }), el(TAG_SPAN, { class: CLASS_KPI_VALUE, text: `A ${show.text(a)}` }),
-    el(TAG_SPAN, { class: VALUE_KPI_SUB }, `B ${show.text(b)} · `, el(TAG_SPAN, {
+    el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }),
+    el(TAG_SPAN, { class: CLASS_KPI_VALUE }, periodBadge(PERIOD_KEYS[0]), show.text(a)),
+    el(TAG_SPAN, { class: VALUE_KPI_SUB }, periodBadge(PERIOD_KEYS[1]), ` ${show.text(b)} · `, el(TAG_SPAN, {
       class: `delivery-change${change ? (better ? " is-better" : " is-worse") : ""}`, text: changeText(change) })));
     return richTip(node, () => ({ head: label, lines: [`Period A, ${dlv.periods.a.from} to ${dlv.periods.a.to}: ${show.text(a)}`,
       `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeText(change)}`] }));
@@ -3629,8 +3633,8 @@
   }
 
   // ---- delivery charts (TASK-TRC-066: RQ-TRC-083, RQ-TRC-075 as amended, RQ-TRC-087; DEC-TRC-043) ----
-  // Drawn by ECharts through libraryChart (DEC-TRC-042): each tier named in full, an identity in its History colour, a
-  // tier told by the opacity of that colour, period B hatched by a decal; every size and colour comes from the tokens.
+  // Drawn by ECharts through libraryChart (DEC-TRC-042): each tier named in full, A and B in their periods' colours, a
+  // tier told by the opacity of its period's colour (TASK-TRC-070), no pattern; every size and colour comes from the tokens.
   const PERIOD_NAME = { a: "Period A", b: "Period B" };
   const CHART_THROUGHPUT = "throughput";
   const CHART_TIMELINE = "timeline";
@@ -3638,7 +3642,6 @@
   const SERIES_BAR = "bar";
   const AXIS_VALUE = "value";
   const AXIS_CATEGORY = "category";
-  const DECAL_NONE = { symbol: "none" };                           // an empty pattern: A is plain
   const TRIGGER_AXIS = "axis";
   const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
   const taskCount = (n) => `${n} ${n === 1 ? "task" : "tasks"}`;
@@ -3646,6 +3649,8 @@
   const periodText = (key) => `${PERIOD_NAME[key]}, ${dlv.periods[key].from} to ${dlv.periods[key].to}`;
   const tierLabel = (t) => `${t}, ${DELIVERY.settings.names[t]}, ${pointCount(DELIVERY.settings.points[t])}`;
   const tierOpacity = (t) => cssSize(`--c-delivery-tier-${t.toLowerCase()}-opacity`);
+  const periodColour = (key) => resolvedColour(cssValue(`--c-delivery-period-${key}`));   // TASK-TRC-070
+  const LABEL_DIGITS = 1;                                              // a value written on its bar
   // A tooltip of ECharts is HTML: every text from the data is escaped (RQ-TRC-022).
   const escapeHtml = (value) => String(value).replace(/[&<>"]/g, (c) => HTML_ESCAPES[c]);
   const tipHtml = (lines) => lines.map((line, i) => (i ? escapeHtml(line) : `<b>${escapeHtml(line)}</b>`)).join("<br>");
@@ -3660,26 +3665,26 @@
     return value;
   }
 
-  const hatch = (theme) => ({ color: theme.colour.surface });           // ECharts' first decal, in the card's colour
   const legendGap = () => cssSize("--s-space-2xl");
   const legendRoom = () => cssSize("--s-space-3xl");                  // a legend on two lines
   const chartLabelWidth = () => cssSize("--c-delivery-label-width");
   const chartMargin = () => cssSize("--s-space-lg");                  // the first letter of a label is never cut
   const LABEL_BREAK = ", ";                                            // "S, small task, 1 point" on three lines       // a long name is cut, whole in the tooltip
 
-  // RQ-TRC-083: per identity, its points per active day stacked by tier, A then B hatched.
+  // RQ-TRC-083: per identity, its points per active day stacked by tier, A then B, each in its period's colour.
   function throughputOption(theme) {
     const per = Object.fromEntries(PERIOD_KEYS.map((key) => [key, perIdentity(dlv.periods[key], dlv.filter, dlv.bounds)]));
     const people = [...new Set(PERIOD_KEYS.flatMap((key) => per[key].map((e) => e.person)))].sort((a, b) => a - b);
-    const colours = people.map((p) => resolvedColour(colourOf[p]));
     const entryOf = (key, person) => per[key].find((e) => e.person === person);
-    const series = PERIOD_KEYS.flatMap((key) => TIERS.map((t) => ({
+    const series = PERIOD_KEYS.flatMap((key) => TIERS.map((t, ti) => ({
       type: SERIES_BAR, name: tierLabel(t), stack: key,
-      itemStyle: { color: theme.colour.muted, opacity: tierOpacity(t), decal: key === PERIOD_KEYS[1] ? hatch(theme) : DECAL_NONE },
-      data: people.map((person, i) => {
+      itemStyle: { color: periodColour(key), opacity: tierOpacity(t) },
+      label: { show: ti === TIERS.length - 1, position: "right", ...theme.caption,
+        formatter: ({ data }) => (entryOf(data.period, data.person)?.throughput ?? 0).toFixed(LABEL_DIGITS) },
+      data: people.map((person) => {
         const entry = entryOf(key, person);
         const value = entry && entry.activeDays ? entry.byTier[t] / entry.activeDays : 0;
-        return { value, person, period: key, tier: t, itemStyle: { color: colours[i], opacity: tierOpacity(t) } };
+        return { value, person, period: key, tier: t };
       }),
     })));
     const tip = ({ data }) => {
@@ -3691,7 +3696,7 @@
         ...TIERS.map((t) => `${tierLabel(t)}: ${taskCount(entry.tasksByTier[t] || 0)}, ${pointCount(entry.byTier[t])}`)]);
     };
     return {
-      legend: { data: TIERS.map(tierLabel), top: 0 },
+      legend: { data: TIERS.map(tierLabel), top: 0, itemStyle: { color: theme.colour.muted } },
       grid: { containLabel: true, left: chartMargin(), right: legendGap(), top: legendRoom(), bottom: legendGap() },
       tooltip: { trigger: "item", formatter: tip },
       xAxis: { type: AXIS_VALUE, name: "points per active day", nameLocation: "middle", nameGap: legendGap() },
@@ -3707,10 +3712,10 @@
     const area = (key, colour) => [{ name: key.toUpperCase(), xAxis: bucketOf(dlv.periods[key].from, dlv.grain),
       itemStyle: { color: colour, opacity: cssSize("--c-delivery-span-opacity") } }, { xAxis: bucketOf(dlv.periods[key].to, dlv.grain) }];
     const series = TIERS.map((t) => ({ type: SERIES_BAR, name: tierLabel(t), stack: "points",
-      itemStyle: { color: theme.colour.accent, opacity: tierOpacity(t), decal: DECAL_NONE },
+      itemStyle: { color: theme.colour.muted, opacity: tierOpacity(t) },
       data: buckets.map((b) => b.byTier[t]) }));
     series[0].markArea = { silent: true, label: { color: theme.colour.muted, fontSize: theme.caption.fontSize },
-      data: [area(PERIOD_KEYS[0], theme.colour.accent), area(PERIOD_KEYS[1], theme.colour.muted)] };
+      data: [area(PERIOD_KEYS[0], periodColour(PERIOD_KEYS[0])), area(PERIOD_KEYS[1], periodColour(PERIOD_KEYS[1]))] };
     return {
       legend: { data: TIERS.map(tierLabel), top: 0 },
       grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: legendGap() },
@@ -3722,10 +3727,10 @@
     };
   }
 
-  // RQ-TRC-083: the tasks delivered per tier, A beside B hatched.
+  // RQ-TRC-083: the tasks delivered per tier, A beside B, each in its period's colour.
   function tiersOption(theme, figures) {
     const series = PERIOD_KEYS.map((key, k) => ({ type: SERIES_BAR, name: key.toUpperCase(),
-      itemStyle: { color: theme.colour.accent, decal: k ? hatch(theme) : DECAL_NONE },
+      itemStyle: { color: periodColour(key) }, label: { show: true, position: "top", ...theme.caption },
       data: TIERS.map((t) => figures[k].rows.filter((r) => r.tier === t).length) }));
     return {
       legend: { data: PERIOD_KEYS.map((key) => key.toUpperCase()), top: 0, formatter: (name) => periodText(name.toLowerCase()) },
@@ -3741,11 +3746,11 @@
   function renderDeliveryCharts(figures) {
     const people = new Set(PERIOD_KEYS.flatMap((key) => perIdentity(dlv.periods[key], dlv.filter, dlv.bounds).map((e) => e.person)));
     const charts = [
-      [CHART_THROUGHPUT, "Points per active day", "For each identity, the points it delivered per active day in period A and, hatched, in period B, stacked by tier.",
+      [CHART_THROUGHPUT, "Points per active day", "For each identity, the points it delivered per active day in period A, then in period B, stacked by tier: a lighter shade for a smaller tier.",
         throughputOption, [...people].sort((a, b) => a - b).flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k * TIERS.length, dataIndex: i })))],
       [CHART_TIMELINE, "Points over time", `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded.`,
         timelineOption, pointsOverTime(dlv.filter, dlv.grain, dlv.bounds).map((_, i) => ({ seriesIndex: 0, dataIndex: i }))],
-      [CHART_TIERS, "Tasks per tier", "The tasks delivered in each tier, in period A and, hatched, in period B.",
+      [CHART_TIERS, "Tasks per tier", "The tasks delivered in each tier, in period A beside period B.",
         (theme) => tiersOption(theme, figures), TIERS.flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k, dataIndex: i })))],
     ];
     const cards = charts.map(([key, title]) => {

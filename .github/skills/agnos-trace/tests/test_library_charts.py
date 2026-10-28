@@ -79,13 +79,13 @@ box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
         self.assertIn("second", got["tip"])
         self.assertEqual("1", got.get("activated"))
 
-    def test_RQ_TRC_087_given_a_chart_then_aria_and_decals_are_on(self):
+    def test_RQ_TRC_087_given_a_chart_then_aria_is_on_and_no_pattern_is_drawn(self):   # amended by TASK-TRC-070
         got = self.run_script("""
 const option = chart.getOption();
 out.aria = String(option.aria.enabled); out.decal = String(option.aria.decal.show);
 out.description = box.getAttribute("aria-description") || "";
 """, "aria", "decal", "description")
-        self.assertEqual(("true", "true", "Three bars"), (got["aria"], got["decal"], got["description"]))
+        self.assertEqual(("true", "false", "Three bars"), (got["aria"], got["decal"], got["description"]))
 
     def test_RQ_TRC_081_given_echarts_missing_then_the_chart_says_so(self):
         got = self.run_script("""

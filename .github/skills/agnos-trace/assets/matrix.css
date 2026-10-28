@@ -1150,6 +1150,12 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-change.is-worse { color: var(--s-status-error); }
 
 /* ---- delivery charts (TASK-TRC-066: RQ-TRC-083; DEC-TRC-043): boxes of the ECharts charts ----------------------- */
+/* TASK-TRC-070: A and B in their colours, first in the header, then in every chart */
+.delivery-mark-a, .delivery-mark-b { color: var(--c-delivery-on-period); }
+.segmented-label.delivery-mark-a, .delivery-badge.delivery-mark-a { background: var(--c-delivery-period-a); }
+.segmented-label.delivery-mark-b, .delivery-badge.delivery-mark-b { background: var(--c-delivery-period-b); }
+.delivery-badge { display: inline-flex; align-items: center; justify-content: center; min-width: var(--s-text-heading); padding: var(--s-space-none) var(--s-space-xs); border-radius: var(--s-radius-sm); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); }
+.kpi-value .delivery-badge { margin-right: var(--s-space-xs); vertical-align: middle; }
 .delivery-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-space-md); }
 .delivery-charts .delivery-wide { grid-column: 1 / -1; order: 1; }
 .delivery-chart { height: var(--c-delivery-chart-height); }
