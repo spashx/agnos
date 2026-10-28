@@ -1175,3 +1175,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-tasks tr.delivery-row:focus, .delivery-tasks tr.delivery-aside:focus { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: calc(-1 * var(--s-stroke-focus)); }
 .delivery-tasks tr.delivery-aside td { color: var(--s-text-muted); }
 .detail-delivery { margin: var(--s-space-none); color: var(--s-text-muted); font-size: var(--s-text-small); }
+
+/* ---- a library that could not be loaded (TASK-TRC-064: RQ-TRC-081; DEC-TRC-041) -------------------------------- */
+.library-missing { margin: var(--s-space-xl); padding: var(--s-space-md) var(--s-space-lg); border: var(--s-stroke-hairline) solid var(--s-status-warn);
+  border-radius: var(--s-radius-md); background: var(--s-status-warn-subtle); color: var(--s-text); font-size: var(--s-text-small); }

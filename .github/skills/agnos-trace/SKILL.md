@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an offline HTML page with its data beside it (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them; with --history, who (humans and agents) changed each element and its code, and when, and what was delivered: the tasks closed per period, tier and identity. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes an HTML page with its data beside it and its libraries from cdnjs (<page>.json, <page>.data.js): every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --call-graph, which functions carry it and what calls them; with --history, who (humans and agents) changed each element and its code, and when, and what was delivered: the tasks closed per period, tier and identity. Independent of the product developed."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
 ---
 
@@ -57,8 +57,9 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
      it is, with the checks scoring under 10.
    - `1`: input error (no `INDEX.idx.md`, missing source folder, broken design token, a history option misused),
      printed on the error stream; nothing is written. Apply the Error Recovery Protocol.
-4. Give the user the path of the page. It opens offline in any current browser, from disk, as long as its
-   `<page>.data.js` stands beside it (share the three files together; alone, the page says which file it lacks).
+4. Give the user the path of the page. It opens from disk in any current browser, as long as its `<page>.data.js`
+   stands beside it (share the three files together; alone, the page says which file it lacks); it loads its
+   libraries from cdnjs (see "Libraries").
 
 ## What the page shows
 
@@ -267,10 +268,15 @@ Chrome, Chromium; `AGNOS_TRACE_BROWSER=<path>` to choose) and are skipped when n
 generated tree of 20,000 functions and 100,000 calls (about a minute), and the measures of the history (`test_history_perf.py`,
 2,000 commits) and of the delivery (`test_delivery_perf.py`, 1,000 tasks delivered; RQ-TRC-078).
 
-## Updating the graph library
+## Libraries (FTR-TRC-005; ADR-TRC-010: DEC-TRC-040, DEC-TRC-041)
 
-`scripts/vendor/VENDOR.md` records the version, source and SHA-256 of `cytoscape.min.js` (RQ-TRC-024). To update:
-download the new version, check its hash against the registry's, replace the file and the row, run the tests.
+The page loads Cytoscape.js (the Graph view) and Apache ECharts (the library charts) from `cdnjs.cloudflare.com`, at the
+versions recorded in `assets/libraries.json` with their integrity hash (RQ-TRC-080, RQ-TRC-082); nothing is copied into
+the skill or the page. The page needs the network once; the browser's cache usually serves the libraries afterwards.
+Without them, the views that need them say so and the others work (RQ-TRC-081). To change a version: change its
+version, URL and `integrity` together in `libraries.json` (the hash the cdnjs API publishes,
+`https://api.cdnjs.com/libraries/<name>/<version>?fields=sri`), then run the tests, which need the network: without
+cdnjs, the page tests are skipped.
 
 ## Design system
 

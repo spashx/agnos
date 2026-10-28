@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- agnos-trace page skeleton (RQ-TRC-010, DEC-TRC-005, DEC-TRC-007). The generator replaces each marker once:
-     tokens, page styles, the vendored graph library, the page script and the name of the data script written beside
+     tokens, page styles, the library scripts from cdnjs (RQ-TRC-080), the page script and the name of the data script written beside
      the page (RQ-TRC-010 as amended: the data live in <page>.json and <page>.data.js). -->
 <html lang="en">
 <head>
@@ -258,10 +258,9 @@
 </div>
 <!-- RQ-HST-016, DEC-HST-007: the page's one rich tooltip -->
 <div class="tip" id="tip" role="tooltip" hidden></div>
+<!-- RQ-TRC-080, DEC-TRC-040: the libraries from cdnjs, each checked by its integrity hash -->
+@LIBRARIES@
 <script src="@DATA_SCRIPT@"></script>
-<script>
-/*@LIBRARY@*/
-</script>
 <script>
 /*@SCRIPT@*/
 </script>

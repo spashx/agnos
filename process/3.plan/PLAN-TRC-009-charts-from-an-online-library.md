@@ -41,7 +41,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-064: Libraries from cdnjs, said when missing
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add `assets/libraries.json`; write the library scripts with their integrity from it; remove
   `scripts/vendor/`; name the libraries and licences in the footer; guard every use of Cytoscape.js and ECharts with the
   missing-library message; page tests skipped with their reason when cdnjs is unreachable (tests first).
@@ -53,8 +53,16 @@ This plan implements the tasks in the format specified below.
   it; Given the whole suite with the network, Then it passes.
 - **Dependencies**: TASK-TRC-063
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: Tests written first (4 errors: no `LIBRARIES_PATH`), then OK: the page's scripts are the cdnjs URLs of
+  Cytoscape.js 3.30.2 and ECharts 6.1.0, each with its `integrity` and `crossorigin="anonymous"`, then `page.data.js`;
+  the record's versions, URLs and `sha512` hashes valid, `scripts/vendor/` gone; a version changed in a copy of the record
+  gives `/cytoscape/9.9.9/` in the page and in `meta.libraries`; a page whose library URLs fail shows "Cytoscape.js
+  could not be loaded" in the Graph view and fills the matrix. Whole suite with the network: 291 tests OK, 3 skipped
+  (the three `AGNOS_TRACE_PERF` measures). `SKILL.md`: the vendoring section replaced by "Libraries", the description
+  and step 4 no longer say offline.
+- **Assumptions**: the sentinel of RQ-TRC-026 (`DATA_BEFORE_PLAN_SHA256`) re-pinned on purpose, `meta.library` having
+  become `meta.libraries` (RQ-TRC-082); the data-missing message names the `.data.js` script, no longer the first
+  script; offline, the tests skip every page test (not only those of the libraries), cdnjs being probed once.
 
 ### TASK-TRC-065: ECharts in the design system, and its keyboard path
 - **Tier**: M

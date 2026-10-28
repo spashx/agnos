@@ -233,12 +233,18 @@ class PageAssemblyTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
-    def test_RQ_TRC_010_given_a_generated_page_when_searched_then_it_loads_only_its_data_script_beside_it(self):
+    def test_RQ_TRC_010_given_a_generated_page_when_searched_then_it_loads_only_its_libraries_and_its_data_script(self):
         import json
         import re
         lowered = self.page.lower()
-        self.assertEqual(['<script src="page.data.js">'], re.findall(r"<script src=[^>]*>", lowered))
-        for needle in ("<link", "url(http", "@import", 'src="http', "href=\"http"):
+        libraries = json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))["libraries"]
+        scripts = re.findall(r'<script src="([^"]*)"([^>]*)>', self.page)          # RQ-TRC-080 amends RQ-TRC-010
+        self.assertEqual([lib["url"] for lib in libraries] + ["page.data.js"], [src for src, _ in scripts])
+        for (src, attributes), lib in zip(scripts, libraries):
+            self.assertTrue(src.startswith("https://cdnjs.cloudflare.com/ajax/libs/"), src)
+            self.assertIn(f'integrity="{lib["integrity"]}"', attributes)
+            self.assertIn('crossorigin="anonymous"', attributes)
+        for needle in ("<link", "url(http", "@import", "href=\"http"):
             self.assertNotIn(needle, lowered)
         json_path, script_path = tm.data_paths(self.page.path)
         script = script_path.read_text(encoding="utf-8")
@@ -263,19 +269,57 @@ class PageAssemblyTest(unittest.TestCase):
         for path in (again.path, *tm.data_paths(again.path)):
             self.assertNotIn(b"\r", path.read_bytes(), path.name)
 
-    def test_RQ_TRC_024_given_the_vendored_library_when_hashed_then_it_matches_the_recorded_sha256(self):
-        import hashlib
+    def test_RQ_TRC_082_given_the_library_record_then_each_library_has_an_exact_version_a_cdnjs_url_and_a_hash(self):
+        import json
         import re
-        vendor = SKILL / "scripts" / "vendor"
-        recorded = dict(re.findall(r"^\| `([^`]+)` \|.*\| ([0-9a-f]{64}) \|$", (vendor / "VENDOR.md").read_text(
-            encoding="utf-8"), re.M))
-        for name, sha in recorded.items():
-            self.assertEqual(sha, hashlib.sha256((vendor / name).read_bytes()).hexdigest(), name)
-        self.assertEqual({"cytoscape.min.js", "LICENSE"}, set(recorded))
+        libraries = json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))["libraries"]
+        self.assertEqual({"cytoscape", "echarts"}, {lib["global"] for lib in libraries})
+        for lib in libraries:
+            self.assertRegex(lib["version"], r"^\d+\.\d+\.\d+$")
+            self.assertIn(f"/{lib['version']}/", lib["url"])
+            self.assertRegex(lib["integrity"], r"^sha512-[A-Za-z0-9+/]{86}==$")
+            self.assertTrue(lib["licence"] and lib["name"], lib)
+        self.assertFalse((SKILL / "scripts" / "vendor").exists())                 # DEC-TRC-040: no vendored copy
 
-    def test_RQ_TRC_024_given_a_generated_page_then_it_carries_the_library_and_its_licence(self):
-        self.assertIn("Permission is hereby granted", self.page)
-        self.assertIn("The Cytoscape Consortium", self.page)
+    def test_RQ_TRC_082_given_a_version_changed_in_the_record_then_the_page_loads_that_version(self):
+        import json
+        from unittest import mock
+        record = json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))
+        record["libraries"][0]["version"] = "9.9.9"
+        record["libraries"][0]["url"] = record["libraries"][0]["url"].replace("3.30.2", "9.9.9")
+        changed = Path(self.tmp.name) / "libraries.json"
+        changed.write_text(json.dumps(record), encoding="utf-8")
+        with mock.patch.object(tm, "LIBRARIES_PATH", changed):
+            again, _ = generate(Path(self.tmp.name) / "changed.html")
+        self.assertIn("/cytoscape/9.9.9/cytoscape.min.js", again)
+        data = json.loads(tm.data_paths(again.path)[0].read_text(encoding="utf-8"))
+        self.assertIn({"name": "Cytoscape.js", "version": "9.9.9", "licence": "MIT"},
+                      [{k: lib[k] for k in ("name", "version", "licence")} for lib in data["meta"]["libraries"]])
+
+    def test_RQ_TRC_081_given_libraries_that_cannot_load_then_the_graph_says_so_and_the_matrix_works(self):
+        import json
+        import re
+        if not BROWSER_FOUND:
+            self.skipTest("no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+        offline = Path(self.tmp.name) / "offline" / "page.html"
+        offline.parent.mkdir(exist_ok=True)
+        for source in (self.page.path, *tm.data_paths(self.page.path)):
+            (offline.parent / source.name).write_bytes(source.read_bytes())
+        text = offline.read_text(encoding="utf-8")
+        for lib in json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))["libraries"]:
+            text = text.replace(lib["url"], f"missing-{lib['global']}.js")       # a library that cannot be loaded
+        offline.write_text(text, encoding="utf-8")
+        dom = rendered_dom_after(offline, """
+const out = document.documentElement.dataset;
+agnosTrace.select("RQ-DEM-001");
+agnosTrace.showView("graph");
+const missing = document.querySelector("#view-graph .library-missing");
+out.message = missing ? missing.textContent : "";
+out.rows = String(document.querySelectorAll("#matrix-table tbody tr").length);
+""")
+        got = dict(re.findall(r'data-(message|rows)="([^"]*)"', dom))
+        self.assertIn("Cytoscape.js could not be loaded", got.get("message", ""))
+        self.assertGreater(int(got.get("rows", "0")), 0)
 
     def test_RQ_TRC_022_given_a_source_line_holding_a_script_end_when_embedded_then_it_cannot_close_the_data(self):
         import json
@@ -341,7 +385,27 @@ def find_browser():
     return next((p for p in found if p), None)
 
 
-BROWSER = find_browser()
+CDN_PROBE = "https://cdnjs.cloudflare.com/"
+CDN_TIMEOUT_S = 5
+
+
+def cdn_reachable():
+    """True when cdnjs answers: the page loads its libraries from it (RQ-TRC-080)."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(urllib.request.Request(CDN_PROBE, method="HEAD"), timeout=CDN_TIMEOUT_S).close()
+        return True
+    except OSError:
+        return False
+
+
+# RQ-TRC-081, DEC-TRC-041: the page tests need the libraries from cdnjs; offline, they are skipped, never failed.
+BROWSER_FOUND = find_browser()
+ONLINE = bool(BROWSER_FOUND) and cdn_reachable()
+BROWSER = BROWSER_FOUND if ONLINE else None
+if BROWSER_FOUND and not ONLINE:
+    import sys as _sys
+    print("agnos-trace tests: cdnjs unreachable, the page tests are skipped (they need the network)", file=_sys.stderr)
 
 
 def rendered_dom(page_path, fragment="", window=BROWSER_WINDOW):

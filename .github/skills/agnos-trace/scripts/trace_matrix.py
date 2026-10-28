@@ -72,15 +72,15 @@ BINARY_PROBE_BYTES = 8192                      # a NUL byte in this head marks a
 # DEC-TRC-005, DEC-TRC-008: the page's parts, beside this script in the skill folder.
 SKILL_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = SKILL_DIR / "assets"
-VENDOR_DIR = Path(__file__).resolve().parent / "vendor"
 TEMPLATE_PATH = ASSETS_DIR / "matrix.html"
 TOKENS_PATH = ASSETS_DIR / "tokens.json"
-LIBRARY_FILE = "cytoscape.min.js"
+KEY_LIBRARIES = "libraries"
+LIBRARIES_PATH = ASSETS_DIR / "libraries.json"     # RQ-TRC-082, DEC-TRC-040: the libraries loaded from cdnjs
 CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
 CALLGRAPH_MODULE = "agnos_trace_callgraph"
 HISTORY_PATH = Path(__file__).resolve().parent / "history.py"        # FTR-HST-001, ADR-HST-001
 HISTORY_MODULE = "agnos_trace_history"
-MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|LIBRARY|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT)@")
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES)@")
 DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
 DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk cannot fetch a file)
 DATA_GLOBAL = "window.AGNOS_TRACE_DATA"
@@ -496,11 +496,24 @@ def tokens_css(tokens):
 
 
 # ---- page --------------------------------------------------------------------------------------------------------
-def library_label():
-    """'Cytoscape.js 3.30.2', read from VENDOR.md so that the version is written once (RQ-TRC-024)."""
-    text = (VENDOR_DIR / "VENDOR.md").read_text(encoding=ENCODING)
-    m = re.search(rf"^\| `{re.escape(LIBRARY_FILE)}` \| ([^|]+?) \| ([^|]+?) \|", text, re.M)
-    return f"{m.group(1)} {m.group(2)}" if m else LIBRARY_FILE
+# RQ-TRC-080, RQ-TRC-082, DEC-TRC-040
+def load_libraries():
+    """The libraries of the page, as `assets/libraries.json` records them."""
+    try:
+        return json.loads(Path(LIBRARIES_PATH).read_text(encoding=ENCODING))[KEY_LIBRARIES]
+    except (OSError, ValueError, KeyError) as error:
+        raise InputError(f"library record {LIBRARIES_PATH}: {error}") from error
+
+
+def library_scripts(libraries):
+    """One script element per library, from cdnjs, checked by its integrity hash (RQ-TRC-080)."""
+    return "\n".join(f'<script src="{html.escape(lib["url"])}" integrity="{html.escape(lib["integrity"])}" '
+                     f'crossorigin="anonymous" referrerpolicy="no-referrer"></script>' for lib in libraries)
+
+
+def library_meta(libraries):
+    """What the page says of its libraries: name, version, licence, the global it defines and what needs it."""
+    return [{k: lib[k] for k in ("name", "version", "licence", "global", "use")} for lib in libraries]
 
 
 # DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
@@ -542,7 +555,7 @@ def render_page(title, data_script):
     parts = {
         "TOKENS": tokens_css(load_tokens(TOKENS_PATH)),
         "CSS": (ASSETS_DIR / "matrix.css").read_text(encoding=ENCODING),
-        "LIBRARY": embed_script((VENDOR_DIR / LIBRARY_FILE).read_text(encoding=ENCODING)),
+        "LIBRARIES": library_scripts(load_libraries()),
         "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding=ENCODING)),
         "TITLE": html.escape(title),
         "DATA_SCRIPT": html.escape(data_script),
@@ -630,7 +643,8 @@ def main(argv=None):
             if history is not None:
                 line += "; " + module.summary(history)
         meta = {KEY_TITLE: title, "generatedAt": generated_at, "process": process.as_posix(),
-                "sources": [Path(s).as_posix() for s in args.sources], "summary": line, "library": library_label()}
+                "sources": [Path(s).as_posix() for s in args.sources], "summary": line,
+                KEY_LIBRARIES: library_meta(load_libraries())}
         data = page_data(model, analysis, quality, meta, graph, history)
     except (InputError, scorecard.ScoringError) as error:
         print(f"agnos-trace: {error}", file=sys.stderr)
