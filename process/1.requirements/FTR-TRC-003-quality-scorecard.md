@@ -100,6 +100,7 @@ configuring the checks per project.
   check's name, score, population and findings count; When a radar axis is clicked, Then the matching check is shown
   opened.
 - **Dependencies**: RQ-TRC-018, RQ-TRC-045, RQ-TRC-058
+- **Amendment**: Amended by RQ-TRC-084 and RQ-TRC-087 (FTR-TRC-005, 2026-10-28): the radar is drawn by the charting library.
 
 ### RQ-TRC-062: Checks, compact or detailed
 - **Category**: Functional

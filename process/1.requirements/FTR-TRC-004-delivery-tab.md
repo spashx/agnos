@@ -136,6 +136,7 @@ projects with each other; a score or a grade of delivery.
 - **Acceptance Criteria**: Given the fixture, When the tab opens, Then three charts are drawn, each identity's bars in
   its History colour, and hovering or focusing a bar shows its identity, period, tier, tasks and points.
 - **Dependencies**: RQ-TRC-074, RQ-HST-016, RQ-HST-017, RQ-HST-026
+- **Amendment**: Amended by RQ-TRC-083 (FTR-TRC-005, 2026-10-28): drawn by the charting library; tasks per tier replace lines per task.
 
 ### RQ-TRC-076: Filters of the delivery
 - **Category**: Functional
@@ -196,3 +197,4 @@ projects with each other; a score or a grade of delivery.
 - **Acceptance Criteria**: Given the page code, Then no raw colour, `px` or `ms` is found; Given both themes, Then every
   text and mark of the tab meets its contrast; Given the keyboard only, Then every control and bar is reached.
 - **Dependencies**: RQ-TRC-018, RQ-HST-014, ADR-TRC-002
+- **Amendment**: Amended by RQ-TRC-087 (FTR-TRC-005, 2026-10-28) for the charts drawn by the library.

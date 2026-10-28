@@ -136,6 +136,7 @@ ADR-TRC-003).
   only one found is `<script src="<page>.data.js">`; the `.json` file and the `.js` file hold the same data; the page
   works from disk with the network off; When the data script is missing, Then the page says which file it lacks.
 - **Dependencies**: DEC-TRC-005, DEC-TRC-006
+- **Amendment**: Amended by RQ-TRC-080 (FTR-TRC-005, owner review of 2026-10-28): the page also loads its two libraries from cdnjs.
 
 ### RQ-TRC-011: Search
 - **Category**: Functional
@@ -480,3 +481,4 @@ ADR-TRC-003).
 - **Priority**: Must
 - **Acceptance Criteria**: Given the vendored file, When the test hashes it, Then the hash equals the recorded one.
 - **Dependencies**: DEC-TRC-006
+- **Amendment**: Superseded by RQ-TRC-082 (FTR-TRC-005, 2026-10-28): the libraries are loaded from cdnjs, recorded in `libraries.json`.

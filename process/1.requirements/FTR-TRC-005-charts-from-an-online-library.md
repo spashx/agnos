@@ -1,0 +1,149 @@
+# FTR-TRC-005: Charts from an Online Library
+
+## Overview
+The charts of the traceability page are drawn by hand in inline SVG (DEC-TRC-035, DEC-TRC-039). At the owner's review of
+2026-10-28, the Delivery band of figures was kept, but its three charts were found hard to read: fonts too large, tiers
+written S, M, L with no meaning, a "Lines per task" chart nobody could read; the Quality radar "Checks" is no clearer; in
+the History timeline, marks of several commits close in time overlap and hide each other. This feature draws the
+Delivery charts and the Quality radar with a recognised charting library, Apache ECharts, loaded with the graph library
+(Cytoscape.js) from an online CDN (cdnjs) at pinned versions checked by their integrity hash, instead of copying a
+library into the skill and the page (owner decision of 2026-10-28); and it merges overlapping History marks.
+
+Unchanged: Overview, Graph (but for how Cytoscape.js is loaded), Matrix, the History timeline (but for its overlapping
+marks), the Delivery band of figures, the rest of the Quality view, the data files.
+Out of scope: a local copy of the libraries as a fallback; any other chart.
+
+## Stakeholders
+- **Owner**: the repository owner.
+- **Consumers**: readers of the Delivery and Quality views; readers of the History timeline; anyone opening the page.
+
+---
+
+## Functional Requirements
+
+### RQ-TRC-080: Libraries from an online CDN
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The page SHALL load Cytoscape.js and Apache ECharts from `cdnjs.cloudflare.com`, each at one exact
+  version with its Subresource Integrity hash and `crossorigin="anonymous"`, before its own script; besides these two
+  scripts and its sibling `<page>.data.js`, the page SHALL request nothing. Amends RQ-TRC-010.
+- **Rationale**: a recognised library draws readable charts; loading it online keeps the skill and the page light
+  (owner decision of 2026-10-28).
+- **Priority**: Must
+- **Acceptance Criteria**: Given a generated page, When its `<script src` are listed, Then they are the two cdnjs URLs,
+  each with an `integrity` and `crossorigin="anonymous"`, and `<page>.data.js`; and no `<link` nor `url(http` is found.
+- **Dependencies**: RQ-TRC-010, RQ-TRC-082
+
+### RQ-TRC-081: Without the network
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF a library cannot be loaded (no network, CDN unreachable, integrity mismatch), THEN the page SHALL show,
+  in place of each view or chart that needs it, a message naming the library and saying that a connection is needed,
+  and every other view (Overview, Matrix, the History timeline, the Delivery figures and table, the Quality checks, the
+  detail panel) SHALL work.
+- **Rationale**: a page opened without network must still answer what it can, and say plainly what it cannot.
+- **Priority**: Must
+- **Acceptance Criteria**: Given a page whose library URLs fail, When it opens, Then the Graph view and each library
+  chart show the message naming its library, and the Matrix, the Delivery figures and the Quality checks are filled.
+- **Dependencies**: RQ-TRC-080
+
+### RQ-TRC-082: Library record
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The skill SHALL record in one data file, for each library, its name, exact version, URL, integrity hash
+  and licence, and the generator SHALL write the page's library scripts and the licence notice from that file only.
+  Replaces RQ-TRC-024.
+- **Rationale**: one place to read and to change what the page loads.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the data file, When a page is generated, Then each library script of the page carries
+  the recorded URL and hash, and the page names each library with its version and licence; Given a version changed in
+  the data file only, Then the page loads that version.
+- **Dependencies**: RQ-TRC-080
+
+### RQ-TRC-083: Readable Delivery charts
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the Delivery tab is open, the page SHALL draw with the charting library: the points per active
+  day of each identity stacked by tier, A beside B; the points delivered over time in the chosen grain, stacked by tier,
+  with A and B marked and a zoom on the time axis; and the tasks delivered per tier, A beside B. Every tier SHALL be
+  named in full in the legends and the tooltips (its letter, its meaning and its points, such as "S, small task, 1
+  point"), and every text of the charts SHALL use the page's caption and small sizes. Amends RQ-TRC-075 (the "lines
+  changed per task" chart is removed; the lines stay in the table).
+- **Rationale**: a reader must understand a chart without knowing the AGNOS tiers or the data file.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the fixture, When the tab opens, Then three library charts are drawn, their legends
+  read "S, small task, 1 point", "M, medium task, 3 points", "L, large task, 8 points", the third chart has one A and
+  one B value per tier, and the font size of their texts is the page's caption or small size.
+- **Dependencies**: RQ-TRC-075, RQ-TRC-080, RQ-TRC-085
+
+### RQ-TRC-084: Readable checks radar
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the Quality view is open, the page SHALL draw the checks radar with the charting library: one axis
+  per scored check named by its short title, the scores out of 10, a tooltip giving the check, its score, its risk and
+  its findings, and a click on an axis or a point opening that check. Amends RQ-TRC-061 for the radar; its bars and
+  shares stay as they are.
+- **Rationale**: the radar is the decision maker's first chart; its labels and values must be read at a glance.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the fixture, When the Quality view opens, Then the radar has one indicator per scored
+  check with its score, and choosing a check's point opens that check.
+- **Dependencies**: RQ-TRC-061, RQ-TRC-080, RQ-TRC-085
+
+### RQ-TRC-085: Library charts in the design system
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: The page SHALL give the charting library its colours, font family, font sizes and strokes from the
+  design tokens of the page, in the current theme, and WHEN the theme changes, the page SHALL draw the library charts
+  again in the new theme. Identities SHALL keep their History colour.
+- **Rationale**: a library chart must look like the rest of the page (RQ-TRC-018).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the light theme then the dark one, When a library chart is drawn, Then its text colour
+  and font family equal the page's resolved tokens in each theme; Given the code, Then no raw colour, size or duration
+  is written for the library.
+- **Dependencies**: RQ-TRC-018, RQ-HST-026
+
+### RQ-TRC-086: Overlapping History marks merged
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN two or more marks of one row of the History timeline would overlap at the current zoom, the page
+  SHALL draw them as one group mark showing the count of its commits, of the kind of its commits (human, agent or
+  together, or mixed when they differ), whose tooltip lists its commits and whose activation zooms on them; zooming in
+  SHALL split a group as its marks stop overlapping.
+- **Rationale**: overlapping marks hide each other, chiefly the ringed "human and agent together" ones.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a row with three commits within one hour and the whole history in view, Then one group
+  mark reading 3 is drawn; When the view is zoomed on that hour, Then three marks are drawn.
+- **Dependencies**: RQ-HST-007, RQ-HST-014
+
+---
+
+## Non-Functional Requirements
+
+### RQ-TRC-087: Accessible library charts
+- **Category**: Non-Functional
+- **NFR Type**: Accessibility
+- **EARS Type**: Ubiquitous
+- **Statement**: Each library chart SHALL have an accessible name and a description of its data, SHALL tell its series
+  by pattern as well as by colour, SHALL be reached with the Tab key, and SHALL move between its data items with the
+  arrow keys, each showing its tooltip, Enter activating it where a click does. Amends RQ-TRC-061 and RQ-TRC-079 for
+  the library charts.
+- **Metric**: accessible name and description present; pattern per series; every data item reached by keyboard.
+- **Measurement Method**: page test in the headless browser: focus each chart, press the arrow keys, read the tooltip.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the Delivery tab, When the first chart is focused and the right arrow pressed, Then the
+  tooltip of its first data item shows; When Enter is pressed on a radar point, Then its check opens.
+- **Dependencies**: RQ-TRC-061, RQ-TRC-079, RQ-TRC-083, RQ-TRC-084
+
+### RQ-TRC-088: Speed with the libraries
+- **Category**: Non-Functional
+- **NFR Type**: Performance
+- **EARS Type**: Ubiquitous
+- **Statement**: With the libraries in the browser's cache, the page SHALL keep the thresholds of RQ-TRC-078 for the
+  Delivery tab, and the Quality view SHALL be drawn in less than 300 ms.
+- **Metric**: drawing time of the Delivery tab and of the Quality view; P95 of the redraw time over 50 filter changes.
+- **Measurement Method**: the skill's performance tests (`AGNOS_TRACE_PERF=1`), times measured in the headless browser
+  after a first load.
+- **Priority**: Should
+- **Acceptance Criteria**: Given 1,000 delivered tasks, Then the tab is drawn in less than 300 ms and the P95 is under
+  50 ms; Given the fixture, Then the Quality view is drawn in less than 300 ms.
+- **Dependencies**: RQ-TRC-078, RQ-TRC-080

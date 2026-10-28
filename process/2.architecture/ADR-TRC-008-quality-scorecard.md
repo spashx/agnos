@@ -63,6 +63,7 @@ SVG with `role="img"`, a title and a description, and focusable items that raise
 share, population, findings): a **radar** with one axis per scored check, **bars** per trigram (score and grade), and a
 **stacked bar** of covered, indirect and uncovered requirements. No chart library is added. Fulfils RQ-TRC-061 and
 RQ-TRC-065.
+Amended by DEC-TRC-043 (ADR-TRC-010, 2026-10-28): the radar is drawn by ECharts; the bars and shares stay inline SVG.
 
 ## Consequences
 - The scoring is reproducible by hand from the data file, and an agent can report the grade without the page.

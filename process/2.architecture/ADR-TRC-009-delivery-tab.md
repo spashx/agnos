@@ -51,6 +51,7 @@ over time, lines per task by tier), and a sortable table with its CSV and the se
 colour and icon from the History view (RQ-HST-026); marks raise the one rich tooltip (DEC-HST-007); a task selected
 goes to the detail panel, whose band states its delivery. Every visual value is a token. Fulfils RQ-TRC-074 to
 RQ-TRC-077 and RQ-TRC-079.
+Amended by DEC-TRC-043 (ADR-TRC-010, 2026-10-28): the charts are drawn by ECharts.
 
 ## Consequences
 - The tab says what was delivered and how much per active day, never how long a task took; the page states it.

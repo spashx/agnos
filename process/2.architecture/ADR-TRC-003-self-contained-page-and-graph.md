@@ -24,6 +24,7 @@ template's data block becomes `<script src="<page>.data.js">`, before the page s
 refuses `fetch` of a sibling file to a page opened from `file://`, while it runs a sibling script. The page script reads
 `window.AGNOS_TRACE_DATA` and, when it is missing, says which file it lacks. The three files are written together and
 must travel together; a page mailed alone no longer works.
+Amended by DEC-TRC-040 (ADR-TRC-010, 2026-10-28): the libraries are no longer inlined, but loaded from cdnjs.
 
 ### DEC-TRC-006: Cytoscape.js, pinned and vendored, drawing neighbourhoods first
 `scripts/vendor/cytoscape.min.js` at one pinned version, with `LICENSE` (MIT) and `VENDOR.md` (version, source URL,
@@ -39,6 +40,7 @@ accent colour, its edges drawn in the accent colour, the others dimmed (RQ-TRC-0
 shows its title. "Whole graph" draws every element as a dot with `cose`, after a warning when there are more than 1,500.
 A first concentric layout was replaced at the owner's review: at depth 2 a requirement brought ~370 nodes, which the fit
 shrank to unreadable dots.
+Amended by DEC-TRC-040 and DEC-TRC-041 (ADR-TRC-010, 2026-10-28): Cytoscape.js 3.30.2 is loaded from cdnjs, no longer vendored.
 
 ### DEC-TRC-007: One page, four views, one selection
 A header (title, generation time, inputs, theme switch), a sidebar (search with keyboard navigation, type and trigram
