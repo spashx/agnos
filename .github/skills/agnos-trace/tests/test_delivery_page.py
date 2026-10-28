@@ -357,6 +357,17 @@ out.agent = String(image(1).includes("<rect") && image(1).includes(resolved(css(
         self.assertEqual(("p0,p1", "{p1|} Claude Opus 5.5"), (got["richkeys"], got["iconlabel"]))
         self.assertEqual(("true", "true"), (got["human"], got["agent"]))
 
+    def test_RQ_TRC_083_given_the_timeline_then_its_bars_in_a_and_b_take_their_period_s_colour(self):
+        got = self.run_script("""
+const option = optionOf("timeline");
+const days = [].concat(option.xAxis)[0].data;
+const colourOn = (day) => { const d = option.series[2].data[days.indexOf(day)]; return d.itemStyle ? d.itemStyle.color : "neutral"; };
+out.in_a = String(colourOn("2026-10-22") === periodColour("a"));
+out.in_b = String(colourOn("2026-10-15") === periodColour("b"));
+out.outside = String(colourOn("2026-09-20") === "neutral" || colourOn("2026-09-20") === resolved(css("--s-text-muted")));
+""", "in_a", "in_b", "outside")
+        self.assertEqual({"in_a": "true", "in_b": "true", "outside": "true"}, got)
+
     def test_RQ_TRC_083_given_the_header_then_a_and_b_have_their_colours_as_in_the_charts(self):
         got = self.run_script("""
 out.mark_a = String(getComputedStyle(document.querySelector(".delivery-mark-a")).backgroundColor === periodColour("a"));

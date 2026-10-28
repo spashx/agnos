@@ -151,6 +151,20 @@ This plan implements the tasks in the format specified below.
 - **Verification**: Test first (1 error), then OK: rich keys p0,p1, label "{p1|} Claude Opus 5.5", Alice's image a human icon in `--c-history-identity-1`, Claude's an agent icon in `--c-history-identity-2`. Whole suite 298 OK, 3 skipped (one failure on the way: `innerHTML` forbidden by RQ-TRC-022, replaced by `XMLSerializer`). Screenshots of XS56K light and dark: icons before every name.
 - **Assumptions**: owner choice of 2026-10-28: the icon in the identity's colour; its cut-outs in the card's colour.
 
+### TASK-TRC-072: The timeline's bars in A and B in their period's colour
+- **Tier**: S
+- **Status**: Done
+- **Description**: Owner request of 2026-10-28: in "Points over time", the bars inside period A or B take that period's
+  colour (shaded by tier), the others stay in shades of grey.
+- **Requirement refs**: RQ-TRC-083
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043)
+- **Acceptance Criteria**: Given the timeline, Then a bar of a day in A is `period-a`, one in B is `period-b`, one in
+  neither is the neutral colour.
+- **Dependencies**: TASK-TRC-070
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
+
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M
 - **Status**: Not Started

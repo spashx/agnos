@@ -3727,7 +3727,11 @@
       itemStyle: { color: colour, opacity: cssSize("--c-delivery-span-opacity") } }, { xAxis: bucketOf(dlv.periods[key].to, dlv.grain) }];
     const series = TIERS.map((t) => ({ type: SERIES_BAR, name: tierLabel(t), stack: "points",
       itemStyle: { color: theme.colour.muted, opacity: tierOpacity(t) },
-      data: buckets.map((b) => b.byTier[t]) }));
+      data: buckets.map((b) => {                                       // TASK-TRC-072: A and B in their colours
+        const key = PERIOD_KEYS.find((k) => b.bucket >= bucketOf(dlv.periods[k].from, dlv.grain)
+          && b.bucket <= bucketOf(dlv.periods[k].to, dlv.grain));
+        return key ? { value: b.byTier[t], itemStyle: { color: periodColour(key) } } : { value: b.byTier[t] };
+      }) }));
     series[0].markArea = { silent: true, label: { color: theme.colour.muted, fontSize: theme.caption.fontSize },
       data: [area(PERIOD_KEYS[0], periodColour(PERIOD_KEYS[0])), area(PERIOD_KEYS[1], periodColour(PERIOD_KEYS[1]))] };
     return {
