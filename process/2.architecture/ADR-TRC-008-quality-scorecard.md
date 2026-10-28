@@ -64,6 +64,8 @@ share, population, findings): a **radar** with one axis per scored check, **bars
 **stacked bar** of covered, indirect and uncovered requirements. No chart library is added. Fulfils RQ-TRC-061 and
 RQ-TRC-065.
 Amended by DEC-TRC-043 (ADR-TRC-010, 2026-10-28): the radar is drawn by ECharts; the bars and shares stay inline SVG.
+Amended by TASK-TRC-074 (2026-10-29): the bars and the shares merge into one ECharts chart (rows Total and per trigram,
+coverage colours for the shares, grade colour for the score at each row's end); no inline-SVG chart is left in Quality.
 
 ## Consequences
 - The scoring is reproducible by hand from the data file, and an agent can report the grade without the page.

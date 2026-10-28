@@ -198,6 +198,28 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: the nearest axis is found from the pointer's angle around the box's centre, where ECharts centres the
   radar; the hover test runs before Enter, which scrolls the view to the opened check.
 
+### TASK-TRC-074: Feature areas and coverage in one chart
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Owner review of 2026-10-29: replace the inline-SVG "Feature areas" bars and "Coverage" shares of the
+  Quality view by one ECharts horizontal chart "Feature areas": a Total row first (today's Coverage), then one row per
+  trigram, each a stacked bar of covered, indirect and uncovered requirements in the coverage colours, with the grade and
+  score written at the row's end in the grade colour. Keyboard path and tooltip by `libraryChart`.
+- **Requirement refs**: RQ-TRC-061 (amended), RQ-TRC-065, RQ-TRC-087, RQ-TRC-063
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-008 (DEC-TRC-035, amended); ADR-TRC-002 (design system)
+- **Acceptance Criteria**: Given the fixture, When the Quality view opens, Then it holds the radar and one "Feature
+  areas" chart, and no "Coverage" chart; Then its first row is Total and the next rows are the trigrams, in order;
+  Then each row's covered, indirect and uncovered counts equal the requirements of its trigram (the Total's equal
+  today's coverage shares); Then each row's end label is the trigram's grade and score in its grade colour; When a
+  row is focused by the arrow keys, Then its tooltip gives the counts, shares and grade; Given 1440 by 900, Then the
+  Quality view has no vertical scroll; Then no raw colour, size or duration is in the code (tokens only).
+- **Dependencies**: TASK-TRC-073
+- **Assignee**: AI
+- **Verification**: 
+- **Assumptions**: the Total row carries the overall grade and score of the report card; a trigram with no requirement
+  shows an empty bar and its grade; the colours are the existing coverage and grade tokens, no new token is needed
+  except the chart's height if the fit test asks for one.
+
 ### TASK-TRC-068: Grouped marks in the History timeline
 - **Tier**: M
 - **Status**: Not Started
