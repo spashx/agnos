@@ -158,6 +158,104 @@
     return box;
   }
 
+  // ---- library charts (TASK-TRC-065: RQ-TRC-085, RQ-TRC-087; DEC-TRC-042, DEC-TRC-043) --------------------------
+  // An ECharts chart drawn in SVG, its look read from the resolved design tokens, drawn again when the theme changes,
+  // with ARIA and decals, and a keyboard path over its data items. No visual value is written here.
+  const GLOBAL_ECHARTS = "echarts";
+  const CHART_RENDERER = "svg";
+  const CHART_NEXT_KEYS = new Set(["ArrowRight", "ArrowDown"]);
+  const CHART_PREVIOUS_KEYS = new Set(["ArrowLeft", "ArrowUp"]);
+  const CHART_ACTIVATE_KEYS = new Set(["Enter", " "]);
+  const CHART_AXES = ["xAxis", "yAxis", "radiusAxis", "angleAxis"];
+  const CSS_VAR_S_FONT_SANS = "--s-font-sans";
+  const CSS_VAR_C_CARD_BG = "--c-card-bg";
+  const libraryCharts = [];
+  const cssValue = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const cssSize = (name) => Number.parseFloat(cssValue(name));
+
+  function chartTheme() {
+    const text = cssValue("--s-text");
+    const muted = cssValue("--s-text-muted");
+    const border = cssValue("--s-border");
+    const fontFamily = cssValue(CSS_VAR_S_FONT_SANS);
+    const caption = { color: muted, fontFamily, fontSize: cssSize("--s-text-caption") };
+    const small = { color: text, fontFamily, fontSize: cssSize("--s-text-small") };
+    const line = { lineStyle: { color: border } };
+    return {
+      textStyle: small,
+      legend: { textStyle: caption },
+      tooltip: { backgroundColor: cssValue(CSS_VAR_C_CARD_BG), borderColor: cssValue("--c-card-border"), textStyle: small },
+      axis: { axisLine: line, axisTick: line, splitLine: line, axisLabel: caption, nameTextStyle: caption },
+      colour: { text, muted, border, accent: cssValue("--s-accent"), surface: cssValue(CSS_VAR_C_CARD_BG) },
+      caption, small,
+    };
+  }
+
+  // The option a chart's build gives, with the theme's text, legend, tooltip and axes under its own settings.
+  function themedOption(option, theme, description) {
+    const withAxis = (axis) => ({ ...theme.axis, ...axis });
+    const themed = { ...option, animation: false, backgroundColor: "transparent", textStyle: theme.textStyle,
+      tooltip: { ...theme.tooltip, ...(option.tooltip || {}) },
+      aria: { enabled: true, decal: { show: true }, label: { enabled: true, description } } };
+    if (option.legend) themed.legend = { ...theme.legend, ...option.legend };
+    for (const key of CHART_AXES) {
+      if (option[key]) themed[key] = Array.isArray(option[key]) ? option[key].map(withAxis) : withAxis(option[key]);
+    }
+    return themed;
+  }
+
+  function drawLibraryChart(entry) {
+    entry.chart?.dispose();
+    entry.chart = window[GLOBAL_ECHARTS].init(entry.box, null, { renderer: CHART_RENDERER });
+    entry.chart.setOption(themedOption(entry.build(chartTheme()), chartTheme(), entry.options.description));
+    entry.chart.on("click", (params) => entry.options.onActivate?.({ seriesIndex: params.seriesIndex, dataIndex: params.dataIndex, params }));
+    entry.box.setAttribute("aria-label", entry.options.label);          // ECharts writes its description there
+    entry.box.setAttribute("aria-description", entry.options.description);
+    entry.index = -1;
+  }
+
+  // RQ-TRC-087: Tab reaches the chart, the arrows go from item to item showing its tooltip, Enter does what a click does.
+  function chartKeys(entry, event) {
+    const items = entry.options.items || [];
+    if (!items.length) return;
+    if (CHART_ACTIVATE_KEYS.has(event.key)) {
+      if (entry.index >= 0) { event.preventDefault(); entry.options.onActivate?.(items[entry.index]); }
+      return;
+    }
+    const step = CHART_NEXT_KEYS.has(event.key) ? 1 : CHART_PREVIOUS_KEYS.has(event.key) ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    entry.index = (entry.index + step + items.length) % items.length;
+    entry.chart.dispatchAction({ type: "downplay" });
+    entry.chart.dispatchAction({ type: "highlight", ...items[entry.index] });
+    entry.chart.dispatchAction({ type: "showTip", ...items[entry.index] });
+  }
+
+  // A chart in box from build(theme), or null with the missing-library message (RQ-TRC-081); options: label,
+  // description, items ({seriesIndex, dataIndex} in keyboard order), onActivate(item).
+  function libraryChart(box, build, options) {
+    for (let i = libraryCharts.length - 1; i >= 0; i -= 1) {
+      if (!libraryCharts[i].box.isConnected) { libraryCharts[i].chart?.dispose(); libraryCharts.splice(i, 1); }
+    }
+    if (!libraryLoaded(GLOBAL_ECHARTS)) {
+      box.replaceChildren(libraryMissing(GLOBAL_ECHARTS));
+      return null;
+    }
+    const entry = { box, build, options, chart: null, index: -1 };
+    Object.assign(box, { tabIndex: 0 });
+    box.addEventListener("keydown", (event) => chartKeys(entry, event));
+    box.addEventListener(EVENT_BLUR, () => entry.chart?.dispatchAction({ type: "hideTip" }));
+    new ResizeObserver(() => entry.chart?.resize()).observe(box);
+    drawLibraryChart(entry);
+    libraryCharts.push(entry);
+    return entry.chart;
+  }
+
+  // RQ-TRC-085: the charts drawn again in the theme now in force.
+  function redrawLibraryCharts() {
+    for (const entry of libraryCharts) if (entry.box.isConnected && libraryLoaded(GLOBAL_ECHARTS)) drawLibraryChart(entry);
+  }
+
   // ---- vocabulary ---------------------------------------------------------------------------------------------
   const TYPES = ["FTR", "RQ", "ADR", "DEC", "PLAN", "TASK"];
   const CALL_GRAPH = DATA.callGraph || null;     // only in a page generated with --call-graph (RQ-TRC-026)
@@ -4185,14 +4283,16 @@
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* storage unavailable: the choice lasts this visit */ }
     graph.restyle();
+    redrawLibraryCharts();                                    // RQ-TRC-085
   }
   try { const saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.dataset.theme = saved; } catch (error) { /* no storage */ }
   $("theme-toggle").addEventListener("click", () => applyTheme(effectiveTheme() === "dark" ? "light" : "dark"));
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => graph.restyle());
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { graph.restyle(); redrawLibraryCharts(); });
 
   // ---- start --------------------------------------------------------------------------------------------------
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
-    FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv };
+    FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv,
+    libraryChart, chartTheme, redrawLibraryCharts };
   renderHeader();
   renderFilters();
   renderOverview();

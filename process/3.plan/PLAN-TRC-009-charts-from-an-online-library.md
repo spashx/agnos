@@ -66,7 +66,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-065: ECharts in the design system, and its keyboard path
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: One helper that initialises an ECharts chart in SVG with `aria` and decals, its theme read from the
   resolved tokens, redrawn on a theme change, and the keyboard path (Tab, arrows, Enter) over its data items.
 - **Requirement refs**: RQ-TRC-085, RQ-TRC-087
@@ -76,8 +76,15 @@ This plan implements the tasks in the format specified below.
   Then no raw visual literal is written.
 - **Dependencies**: TASK-TRC-064
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `tests/test_library_charts.py` written first (4 failing), then 4 tests OK with ECharts 6.1.0 from cdnjs:
+  an SVG chart whose text fill is the resolved `--s-text-muted` (#475569, 12 px caption) in light and in dark after
+  `redrawLibraryCharts()`, font family the resolved `--s-font-sans`; `tabindex` 0, name "Test chart", two right arrows
+  show "second" in the tooltip, Enter activates item 1; `aria.enabled` and `aria.decal.show` true, description "Three
+  bars"; without `window.echarts`, "Apache ECharts could not be loaded" and `null`. Literal test OK; whole suite 295
+  tests OK, 3 skipped (the perf measures).
+- **Assumptions**: ECharts writes its generated description into the container's `aria-label`, so the page sets its own
+  name and `aria-description` again after each drawing; the chart is drawn without animation; charts whose box left the
+  page are disposed at the next chart's creation.
 
 ### TASK-TRC-066: The Delivery charts with ECharts
 - **Tier**: M
