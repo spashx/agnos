@@ -432,12 +432,12 @@ TASK-TRC-060|120-141|Done|The three charts of the delivery
 TASK-TRC-061|142-163|Done|The table, its CSV and the delivery in the detail panel
 TASK-TRC-062|164-183|Done|Speed, documentation and a run on XS56K
 @process/3.plan/PLAN-TRC-009-charts-from-an-online-library.md
-PLAN-TRC-009|1-173||Charts from an Online Library
+PLAN-TRC-009|1-180||Charts from an Online Library
 TASK-TRC-063|22-41|Done|The online libraries specified and decided
 TASK-TRC-064|42-66|Done|Libraries from cdnjs, said when missing
 TASK-TRC-065|67-88|Done|ECharts in the design system, and its keyboard path
 TASK-TRC-066|89-115|Done|The Delivery charts with ECharts
-TASK-TRC-070|116-132|Done|One colour per period, shades for the tiers
-TASK-TRC-067|133-146|Not Started|The checks radar with ECharts
-TASK-TRC-068|147-160|Not Started|Grouped marks in the History timeline
-TASK-TRC-069|161-173|Not Started|Speed, documentation and a run on XS56K
+TASK-TRC-070|116-139|Done|One colour per period, shades for the tiers
+TASK-TRC-067|140-153|Not Started|The checks radar with ECharts
+TASK-TRC-068|154-167|Not Started|Grouped marks in the History timeline
+TASK-TRC-069|168-180|Not Started|Speed, documentation and a run on XS56K

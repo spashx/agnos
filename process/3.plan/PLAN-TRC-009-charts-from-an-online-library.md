@@ -127,8 +127,15 @@ This plan implements the tasks in the format specified below.
   Given both themes, Then each mark's text meets 4.5:1 on its colour.
 - **Dependencies**: TASK-TRC-066
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Tests changed first (3 failing), then OK: the header's A and B marks take the resolved `period-a`
+  and `period-b`, the band's figures carry both marks; throughput A series all `period-a`, B all `period-b`, tier
+  opacities 0.4, 0.7, 1, no decal, totals written; tiers chart A/B in their colours, counts written; timeline areas in
+  the periods' colours; `aria.decal.show` false. Contrast of the marks' text: light A 5.17, B 5.02; dark A 7.41, B 11.28.
+  Whole suite: 297 tests OK, 3 skipped; `node --check` OK. Screenshots of XS56K, light and dark: no pattern, A blue and B
+  amber from the header to the charts, values on the bars, timeline columns neutral.
+- **Assumptions**: B is the design system's amber (`amber-700`, `amber-400` in dark), the pair blue and amber being the
+  one colour-blind readers tell apart best; the text on a mark is white in light and `slate-950` in dark; the timeline's
+  columns turn neutral (slate) so that blue is never read as period A outside it.
 
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M
