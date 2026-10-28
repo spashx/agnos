@@ -1149,24 +1149,12 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-change.is-better { color: var(--s-status-ok); }
 .delivery-change.is-worse { color: var(--s-status-error); }
 
-/* ---- delivery charts (TASK-TRC-060: RQ-TRC-075, RQ-TRC-079; DEC-TRC-039): an identity in its colour, a tier by its
-   opacity, period B hatched, every value written in the tooltip and the legend ---------------------------------- */
+/* ---- delivery charts (TASK-TRC-066: RQ-TRC-083; DEC-TRC-043): boxes of the ECharts charts ----------------------- */
 .delivery-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-space-md); }
 .delivery-charts .delivery-wide { grid-column: 1 / -1; order: 1; }
-.delivery-seg { fill: var(--identity, var(--s-accent)); }
-.delivery-seg.tier-S { fill-opacity: var(--c-delivery-tier-s-opacity); }
-.delivery-seg.tier-M { fill-opacity: var(--c-delivery-tier-m-opacity); }
-.delivery-seg.tier-L { fill-opacity: var(--c-delivery-tier-l-opacity); }
-.delivery-hatch { fill: url(#delivery-hatch-pattern); pointer-events: none; }
-.delivery-hatch-line { stroke: var(--c-card-bg); stroke-width: var(--s-stroke-medium); opacity: var(--c-delivery-hatch-opacity); }
-.delivery-track { fill: none; stroke: var(--s-border); stroke-width: var(--s-stroke-hairline); }
-.delivery-span { fill: var(--s-accent); fill-opacity: var(--c-delivery-span-opacity); }
-.delivery-span.period-b { fill: var(--s-text-muted); }
-.delivery-box-range { fill: var(--s-accent-subtle); stroke: var(--s-accent); stroke-width: var(--s-stroke-hairline); }
-.delivery-box-median { stroke: var(--s-text); stroke-width: var(--s-stroke-medium); }
-.delivery-bar:focus, .delivery-column:focus, .delivery-box:focus { outline: none; }
-.delivery-bar:focus .delivery-track, .delivery-column:focus .delivery-seg, .delivery-box:focus .delivery-box-range { stroke: var(--s-focus); stroke-width: var(--s-stroke-focus); }
-.delivery-legend { fill: var(--s-text-muted); font-size: var(--s-text-caption); }
+.delivery-chart { height: var(--c-delivery-chart-height); }
+.delivery-chart[data-chart="throughput"] { height: max(var(--c-delivery-chart-height), calc(var(--rows) * var(--c-delivery-row-height) + var(--s-space-3xl))); }
+.delivery-chart:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-space-hair); }
 
 /* ---- delivery table (TASK-TRC-061: RQ-TRC-077, RQ-TRC-079) ------------------------------------------------------- */
 .delivery-table { display: flex; flex-direction: column; gap: var(--s-space-sm); }

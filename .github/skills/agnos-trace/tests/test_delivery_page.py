@@ -281,9 +281,17 @@ out.controls = String(controls.length);
         self.assertGreater(int(got["controls"]), 10)
 
 
+CHARTS = """
+const chartOf = (key) => echarts.getInstanceByDom(document.querySelector(`#delivery-charts [data-chart="${key}"]`));
+const optionOf = (key) => chartOf(key).getOption();
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const sumOf = (series, index) => series.reduce((sum, s) => sum + (s.data[index]?.value ?? s.data[index] ?? 0), 0);
+"""
+
+
 @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
 class DeliveryChartsTest(unittest.TestCase):
-    """TASK-TRC-060: RQ-TRC-075, RQ-TRC-079."""
+    """TASK-TRC-066: RQ-TRC-083, RQ-TRC-075 (as amended), RQ-TRC-087."""
 
     @classmethod
     def setUpClass(cls):
@@ -297,69 +305,72 @@ class DeliveryChartsTest(unittest.TestCase):
         cls.tmp.cleanup()
 
     def run_script(self, script, *names):
-        return found(rendered_dom_after(self.path, TAB + script), *names)
+        return found(rendered_dom_after(self.path, TAB + CHARTS + script), *names)
 
-    def test_RQ_TRC_075_given_the_tab_then_three_charts_are_drawn_each_named(self):
+    def test_RQ_TRC_083_given_the_tab_then_three_library_charts_are_drawn_each_named_and_reached_by_tab(self):
         got = self.run_script("""
-const charts = [...document.querySelectorAll("#delivery-charts svg.chart-svg")];
-out.charts = charts.map((c) => c.dataset.chart).join(",");
-out.named = String(charts.every((c) => c.getAttribute("role") === "img" && c.getAttribute("aria-label")));
-""", "charts", "named")
-        self.assertEqual("throughput,timeline,size", got["charts"])
-        self.assertEqual("true", got["named"])
+const boxes = [...document.querySelectorAll("#delivery-charts [data-chart]")];
+out.charts = boxes.map((b) => b.dataset.chart).join(",");
+out.drawn = String(boxes.every((b) => echarts.getInstanceByDom(b) && b.querySelector("svg")));
+out.named = String(boxes.every((b) => b.getAttribute("tabindex") === "0" && b.getAttribute("aria-label")));
+""", "charts", "drawn", "named")
+        self.assertEqual(("throughput,timeline,tiers", "true", "true"), (got["charts"], got["drawn"], got["named"]))
 
-    def test_RQ_TRC_075_given_an_identity_then_its_bars_take_its_history_colour_and_its_tooltip_tells_its_delivery(self):
+    def test_RQ_TRC_083_given_the_legends_then_each_tier_is_named_in_full(self):
         got = self.run_script("""
-const bar = document.querySelector('#delivery-charts [data-chart="throughput"] .delivery-bar[data-person="1"][data-period="a"]');
-out.colour = bar.style.getPropertyValue("--identity");
-out.barpoints = bar.dataset.points; out.barthroughput = bar.dataset.throughput;
-out.focusable = bar.getAttribute("tabindex");
-bar.dispatchEvent(new FocusEvent("focus"));
-const tip = document.getElementById("tip");
-out.tip = tip.hidden ? "" : tip.textContent;
-const hatched = document.querySelector('#delivery-charts .delivery-bar[data-person="0"][data-period="b"] .delivery-hatch');
-out.hatched = hatched ? "yes" : "no";
-""", "colour", "barpoints", "barthroughput", "focusable", "tip", "hatched")
-        self.assertEqual("var(--c-history-identity-2)", got["colour"])
-        self.assertEqual(("10", "3.333"), (got["barpoints"], got["barthroughput"]))
-        self.assertEqual("0", got["focusable"])
-        for text in ("Claude Opus 5.5", "Period A", "L: 1 task, 8 points", "S: 2 tasks, 2 points", "3 active days"):
-            self.assertIn(text, got["tip"], text)
-        self.assertEqual("yes", got["hatched"])
+out.legend = [].concat(optionOf("throughput").legend)[0].data.join("|");
+out.text = String(optionOf("tiers").textStyle.fontSize === Number.parseFloat(css("--s-text-small")));
+out.caption = String([].concat(optionOf("timeline").legend)[0].textStyle.fontSize === Number.parseFloat(css("--s-text-caption")));
+""", "legend", "text", "caption")
+        self.assertEqual("S, small task, 1 point|M, medium task, 3 points|L, large task, 8 points", got["legend"])
+        self.assertEqual(("true", "true"), (got["text"], got["caption"]))
 
-    def test_RQ_TRC_075_given_a_grain_then_the_timeline_has_one_column_per_bucket_and_shows_a_and_b(self):
+    def test_RQ_TRC_083_given_an_identity_then_its_bars_give_its_points_per_active_day_in_its_history_colour(self):
         got = self.run_script("""
-const columns = () => document.querySelectorAll('#delivery-charts [data-chart="timeline"] .delivery-column');
-out.days = String(columns().length);
-out.spans = [...document.querySelectorAll('#delivery-charts [data-chart="timeline"] .delivery-span')].map((s) => s.dataset.period).join(",");
+const option = optionOf("throughput");
+const names = [].concat(option.yAxis)[0].data;
+const claude = names.indexOf("Claude Opus 5.5");
+const ofPeriod = (p) => option.series.filter((s) => s.stack === p);
+out.rate_a = sumOf(ofPeriod("a"), claude).toFixed(3); out.rate_b = sumOf(ofPeriod("b"), claude).toFixed(3);
+out.decal = String(ofPeriod("b").every((s) => s.itemStyle && s.itemStyle.decal));
+const probe = document.createElement("span"); probe.style.color = css("--c-history-identity-2"); document.body.append(probe);
+out.colour = String(ofPeriod("a")[0].data[claude].itemStyle.color === getComputedStyle(probe).color);
+""", "rate_a", "rate_b", "decal", "colour")
+        self.assertEqual(("3.333", "0.000", "true", "true"), (got["rate_a"], got["rate_b"], got["decal"], got["colour"]))
+
+    def test_RQ_TRC_083_given_a_grain_then_the_timeline_has_one_bar_per_bucket_and_marks_a_and_b(self):
+        got = self.run_script("""
+const option = optionOf("timeline");
+out.days = String([].concat(option.xAxis)[0].data.length);
+out.areas = String(option.series[0].markArea.data.length);
+out.zoom = String(option.dataZoom.length > 0);
 document.querySelector('#delivery-grain [data-grain="week"]').click();
-out.weeks = String(columns().length);
-const last = [...columns()].pop();
-out.last = last.dataset.bucket + ":" + last.dataset.points;
-""", "days", "spans", "weeks", "last")
-        self.assertEqual("42", got["days"])                  # 2026-09-16 to 2026-10-27
-        self.assertEqual("a,b", got["spans"])
-        self.assertEqual("7", got["weeks"])
+const weeks = optionOf("timeline");
+const buckets = [].concat(weeks.xAxis)[0].data;
+out.weeks = String(buckets.length);
+out.last = buckets[buckets.length - 1] + ":" + sumOf(weeks.series, buckets.length - 1);
+""", "days", "areas", "zoom", "weeks", "last")
+        self.assertEqual(("42", "2", "true", "7"), (got["days"], got["areas"], got["zoom"], got["weeks"]))
         self.assertEqual("2026-10-26:1", got["last"])
 
-    def test_RQ_TRC_075_given_the_size_chart_then_each_tier_has_its_median_and_quartiles_for_a_and_b(self):
+    def test_RQ_TRC_083_given_the_tiers_chart_then_it_counts_the_tasks_per_tier_for_a_and_b_and_follows_the_filters(self):
         got = self.run_script("""
-const box = (tier, period) => document.querySelector(`#delivery-charts [data-chart="size"] .delivery-box[data-tier="${tier}"][data-period="${period}"]`);
-const s = box("S", "a"), l = box("L", "a"), m = box("M", "b");
-out.s = [s.dataset.q1, s.dataset.median, s.dataset.q3, s.dataset.count].join(":");
-out.l = l.dataset.median; out.m = m.dataset.median;
-out.empty = box("L", "b") ? box("L", "b").dataset.count : "missing";
-""", "s", "l", "m", "empty")
-        self.assertEqual("3.5:4:4.5:2", got["s"])
-        self.assertEqual(("40", "12"), (got["l"], got["m"]))
-        self.assertEqual("0", got["empty"])
-
-    def test_RQ_TRC_075_given_a_filter_then_the_charts_follow_it(self):
-        got = self.run_script("""
+const counts = () => optionOf("tiers").series.map((s) => s.name + ":" + s.data.map((d) => d.value ?? d).join(",")).join(" ");
+out.counts = counts();
 document.querySelector('#delivery-tiers [data-tier="S"]').click();
-out.bar = document.querySelector('#delivery-charts .delivery-bar[data-person="1"][data-period="a"]').dataset.points;
-""", "bar")
-        self.assertEqual("2", got["bar"])
+out.filtered = counts();
+""", "counts", "filtered")
+        self.assertEqual("A:2,0,1 B:0,1,0", got["counts"])
+        self.assertEqual("A:2,0,0 B:0,0,0", got["filtered"])
+
+    def test_RQ_TRC_087_given_the_throughput_chart_focused_then_the_arrows_show_its_bars(self):
+        got = self.run_script("""
+const box = document.querySelector('#delivery-charts [data-chart="throughput"]');
+box.focus();
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+out.tip = box.textContent;
+""", "tip")
+        self.assertIn("Alice", got["tip"])
 
 
 @unittest.skipUnless(BROWSER, NEEDS_BROWSER)

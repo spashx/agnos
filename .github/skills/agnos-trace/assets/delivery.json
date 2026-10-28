@@ -1,6 +1,7 @@
 {
   "_comment": "FTR-TRC-004, ADR-TRC-009 (DEC-TRC-037): the settings of the Delivery tab. Change a number here, never in the code.",
   "tiers": ["S", "M", "L"],
+  "names": {"S": "small task", "M": "medium task", "L": "large task"},
   "points": {"S": 1, "M": 3, "L": 8},
   "reworkDays": 14,
   "monthAfterWeeks": 12,

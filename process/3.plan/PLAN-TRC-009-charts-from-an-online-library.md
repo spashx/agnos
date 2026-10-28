@@ -88,7 +88,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-066: The Delivery charts with ECharts
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Replace the three hand-drawn Delivery charts: points per active day per identity (A, B hatched),
   points over time with A and B marked and a zoom, tasks per tier A beside B; tiers named in full from `delivery.json`.
 - **Requirement refs**: RQ-TRC-083, RQ-TRC-075, RQ-TRC-087
@@ -98,8 +98,20 @@ This plan implements the tasks in the format specified below.
   texts use the caption or small size.
 - **Dependencies**: TASK-TRC-065
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `DeliveryChartsTest` rewritten first for the library charts (5 failing), then 6 tests OK: charts
+  "throughput,timeline,tiers" drawn by ECharts, each focusable and named; legend "S, small task, 1 point|M, medium task,
+  3 points|L, large task, 8 points"; text and legend sizes equal to `--s-text-small` and `--s-text-caption`; Claude's A
+  bars sum 3.333, B 0.000, B series with a decal, colour the resolved `--c-history-identity-2`; timeline 42 days, 2 mark
+  areas, a data zoom, 7 weeks, last week 2026-10-26 with 1 point; tiers "A:2,0,1 B:0,1,0", with tag S "A:2,0,0 B:0,0,0";
+  arrow on the throughput chart shows Alice. Whole suite: 296 tests OK, 3 skipped. `node --check` OK. Screenshots of
+  XS56K (6 weeks), light and dark: first an e-mail name squeezed the bars, the tier labels overlapped and the legend
+  touched the bars; fixed (names cut at `delivery-label-width`, tier labels on three lines, room for the legend). Two
+  slips caught on the way: `decal: "none"` refused by ECharts 6.1 (an empty decal instead), a `labelWidth` name already
+  declared (renamed, found by `node --check`).
+- **Assumptions**: the tier is told by the opacity of the identity's colour, B by ECharts' first decal in the card's
+  colour; two test outputs renamed (`rate_a`, `rate_b`) as they clashed with the band's `data-a`/`data-b` attributes; the
+  token `delivery-hatch-opacity` removed (no longer read), `delivery-chart-height`, `delivery-row-height` and
+  `delivery-label-width` added.
 
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M

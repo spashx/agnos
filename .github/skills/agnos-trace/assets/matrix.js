@@ -3628,162 +3628,134 @@
       deliveryFigure("rework", "Rework", [fa.reworkRate, fb.reworkRate], rate, true));
   }
 
-  // ---- delivery charts (TASK-TRC-060: RQ-TRC-075, RQ-TRC-079; DEC-TRC-039) ----
-  // Geometry in the charts' own viewBox units; colours, opacities and strokes come from the tokens through the CSS.
-  const DCHART = { width: 400, wide: 800, labelWidth: 150, nameLength: 20, barHeight: 12, barGap: 3, rowGap: 12, textGap: 4,
-    plotHeight: 140, axisHeight: 18, columnGap: 1, boxHeight: 14, legendHeight: 22, hatch: 4 };
-  const ELLIPSIS = "…";
-  const shortName = (name) => (name.length > DCHART.nameLength ? name.slice(0, DCHART.nameLength - 1) + ELLIPSIS : name);
-  const HATCH_ID = "delivery-hatch-pattern";
+  // ---- delivery charts (TASK-TRC-066: RQ-TRC-083, RQ-TRC-075 as amended, RQ-TRC-087; DEC-TRC-043) ----
+  // Drawn by ECharts through libraryChart (DEC-TRC-042): each tier named in full, an identity in its History colour, a
+  // tier told by the opacity of that colour, period B hatched by a decal; every size and colour comes from the tokens.
   const PERIOD_NAME = { a: "Period A", b: "Period B" };
-  const QUARTILES = [0.25, 0.5, 0.75];
+  const CHART_THROUGHPUT = "throughput";
+  const CHART_TIMELINE = "timeline";
+  const CHART_TIERS = "tiers";
+  const SERIES_BAR = "bar";
+  const AXIS_VALUE = "value";
+  const AXIS_CATEGORY = "category";
+  const DECAL_NONE = { symbol: "none" };                           // an empty pattern: A is plain
+  const TRIGGER_AXIS = "axis";
+  const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
   const taskCount = (n) => `${n} ${n === 1 ? "task" : "tasks"}`;
+  const pointCount = (n) => `${n} ${n === 1 ? "point" : "points"}`;
   const periodText = (key) => `${PERIOD_NAME[key]}, ${dlv.periods[key].from} to ${dlv.periods[key].to}`;
+  const tierLabel = (t) => `${t}, ${DELIVERY.settings.names[t]}, ${pointCount(DELIVERY.settings.points[t])}`;
+  const tierOpacity = (t) => cssSize(`--c-delivery-tier-${t.toLowerCase()}-opacity`);
+  // A tooltip of ECharts is HTML: every text from the data is escaped (RQ-TRC-022).
+  const escapeHtml = (value) => String(value).replace(/[&<>"]/g, (c) => HTML_ESCAPES[c]);
+  const tipHtml = (lines) => lines.map((line, i) => (i ? escapeHtml(line) : `<b>${escapeHtml(line)}</b>`)).join("<br>");
 
-  function hatchDefs() {
-    return svgEl("defs", {}, svgEl("pattern", { id: HATCH_ID, patternUnits: "userSpaceOnUse", width: DCHART.hatch, height: DCHART.hatch,
-      patternTransform: "rotate(45)" }, svgEl(VALUE_LINE, { class: "delivery-hatch-line", x1: 0, y1: 0, x2: 0, y2: DCHART.hatch })));
+  // An identity's colour as the browser resolves it: a token or a computed hue (RQ-HST-026).
+  function resolvedColour(colour) {
+    const probe = document.createElement("span");
+    probe.style.color = colour;
+    document.body.append(probe);
+    const value = getComputedStyle(probe).color;
+    probe.remove();
+    return value;
   }
 
-  function tierLegend(y) {
-    const step = (DCHART.width - DCHART.labelWidth) / (TIERS.length + 1);
-    return [...TIERS.map((t, i) => svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.labelWidth + step * i, y },
-      `${t} ${DELIVERY.settings.points[t]} pt`)),
-    svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.labelWidth + step * TIERS.length, y }, "B hatched")];
-  }
+  const hatch = (theme) => ({ color: theme.colour.surface });           // ECharts' first decal, in the card's colour
+  const legendGap = () => cssSize("--s-space-2xl");
+  const legendRoom = () => cssSize("--s-space-3xl");                  // a legend on two lines
+  const chartLabelWidth = () => cssSize("--c-delivery-label-width");
+  const chartMargin = () => cssSize("--s-space-lg");                  // the first letter of a label is never cut
+  const LABEL_BREAK = ", ";                                            // "S, small task, 1 point" on three lines       // a long name is cut, whole in the tooltip
 
-  // A bar of stacked tier segments from x, each `scale` units per point; B is hatched over.
-  function stackedBar(byTier, x, y, scale, hatched) {
-    let at = x;
-    const parts = TIERS.map((t) => {
-      const width = byTier[t] * scale;
-      const rect = svgEl(SVG_RECT, { class: `delivery-seg tier-${t}`, x: at, y, width, height: DCHART.barHeight });
-      at += width;
-      return rect;
-    });
-    const total = at - x;
-    return [svgEl(SVG_RECT, { class: "delivery-track", x, y, width: total, height: DCHART.barHeight }), ...parts,
-      hatched ? svgEl(SVG_RECT, { class: "delivery-hatch", x, y, width: total, height: DCHART.barHeight }) : null];
-  }
-
-  function identityTipLines(entry, key) {
-    const name = HISTORY.people[entry.person].name;
-    const rate = entry.throughput === null ? "no active day" : `${entry.throughput.toFixed(SHOWN_DIGITS)} points per active day`;
-    return [name, periodText(key), `${entry.points} points over ${entry.activeDays} active days: ${rate}`,
-      ...TIERS.map((t) => `${t}: ${taskCount(entry.tasksByTier[t] || 0)}, ${entry.byTier[t]} points`)];
-  }
-
-  // RQ-TRC-075: per identity, its points per active day stacked by tier, A then B hatched, in its History colour.
-  function throughputChart() {
+  // RQ-TRC-083: per identity, its points per active day stacked by tier, A then B hatched.
+  function throughputOption(theme) {
     const per = Object.fromEntries(PERIOD_KEYS.map((key) => [key, perIdentity(dlv.periods[key], dlv.filter, dlv.bounds)]));
     const people = [...new Set(PERIOD_KEYS.flatMap((key) => per[key].map((e) => e.person)))].sort((a, b) => a - b);
-    const max = Math.max(1, ...PERIOD_KEYS.flatMap((key) => per[key].map((e) => e.throughput || 0)));
-    const scale = (DCHART.width - DCHART.labelWidth) / max;
-    const rowHeight = HALF * DCHART.barHeight + DCHART.barGap + DCHART.rowGap;
-    const rows = people.map((person, n) => {
-      const y = n * rowHeight;
-      const bars = PERIOD_KEYS.map((key, k) => {
-        const entry = per[key].find((e) => e.person === person)
-          || { person, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), tasksByTier: {}, points: 0, activeDays: 0, throughput: null };
-        const days = entry.activeDays || 1;
-        const group = svgEl(SVG_GROUP, { class: "delivery-bar", "data-person": person, "data-period": key, "data-points": entry.points,
-          "data-throughput": dataNumber(entry.throughput, FIGURE_DIGITS) },
-        ...stackedBar(Object.fromEntries(TIERS.map((t) => [t, entry.byTier[t] / days])), DCHART.labelWidth,
-          y + k * (DCHART.barHeight + DCHART.barGap), scale, key === PERIOD_KEYS[1]));
-        group.style.setProperty(CSS_IDENTITY, colourOf[person]);
-        const lines = identityTipLines(entry, key);
-        return chartItem(group, lines.slice(0, 3).join(". "), lines);
-      });
-      return svgEl(SVG_GROUP, {}, svgEl(SVG_TEXT, { class: "area-label", x: 0, y: y + DCHART.barHeight },
-        shortName(HISTORY.people[person].name)), ...bars);
-    });
-    const height = Math.max(people.length, 1) * rowHeight + DCHART.legendHeight;
-    return chartFrame(DCHART.width, height, "Points per active day, by identity",
-      "For each identity, the points it delivered per active day in period A and, hatched, in period B, stacked by tier.",
-      hatchDefs(), ...rows, ...tierLegend(height - DCHART.textGap));
+    const colours = people.map((p) => resolvedColour(colourOf[p]));
+    const entryOf = (key, person) => per[key].find((e) => e.person === person);
+    const series = PERIOD_KEYS.flatMap((key) => TIERS.map((t) => ({
+      type: SERIES_BAR, name: tierLabel(t), stack: key,
+      itemStyle: { color: theme.colour.muted, opacity: tierOpacity(t), decal: key === PERIOD_KEYS[1] ? hatch(theme) : DECAL_NONE },
+      data: people.map((person, i) => {
+        const entry = entryOf(key, person);
+        const value = entry && entry.activeDays ? entry.byTier[t] / entry.activeDays : 0;
+        return { value, person, period: key, tier: t, itemStyle: { color: colours[i], opacity: tierOpacity(t) } };
+      }),
+    })));
+    const tip = ({ data }) => {
+      const entry = entryOf(data.period, data.person);
+      if (!entry) return tipHtml([HISTORY.people[data.person].name, periodText(data.period), "No task delivered"]);
+      const rate = entry.throughput === null ? "no active day" : `${entry.throughput.toFixed(SHOWN_DIGITS)} points per active day`;
+      return tipHtml([HISTORY.people[data.person].name, periodText(data.period),
+        `${pointCount(entry.points)} over ${entry.activeDays} active days: ${rate}`,
+        ...TIERS.map((t) => `${tierLabel(t)}: ${taskCount(entry.tasksByTier[t] || 0)}, ${pointCount(entry.byTier[t])}`)]);
+    };
+    return {
+      legend: { data: TIERS.map(tierLabel), top: 0 },
+      grid: { containLabel: true, left: chartMargin(), right: legendGap(), top: legendRoom(), bottom: legendGap() },
+      tooltip: { trigger: "item", formatter: tip },
+      xAxis: { type: AXIS_VALUE, name: "points per active day", nameLocation: "middle", nameGap: legendGap() },
+      yAxis: { type: AXIS_CATEGORY, data: people.map((p) => HISTORY.people[p].name), inverse: true,
+        axisLabel: { ...theme.caption, width: chartLabelWidth(), overflow: "truncate" } },
+      series,
+    };
   }
 
-  // RQ-TRC-075: the points of every bucket of the history read, stacked by tier, periods A and B shown behind.
-  function timelineChart() {
+  // RQ-TRC-083: the points of every bucket of the history read, stacked by tier, A and B marked, a zoom on the time axis.
+  function timelineOption(theme) {
     const buckets = pointsOverTime(dlv.filter, dlv.grain, dlv.bounds);
-    const step = DCHART.wide / Math.max(buckets.length, 1);
-    const index = new Map(buckets.map((b, i) => [b.bucket, i]));
-    const totals = buckets.map((b) => TIERS.reduce((sum, t) => sum + b.byTier[t], 0));
-    const scale = DCHART.plotHeight / Math.max(1, ...totals);
-    const spans = PERIOD_KEYS.map((key) => {
-      const from = index.get(bucketOf(dlv.periods[key].from, dlv.grain)) ?? 0;
-      const to = index.get(bucketOf(dlv.periods[key].to, dlv.grain)) ?? buckets.length - 1;
-      return svgEl(SVG_GROUP, { class: `delivery-span period-${key}`, "data-period": key },
-        svgEl(SVG_RECT, { x: from * step, y: 0, width: (to - from + 1) * step, height: DCHART.plotHeight }),
-        svgEl(SVG_TEXT, { class: "delivery-legend", x: from * step + DCHART.textGap, y: DCHART.axisHeight }, key.toUpperCase()));
-    });
-    const columns = buckets.map((b, i) => {
-      let y = DCHART.plotHeight;
-      const parts = TIERS.map((t) => {
-        const height = b.byTier[t] * scale;
-        y -= height;
-        return svgEl(SVG_RECT, { class: `delivery-seg tier-${t}`, x: i * step, y, width: Math.max(step - DCHART.columnGap, 0), height });
-      });
-      const lines = [`${dlv.grain} of ${b.bucket}`, `${totals[i]} points`, ...TIERS.map((t) => `${t}: ${b.byTier[t]} points`)];
-      return chartItem(svgEl(SVG_GROUP, { class: "delivery-column", "data-bucket": b.bucket, "data-points": totals[i] }, ...parts),
-        `${lines[0]}: ${lines[1]}`, lines);
-    });
-    const axisY = DCHART.plotHeight + DCHART.axisHeight;
-    const axis = buckets.length ? [svgEl(SVG_TEXT, { class: "delivery-legend", x: 0, y: axisY }, buckets[0].bucket),
-      svgEl(SVG_TEXT, { class: "delivery-legend", x: DCHART.wide, y: axisY, "text-anchor": "end" }, buckets.at(-1).bucket)] : [];
-    return chartFrame(DCHART.wide, axisY + DCHART.textGap, "Points delivered over time",
-      `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded.`,
-      ...spans, ...columns, ...axis);
+    const area = (key, colour) => [{ name: key.toUpperCase(), xAxis: bucketOf(dlv.periods[key].from, dlv.grain),
+      itemStyle: { color: colour, opacity: cssSize("--c-delivery-span-opacity") } }, { xAxis: bucketOf(dlv.periods[key].to, dlv.grain) }];
+    const series = TIERS.map((t) => ({ type: SERIES_BAR, name: tierLabel(t), stack: "points",
+      itemStyle: { color: theme.colour.accent, opacity: tierOpacity(t), decal: DECAL_NONE },
+      data: buckets.map((b) => b.byTier[t]) }));
+    series[0].markArea = { silent: true, label: { color: theme.colour.muted, fontSize: theme.caption.fontSize },
+      data: [area(PERIOD_KEYS[0], theme.colour.accent), area(PERIOD_KEYS[1], theme.colour.muted)] };
+    return {
+      legend: { data: TIERS.map(tierLabel), top: 0 },
+      grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: legendGap() },
+      tooltip: { trigger: TRIGGER_AXIS },
+      xAxis: { type: AXIS_CATEGORY, data: buckets.map((b) => b.bucket) },
+      yAxis: { type: AXIS_VALUE, name: "points" },
+      dataZoom: [{ type: "inside" }, { type: "slider", height: cssSize("--s-space-lg"), bottom: 0 }],
+      series,
+    };
   }
 
-  function quartiles(values) {
-    const sorted = [...values].sort((a, b) => a - b);
-    return QUARTILES.map((p) => {
-      const at = (sorted.length - 1) * p;
-      const low = Math.floor(at);
-      return sorted[low] + (sorted[Math.min(low + 1, sorted.length - 1)] - sorted[low]) * (at - low);
-    });
-  }
-
-  // RQ-TRC-075: the lines changed per delivered task, median and quartiles, per tier for A and B.
-  function sizeChart(figures) {
-    const lines = Object.fromEntries(PERIOD_KEYS.map((key, k) => [key, Object.fromEntries(TIERS.map((t) =>
-      [t, figures[k].rows.filter((r) => r.tier === t).map((r) => r.lines)]))]));
-    const all = PERIOD_KEYS.flatMap((key) => TIERS.map((t) => lines[key][t])).filter((v) => v.length);
-    const max = Math.max(1, ...all.map((v) => quartiles(v)[QUARTILES.length - 1]));
-    const scale = (DCHART.width - DCHART.labelWidth) / max;
-    const rowHeight = DCHART.boxHeight + DCHART.barGap;
-    const rows = TIERS.flatMap((t, ti) => PERIOD_KEYS.map((key, k) => {
-      const y = (ti * PERIOD_KEYS.length + k) * rowHeight + ti * DCHART.rowGap;
-      const values = lines[key][t];
-      const label = svgEl(SVG_TEXT, { class: "area-label", x: 0, y: y + DCHART.boxHeight }, `${t} ${key.toUpperCase()}`);
-      if (!values.length) {
-        return chartItem(svgEl(SVG_GROUP, { class: "delivery-box", "data-tier": t, "data-period": key, "data-count": 0 }, label),
-          `${t}, ${PERIOD_NAME[key]}: no task`, [`Tier ${t}`, periodText(key), "No task delivered"]);
-      }
-      const [q1, median, q3] = quartiles(values);
-      const x = (v) => DCHART.labelWidth + v * scale;
-      const group = svgEl(SVG_GROUP, { class: "delivery-box", "data-tier": t, "data-period": key, "data-count": values.length,
-        "data-q1": q1, "data-median": median, "data-q3": q3 }, label,
-      svgEl(SVG_RECT, { class: "delivery-box-range", x: x(q1), y, width: Math.max((q3 - q1) * scale, DCHART.columnGap), height: DCHART.boxHeight }),
-      key === PERIOD_KEYS[1] ? svgEl(SVG_RECT, { class: "delivery-hatch", x: x(q1), y, width: Math.max((q3 - q1) * scale, DCHART.columnGap), height: DCHART.boxHeight }) : null,
-      svgEl(VALUE_LINE, { class: "delivery-box-median", x1: x(median), y1: y, x2: x(median), y2: y + DCHART.boxHeight }));
-      return chartItem(group, `${t}, ${PERIOD_NAME[key]}: median ${median} lines`,
-        [`Tier ${t}`, periodText(key), `${taskCount(values.length)}: median ${median} lines changed`, `Quartiles ${q1} to ${q3} lines`]);
-    }));
-    const height = TIERS.length * (PERIOD_KEYS.length * rowHeight + DCHART.rowGap);
-    return chartFrame(DCHART.width, height, "Lines changed per task, by tier",
-      "For each tier, the median and the quartiles of the lines changed by each delivered task, in period A and, hatched, in B.",
-      hatchDefs(), ...rows);
+  // RQ-TRC-083: the tasks delivered per tier, A beside B hatched.
+  function tiersOption(theme, figures) {
+    const series = PERIOD_KEYS.map((key, k) => ({ type: SERIES_BAR, name: key.toUpperCase(),
+      itemStyle: { color: theme.colour.accent, decal: k ? hatch(theme) : DECAL_NONE },
+      data: TIERS.map((t) => figures[k].rows.filter((r) => r.tier === t).length) }));
+    return {
+      legend: { data: PERIOD_KEYS.map((key) => key.toUpperCase()), top: 0, formatter: (name) => periodText(name.toLowerCase()) },
+      grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: 0 },
+      tooltip: { trigger: TRIGGER_AXIS },
+      xAxis: { type: AXIS_CATEGORY, data: TIERS.map(tierLabel),
+        axisLabel: { ...theme.caption, interval: 0, formatter: (label) => label.replaceAll(LABEL_BREAK, "\n") } },
+      yAxis: { type: AXIS_VALUE, name: "tasks", minInterval: 1 },
+      series,
+    };
   }
 
   function renderDeliveryCharts(figures) {
-    const card = (title, key, svg, wide) => {
-      svg.setAttribute("data-chart", key);
-      return el(TAG_ARTICLE, { class: `card chart-card ${wide || ""}` }, el(TAG_HEADER, { class: "card-header" }, el("h3", { class: "card-title", text: title })), svg);
-    };
-    clear($("delivery-charts")).append(card("Points per active day", "throughput", throughputChart()),
-      card("Points over time", "timeline", timelineChart(), "delivery-wide"), card("Lines per task", "size", sizeChart(figures)));
+    const people = new Set(PERIOD_KEYS.flatMap((key) => perIdentity(dlv.periods[key], dlv.filter, dlv.bounds).map((e) => e.person)));
+    const charts = [
+      [CHART_THROUGHPUT, "Points per active day", "For each identity, the points it delivered per active day in period A and, hatched, in period B, stacked by tier.",
+        throughputOption, [...people].sort((a, b) => a - b).flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k * TIERS.length, dataIndex: i })))],
+      [CHART_TIMELINE, "Points over time", `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded.`,
+        timelineOption, pointsOverTime(dlv.filter, dlv.grain, dlv.bounds).map((_, i) => ({ seriesIndex: 0, dataIndex: i }))],
+      [CHART_TIERS, "Tasks per tier", "The tasks delivered in each tier, in period A and, hatched, in period B.",
+        (theme) => tiersOption(theme, figures), TIERS.flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k, dataIndex: i })))],
+    ];
+    const cards = charts.map(([key, title]) => {
+      const box = el("div", { class: "delivery-chart", "data-chart": key });
+      if (key === CHART_THROUGHPUT) box.style.setProperty("--rows", String(Math.max(people.size, 1)));
+      return { box, card: el(TAG_ARTICLE, { class: `card chart-card${key === CHART_TIMELINE ? " delivery-wide" : ""}` },
+        el(TAG_HEADER, { class: "card-header" }, el("h3", { class: "card-title", text: title })), box) };
+    });
+    clear($("delivery-charts")).append(...cards.map((c) => c.card));
+    charts.forEach(([, title, description, build, items], i) => libraryChart(cards[i].box, build, { label: title, description, items }));
   }
 
   // ---- delivery table (TASK-TRC-061: RQ-TRC-077, RQ-TRC-079; DEC-TRC-039) ----
