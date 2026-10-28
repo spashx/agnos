@@ -2060,24 +2060,52 @@
   // name opens the check.
   let radarPointed = null;                                             // the check the keyboard is on, or null
 
+  const RADAR_RINGS = 5;                                              // rings at 2, 4, 6, 8 and 10
+  const RADAR_MOVE = "mousemove";
+  const gradeColour = (score) => cssValue(`--s-grade-${gradeOf(score).toLowerCase()}`);
+
   function radarOption(theme) {
     const scored = CHECKS.filter((c) => c.score !== null);
     const accent = theme.colour.accent;
+    const byName = new Map(scored.map((c) => [c.label, c]));
+    // Each axis's name, then its score in its grade's colour: one rich style per grade.
+    const rich = Object.fromEntries(scored.map((c) => [`g${c.key.replace(/\W/g, "")}`,
+      { ...theme.caption, color: gradeColour(c.score), fontWeight: cssValue(CSS_VAR_S_WEIGHT_STRONG) }]));
     return {
       tooltip: { trigger: "item", formatter: () => tipHtml(radarPointed ? checkTipLines(radarPointed)
         : ["Checks", ...scored.map((c) => `${c.title}: ${scoreText(c)} out of ${SCORE_MAX}`)]) },
-      radar: { indicator: scored.map((c) => ({ name: c.label, max: SCORE_MAX, check: c.key })), triggerEvent: true,
-        axisName: { ...theme.caption }, axisLine: { lineStyle: { color: theme.colour.border } },
-        splitLine: { lineStyle: { color: theme.colour.border } }, splitArea: { show: false } },
-      series: [{ type: "radar", name: "Scores", data: [{ name: "Scores", value: scored.map((c) => c.score) }],
-        itemStyle: { color: accent }, lineStyle: { color: accent }, areaStyle: { color: accent, opacity: cssSize("--s-opacity-tint") } }],
+      radar: {
+        indicator: scored.map((c) => ({ name: c.label, max: SCORE_MAX, check: c.key })), triggerEvent: true,
+        shape: "polygon", splitNumber: RADAR_RINGS, radius: "62%",
+        axisName: { ...theme.caption, color: theme.colour.text, rich,
+          formatter: (name) => { const c = byName.get(name); return `${name}\n{g${c.key.replace(/\W/g, "")}|${scoreText(c)}}`; } },
+        axisLine: { lineStyle: { color: theme.colour.border } },
+        splitLine: { lineStyle: { color: theme.colour.border } },
+        splitArea: { show: true, areaStyle: { color: [cssValue("--s-surface-subtle"), theme.colour.surface] } },
+      },
+      series: [
+        { type: "radar", name: "Scores", z: 2,
+          data: [{ name: "Scores", value: scored.map((c) => c.score) }],
+          symbol: "circle", symbolSize: cssSize("--s-space-sm"),
+          itemStyle: { color: accent, borderColor: theme.colour.surface, borderWidth: cssSize("--s-stroke-focus") },
+          lineStyle: { color: accent, width: cssSize("--s-stroke-focus") },
+          areaStyle: { color: accent, opacity: cssSize("--s-opacity-tint") } },
+      ],
     };
   }
 
   function drawRadar(box) {
     const scored = CHECKS.filter((c) => c.score !== null);
     const byLabel = new Map(scored.map((c) => [c.label, c.key]));
-    box.addEventListener(EVENT_MOUSEOVER, () => { radarPointed = null; });          // the pointer reads the whole radar
+    // The pointer's check: the axis nearest to its angle around the radar's centre (the first axis at the top, the
+    // others counter-clockwise, as ECharts draws them), so that its tooltip is that check's (TASK-TRC-073).
+    box.addEventListener(RADAR_MOVE, (event) => {
+      const r = box.getBoundingClientRect();
+      const angle = Math.atan2(r.top + r.height / HALF - event.clientY, event.clientX - r.left - r.width / HALF);
+      const step = (HALF * Math.PI) / scored.length;
+      const index = Math.round((angle - Math.PI / HALF) / step);
+      radarPointed = scored[((index % scored.length) + scored.length) % scored.length];
+    });
     libraryChart(box, radarOption, {
       label: "Checks radar",
       description: `Score out of ${SCORE_MAX} of each check, one axis per check: the further from the centre, the better.`,
@@ -4292,7 +4320,7 @@
   // ---- start --------------------------------------------------------------------------------------------------
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
     FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv,
-    libraryChart, chartTheme, redrawLibraryCharts };
+    libraryChart, chartTheme, redrawLibraryCharts, radarPointed: () => radarPointed?.key || null };
   renderHeader();
   renderFilters();
   renderOverview();

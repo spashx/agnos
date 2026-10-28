@@ -301,6 +301,9 @@ out.points = radar.indicator.map((i) => i.check).join(",");
 out.focusable = String(box.getAttribute("tabindex") === "0" && Boolean(box.getAttribute("aria-label")));
 out.bars = String(document.querySelectorAll("#quality-charts .area-bar").length);
 out.shares = String(document.querySelectorAll("#quality-charts .share-part").length);
+const r = box.getBoundingClientRect();                              // TASK-TRC-073: the pointer above the centre, before Enter scrolls
+box.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 6 }));
+out.hovered = agnosTrace.radarPointed();                           // first axis: requirements covered
 box.focus();
 box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // RQ-TRC-087: the first check
 out.tip = box.textContent;
@@ -321,7 +324,7 @@ class ChartsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "page.html"
             generate(path)
-            found = dict(re.findall(r'data-(svgs|named|points|focusable|bars|shares|tip|focus-tip|opened)="([^"]*)"',
+            found = dict(re.findall(r'data-(svgs|named|points|focusable|bars|shares|tip|focus-tip|opened|hovered)="([^"]*)"',
                                     rendered_dom_after(path, CHARTS)))
         self.assertEqual("2", found["svgs"])                            # trigram bars, coverage; the radar by ECharts
         self.assertEqual("true", found["named"])                        # a title and a description each (RQ-TRC-065)
@@ -333,6 +336,7 @@ class ChartsTest(unittest.TestCase):
             self.assertIn(part, found["tip"])                           # RQ-TRC-084, RQ-TRC-087: by the keyboard
         self.assertIn("IDs defined", found["focus-tip"])
         self.assertEqual("filled", found["opened"])                     # Enter opens its check
+        self.assertEqual("covered", found["hovered"])                   # the pointer's tooltip is its axis's check
 
 
 FIT_WINDOW = "1440,900"

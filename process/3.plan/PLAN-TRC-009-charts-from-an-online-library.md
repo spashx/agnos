@@ -179,6 +179,25 @@ This plan implements the tasks in the format specified below.
 - **Verification**: Tests rewritten first (2 failing), then OK: the radar an ECharts chart with one indicator per scored check in order (covered … files-traced), focusable and named; first arrow shows "Requirements covered, score 4.0, population 5, 3 findings", the next "IDs defined"; Enter on the sixth opens "filled"; one tooltip only (the library's, bold head), no title around. Fit in 1440×900 kept: the radar's height a token, 150 px (first 190 px overflowed by 5 px, measured). Whole suite 299 OK, 3 skipped; `node --check` OK.
 - **Assumptions**: the radar in the accent colour (grades stay on the report card and the bars); the pointer shows all checks' scores, the keyboard one check at a time; the named-charts test of RQ-HST-016 counts two inline SVG charts and the radar's container.
 
+### TASK-TRC-073: A readable, more elaborate radar
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner review of 2026-10-29: the radar fills its card (150 px at least, the fit of RQ-TRC-063), polygon
+  rings with light bands, each check's score under its name in its grade's colour, a thicker outline with ringed points;
+  the pointer's tooltip is again the check of the nearest axis. A dashed attention ring was tried and removed at the
+  owner's request (no specification asks for it).
+- **Requirement refs**: RQ-TRC-084, RQ-TRC-087, RQ-TRC-063, RQ-TRC-065
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-008 (DEC-TRC-035)
+- **Acceptance Criteria**: Given a wide window, Then the radar grows with its card; Given 1440 by 900, Then the Quality
+  view has no vertical scroll; Given the pointer above the radar's centre, Then its tooltip is the first check's.
+- **Dependencies**: TASK-TRC-067
+- **Assignee**: AI
+- **Verification**: Hover test first (failing), then OK: pointer above the centre gives "covered"; probe of the four sides
+  top covered, right connected, bottom adr-rq, left tasked (ECharts' counter-clockwise order). Fit tests OK (radar 150 px
+  at 1440×900, overflow 0). Whole suite 299 OK, 3 skipped; `node --check` OK. Visual check by the owner on XS56K.
+- **Assumptions**: the nearest axis is found from the pointer's angle around the box's centre, where ECharts centres the
+  radar; the hover test runs before Enter, which scrolls the view to the opened check.
+
 ### TASK-TRC-068: Grouped marks in the History timeline
 - **Tier**: M
 - **Status**: Not Started
