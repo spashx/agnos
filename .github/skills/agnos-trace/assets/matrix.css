@@ -722,18 +722,6 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .chart-card { padding: var(--s-space-md); }
 .chart-card .card-header { margin-bottom: var(--s-space-sm); }
 .chart-svg { display: block; width: 100%; height: auto; }
-.radar-ring { fill: none; stroke: var(--s-border); stroke-width: var(--s-stroke-hairline); }
-.radar-spoke { stroke: var(--s-border); stroke-width: var(--s-stroke-hairline); }
-.radar-shape { fill: var(--s-accent-subtle); stroke: var(--s-accent); stroke-width: var(--s-stroke-focus); }
-.radar-label { fill: var(--s-text-muted); font-size: var(--s-text-caption); cursor: pointer; }
-.radar-axis:hover .radar-label { fill: var(--s-text); }
-.radar-point { fill: var(--s-accent); stroke: var(--s-surface); stroke-width: var(--s-stroke-focus); cursor: pointer; }
-.radar-point.grade-A { fill: var(--s-grade-a); }
-.radar-point.grade-B { fill: var(--s-grade-b); }
-.radar-point.grade-C { fill: var(--s-grade-c); }
-.radar-point.grade-D { fill: var(--s-grade-d); }
-.radar-point.grade-E { fill: var(--s-grade-e); }
-.radar-point:focus-visible, .area-bar:focus-visible, .share-part:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); }
 .area-label, .area-value { fill: var(--s-text); font-size: var(--s-text-small); font-family: var(--s-font-mono); }
 .area-track { fill: var(--s-surface-hover); }
 .area-fill { fill: var(--s-border-strong); }
@@ -1173,3 +1161,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 /* ---- a library that could not be loaded (TASK-TRC-064: RQ-TRC-081; DEC-TRC-041) -------------------------------- */
 .library-missing { margin: var(--s-space-xl); padding: var(--s-space-md) var(--s-space-lg); border: var(--s-stroke-hairline) solid var(--s-status-warn);
   border-radius: var(--s-radius-md); background: var(--s-status-warn-subtle); color: var(--s-text); font-size: var(--s-text-small); }
+
+/* ---- the checks radar (TASK-TRC-067: RQ-TRC-084; DEC-TRC-043): the box of the ECharts chart ---------------------- */
+.quality-radar { height: var(--c-quality-radar-height); }
+.quality-radar:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-space-hair); }

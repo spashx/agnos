@@ -440,6 +440,6 @@ TASK-TRC-066|89-115|Done|The Delivery charts with ECharts
 TASK-TRC-070|116-139|Done|One colour per period, shades for the tiers
 TASK-TRC-071|140-153|Done|An identity's icon before its name in the throughput chart
 TASK-TRC-072|154-167|Done|The timeline's bars in A and B in their period's colour
-TASK-TRC-067|168-181|Not Started|The checks radar with ECharts
+TASK-TRC-067|168-181|Done|The checks radar with ECharts
 TASK-TRC-068|182-195|Not Started|Grouped marks in the History timeline
 TASK-TRC-069|196-208|Not Started|Speed, documentation and a run on XS56K

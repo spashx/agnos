@@ -167,7 +167,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-067: The checks radar with ECharts
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Replace the hand-drawn radar of the Quality view by an ECharts radar, one indicator per scored check,
   its tooltip and the click or Enter opening the check.
 - **Requirement refs**: RQ-TRC-084, RQ-TRC-061, RQ-TRC-087
@@ -176,8 +176,8 @@ This plan implements the tasks in the format specified below.
   check with its score; When a point is chosen with the keyboard and Enter pressed, Then its check opens.
 - **Dependencies**: TASK-TRC-065
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: Tests rewritten first (2 failing), then OK: the radar an ECharts chart with one indicator per scored check in order (covered … files-traced), focusable and named; first arrow shows "Requirements covered, score 4.0, population 5, 3 findings", the next "IDs defined"; Enter on the sixth opens "filled"; one tooltip only (the library's, bold head), no title around. Fit in 1440×900 kept: the radar's height a token, 150 px (first 190 px overflowed by 5 px, measured). Whole suite 299 OK, 3 skipped; `node --check` OK.
+- **Assumptions**: the radar in the accent colour (grades stay on the report card and the bars); the pointer shows all checks' scores, the keyboard one check at a time; the named-charts test of RQ-HST-016 counts two inline SVG charts and the radar's container.
 
 ### TASK-TRC-068: Grouped marks in the History timeline
 - **Tier**: M

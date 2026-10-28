@@ -226,6 +226,7 @@
     if (!step) return;
     event.preventDefault();
     entry.index = (entry.index + step + items.length) % items.length;
+    entry.options.onPoint?.(items[entry.index]);
     entry.chart.dispatchAction({ type: "downplay" });
     entry.chart.dispatchAction({ type: "highlight", ...items[entry.index] });
     entry.chart.dispatchAction({ type: "showTip", ...items[entry.index] });
@@ -2016,14 +2017,11 @@
   }
 
   // ---- quality charts (TASK-TRC-050: RQ-TRC-061, RQ-TRC-065; DEC-TRC-035) -----------------------------------------
-  // Inline SVG drawn from the `quality` block, no library: a radar of the checks, bars per trigram, the coverage shares.
+  // Inline SVG drawn from the `quality` block, no library: bars per trigram, the coverage shares; the checks radar is ECharts' (TASK-TRC-067).
   // Every chart has a title and a description; its items take the keyboard focus and raise the chart tooltip.
   const SVG_NS = "http://www.w3.org/2000/svg";
-  const RADAR = { width: 300, height: 180, radius: 56, ring: 4, labelGap: 12, pointRadius: 4 };
   const AREA = { width: 260, rowHeight: 26, barHeight: 14, labelWidth: 38, barWidth: 150, textGap: 6 };
   const SHARE = { width: 260, height: 20, labelHeight: 22 };
-  const FULL_TURN = 360;
-  const QUARTER_TURN = 90;
   const HALF = 2;
 
   function svgEl(tag, attrs, ...children) {
@@ -2057,34 +2055,39 @@
       `population ${check.population} · ${findingCount(check.findings.length)}`];
   }
 
-  function radarChart() {
+  // ---- the checks radar (TASK-TRC-067: RQ-TRC-084, RQ-TRC-087; DEC-TRC-043): drawn by ECharts through libraryChart.
+  // One axis per scored check; the arrows go from check to check, each with its tooltip; Enter or a click on an axis's
+  // name opens the check.
+  let radarPointed = null;                                             // the check the keyboard is on, or null
+
+  function radarOption(theme) {
     const scored = CHECKS.filter((c) => c.score !== null);
-    const cx = RADAR.width / HALF;
-    const cy = RADAR.height / HALF;
-    const at = (i, fraction) => {
-      const angle = ((-QUARTER_TURN + (FULL_TURN * i) / scored.length) * Math.PI) / (FULL_TURN / HALF);
-      return [cx + Math.cos(angle) * RADAR.radius * fraction, cy + Math.sin(angle) * RADAR.radius * fraction];
+    const accent = theme.colour.accent;
+    return {
+      tooltip: { trigger: "item", formatter: () => tipHtml(radarPointed ? checkTipLines(radarPointed)
+        : ["Checks", ...scored.map((c) => `${c.title}: ${scoreText(c)} out of ${SCORE_MAX}`)]) },
+      radar: { indicator: scored.map((c) => ({ name: c.label, max: SCORE_MAX, check: c.key })), triggerEvent: true,
+        axisName: { ...theme.caption }, axisLine: { lineStyle: { color: theme.colour.border } },
+        splitLine: { lineStyle: { color: theme.colour.border } }, splitArea: { show: false } },
+      series: [{ type: "radar", name: "Scores", data: [{ name: "Scores", value: scored.map((c) => c.score) }],
+        itemStyle: { color: accent }, lineStyle: { color: accent }, areaStyle: { color: accent, opacity: cssSize("--s-opacity-tint") } }],
     };
-    const ring = (n) => svgEl("polygon", { class: "radar-ring", points: scored.map((_, i) => at(i, n / RADAR.ring).join(",")).join(" ") });
-    const shape = svgEl("polygon", { class: "radar-shape", points: scored.map((c, i) => at(i, c.score / SCORE_MAX).join(",")).join(" ") });
-    const axes = scored.map((check, i) => {
-      const [x, y] = at(i, 1);
-      const [lx, ly] = at(i, 1 + RADAR.labelGap / RADAR.radius);
-      const anchor = Math.abs(lx - cx) < RADAR.labelGap ? "middle" : (lx > cx ? "start" : "end");
-      const group = svgEl("g", { class: "radar-axis", "data-check": check.key },
-        svgEl("line", { class: "radar-spoke", x1: cx, y1: cy, x2: x, y2: y }),
-        svgEl("text", { class: "radar-label", x: lx, y: ly, "text-anchor": anchor, "dominant-baseline": "middle" }, check.label));
-      group.addEventListener("click", () => openCheck(check.key));
-      return group;
+  }
+
+  function drawRadar(box) {
+    const scored = CHECKS.filter((c) => c.score !== null);
+    const byLabel = new Map(scored.map((c) => [c.label, c.key]));
+    box.addEventListener(EVENT_MOUSEOVER, () => { radarPointed = null; });          // the pointer reads the whole radar
+    libraryChart(box, radarOption, {
+      label: "Checks radar",
+      description: `Score out of ${SCORE_MAX} of each check, one axis per check: the further from the centre, the better.`,
+      items: scored.map((c) => ({ seriesIndex: 0, dataIndex: 0, check: c.key })),
+      onPoint: (item) => { radarPointed = CHECKS.find((c) => c.key === item.check); },
+      onActivate: (item) => {
+        const key = item.check || byLabel.get(item.params?.name);
+        if (key) openCheck(key);
+      },
     });
-    const points = scored.map((check, i) => {
-      const [x, y] = at(i, check.score / SCORE_MAX);
-      return chartItem(svgEl("circle", { class: `radar-point grade-${isRanked(check) ? gradeOf(check.score) : VALUE_NONE}`, cx: x, cy: y, r: RADAR.pointRadius, "data-check": check.key }),
-        `${check.title}: score ${scoreText(check)} out of ${SCORE_MAX}`, checkTipLines(check), () => openCheck(check.key));
-    });
-    return chartFrame(RADAR.width, RADAR.height, "Checks radar",
-      `Score out of ${SCORE_MAX} of each check, one axis per check: the further from the centre, the better.`,
-      ...Array.from({ length: RADAR.ring }, (_, n) => ring(n + 1)), ...axes, shape, ...points);
   }
 
   function areaBars() {
@@ -2129,9 +2132,11 @@
   function renderCharts() {
     const card = (title, svg) => el("article", { class: "card chart-card" },
       el("header", { class: "card-header" }, el("h3", { class: "card-title", text: title })), svg);
-    clear($("quality-charts")).append(card("Checks", radarChart()),
+    const radar = el("div", { class: "quality-radar", "data-chart": "radar" });
+    clear($("quality-charts")).append(card("Checks", radar),
       card("Feature areas", areaBars()),
       card("Coverage", coverageShares()));
+    drawRadar(radar);
   }
 
   // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).

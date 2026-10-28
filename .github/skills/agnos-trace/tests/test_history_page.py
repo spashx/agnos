@@ -439,18 +439,19 @@ class TooltipComponentTest(unittest.TestCase):
     def run_script(self, script, *names):
         return found(rendered_dom_after(self.path, START + TITLED_ANCESTORS + script), *names)
 
-    def test_RQ_HST_016_given_a_radar_point_then_one_rich_tooltip_and_no_title_around_it(self):
+    def test_RQ_HST_016_given_a_radar_check_then_one_rich_tooltip_and_no_title_around_it(self):
         got = self.run_script("""
 agnosTrace.showView("quality");
-const point = document.querySelector("#quality-charts .radar-point");
-point.dispatchEvent(new FocusEvent("focus"));
-const tip = document.getElementById("tip");
-out.shown = String(!tip.hidden);
-out.head = tip.firstElementChild ? getComputedStyle(tip.firstElementChild).fontWeight : "";
-out.titles = titledAncestors(point);
-out.tips = String(document.querySelectorAll('[role="tooltip"]:not([hidden])').length);
-""", "shown", "head", "titles", "tips")
-        self.assertEqual(("true", "", "1"), (got["shown"], got["titles"], got["tips"]))
+const box = document.querySelector('#quality-charts [data-chart="radar"]');      // TASK-TRC-067: drawn by ECharts
+box.focus();
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+const head = box.querySelector("b");
+out.shown = String(Boolean(head));
+out.head = head ? getComputedStyle(head).fontWeight : "";
+out.titles = titledAncestors(box);
+out.pagetip = String(document.getElementById("tip").hidden);
+""", "shown", "head", "titles", "pagetip")
+        self.assertEqual(("true", "", "true"), (got["shown"], got["titles"], got["pagetip"]))   # the library's tip alone
         self.assertGreaterEqual(int(got["head"]), 600)
 
     def test_RQ_HST_016_given_a_commit_mark_then_one_rich_tooltip_and_no_title_around_it(self):
@@ -468,8 +469,9 @@ out.titles = titledAncestors(mark);
         got = self.run_script("""
 agnosTrace.showView("quality");
 const charts = [...document.querySelectorAll("#quality-charts svg[role=img]")];
-out.named = String(charts.length === 3 && charts.every((c) => c.getAttribute("aria-label") && c.querySelector("desc")
-  && !c.querySelector(":scope > title")));
+const radar = document.querySelector('#quality-charts [data-chart="radar"]');      // TASK-TRC-067: by ECharts (RQ-TRC-087)
+out.named = String(charts.length === 2 && charts.every((c) => c.getAttribute("aria-label") && c.querySelector("desc")
+  && !c.querySelector(":scope > title")) && Boolean(radar.getAttribute("aria-label") && radar.getAttribute("aria-description")));
 """, "named")
         self.assertEqual("true", got["named"])
 
