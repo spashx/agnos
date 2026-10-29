@@ -1407,11 +1407,10 @@
     coverage.append(areas);
     drawAreas(areas, false);                                          // the coverage tiles above are its legend
 
-    clear($("quality-summary")).append(el("div", { class: "check-rows" }, ...CHECKS.map((check) =>
-      el(TAG_BUTTON, { class: "check-row", type: TAG_BUTTON, on: { click: () => openCheck(check.key) } },
-        el(TAG_SPAN, { class: "check-row-label", text: check.title }),
-        el(TAG_SPAN, { class: "check-row-hint", text: check.rule }),
-        el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
+    // TASK-TRC-077 (RQ-TRC-062): the checks' compact form, in their order, nothing to unfold; a click opens the check
+    clear($("quality-summary")).append(el("div", { class: "check-summaries" }, ...orderedChecks().map((check) =>
+      el(TAG_BUTTON, { class: "card check-card check-summary", type: TAG_BUTTON, "data-check": check.key, on: { click: () => openCheck(check.key) } },
+        el(TAG_HEADER, { class: "check-head" }, el(TAG_SPAN, { class: "check-card-title", text: check.title }), ...checkFigures(check))))));
 
     // TASK-TRC-076 (RQ-TRC-035): under the graph's frame, shown while the implementation is drawn
     if (CALL_GRAPH) document.querySelector("#view-graph .graph-frame").after(callGraphCard());
@@ -1457,7 +1456,7 @@
     clear($("tri-filters")).append(...trigrams.map((tri) => chip(tri, triCount(tri), state.tris.has(tri), () => {
       toggle(state.tris, tri); renderFilters(); filtersChanged();
     }, null, `Show or hide the elements of the ${tri} feature area in the matrix, the search and the graph`)));
-    clear($("quality-shortcuts")).append(...CHECKS.map((check) => el("li", {}, richTip(el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON,
+    clear($("quality-shortcuts")).append(...orderedChecks().map((check) => el("li", {}, richTip(el(TAG_BUTTON, { class: CLASS_QUALITY_SHORTCUT, type: TAG_BUTTON,
       on: { click: () => openCheck(check.key) } }, el(TAG_SPAN, { text: check.title }),
       el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })), () => checkTip(check)))));
   }
@@ -1957,6 +1956,8 @@
   const isRanked = (check) => check.score !== null && check.risk !== INFORMATIONAL;
   const rankedChecks = () => CHECKS.toSorted((a, b) => (!isRanked(a)) - (!isRanked(b))
     || (a.score ?? 0) - (b.score ?? 0) || riskWeight(b) - riskWeight(a) || a.title.localeCompare(b.title));
+  // TASK-TRC-077 (RQ-TRC-062 amended): the checks as listed, the heavier risk first, then by title.
+  const orderedChecks = () => CHECKS.toSorted((a, b) => riskWeight(b) - riskWeight(a) || a.title.localeCompare(b.title));
 
   function checkFormula(check) {
     if (check.score === null) return "Nothing to score: the population is empty.";
@@ -1984,10 +1985,23 @@
       on: { click: () => { state.moreFindings.add(check.key); renderQuality(); } }, text: `Show all ${keys.length}` }) : null];
   }
 
+  // A check's risk, score bar and findings: its compact form beside its title (TASK-TRC-077: also the Overview's).
+  function checkFigures(check) {
+    const grade = isRanked(check) ? gradeOf(check.score) : null;
+    return [richTip(el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk }),
+      () => ({ head: `Risk ${check.risk}`, lines: [`Weight ${DATA.quality.risks[check.risk]} in the overall score`] })),
+    richTip(el("span", { class: `check-score grade-${grade || VALUE_NONE}` },
+      el("span", { class: "score-bar" }, el("span", { class: "score-fill", style: { "--score": (check.score ?? 0) * PERCENT / SCORE_MAX } })),
+      el("span", { class: "score-text", text: scoreText(check) })),
+    () => scoreTip(check)),
+    richTip(el("span", { class: `${checkBadgeClass(check)} check-count`, text: check.findings.length }),
+      () => ({ head: findingCount(check.findings.length),
+        lines: ["The elements that fail this check"] }))];
+  }
+
   // A check, compact (title, risk, score bar, findings) or detailed behind its chevron (rule, formula, figures, findings).
   function checkCard(check) {
     const open = state.openChecks.has(check.key);
-    const grade = isRanked(check) ? gradeOf(check.score) : null;
     const detailId = `check-detail-${check.key}`;
     const toggleCheck = () => { if (open) state.openChecks.delete(check.key); else state.openChecks.add(check.key); renderQuality(); };
     return el("article", { class: `card check-card${open ? " is-open" : ""}`, id: `check-${check.key}`, "data-check": check.key },
@@ -1996,15 +2010,7 @@
           title: open ? "Show this check compact" : "Show the rule, the figures and the findings of this check",
           on: { click: toggleCheck } }, el("span", { class: "check-chevron", "aria-hidden": "true" }),
           el("span", { class: "check-card-title", text: check.title })),
-        richTip(el("span", { class: `badge badge-neutral check-risk risk-${check.risk}`, text: check.risk }),
-          () => ({ head: `Risk ${check.risk}`, lines: [`Weight ${DATA.quality.risks[check.risk]} in the overall score`] })),
-        richTip(el("span", { class: `check-score grade-${grade || VALUE_NONE}` },
-          el("span", { class: "score-bar" }, el("span", { class: "score-fill", style: { "--score": (check.score ?? 0) * PERCENT / SCORE_MAX } })),
-          el("span", { class: "score-text", text: scoreText(check) })),
-        () => scoreTip(check)),
-        richTip(el("span", { class: `${checkBadgeClass(check)} check-count`, text: check.findings.length }),
-          () => ({ head: findingCount(check.findings.length),
-            lines: ["The elements that fail this check"] }))),
+        ...checkFigures(check)),
       open ? el("div", { class: "check-detail", id: detailId },
         el("p", { class: "check-card-desc", text: check.rule }),
         el("p", { class: "check-formula", text: checkFormula(check) }), checkKpis(check), ...checkFindings(check)) : null);
@@ -2240,7 +2246,7 @@
     renderGradeChips();
     renderReport();
     renderCharts();
-    clear($("quality-list")).append(...rankedChecks().map(checkCard));
+    clear($("quality-list")).append(...orderedChecks().map(checkCard));
   }
 
   $("expand-checks").addEventListener("click", () => { CHECKS.forEach((c) => state.openChecks.add(c.key)); renderQuality(); });

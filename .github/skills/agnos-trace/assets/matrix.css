@@ -565,26 +565,9 @@ div.coverage-item, div.coverage-item:hover { background: transparent; cursor: de
 .coverage-item-value { font-size: var(--s-text-title); font-weight: var(--s-weight-strong); font-variant-numeric: tabular-nums; }
 .legend-swatch { display: inline-block; width: var(--c-dot-size); height: var(--c-dot-size); border-radius: var(--s-radius-sm); }
 
-.check-rows { display: flex; flex-direction: column; }
-
-.check-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--s-space-hair) var(--s-space-md);
-  align-items: center;
-  padding: var(--s-space-sm);
-  border: none;
-  border-bottom: var(--s-stroke-hairline) solid var(--s-border);
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.check-row:last-child { border-bottom: none; }
-.check-row:hover { background: var(--c-table-row-hover); }
-.check-row-label { font-weight: var(--s-weight-medium); }
-.check-row-hint { grid-column: 1; color: var(--s-text-subtle); font-size: var(--s-text-small); }
-.check-row .badge { grid-row: 1 / span 2; grid-column: 2; }
+.check-summaries { display: flex; flex-direction: column; gap: var(--s-space-sm); }   /* TASK-TRC-077 */
+.check-summary { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.check-summary:hover { background: var(--c-table-row-hover); }
 
 .bar-cell { width: 40%; }
 .bar-cell .stack { height: var(--c-bar-height); }
@@ -678,7 +661,8 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .path { font-family: var(--s-font-mono); font-size: var(--s-text-caption); word-break: break-all; }
 
 /* ---- quality view --------------------------------------------------------------------------------------------- */
-.quality { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--c-check-card-min-width), 1fr)); gap: var(--s-space-md); align-items: start; }
+/* TASK-TRC-077: at most three in a row, filling the width */
+.quality { display: grid; grid-template-columns: repeat(auto-fit, minmax(max(var(--c-check-card-min-width), calc((100% - 2 * var(--s-space-md)) / 3)), 1fr)); gap: var(--s-space-md); align-items: start; }
 #view-quality:not([hidden]) { display: flex; flex-direction: column; gap: var(--s-space-md); padding: var(--s-space-lg); }
 #view-quality > * { flex-shrink: 0; }                    /* RQ-TRC-063 (TASK-TRC-074): the view scrolls, its cards keep their height */
 .check-card { scroll-margin-top: var(--s-space-lg); padding: var(--s-space-sm) var(--s-space-md); }

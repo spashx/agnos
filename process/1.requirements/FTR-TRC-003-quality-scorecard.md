@@ -120,6 +120,9 @@ configuring the checks per project.
   Then that check shows its rule, figures and findings and the others stay compact; When "Expand all" is pressed, Then
   every check is detailed; When a finding is clicked, Then its element is selected.
 - **Dependencies**: RQ-TRC-009, RQ-TRC-016, RQ-TRC-058
+- **Amendment**: Amended by TASK-TRC-077 (owner request of 2026-10-29): the checks stand by risk level, the highest
+  first, then by title; at most three in a row, filling the width of the central area; the sidebar's checks under
+  Quality and the Overview's Quality card follow the same order, the latter as the checks' compact form without detail.
 
 ### RQ-TRC-063: No scrolling to see everything that matters
 - **Category**: Non-Functional

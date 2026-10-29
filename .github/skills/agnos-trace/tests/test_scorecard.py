@@ -159,16 +159,17 @@ const out = document.documentElement.dataset;
 agnosTrace.showView("quality");
 const cards = () => [...document.querySelectorAll("#quality-list .check-card")];
 const toggle = (card) => card.querySelector(".check-toggle");
+const covered = () => document.querySelector('#quality-list .check-card[data-check="covered"]');   // TASK-TRC-077: by name, whatever the order
 const open = () => cards().filter((c) => toggle(c).getAttribute("aria-expanded") === "true").map((c) => c.dataset.check);
 out.order = cards().map((c) => c.dataset.check).join(",");
 out.compact = open().join(",");
 out.compactHasFindings = String(cards().some((c) => c.querySelector(".finding")));
-toggle(cards()[0]).click();
+toggle(covered()).click();
 out.one = open().join(",");
-out.rule = cards()[0].querySelector(".check-detail .check-card-desc")?.textContent.slice(0, 20) || "";
-out.formula = cards()[0].querySelector(".check-formula")?.textContent || "";
-const finding = cards()[0].querySelector(".finding");
-out.findings = String(cards()[0].querySelectorAll(".finding").length);
+out.rule = covered().querySelector(".check-detail .check-card-desc")?.textContent.slice(0, 20) || "";
+out.formula = covered().querySelector(".check-formula")?.textContent || "";
+const finding = covered().querySelector(".finding");
+out.findings = String(covered().querySelectorAll(".finding").length);
 finding.click();
 out.selected = agnosTrace.state.selected;
 agnosTrace.showView("quality");
@@ -188,9 +189,10 @@ class CheckCardsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "page.html"
             generate(path)
+            data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
             found = dict(re.findall(r'data-(order|compact|compact-has-findings|one|rule|formula|findings|selected|all|none)="([^"]*)"',
                                     rendered_dom_after(path, CHECK_CARDS)))
-        self.assertEqual("covered,adr-rq,filled,tasked,task-rq,connected,defined,files-traced", found["order"])   # lowest first
+        self.assertEqual(",".join(c["key"] for c in by_risk(data)), found["order"])   # TASK-TRC-077: by risk, then title
         self.assertEqual("", found["compact"])                          # every check compact when the view opens
         self.assertEqual("false", found["compact-has-findings"])
         self.assertEqual("covered", found["one"])                       # the others stay compact
@@ -200,6 +202,51 @@ class CheckCardsTest(unittest.TestCase):
         self.assertEqual("RQ-DEM-003", found["selected"])               # a finding selects its element
         self.assertEqual("true", found["all"])
         self.assertEqual("", found["none"])
+
+
+def by_risk(data):
+    """TASK-TRC-077: the checks by risk weight, the highest first, then by title."""
+    quality = data["quality"]
+    return sorted(quality["checks"], key=lambda c: (-quality["risks"][c["risk"]], c["title"].lower()))
+
+
+CHECK_ORDER = """
+const out = document.documentElement.dataset;
+const titles = (selector) => [...document.querySelectorAll(selector)].map((n) => n.textContent.trim()).join("|");
+out.sidebar = titles("#quality-shortcuts li button > span:first-child");
+out.summary = [...document.querySelectorAll("#quality-summary [data-check]")].map((n) => n.dataset.check).join(",");
+out.summaryparts = String([...document.querySelectorAll("#quality-summary [data-check]")].every((n) =>
+  n.querySelector(".check-card-title") && n.querySelector(".check-risk") && n.querySelector(".check-score") && n.querySelector(".check-count")));
+out.summaryfold = String(document.querySelectorAll("#quality-summary .check-toggle, #quality-summary .check-chevron, #quality-summary .check-detail").length);
+agnosTrace.showView("quality");
+const cards = [...document.querySelectorAll("#quality-list .check-card")];
+const list = document.getElementById("quality-list").getBoundingClientRect();
+const rowTop = (i) => Math.round(cards[i].getBoundingClientRect().top);
+out.row = String(rowTop(0) === rowTop(1) && rowTop(1) === rowTop(2) && rowTop(3) > rowTop(2));
+out.filled = String(Math.abs(cards[2].getBoundingClientRect().right - list.right) <= 1 && Math.abs(cards[0].getBoundingClientRect().left - list.left) <= 1);
+agnosTrace.showView("overview");
+document.querySelector("#quality-summary [data-check]").click();
+out.summaryopen = agnosTrace.state.view + "@" + [...agnosTrace.state.openChecks].join(",");
+"""
+
+
+class CheckOrderTest(unittest.TestCase):
+    """TASK-TRC-077: RQ-TRC-062 amended, RQ-TRC-015 (DEC-TRC-034)."""
+
+    def test_RQ_TRC_062_given_the_checks_then_they_stand_by_risk_then_title_three_in_a_row_and_alike_everywhere(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
+            found = dict(re.findall(r'data-(sidebar|summary|summaryparts|summaryfold|row|filled|summaryopen)="([^"]*)"',
+                                    rendered_dom_after(path, CHECK_ORDER, "1440,900")))
+        ordered = by_risk(data)
+        self.assertEqual("|".join(c["title"] for c in ordered), found["sidebar"])
+        self.assertEqual(",".join(c["key"] for c in ordered), found["summary"])
+        self.assertEqual(("true", "0"), (found["summaryparts"], found["summaryfold"]))   # compact form, nothing to unfold
+        self.assertEqual(("true", "true"), (found["row"], found["filled"]))             # three in a row, the whole width
+        self.assertEqual(f"quality@{ordered[0]['key']}", found["summaryopen"])
 
 
 GRADES = "ABCDE"
