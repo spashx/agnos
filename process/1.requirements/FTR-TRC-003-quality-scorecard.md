@@ -134,6 +134,10 @@ configuring the checks per project.
 - **Acceptance Criteria**: Given a 1440 by 900 window and the fixture with the call graph, When the Quality view opens,
   Then the main area has no vertical scrollbar and the "Functions traced" check is visible.
 - **Dependencies**: RQ-TRC-060, RQ-TRC-061, RQ-TRC-062
+- **Amendment**: Amended by TASK-TRC-074 (owner review of 2026-10-29): the Quality view's central area scrolls, as the
+  Matrix and Delivery views do, and its charts keep their height (the radar at least `quality-radar-height`, the
+  feature areas a row's height per row) instead of being squeezed into the window; all the checks are reached by
+  scrolling that area.
 
 ### RQ-TRC-064: One score everywhere
 - **Category**: Functional

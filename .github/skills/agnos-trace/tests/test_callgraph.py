@@ -375,13 +375,27 @@ class FunctionPanelTest(unittest.TestCase):
                                             "s.dispatchEvent(new Event('input'));")
         self.assertRegex(dom, r'<li class="search-result t-FN"[^>]*>.*?net::Port::write')
 
-    def test_RQ_TRC_035_given_the_call_graph_when_the_page_opens_then_the_overview_and_gaps_show_it_uninflated(self):
+    def test_RQ_TRC_035_given_the_call_graph_when_the_page_opens_then_the_graph_view_and_gaps_show_it_uninflated(self):
+        """TASK-TRC-076: the card under the graph's frame, only while the implementation is drawn; none in the overview."""
+        import re
         data = json.loads(data_block(self.path))
         total = sum(len(c["findings"]) for c in data["quality"]["checks"] if c["risk"] != "informational")
-        dom = rendered_dom(self.path)
-        self.assertIn('<h2 class="card-title">Call graph</h2>', dom)
-        self.assertIn("8 call links", dom)
-        self.assertIn("Untraced functions", dom)
+        dom = rendered_dom_after(self.path, """
+const out = document.documentElement.dataset;
+out.cgoverview = String([...document.querySelectorAll("#view-overview .card-title")].some((t) => t.textContent === "Call graph"));
+agnosTrace.showView("graph");
+const card = document.getElementById("call-graph-card");
+out.cgoff = String(card.hidden);                                     // functions off at load
+document.getElementById("show-functions").click();
+out.cgon = String(!card.hidden && card.previousElementSibling.classList.contains("graph-frame"));
+out.cgtext = card.textContent;
+document.getElementById("show-functions").click();
+out.cgagain = String(card.hidden);
+""")
+        found = dict(re.findall(r'data-(cgoverview|cgoff|cgon|cgtext|cgagain)="([^"]*)"', dom))
+        self.assertEqual(("false", "true", "true", "true"), (found["cgoverview"], found["cgoff"], found["cgon"], found["cgagain"]))
+        for part in ("Call graph", "8 call links", "Ambiguous calls", "External calls", "Untraced functions"):
+            self.assertIn(part, found["cgtext"])
         self.assertIn(f'<span class="tab-count" id="quality-count">{total}</span>', dom)
 
 
@@ -821,17 +835,17 @@ class FunctionMatrixTest(unittest.TestCase):
         dom = rendered_dom(self.path, "#RQ-DEM-003")
         self.assertIn("Functions 0", dom)
 
-    def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_nine_checks_show_without_vertical_scroll(self):
+    def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_nine_checks_are_reached_by_scrolling(self):
         import re
         script = ("agnosTrace.showView('quality'); const view = document.getElementById('view-quality');"
                   "const cards = [...document.querySelectorAll('#quality-list .check-card')];"
                   "const last = cards.find((c) => c.dataset.check === 'functions-traced');"
                   "const d = document.documentElement.dataset; d.checks = String(cards.length);"
-                  "d.fits = String(view.scrollHeight <= view.clientHeight);"
-                  "d.visible = String(last.getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom);")
+                  "d.fits = getComputedStyle(view).overflowY; last.scrollIntoView();"   # TASK-TRC-074: the area scrolls
+                  "d.visible = String(last.getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom + 1);")
         dom = rendered_dom_after(self.path, script, "1440,900")
         found = dict(re.findall(r'data-(checks|fits|visible)="([^"]*)"', dom))
-        self.assertEqual({"checks": "9", "fits": "true", "visible": "true"}, found)
+        self.assertEqual({"checks": "9", "fits": "auto", "visible": "true"}, found)
 
     def test_RQ_TRC_041_given_a_page_without_call_graph_then_no_function_column_switch_or_count_appears(self):
         dom = rendered_dom_after(self.plain, "agnosTrace.showView('matrix'); agnosTrace.select('RQ-DEM-003');")

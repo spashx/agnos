@@ -325,7 +325,9 @@ out.areamax = String(opt.xAxis[0].max);                                 // share
 const end = opt.series.at(-1).label;
 out.arealabels = rows.map((_, i) => end.formatter({ dataIndex: i })).join(",");
 const css = getComputedStyle(document.documentElement);
-out.arearich = Object.entries(end.rich).map(([k, v]) => `${k}=${v.color === css.getPropertyValue(`--s-grade-${k.slice(1).toLowerCase()}`).trim()}`).join(",");
+out.arearich = Object.entries(end.rich).map(([k, v]) => `${k}=${v.backgroundColor === css.getPropertyValue(`--s-grade-${k.slice(1).toLowerCase()}`).trim()
+  && v.color === css.getPropertyValue(`--s-on-grade-${k.slice(1).toLowerCase()}`).trim()}`).join(",");
+out.areaevery = String(opt.yAxis[0].axisLabel.interval);
 out.areanamed = String(box.getAttribute("tabindex") === "0" && Boolean(box.getAttribute("aria-label")));
 box.focus();
 box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // the Total row
@@ -362,7 +364,7 @@ class ChartsTest(unittest.TestCase):
             path = Path(tmp) / "page.html"
             generate(path)
             data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
-            found = dict(re.findall(r'data-(arearows|areaparts|areacounts|areamax|arealabels|arearich|areanamed|areatip)="([^"]*)"',
+            found = dict(re.findall(r'data-(arearows|areaparts|areacounts|areamax|areaevery|arealabels|arearich|areanamed|areatip)="([^"]*)"',
                                     rendered_dom_after(path, AREAS)))
         quality = data["quality"]
         kinds = ("covered", "indirect", "uncovered")
@@ -373,15 +375,51 @@ class ChartsTest(unittest.TestCase):
         self.assertEqual("Covered,Indirect,Uncovered", found["areaparts"])     # in the coverage colours
         self.assertEqual(",".join([count(reqs), *(count([r for r in reqs if r["tri"] == t]) for t in tris)]),
                          found["areacounts"])
-        grade = lambda g, s: f"{{g{g}|{g} {s:.1f}}}"
+        grade = lambda g, s: f"{{g{g}|{g}}} {s:.1f}"                  # the grade chip, then the score
         self.assertEqual(",".join([grade(quality["grade"], quality["score"]),
                                    *(grade(quality["trigrams"][t]["grade"], quality["trigrams"][t]["score"]) for t in tris)]),
                          found["arealabels"])
         self.assertEqual("100", found["areamax"])
-        self.assertNotIn("false", found["arearich"])                     # each grade in its grade's colour
+        self.assertNotIn("false", found["arearich"])                     # each grade a chip in its grade's colour
+        self.assertEqual("0", found["areaevery"])                        # every trigram named
         self.assertEqual("true", found["areanamed"])
         for part in (tris[0], "requirements", "%", "grade"):
             self.assertIn(part, found["areatip"])                         # by the keyboard
+
+    def test_RQ_TRC_015_given_the_overview_then_the_feature_areas_chart_is_in_the_coverage_card_and_opens_the_matrix(self):
+        """TASK-TRC-075: the trigram table gone, the chart of the Quality view in its place, a row filtering the matrix."""
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
+            found = dict(re.findall(r'data-(ovtitles|ovsame|ovone|ovall)="([^"]*)"', rendered_dom_after(path, OVERVIEW_AREAS)))
+        reqs = [e for e in data["elements"] if e.get("type") == "RQ" and e.get("kind") == "element"]
+        first = next(t for t in data["quality"]["trigrams"] if any(r["tri"] == t for r in reqs))
+        every = {e["tri"] for e in data["elements"] if e.get("kind") == "element"}
+        self.assertNotIn("Coverage by trigram", found["ovtitles"])
+        self.assertEqual("true", found["ovsame"])                        # the same rows as the Quality view's
+        self.assertEqual(f"{first}@matrix", found["ovone"])
+        self.assertEqual(f"{len(every)}@matrix", found["ovall"])         # Total: every trigram
+
+
+OVERVIEW_AREAS = """
+const out = document.documentElement.dataset;
+const rowsOf = (box) => echarts.getInstanceByDom(box).getOption().yAxis[0].data.join(",");
+const card = document.getElementById("coverage-chart").closest(".card");
+const box = card.querySelector('[data-chart="areas"]');                    // TASK-TRC-075: in the coverage card
+out.ovtitles = [...document.querySelectorAll("#view-overview .card-title")].map((t) => t.textContent.trim()).join("|");
+out.ovsame = String(Boolean(box) && rowsOf(box) === rowsOf(document.querySelector('#quality-charts [data-chart="areas"]')));
+box.focus();
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // Total
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // the first trigram
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+out.ovone = [...agnosTrace.state.tris].join(",") + "@" + agnosTrace.state.view;
+agnosTrace.showView("overview");
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));       // back to Total
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+out.ovall = String(agnosTrace.state.tris.size) + "@" + agnosTrace.state.view;
+"""
 
 
 FIT_WINDOW = "1440,900"
@@ -395,6 +433,12 @@ out.fits = String(view.scrollHeight <= view.clientHeight);
 out.checks = String(cards.length);
 out.lastVisible = String(cards.at(-1).getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom);
 out.charts = String(document.querySelectorAll("#quality-charts svg").length);
+const least = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--c-quality-radar-height"));
+const radar = document.querySelector('#quality-charts [data-chart="radar"]');
+out.tall = String(radar.getBoundingClientRect().height >= least);        // TASK-TRC-074: never squeezed
+out.scrolls = getComputedStyle(view).overflowY;
+cards.at(-1).scrollIntoView();
+out.reached = String(cards.at(-1).getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom + 1);
 """
 FIT_AREAS = ("AAA", "BBB", "CCC", "DDD", "EEE")
 
@@ -428,18 +472,19 @@ class FitInWindowTest(unittest.TestCase):
                                        "--generated-at", "x"])
             self.assertEqual(0, code, error)
             dom = rendered_dom_after(page, FIT_SCRIPT, FIT_WINDOW)
-        return dict(re.findall(r'data-(sizes|fits|checks|last-visible|charts)="([^"]*)"', dom))
+        return dict(re.findall(r'data-(sizes|fits|checks|last-visible|charts|tall|scrolls|reached)="([^"]*)"', dom))
 
-    def test_RQ_TRC_063_given_the_fixture_in_a_1440_by_900_window_then_the_quality_view_has_no_vertical_scroll(self):
+    def test_RQ_TRC_063_given_the_fixture_in_a_1440_by_900_window_then_the_quality_view_scrolls_and_keeps_its_charts_tall(self):
         found = self.found(PROCESS, SOURCES)
         self.assertEqual("8", found["checks"])
-        self.assertEqual(("true", "true", "2"), (found["fits"], found["last-visible"], found["charts"]), found["sizes"])   # TASK-TRC-074
+        self.assertEqual(("true", "auto", "true", "2"), (found["tall"], found["scrolls"], found["reached"], found["charts"]),
+                         found["sizes"])                                # TASK-TRC-074: the area scrolls, charts not squeezed
 
-    def test_RQ_TRC_063_given_five_feature_areas_in_a_1440_by_900_window_then_the_quality_view_has_no_vertical_scroll(self):
+    def test_RQ_TRC_063_given_five_feature_areas_in_a_1440_by_900_window_then_the_quality_view_scrolls_and_keeps_its_charts_tall(self):
         with tempfile.TemporaryDirectory() as tmp:
             process, sources = five_area_process(Path(tmp))
             found = self.found(process, sources)
-        self.assertEqual(("true", "true"), (found["fits"], found["last-visible"]), found["sizes"])
+        self.assertEqual(("true", "auto", "true"), (found["tall"], found["scrolls"], found["reached"]), found["sizes"])
 
 
 if __name__ == "__main__":

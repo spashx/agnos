@@ -119,6 +119,7 @@
   const VALUE_SHOW_ENCLOSING = "show-enclosing";
   const VALUE_SHOW_FILES = "show-files";
   const VALUE_SHOW_FUNCTIONS = "show-functions";
+  const CALL_GRAPH_CARD = "call-graph-card";
   const VALUE_SHOW_HIERARCHY = "show-hierarchy";
   const VALUE_SOLID = "solid";
   const TAG_SPAN = "span";
@@ -128,7 +129,6 @@
   const STYLE_TEXT_VALIGN = "text-valign";
   const TAG_THEAD = "thead";
   const VALUE_TOGGLE = "toggle";
-  const VALUE_TRI_TABLE = "tri-table";
   const VALUE_TRUE = "true";
   const VALUE_WIDTH = "width";
   const STARTED = performance.now();
@@ -1281,6 +1281,8 @@
       choice.title = drawn ? DETAIL_HINT : DETAIL_OFF_HINT;
       const box = $(VALUE_SHOW_ENCLOSING);
       box.disabled = !drawn || detail === DETAIL.namespace;
+      const card = $(CALL_GRAPH_CARD);                                   // TASK-TRC-076: its counts, with the implementation
+      if (card) card.hidden = !drawn;
       box.closest(TAG_LABEL).classList.toggle("is-disabled", box.disabled);
     }
 
@@ -1393,13 +1395,17 @@
         el(TAG_SPAN, { class: "kpi-type-value", text: counts[t] }), el(TAG_SPAN, { class: "kpi-type-label", text: plural(t, counts[t]) }))));
     clear($("kpis")).append(coverageCard, typeTiles);
 
-    clear($("coverage-chart")).append(stackBar(c, total), el("div", { class: "coverage-legend" },
+    const coverage = $("coverage-chart");
+    clear(coverage).append(stackBar(c, total), el("div", { class: "coverage-legend" },
       ...Object.keys(COVERAGE).map((k) => richTip(el(TAG_BUTTON, { class: VALUE_COVERAGE_ITEM, type: TAG_BUTTON,
         on: { click: () => { setCoverageFilter(k); showView(VALUE_MATRIX); } } },
         el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL }, el(TAG_SPAN, { class: `legend-swatch stack-${k}` }), COVERAGE[k][0]),
         el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: `${c[k]}` }),
         el(TAG_SPAN, { class: VALUE_KPI_SUB, text: `${pct(c[k], total)} % of ${total}` })),
       () => { const tip = coverageTip(k, c[k], total); return { ...tip, lines: [...tip.lines, "Click to show them in the matrix"] }; }))));
+    const areas = el("div", { class: "quality-areas", "data-chart": "areas" });   // TASK-TRC-075: the coverage per trigram
+    coverage.append(areas);
+    drawAreas(areas, false);                                          // the coverage tiles above are its legend
 
     clear($("quality-summary")).append(el("div", { class: "check-rows" }, ...CHECKS.map((check) =>
       el(TAG_BUTTON, { class: "check-row", type: TAG_BUTTON, on: { click: () => openCheck(check.key) } },
@@ -1407,21 +1413,9 @@
         el(TAG_SPAN, { class: "check-row-hint", text: check.rule }),
         el(TAG_SPAN, { class: checkBadgeClass(check), text: check.findings.length })))));
 
-    const rows = trigrams.map((tri) => {
-      const list = requirements.filter((r) => r.tri === tri);
-      const tc = coverageCounts(list);
-      return el("tr", { title: `Show the requirements of ${tri} in the matrix`, on: { click: () => onlyTrigram(tri) } },
-        el("td", {}, el(TAG_SPAN, { class: "id", text: tri })),
-        el("td", { class: "num", text: list.length }), el("td", { class: "num", text: tc.covered }),
-        el("td", { class: "num", text: tc.indirect }), el("td", { class: "num", text: tc.uncovered }),
-        el("td", { class: "num", text: list.length ? `${pct(tc.covered, list.length)} %` : "—" }),
-        el("td", { class: "bar-cell" }, stackBar(tc, list.length)));
-    });
-    clear($(VALUE_TRI_TABLE)).append(el("table", { class: "simple" },
-      el(TAG_THEAD, {}, el("tr", {}, ...["Trigram", "Requirements", "Covered", "Indirect", "Uncovered", "Coverage", ""].map(
-        (h, i) => el("th", { class: i > 0 && i < 6 ? "num" : null, text: h })))),
-      el(TAG_TBODY, {}, rows)));
-    if (CALL_GRAPH) $(VALUE_TRI_TABLE).closest(".card").before(callGraphCard());
+    // TASK-TRC-076 (RQ-TRC-035): under the graph's frame, shown while the implementation is drawn
+    if (CALL_GRAPH) document.querySelector("#view-graph .graph-frame").after(callGraphCard());
+    graph.refresh();
   }
 
   // RQ-TRC-035: the call graph's counts; the untraced functions are an informational check, not counted among the findings.
@@ -1431,7 +1425,7 @@
       { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, on: onClick ? { click: onClick } : null },
       el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
       el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint })), () => ({ head: `${label}: ${value}`, lines: [hint] }));
-    return el(TAG_ARTICLE, { class: "card card-wide" },
+    return el(TAG_ARTICLE, { class: "card call-graph-card", id: CALL_GRAPH_CARD },
       el(TAG_HEADER, { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
         el(TAG_SPAN, { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
       el("div", { class: "coverage-legend call-graph-legend" },
@@ -1483,8 +1477,8 @@
 
   function filtersChanged() { renderMatrix(); graph.refresh(); }
 
-  function onlyTrigram(tri) {
-    state.tris = new Set([tri]);
+  function onlyTrigram(tri) {                                          // null: every trigram (TASK-TRC-075)
+    state.tris = new Set(tri === null ? trigrams : [tri]);
     renderFilters();
     filtersChanged();
     showView(VALUE_MATRIX);
@@ -2105,6 +2099,7 @@
   // colours (the counts in the tooltip), its grade and score at the row's end in its grade's colour; a row per trigram's height.
   // A trigram without requirement has no row: the report card lists it with its grade.
   const AREA_TOTAL = "Total";
+  const AREA_BAR_GAP = "40%";                                        // the room between two rows' bars
   const COVERAGE_COLOUR = { covered: "--s-status-ok", indirect: "--s-status-warn", uncovered: "--s-status-error" };
 
   function areaRows() {
@@ -2114,12 +2109,15 @@
         findings: t.checks.reduce((sum, c) => sum + c.findings, 0), counts: counts(requirements.filter((r) => r.tri === tri)) }))];
   }
 
-  function areasOption(theme) {
+  function areasOption(theme, legend = true) {
     const rows = areaRows();
     const kinds = Object.keys(COVERAGE);
-    const end = (row) => (row.grade ? `{g${row.grade}|${row.grade} ${scoreOut(row.score)}}` : `– ${scoreOut(row.score)}`);
+    // the grade as the page's grade chip (its letter on its colour), then the score in the text colour
+    const end = (row) => (row.grade ? `{g${row.grade}|${row.grade}} ${scoreOut(row.score)}` : `– ${scoreOut(row.score)}`);
     const rich = Object.fromEntries([...new Set(rows.map((r) => r.grade).filter(Boolean))].map((g) => [`g${g}`,
-      { ...theme.caption, color: cssValue(`--s-grade-${g.toLowerCase()}`), fontWeight: cssValue(CSS_VAR_S_WEIGHT_STRONG) }]));
+      { ...theme.caption, color: cssValue(`--s-on-grade-${g.toLowerCase()}`), backgroundColor: cssValue(`--s-grade-${g.toLowerCase()}`),
+        borderRadius: cssSize("--s-radius-sm"), padding: [cssSize("--s-space-hair"), cssSize("--s-space-xs")],
+        fontWeight: cssValue(CSS_VAR_S_WEIGHT_STRONG) }]));
     const totalOf = (row) => kinds.reduce((sum, k) => sum + row.counts[k], 0);
     const share = (row, k) => (totalOf(row) ? (PERCENT * row.counts[k]) / totalOf(row) : 0);
     const tip = (params) => {
@@ -2130,27 +2128,33 @@
         ...(row.findings === undefined ? [] : [findingCount(row.findings)])]);
     };
     return {
-      legend: { data: kinds.map((k) => COVERAGE[k][0]), top: 0 },
+      legend: { show: legend, data: kinds.map((k) => COVERAGE[k][0]), top: 0 },
       // the room on the right holds the longest end label, "A 10.0", which containLabel does not count
-      grid: { containLabel: true, left: 0, right: legendRoom() + chartMargin(), top: legendRoom(), bottom: 0 },
+      grid: { containLabel: true, left: 0, right: legendRoom() + chartMargin(), top: legend ? legendRoom() : chartMargin(), bottom: 0 },
       tooltip: { trigger: TRIGGER_AXIS, axisPointer: { type: "shadow" }, formatter: tip },
       xAxis: { type: AXIS_VALUE, max: PERCENT, axisLabel: { ...theme.caption, formatter: "{value} %" } },
-      yAxis: { type: AXIS_CATEGORY, data: rows.map((r) => r.name), inverse: true, axisLabel: theme.caption },
-      series: kinds.map((k, i) => ({ type: SERIES_BAR, name: COVERAGE[k][0], stack: "coverage",
+      yAxis: { type: AXIS_CATEGORY, data: rows.map((r) => r.name), inverse: true,
+        axisLabel: { ...theme.caption, color: theme.colour.text, interval: 0 } },   // every trigram named
+      series: kinds.map((k, i) => ({ type: SERIES_BAR, name: COVERAGE[k][0], stack: "coverage", barCategoryGap: AREA_BAR_GAP,
         itemStyle: { color: cssValue(COVERAGE_COLOUR[k]) },
-        label: { show: i === kinds.length - 1, position: "right", ...theme.caption, rich,
+        label: { show: i === kinds.length - 1, position: "right", ...theme.caption, color: theme.colour.text, rich,
           formatter: ({ dataIndex }) => end(rows[dataIndex]) },
         data: rows.map((r) => ({ value: share(r, k), count: r.counts[k] })) })),
     };
   }
 
-  function drawAreas(box) {
+  function drawAreas(box, legend = true) {
     const rows = areaRows();
     box.style.setProperty("--rows", String(rows.length));
-    libraryChart(box, areasOption, {
+    libraryChart(box, (theme) => areasOption(theme, legend), {
       label: "Feature areas",
       description: `The requirements of the project (Total) and of each feature area, covered, indirect or uncovered, with each one's grade and score out of ${SCORE_MAX}.`,
       items: rows.map((_, i) => ({ seriesIndex: 0, dataIndex: i })),
+      // TASK-TRC-075 (RQ-TRC-015): a trigram's row shows the matrix filtered on it, the Total row with every trigram
+      onActivate: (item) => {
+        const row = rows[item.dataIndex];
+        if (row) onlyTrigram(row.name === AREA_TOTAL ? null : row.name);
+      },
     });
   }
 

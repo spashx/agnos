@@ -680,6 +680,7 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 /* ---- quality view --------------------------------------------------------------------------------------------- */
 .quality { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--c-check-card-min-width), 1fr)); gap: var(--s-space-md); align-items: start; }
 #view-quality:not([hidden]) { display: flex; flex-direction: column; gap: var(--s-space-md); padding: var(--s-space-lg); }
+#view-quality > * { flex-shrink: 0; }                    /* RQ-TRC-063 (TASK-TRC-074): the view scrolls, its cards keep their height */
 .check-card { scroll-margin-top: var(--s-space-lg); padding: var(--s-space-sm) var(--s-space-md); }
 .check-card.is-open { grid-column: 1 / -1; }
 .check-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-space-xs) var(--s-space-sm); align-items: center; }

@@ -195,6 +195,8 @@ ADR-TRC-003).
 - **Acceptance Criteria**: Given 10 requirements of which 7 are covered, When the page opens, Then the overview shows 70 %
   covered.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-008, RQ-TRC-009
+- **Amendment**: Amended by TASK-TRC-075 (owner review of 2026-10-29): the coverage per trigram is the feature-areas
+  chart of RQ-TRC-061, inside the requirement coverage card, a row's click showing the matrix filtered on its trigram.
 
 ### RQ-TRC-016: Deep links and history
 - **Category**: Functional

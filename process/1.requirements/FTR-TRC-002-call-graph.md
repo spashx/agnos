@@ -137,6 +137,8 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Acceptance Criteria**: Given the fixture, When the page opens, Then the overview gives its function and call counts and
   the check "Functions traced" holds its untraced functions without changing the Quality tab's count.
 - **Dependencies**: RQ-TRC-009, RQ-TRC-015
+- **Amendment**: Amended by TASK-TRC-076 (owner review of 2026-10-29): the counts are shown under the graph's frame,
+  only while the implementation is drawn (RQ-TRC-048), and no longer in the overview.
 
 ### RQ-TRC-041: Functions in the matrix, the graph toolbar and every requirement's panel
 - **Category**: Functional
