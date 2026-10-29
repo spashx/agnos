@@ -105,3 +105,20 @@ This plan implements the tasks in the format specified below.
 - **Verification**: Test first, failing ('1 janv. 2026, 01:00' != '2026-01-01T00:00Z'), then OK; test_trace_matrix and
   test_literals OK. Whole suite OK before the commit.
 - **Assumptions**: the reader's locale and time zone are the browser's.
+
+### TASK-TRC-080: Every column of the Delivery tasks table resizable
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner request of 2026-10-30: the columns of "Tasks delivered in A and B" are resized as the matrix's
+  (a grip at each header's right edge, by drag or the arrow keys, a double-click to reset, the widths kept); the
+  matrix's column-width code becomes one sizer per table, each table keeping its own widths.
+- **Requirement refs**: RQ-TRC-079, RQ-TRC-043
+- **ADR refs**: ADR-TRC-009 (DEC-TRC-039); ADR-TRC-003 (DEC-TRC-012); ADR-TRC-002 (design system)
+- **Acceptance Criteria**: Given the Delivery tab, Then every header of the tasks table has a grip; When the first
+  column's grip is moved three steps by the keyboard, Then that column widens by three steps, the next keeps its width
+  and the table is not sorted; When the grip is double-clicked, Then the widths are as drawn.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: Test first, failing (no grip), then OK; the matrix's resize test and the delivery, call-graph and
+  literals tests OK (99). Whole suite OK before the commit.
+- **Assumptions**: the Delivery table's widths are kept apart from the matrix's (`agnos-trace-delivery-columns`).

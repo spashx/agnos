@@ -452,6 +452,28 @@ out.why = aside.length ? aside[0].textContent : "";
         self.assertEqual("TASK-DEM-105:created-done", got["aside"])
         self.assertIn("Done from its creation", got["why"])
 
+    def test_RQ_TRC_079_given_a_column_grip_then_its_column_widens_alone_without_sorting_and_a_double_click_resets(self):
+        """TASK-TRC-080: every column of the table resizable, as in the matrix (RQ-TRC-043)."""
+        got = self.run_script("""
+const heads = () => [...document.querySelectorAll("#delivery-table thead th")];
+out.grips = String(heads().every((th) => th.querySelector(".col-grip")));
+out.before = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+const grip = heads()[0].querySelector(".col-grip");
+for (let i = 0; i < 3; i += 1) grip.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+grip.click();
+out.after = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+out.unsorted = heads()[0].getAttribute("aria-sort");
+heads()[0].querySelector(".col-grip").dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+out.reset = heads().slice(0, 2).map((th) => th.offsetWidth).join(",");
+""", "grips", "before", "after", "unsorted", "reset")
+        step = int(tm.load_tokens(tm.TOKENS_PATH)["global"]["space.16"].removesuffix("px"))   # --c-splitter-step
+        before = [int(w) for w in got["before"].split(",")]
+        after = [int(w) for w in got["after"].split(",")]
+        self.assertEqual("true", got["grips"])
+        self.assertEqual((before[0] + 3 * step, before[1]), (after[0], after[1]))
+        self.assertEqual("none", got["unsorted"])                       # a grip never sorts
+        self.assertEqual(got["before"], got["reset"])
+
     def test_RQ_TRC_077_given_a_header_then_a_click_sorts_and_a_second_reverses(self):
         got = self.run_script("""
 const header = document.querySelector('#delivery-table th[data-sort="points"]');

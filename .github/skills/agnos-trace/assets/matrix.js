@@ -1764,7 +1764,7 @@
   function resetColumns() {
     columnOrder.splice(0, columnOrder.length, ...DEFAULT_COLUMN_ORDER);
     saveColumnOrder();
-    resetColumnWidths();
+    matrixColumns.reset();
     renderMatrix();
   }
 
@@ -1810,7 +1810,7 @@
         class: `sortable ${c.num ? "num" : ""}`, scope: "col", "aria-sort": ariaSort(c.key), "data-column": c.key,
         draggable: VALUE_TRUE, tabindex: "0", title: `${c.hint} · click to sort · drag, or Alt+arrow, to move`,
         on: { click: () => { state.sort = { column: c.key, dir: state.sort.column === c.key ? -state.sort.dir : 1 }; renderMatrix(); } } },
-      c.label, columnGrip(c));
+      c.label, matrixColumns.grip(c.key, c.label));
       columnHeaderMoves(th, c.key);
       return th;
     }));
@@ -1818,94 +1818,100 @@
       on: { click: () => select(r.id) } }, ...ordered.map((c) => c.cell(r))));
     $(VALUE_MATRIX_TABLE).classList.toggle("with-functions", Boolean(CALL_GRAPH));
     clear($(VALUE_MATRIX_TABLE)).append(el(TAG_THEAD, {}, head), el(TAG_TBODY, {}, body));
-    applyColumnWidths();
+    matrixColumns.apply();
     $("matrix-status").textContent = `${rows.length} of ${matrixRows.length} requirements`;
   }
 
   // ---- column widths (TASK-TRC-018: RQ-TRC-043; DEC-TRC-012) ---------------------------------------------------
   // The first resize freezes every column at its drawn width, so that one column grows or shrinks and the others stay;
-  // the table is then as wide as its columns and the frame scrolls (RQ-TRC-042).
+  // the table is then as wide as its columns and the frame scrolls (RQ-TRC-042). TASK-TRC-080: one sizer per table
+  // (the matrix, the Delivery tasks), each keeping its own widths.
   const COLUMNS_KEY = "agnos-trace-columns";
-  const columnWidths = loadColumnWidths();
   const cssNumber = (name) => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-  const headers = () => [...$(VALUE_MATRIX_TABLE).querySelectorAll("th[data-column]")];
 
-  function applyColumnWidths() {
-    const table = $(VALUE_MATRIX_TABLE);
-    const custom = Object.keys(columnWidths).length > 0;
-    for (const th of headers()) {
-      if (!custom) {
-        th.style.removeProperty(VALUE_WIDTH);
-        continue;
+  function columnSizer(tableOf, storageKey) {
+    const widths = (() => {
+      try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch (error) { return {}; }   // no storage
+    })();
+    const headers = () => [...tableOf().querySelectorAll("th[data-column]")];
+
+    function apply() {
+      const table = tableOf();
+      const custom = Object.keys(widths).length > 0;
+      for (const th of headers()) {
+        if (!custom) {
+          th.style.removeProperty(VALUE_WIDTH);
+          continue;
+        }
+        widths[th.dataset.column] ??= th.offsetWidth;               // a column not kept yet: as drawn
+        th.style.width = `${widths[th.dataset.column]}px`;
       }
-      columnWidths[th.dataset.column] ??= th.offsetWidth;         // a column not kept yet: as drawn
-      th.style.width = `${columnWidths[th.dataset.column]}px`;
+      if (custom) {
+        table.style.width = `${headers().reduce((sum, th) => sum + (widths[th.dataset.column] || 0), 0)}px`;
+        table.style.minWidth = "auto";
+      } else {
+        table.style.removeProperty(VALUE_WIDTH);
+        table.style.removeProperty("min-width");
+      }
     }
-    if (custom) {
-      table.style.width = `${headers().reduce((sum, th) => sum + (columnWidths[th.dataset.column] || 0), 0)}px`;
-      table.style.minWidth = "auto";
-    } else {
-      table.style.removeProperty(VALUE_WIDTH);
-      table.style.removeProperty("min-width");
+
+    function save() {
+      try { localStorage.setItem(storageKey, JSON.stringify(widths)); } catch (error) { /* the widths last this visit */ }
     }
-  }
 
-  function loadColumnWidths() {
-    try { return JSON.parse(localStorage.getItem(COLUMNS_KEY) || "{}"); } catch (error) { return {}; }   // no storage
-  }
+    function set(key, width) {
+      if (!Object.keys(widths).length) for (const th of headers()) widths[th.dataset.column] = th.offsetWidth;
+      widths[key] = Math.round(Math.max(cssNumber("--c-column-min-width"), width));
+      apply();
+      save();
+    }
 
-  function saveColumnWidths() {
-    try { localStorage.setItem(COLUMNS_KEY, JSON.stringify(columnWidths)); } catch (error) { /* the widths last this visit */ }
-  }
+    function reset() {
+      for (const key of Object.keys(widths)) delete widths[key];
+      apply();
+      save();
+    }
 
-  function setColumnWidth(key, width) {
-    if (!Object.keys(columnWidths).length) for (const th of headers()) columnWidths[th.dataset.column] = th.offsetWidth;
-    columnWidths[key] = Math.round(Math.max(cssNumber("--c-column-min-width"), width));
-    applyColumnWidths();
-    saveColumnWidths();
-  }
-
-  function resetColumnWidths() {
-    for (const key of Object.keys(columnWidths)) delete columnWidths[key];
-    applyColumnWidths();
-    saveColumnWidths();
-  }
-
-  function dragColumn(key, grip, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    grip.setPointerCapture(event.pointerId);
-    resizingColumn = true;
-    const start = event.clientX;
-    const width = grip.parentElement.offsetWidth;
-    const move = (e) => setColumnWidth(key, width + e.clientX - start);
-    const end = () => {
-      resizingColumn = false;
-      grip.removeEventListener(EVENT_POINTERMOVE, move);
-      grip.removeEventListener(EVENT_POINTERUP, end);
-      grip.removeEventListener(EVENT_POINTERCANCEL, end);
-    };
-    grip.addEventListener(EVENT_POINTERMOVE, move);
-    grip.addEventListener(EVENT_POINTERUP, end);
-    grip.addEventListener(EVENT_POINTERCANCEL, end);
-  }
-
-  function columnGrip(c) {
-    const grip = el(TAG_SPAN, { class: "col-grip", role: "separator", tabindex: "0", "aria-orientation": "vertical",
-      [VALUE_ARIA_LABEL]: `Resize the ${c.label} column`, title: "Drag, or use the arrow keys, to resize · double-click to reset" });
-    grip.addEventListener(EVENT_CLICK, (event) => event.stopPropagation());          // a grip never sorts
-    grip.addEventListener("dblclick", (event) => { event.stopPropagation(); resetColumnWidths(); });
-    grip.addEventListener("pointerdown", (event) => dragColumn(c.key, grip, event));
-    grip.addEventListener("mousedown", (event) => event.preventDefault());       // the grip resizes, it never drags the header
-    grip.addEventListener(EVENT_KEYDOWN, (event) => {
-      if (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT) return;
+    function drag(key, grip, event) {
       event.preventDefault();
       event.stopPropagation();
-      const step = cssNumber("--c-splitter-step");
-      setColumnWidth(c.key, grip.parentElement.offsetWidth + (event.key === KEY_ARROWRIGHT ? step : -step));
-    });
-    return grip;
+      grip.setPointerCapture(event.pointerId);
+      resizingColumn = true;
+      const start = event.clientX;
+      const width = grip.parentElement.offsetWidth;
+      const move = (e) => set(key, width + e.clientX - start);
+      const end = () => {
+        resizingColumn = false;
+        grip.removeEventListener(EVENT_POINTERMOVE, move);
+        grip.removeEventListener(EVENT_POINTERUP, end);
+        grip.removeEventListener(EVENT_POINTERCANCEL, end);
+      };
+      grip.addEventListener(EVENT_POINTERMOVE, move);
+      grip.addEventListener(EVENT_POINTERUP, end);
+      grip.addEventListener(EVENT_POINTERCANCEL, end);
+    }
+
+    function grip(key, label) {
+      const node = el(TAG_SPAN, { class: "col-grip", role: "separator", tabindex: "0", "aria-orientation": "vertical",
+        [VALUE_ARIA_LABEL]: `Resize the ${label} column`, title: "Drag, or use the arrow keys, to resize · double-click to reset" });
+      node.addEventListener(EVENT_CLICK, (event) => event.stopPropagation());          // a grip never sorts
+      node.addEventListener("dblclick", (event) => { event.stopPropagation(); reset(); });
+      node.addEventListener("pointerdown", (event) => drag(key, node, event));
+      node.addEventListener("mousedown", (event) => event.preventDefault());       // the grip resizes, it never drags the header
+      node.addEventListener(EVENT_KEYDOWN, (event) => {
+        if (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const step = cssNumber("--c-splitter-step");
+        set(key, node.parentElement.offsetWidth + (event.key === KEY_ARROWRIGHT ? step : -step));
+      });
+      return node;
+    }
+
+    return { apply, reset, grip };
   }
+
+  const matrixColumns = columnSizer(() => $(VALUE_MATRIX_TABLE), COLUMNS_KEY);
 
   function ariaSort(columnKey) {
     if (state.sort.column !== columnKey) return null;
@@ -3887,12 +3893,16 @@
     if (event.key === KEY_ENTER || event.key === " ") { event.preventDefault(); select(id); }
   };
 
+  const DELIVERY_TABLE = "delivery-tasks";
+  const deliveryColumns = columnSizer(() => $(DELIVERY_TABLE), "agnos-trace-delivery-columns");
+
   function renderDeliveryTable() {
     const { kept, aside } = deliveryTableRows();
     const shown = DELIVERY_COLUMNS.filter((c) => c[3]);
-    const head = el(TAG_THEAD, {}, el("tr", {}, ...shown.map(([key, label]) => el("th", { scope: "col", "data-sort": key, tabindex: "0",
+    const head = el(TAG_THEAD, {}, el("tr", {}, ...shown.map(([key, label]) => el("th", { scope: "col", "data-sort": key, "data-column": key, tabindex: "0",
       "aria-sort": dlv.sort.key === key ? dlv.sort.direction : VALUE_NONE, title: `Sort by ${label.toLowerCase()}; again to reverse`,
-      on: { [EVENT_CLICK]: () => sortBy(key), [EVENT_KEYDOWN]: (event) => { if (event.key === KEY_ENTER) sortBy(key); } } }, label))));
+      on: { [EVENT_CLICK]: () => sortBy(key), [EVENT_KEYDOWN]: (event) => { if (event.key === KEY_ENTER) sortBy(key); } } },
+    label, deliveryColumns.grip(key, label)))));                              // TASK-TRC-080: resizable, as in the matrix
     const rows = kept.map((r) => el("tr", { class: "delivery-row", "data-key": r.id, tabindex: "0",
       [VALUE_ARIA_LABEL]: `${r.id}, ${r.title}: delivered on ${r.day} by ${deliverers(r)}`,
       on: { [EVENT_CLICK]: () => select(r.id), [EVENT_KEYDOWN]: selectOnKey(r.id) } },
@@ -3907,8 +3917,9 @@
         el(TAG_SPAN, { class: "graph-status", text: `${taskCount(kept.length)} kept by the filters` }), el(TAG_SPAN, { class: "toolbar-spacer" }),
         el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, id: "delivery-export", text: "Export CSV",
           title: "Download the tasks shown as a CSV file (UTF-8, comma-separated)", on: { [EVENT_CLICK]: exportDeliveryCsv } })),
-      el("div", { class: "table-frame" }, el("table", { class: "matrix delivery-tasks" }, head, el(TAG_TBODY, {}, ...rows),
+      el("div", { class: "table-frame" }, el("table", { class: "matrix delivery-tasks", id: DELIVERY_TABLE }, head, el(TAG_TBODY, {}, ...rows),
         el(TAG_TBODY, { class: "delivery-aside-body" }, ...asideRows))));
+    deliveryColumns.apply();
   }
 
   // RQ-TRC-077: the detail panel states a task's delivery, or why the Delivery tab sets it aside.
