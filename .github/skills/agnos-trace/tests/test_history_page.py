@@ -469,9 +469,9 @@ out.titles = titledAncestors(mark);
         got = self.run_script("""
 agnosTrace.showView("quality");
 const charts = [...document.querySelectorAll("#quality-charts svg[role=img]")];
-const radar = document.querySelector('#quality-charts [data-chart="radar"]');      // TASK-TRC-067: by ECharts (RQ-TRC-087)
-out.named = String(charts.length === 2 && charts.every((c) => c.getAttribute("aria-label") && c.querySelector("desc")
-  && !c.querySelector(":scope > title")) && Boolean(radar.getAttribute("aria-label") && radar.getAttribute("aria-description")));
+const boxes = [...document.querySelectorAll('#quality-charts [data-chart]')];      // TASK-TRC-074: radar and areas, by ECharts
+out.named = String(charts.length === 0 && boxes.length === 2
+  && boxes.every((b) => b.getAttribute("aria-label") && b.getAttribute("aria-description")));
 """, "named")
         self.assertEqual("true", got["named"])
 

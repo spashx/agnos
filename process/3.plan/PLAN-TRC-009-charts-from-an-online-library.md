@@ -200,25 +200,28 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-074: Feature areas and coverage in one chart
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Owner review of 2026-10-29: replace the inline-SVG "Feature areas" bars and "Coverage" shares of the
   Quality view by one ECharts horizontal chart "Feature areas": a Total row first (today's Coverage), then one row per
-  trigram, each a stacked bar of covered, indirect and uncovered requirements in the coverage colours, with the grade and
-  score written at the row's end in the grade colour. Keyboard path and tooltip by `libraryChart`.
+  trigram that has requirements, the shares of its covered, indirect and uncovered requirements stacked to 100 % in the
+  coverage colours, with the grade and score written at the row's end in the grade colour. Keyboard path and tooltip by
+  `libraryChart`. Owner review on XS56K: the charts' grid has two columns, a row per trigram's height (token), the
+  radar takes the card's height, the shares in percent, the end label's room, trigrams without requirement hidden.
 - **Requirement refs**: RQ-TRC-061 (amended), RQ-TRC-065, RQ-TRC-087, RQ-TRC-063
 - **ADR refs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-008 (DEC-TRC-035, amended); ADR-TRC-002 (design system)
 - **Acceptance Criteria**: Given the fixture, When the Quality view opens, Then it holds the radar and one "Feature
   areas" chart, and no "Coverage" chart; Then its first row is Total and the next rows are the trigrams, in order;
   Then each row's covered, indirect and uncovered counts equal the requirements of its trigram (the Total's equal
-  today's coverage shares); Then each row's end label is the trigram's grade and score in its grade colour; When a
+  today's coverage shares), stacked to 100 %; Then each row's end label is the trigram's grade and score in its grade colour; When a
   row is focused by the arrow keys, Then its tooltip gives the counts, shares and grade; Given 1440 by 900, Then the
   Quality view has no vertical scroll; Then no raw colour, size or duration is in the code (tokens only).
 - **Dependencies**: TASK-TRC-073
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: the Total row carries the overall grade and score of the report card; a trigram with no requirement
-  shows an empty bar and its grade; the colours are the existing coverage and grade tokens, no new token is needed
-  except the chart's height if the fit test asks for one.
+- **Verification**: Tests first, failing (`svgs` 2 != 0), then OK: rows Total + trigrams, counts per row, max 100,
+  end labels `{gA|A 9.6}` in their grade colour, keyboard tip; RQ-HST-016 named charts OK; fit 1440×900 OK for the
+  fixture and five areas (2 charts). Whole suite 300 OK, 3 skipped; `node --check` OK. Visual check by the owner on XS56K.
+- **Assumptions**: the Total row carries the overall grade and score of the report card; the colours are the existing
+  coverage and grade tokens, one row-height token added (`quality-area-row-height`, 18 px).
 
 ### TASK-TRC-068: Grouped marks in the History timeline
 - **Tier**: M

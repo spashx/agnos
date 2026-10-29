@@ -291,7 +291,7 @@ class ReportCardTest(unittest.TestCase):
 CHARTS = """
 const out = document.documentElement.dataset;
 agnosTrace.showView("quality");
-const charts = [...document.querySelectorAll("#quality-charts svg[role=img]")];        // the bars and shares, inline SVG
+const charts = [...document.querySelectorAll("#quality-charts svg[role=img]")];        // TASK-TRC-074: none left inline
 out.svgs = String(charts.length);
 out.named = String(charts.every((c) => c.getAttribute("aria-label")?.trim()   // DEC-HST-007: no SVG title
   && c.querySelector("desc")?.textContent.trim()));
@@ -299,8 +299,6 @@ const box = document.querySelector('#quality-charts [data-chart="radar"]');   //
 const radar = echarts.getInstanceByDom(box).getOption().radar[0];
 out.points = radar.indicator.map((i) => i.check).join(",");
 out.focusable = String(box.getAttribute("tabindex") === "0" && Boolean(box.getAttribute("aria-label")));
-out.bars = String(document.querySelectorAll("#quality-charts .area-bar").length);
-out.shares = String(document.querySelectorAll("#quality-charts .share-part").length);
 const r = box.getBoundingClientRect();                              // TASK-TRC-073: the pointer above the centre, before Enter scrolls
 box.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 6 }));
 out.hovered = agnosTrace.radarPointed();                           // first axis: requirements covered
@@ -314,6 +312,27 @@ box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
 out.opened = [...agnosTrace.state.openChecks].join(",");
 """
 
+AREAS = """
+const out = document.documentElement.dataset;
+agnosTrace.showView("quality");
+const box = document.querySelector('#quality-charts [data-chart="areas"]');   // TASK-TRC-074: one chart, by ECharts
+const opt = echarts.getInstanceByDom(box).getOption();
+const rows = opt.yAxis[0].data;
+out.arearows = rows.join(",");
+out.areaparts = opt.series.map((s) => s.name).join(",");
+out.areacounts = rows.map((_, i) => opt.series.map((s) => s.data[i].count).join("/")).join(",");
+out.areamax = String(opt.xAxis[0].max);                                 // shares stacked to 100 %
+const end = opt.series.at(-1).label;
+out.arealabels = rows.map((_, i) => end.formatter({ dataIndex: i })).join(",");
+const css = getComputedStyle(document.documentElement);
+out.arearich = Object.entries(end.rich).map(([k, v]) => `${k}=${v.color === css.getPropertyValue(`--s-grade-${k.slice(1).toLowerCase()}`).trim()}`).join(",");
+out.areanamed = String(box.getAttribute("tabindex") === "0" && Boolean(box.getAttribute("aria-label")));
+box.focus();
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // the Total row
+box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));      // the first trigram
+out.areatip = box.textContent;
+"""
+
 
 @unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
 class ChartsTest(unittest.TestCase):
@@ -324,19 +343,45 @@ class ChartsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "page.html"
             generate(path)
-            found = dict(re.findall(r'data-(svgs|named|points|focusable|bars|shares|tip|focus-tip|opened|hovered)="([^"]*)"',
+            found = dict(re.findall(r'data-(svgs|named|points|focusable|tip|focus-tip|opened|hovered)="([^"]*)"',
                                     rendered_dom_after(path, CHARTS)))
-        self.assertEqual("2", found["svgs"])                            # trigram bars, coverage; the radar by ECharts
+        self.assertEqual("0", found["svgs"])                            # TASK-TRC-074: every chart by ECharts
         self.assertEqual("true", found["named"])                        # a title and a description each (RQ-TRC-065)
         self.assertEqual("covered,defined,tasked,task-rq,adr-rq,filled,connected,files-traced", found["points"])
         self.assertEqual("true", found["focusable"])
-        self.assertEqual("1", found["bars"])                            # the fixture has one trigram
-        self.assertEqual("3", found["shares"])                          # covered, indirect, uncovered
         for part in ("Requirements covered", "score 4.0", "population 5", "3 findings"):
             self.assertIn(part, found["tip"])                           # RQ-TRC-084, RQ-TRC-087: by the keyboard
         self.assertIn("IDs defined", found["focus-tip"])
         self.assertEqual("filled", found["opened"])                     # Enter opens its check
         self.assertEqual("covered", found["hovered"])                   # the pointer's tooltip is its axis's check
+
+    def test_RQ_TRC_061_given_the_quality_view_then_feature_areas_and_coverage_are_one_chart(self):
+        """TASK-TRC-074: a Total row then one per trigram, its coverage stacked, its grade and score at its end."""
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
+            found = dict(re.findall(r'data-(arearows|areaparts|areacounts|areamax|arealabels|arearich|areanamed|areatip)="([^"]*)"',
+                                    rendered_dom_after(path, AREAS)))
+        quality = data["quality"]
+        kinds = ("covered", "indirect", "uncovered")
+        reqs = [e for e in data["elements"] if e.get("type") == "RQ" and e.get("kind") == "element"]
+        tris = [t for t in quality["trigrams"] if any(r["tri"] == t for r in reqs)]   # a trigram without requirement: no row
+        count = lambda rows: "/".join(str(sum(data["coverage"][r["id"]] == k for r in rows)) for k in kinds)
+        self.assertEqual(",".join(["Total", *tris]), found["arearows"])
+        self.assertEqual("Covered,Indirect,Uncovered", found["areaparts"])     # in the coverage colours
+        self.assertEqual(",".join([count(reqs), *(count([r for r in reqs if r["tri"] == t]) for t in tris)]),
+                         found["areacounts"])
+        grade = lambda g, s: f"{{g{g}|{g} {s:.1f}}}"
+        self.assertEqual(",".join([grade(quality["grade"], quality["score"]),
+                                   *(grade(quality["trigrams"][t]["grade"], quality["trigrams"][t]["score"]) for t in tris)]),
+                         found["arealabels"])
+        self.assertEqual("100", found["areamax"])
+        self.assertNotIn("false", found["arearich"])                     # each grade in its grade's colour
+        self.assertEqual("true", found["areanamed"])
+        for part in (tris[0], "requirements", "%", "grade"):
+            self.assertIn(part, found["areatip"])                         # by the keyboard
 
 
 FIT_WINDOW = "1440,900"
@@ -388,7 +433,7 @@ class FitInWindowTest(unittest.TestCase):
     def test_RQ_TRC_063_given_the_fixture_in_a_1440_by_900_window_then_the_quality_view_has_no_vertical_scroll(self):
         found = self.found(PROCESS, SOURCES)
         self.assertEqual("8", found["checks"])
-        self.assertEqual(("true", "true", "3"), (found["fits"], found["last-visible"], found["charts"]), found["sizes"])
+        self.assertEqual(("true", "true", "2"), (found["fits"], found["last-visible"], found["charts"]), found["sizes"])   # TASK-TRC-074
 
     def test_RQ_TRC_063_given_five_feature_areas_in_a_1440_by_900_window_then_the_quality_view_has_no_vertical_scroll(self):
         with tempfile.TemporaryDirectory() as tmp:

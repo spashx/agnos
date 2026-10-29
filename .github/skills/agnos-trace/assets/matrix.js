@@ -2017,11 +2017,8 @@
   }
 
   // ---- quality charts (TASK-TRC-050: RQ-TRC-061, RQ-TRC-065; DEC-TRC-035) -----------------------------------------
-  // Inline SVG drawn from the `quality` block, no library: bars per trigram, the coverage shares; the checks radar is ECharts' (TASK-TRC-067).
-  // Every chart has a title and a description; its items take the keyboard focus and raise the chart tooltip.
+  // Drawn by ECharts from the `quality` block: the checks radar (TASK-TRC-067), the feature areas (TASK-TRC-074).
   const SVG_NS = "http://www.w3.org/2000/svg";
-  const AREA = { width: 260, rowHeight: 26, barHeight: 14, labelWidth: 38, barWidth: 150, textGap: 6 };
-  const SHARE = { width: 260, height: 20, labelHeight: 22 };
   const HALF = 2;
 
   function svgEl(tag, attrs, ...children) {
@@ -2032,22 +2029,7 @@
     return node;
   }
 
-  function chartFrame(width, height, title, description, ...parts) {
-    return svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", class: "chart-svg", "aria-label": title },
-      svgEl("desc", {}, description), ...parts);           // DEC-HST-007: an SVG title would raise a second tooltip
-  }
 
-  // An item of a chart: focusable, with a text label for screen readers, its tooltip on hover and on focus.
-  function chartItem(node, label, lines, onActivate) {
-    node.setAttribute("tabindex", "0");
-    node.setAttribute("aria-label", label);
-    richTip(node, () => ({ head: lines[0], lines: lines.slice(1) }));
-    if (onActivate) {
-      node.addEventListener("click", onActivate);
-      node.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onActivate(); } });
-    }
-    return node;
-  }
 
 
   function checkTipLines(check) {
@@ -2118,53 +2100,68 @@
     });
   }
 
-  function areaBars() {
-    const rows = Object.entries(DATA.quality.trigrams);
-    const bar = ([tri, t], i) => {
-      const y = i * AREA.rowHeight;
-      const width = AREA.barWidth * ((t.score ?? 0) / SCORE_MAX);
-      const group = svgEl("g", { class: `area-bar grade-${t.grade || VALUE_NONE}`, "data-tri": tri },
-        svgEl("text", { class: "area-label", x: 0, y: y + AREA.barHeight, }, tri),
-        svgEl(SVG_RECT, { class: "area-track", x: AREA.labelWidth, y, width: AREA.barWidth, height: AREA.barHeight }),
-        svgEl(SVG_RECT, { class: "area-fill", x: AREA.labelWidth, y, width, height: AREA.barHeight }),
-        svgEl("text", { class: "area-value", x: AREA.labelWidth + AREA.barWidth + AREA.textGap, y: y + AREA.barHeight },
-          `${t.grade || "–"} ${scoreOut(t.score)}`));
-      return chartItem(group, `${tri}: grade ${t.grade}, score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
-        [tri, `grade ${t.grade || VALUE_NONE} · score ${scoreOut(t.score)} out of ${SCORE_MAX}`,
-          `${t.checks.reduce((sum, c) => sum + c.findings, 0)} findings in ${t.checks.length} checks`]);
-    };
-    return chartFrame(AREA.width, Math.max(rows.length, 1) * AREA.rowHeight, "Score by feature area",
-      `Overall score out of ${SCORE_MAX} of each feature area (trigram), with its grade.`, ...rows.map(bar));
+  // ---- feature areas (TASK-TRC-074: RQ-TRC-061 amended; DEC-TRC-035, DEC-TRC-043): one ECharts chart, a Total row then
+  // one row per trigram, the shares of its requirements covered, indirect and uncovered stacked to 100 % in the coverage
+  // colours (the counts in the tooltip), its grade and score at the row's end in its grade's colour; a row per trigram's height.
+  // A trigram without requirement has no row: the report card lists it with its grade.
+  const AREA_TOTAL = "Total";
+  const COVERAGE_COLOUR = { covered: "--s-status-ok", indirect: "--s-status-warn", uncovered: "--s-status-error" };
+
+  function areaRows() {
+    const counts = (list) => Object.fromEntries(Object.keys(COVERAGE).map((k) => [k, list.filter((r) => DATA.coverage[r.key] === k).length]));
+    return [{ name: AREA_TOTAL, grade: DATA.quality.grade, score: DATA.quality.score, counts: counts(requirements) },
+      ...Object.entries(DATA.quality.trigrams).filter(([tri]) => requirements.some((r) => r.tri === tri)).map(([tri, t]) => ({ name: tri, grade: t.grade, score: t.score,
+        findings: t.checks.reduce((sum, c) => sum + c.findings, 0), counts: counts(requirements.filter((r) => r.tri === tri)) }))];
   }
 
-  function coverageShares() {
-    const total = requirements.length;
-    const counts = { covered: 0, indirect: 0, uncovered: 0 };
-    for (const r of requirements) counts[DATA.coverage[r.key]] += 1;
-    let x = 0;
-    const parts = Object.keys(COVERAGE).map((k) => {
-      const width = total ? (SHARE.width * counts[k]) / total : 0;
-      const share = total ? Math.round((PERCENT * counts[k]) / total) : 0;
-      const rect = chartItem(svgEl(SVG_RECT, { class: `share-part share-${k}`, x, y: 0, width, height: SHARE.height }),
-        `${COVERAGE[k][0]}: ${counts[k]} of ${total} requirements`,
-        [COVERAGE[k][0], `${counts[k]} of ${total} requirements · ${share} %`, COVERAGE[k][1]]);
-      x += width;
-      return rect;
+  function areasOption(theme) {
+    const rows = areaRows();
+    const kinds = Object.keys(COVERAGE);
+    const end = (row) => (row.grade ? `{g${row.grade}|${row.grade} ${scoreOut(row.score)}}` : `– ${scoreOut(row.score)}`);
+    const rich = Object.fromEntries([...new Set(rows.map((r) => r.grade).filter(Boolean))].map((g) => [`g${g}`,
+      { ...theme.caption, color: cssValue(`--s-grade-${g.toLowerCase()}`), fontWeight: cssValue(CSS_VAR_S_WEIGHT_STRONG) }]));
+    const totalOf = (row) => kinds.reduce((sum, k) => sum + row.counts[k], 0);
+    const share = (row, k) => (totalOf(row) ? (PERCENT * row.counts[k]) / totalOf(row) : 0);
+    const tip = (params) => {
+      const row = rows[(Array.isArray(params) ? params[0] : params).dataIndex];
+      const total = totalOf(row);
+      return tipHtml([row.name, `grade ${row.grade || VALUE_NONE} · score ${scoreOut(row.score)} out of ${SCORE_MAX}`,
+        ...kinds.map((k) => `${COVERAGE[k][0]}: ${row.counts[k]} of ${total} requirements · ${Math.round(share(row, k))} %`),
+        ...(row.findings === undefined ? [] : [findingCount(row.findings)])]);
+    };
+    return {
+      legend: { data: kinds.map((k) => COVERAGE[k][0]), top: 0 },
+      // the room on the right holds the longest end label, "A 10.0", which containLabel does not count
+      grid: { containLabel: true, left: 0, right: legendRoom() + chartMargin(), top: legendRoom(), bottom: 0 },
+      tooltip: { trigger: TRIGGER_AXIS, axisPointer: { type: "shadow" }, formatter: tip },
+      xAxis: { type: AXIS_VALUE, max: PERCENT, axisLabel: { ...theme.caption, formatter: "{value} %" } },
+      yAxis: { type: AXIS_CATEGORY, data: rows.map((r) => r.name), inverse: true, axisLabel: theme.caption },
+      series: kinds.map((k, i) => ({ type: SERIES_BAR, name: COVERAGE[k][0], stack: "coverage",
+        itemStyle: { color: cssValue(COVERAGE_COLOUR[k]) },
+        label: { show: i === kinds.length - 1, position: "right", ...theme.caption, rich,
+          formatter: ({ dataIndex }) => end(rows[dataIndex]) },
+        data: rows.map((r) => ({ value: share(r, k), count: r.counts[k] })) })),
+    };
+  }
+
+  function drawAreas(box) {
+    const rows = areaRows();
+    box.style.setProperty("--rows", String(rows.length));
+    libraryChart(box, areasOption, {
+      label: "Feature areas",
+      description: `The requirements of the project (Total) and of each feature area, covered, indirect or uncovered, with each one's grade and score out of ${SCORE_MAX}.`,
+      items: rows.map((_, i) => ({ seriesIndex: 0, dataIndex: i })),
     });
-    const legend = Object.keys(COVERAGE).map((k, i) => svgEl("text", { class: "share-label", x: (SHARE.width / Object.keys(COVERAGE).length) * i,
-      y: SHARE.height + SHARE.labelHeight }, `${COVERAGE[k][0]} ${counts[k]}`));
-    return chartFrame(SHARE.width, SHARE.height + SHARE.labelHeight + AREA.textGap, "Requirement coverage",
-      "Share of the requirements covered by a source file, covered indirectly, or uncovered.", ...parts, ...legend);
   }
 
   function renderCharts() {
     const card = (title, svg) => el("article", { class: "card chart-card" },
       el("header", { class: "card-header" }, el("h3", { class: "card-title", text: title })), svg);
     const radar = el("div", { class: "quality-radar", "data-chart": "radar" });
-    clear($("quality-charts")).append(card("Checks", radar),
-      card("Feature areas", areaBars()),
-      card("Coverage", coverageShares()));
+    const areas = el("div", { class: "quality-areas", "data-chart": "areas" });
+    clear($("quality-charts")).append(card("Checks", radar), card("Feature areas", areas));
     drawRadar(radar);
+    drawAreas(areas);
   }
 
   // The grade as a coloured letter: the letter is always written, the colour only repeats it (RQ-TRC-065).

@@ -718,22 +718,9 @@ table.matrix td { overflow: hidden; max-width: none; }   /* a column's width is 
 .grade-chip.grade-E, .scale-step.grade-E { background: var(--s-grade-e); color: var(--s-on-grade-e); }
 .side-title .grade-chip, .tab .grade-chip, .card-title .grade-chip { font-size: var(--s-text-caption); vertical-align: middle; }
 
-.charts { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); gap: var(--s-space-md); }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-space-md); }
 .chart-card { padding: var(--s-space-md); }
 .chart-card .card-header { margin-bottom: var(--s-space-sm); }
-.chart-svg { display: block; width: 100%; height: auto; }
-.area-label, .area-value { fill: var(--s-text); font-size: var(--s-text-small); font-family: var(--s-font-mono); }
-.area-track { fill: var(--s-surface-hover); }
-.area-fill { fill: var(--s-border-strong); }
-.area-bar.grade-A .area-fill { fill: var(--s-grade-a); }
-.area-bar.grade-B .area-fill { fill: var(--s-grade-b); }
-.area-bar.grade-C .area-fill { fill: var(--s-grade-c); }
-.area-bar.grade-D .area-fill { fill: var(--s-grade-d); }
-.area-bar.grade-E .area-fill { fill: var(--s-grade-e); }
-.share-covered { fill: var(--s-status-ok); }
-.share-indirect { fill: var(--s-status-warn); }
-.share-uncovered { fill: var(--s-status-error); }
-.share-label { fill: var(--s-text-muted); font-size: var(--s-text-caption); }
 .report { padding: var(--s-space-md) var(--s-space-lg); }
 .report { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: var(--s-space-xl); align-items: start; }
 .report-main { display: flex; align-items: center; gap: var(--s-space-lg); }
@@ -1163,6 +1150,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
   border-radius: var(--s-radius-md); background: var(--s-status-warn-subtle); color: var(--s-text); font-size: var(--s-text-small); }
 
 /* ---- the checks radar (TASK-TRC-067: RQ-TRC-084; DEC-TRC-043): the box of the ECharts chart ---------------------- */
-.chart-card:has(.quality-radar) { display: flex; flex-direction: column; }        /* TASK-TRC-073: the radar fills its card */
+.chart-card:has(.quality-radar, .quality-areas) { display: flex; flex-direction: column; }   /* TASK-TRC-073, 074: each chart fills its card */
 .quality-radar { flex: 1; min-height: var(--c-quality-radar-height); }
-.quality-radar:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-space-hair); }
+.quality-areas { min-height: var(--c-quality-radar-height); height: calc(var(--rows) * var(--c-quality-area-row-height) + var(--s-space-3xl)); }
+.quality-areas:focus-visible, .quality-radar:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-space-hair); }

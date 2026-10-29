@@ -102,9 +102,9 @@ configuring the checks per project.
 - **Dependencies**: RQ-TRC-018, RQ-TRC-045, RQ-TRC-058
 - **Amendment**: Amended by RQ-TRC-084 and RQ-TRC-087 (FTR-TRC-005, 2026-10-28): the radar is drawn by the charting library.
   Amended by TASK-TRC-074 (owner review of 2026-10-29): the trigram bars and the coverage shares become one chart drawn
-  by the charting library, "Feature areas": a Total row then one row per trigram, each a stacked bar of its covered,
-  indirect and uncovered requirements in the coverage colours, ending with the trigram's grade and score in its grade
-  colour; its tooltip gives the counts, the shares and the grade.
+  by the charting library, "Feature areas": a Total row then one row per trigram that has requirements, each the shares
+  of its covered, indirect and uncovered requirements stacked to 100 % in the coverage colours, ending with the
+  trigram's grade and score in its grade colour; its tooltip gives the counts, the shares and the grade.
 
 ### RQ-TRC-062: Checks, compact or detailed
 - **Category**: Functional
