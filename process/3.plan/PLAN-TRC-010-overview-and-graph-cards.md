@@ -75,3 +75,33 @@ This plan implements the tasks in the format specified below.
   "covered" by name. Owner review on XS56K. Whole suite OK before the commit.
 - **Assumptions**: the risk level is the check's `risk` and its weight in `scoring.json` (critical first, informational
   last); a narrow window may hold fewer than three in a row.
+
+### TASK-TRC-078: Tabs in the order Overview, Matrix, Graph, History, Delivery, Quality
+- **Tier**: S
+- **Status**: Done
+- **Description**: Owner request of 2026-10-30: the Matrix tab comes before the Graph tab.
+- **Requirement refs**: RQ-TRC-015
+- **ADR refs**: ADR-TRC-002 (design system)
+- **Acceptance Criteria**: Given the page, When it opens, Then the tabs read Overview, Matrix, Graph, History, Delivery,
+  Quality.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
+
+### TASK-TRC-079: The generation time in the reader's words
+- **Tier**: M
+- **Status**: Done
+- **Description**: Owner request of 2026-10-30: the header's "Generated" shows the date and time in the reader's
+  language and time zone (e.g. "30 oct. 2026, 00:54") instead of "2026-10-29T22:54Z"; its tooltip gives the exact value
+  in UTC. The data file keeps the ISO value.
+- **Requirement refs**: RQ-TRC-015, RQ-TRC-023
+- **ADR refs**: ADR-TRC-002 (design system)
+- **Acceptance Criteria**: Given a page generated at 2026-01-01T00:00Z, When it opens, Then the header shows that time
+  formatted by the browser (medium date, short time) and its tooltip reads "2026-01-01 00:00 UTC"; Given an unreadable
+  time, Then it is shown as given.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: Test first, failing ('1 janv. 2026, 01:00' != '2026-01-01T00:00Z'), then OK; test_trace_matrix and
+  test_literals OK. Whole suite OK before the commit.
+- **Assumptions**: the reader's locale and time zone are the browser's.

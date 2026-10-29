@@ -73,10 +73,11 @@
     <nav class="tabs" role="tablist" aria-label="Views">
       <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true"
               title="Counts, requirement coverage, quality checks and coverage per trigram">Overview</button>
-      <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false"
-              title="The selected element and its links, drawn as a flow of columns">Graph</button>
+      <!-- TASK-TRC-078: Matrix before Graph -->
       <button class="tab" role="tab" type="button" data-view="matrix" aria-selected="false"
               title="One row per requirement: what contains, decides, plans, implements and cites it">Matrix</button>
+      <button class="tab" role="tab" type="button" data-view="graph" aria-selected="false"
+              title="The selected element and its links, drawn as a flow of columns">Graph</button>
       <!-- RQ-HST-007, DEC-HST-005: shown only when the data hold a history (--history); TASK-HST-008: Quality comes last -->
       <button class="tab" role="tab" type="button" data-view="history" aria-selected="false" hidden
               title="Who worked on each element and on the code, and when: humans, agents, and both together">History</button>

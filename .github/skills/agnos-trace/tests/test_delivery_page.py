@@ -201,7 +201,7 @@ class DeliveryTabTest(unittest.TestCase):
 out.tabs = [...document.querySelectorAll(".tab")].filter((t) => !t.hidden).map((t) => t.dataset.view).join(",");
 out.shown = document.getElementById("view-delivery").hidden ? "hidden" : "shown";
 """, "tabs", "shown")
-        self.assertEqual("overview,graph,matrix,history,delivery,quality", got["tabs"])
+        self.assertEqual("overview,matrix,graph,history,delivery,quality", got["tabs"])
         self.assertEqual("shown", got["shown"])
 
     def test_RQ_TRC_074_given_no_delivery_block_then_there_is_no_delivery_tab(self):

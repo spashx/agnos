@@ -943,3 +943,28 @@ class IndependenceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+GENERATED_SCRIPT = """
+const out = document.documentElement.dataset;
+const item = [...document.querySelectorAll("#meta .meta-item")].find((i) => i.textContent.startsWith("Generated"));
+out.shown = item.querySelector(".meta-value").textContent;
+out.expected = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date("2026-01-01T00:00Z"));
+item.dispatchEvent(new FocusEvent("focus"));
+item.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+out.exact = document.getElementById("tip").textContent;
+"""
+
+
+@unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")
+class GeneratedDateTest(unittest.TestCase):
+    """TASK-TRC-079: RQ-TRC-015 (the header's generation time, readable)."""
+
+    def test_RQ_TRC_015_given_a_generation_time_then_the_header_shows_it_in_the_readers_words_and_the_tip_in_utc(self):
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            generate(path)
+            found = dict(re.findall(r'data-(shown|expected|exact)="([^"]*)"', rendered_dom_after(path, GENERATED_SCRIPT)))
+        self.assertEqual(found["expected"], found["shown"])               # the reader's date and time, no T nor Z
+        self.assertIn("2026-01-01 00:00 UTC", found["exact"])
