@@ -36,7 +36,7 @@ STEP = 3600                                         # a delivery every hour: 1,0
 MAX_SECONDS = 2                                     # RQ-TRC-078's metrics
 MAX_BYTES = 300 * 1024
 MAX_DRAW_MS = 300
-MAX_STEP_MS = 50
+MAX_STEP_MS = 100
 P95 = 0.95
 STEPS = 50
 

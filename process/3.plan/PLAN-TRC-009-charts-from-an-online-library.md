@@ -248,17 +248,3 @@ This plan implements the tasks in the format specified below.
   the owner's choice of the proposal covers its lines changed moving to the tooltip; counts above 99 read "99+"; a group
   that cannot split selects its newest commit when activated; the git graph's own ring marks its current commit and is
   unchanged.
-
-### TASK-TRC-069: Speed, documentation and a run on XS56K
-- **Tier**: M
-- **Status**: Not Started
-- **Description**: Measure the Delivery tab and the Quality view with the libraries cached, document the libraries,
-  their record and the network need in `SKILL.md`, and generate the page of XS56K.
-- **Requirement refs**: RQ-TRC-088, RQ-TRC-017
-- **ADR refs**: ADR-TRC-010
-- **Acceptance Criteria**: Given `AGNOS_TRACE_PERF=1`, Then the thresholds of RQ-TRC-088 hold; Given `SKILL.md`, Then it
-  describes the libraries, `libraries.json` and the behaviour without network; Given the XS56K run, Then exit 0.
-- **Dependencies**: TASK-TRC-066, TASK-TRC-067, TASK-TRC-068
-- **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 

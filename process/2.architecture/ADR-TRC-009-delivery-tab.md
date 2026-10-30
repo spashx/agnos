@@ -34,7 +34,8 @@ lines, type, reworked, reason or null]` in index order, and `activeDays` as `{pe
 repository's time zone of each commit (author date). A new data file of the skill, `assets/delivery.json`, holds the
 points per tier (S 1, M 3, L 8), the rework window (14 days), the ready-made periods and the month threshold (12 weeks);
 it is copied into the block so that the page and any reader agree. Without `--history` nothing is written. Fulfils
-RQ-TRC-069 and RQ-TRC-070 (weights as data).
+RQ-TRC-069 and RQ-TRC-070 (weights as data). Extended by DEC-TRC-045 (2026-10-30): the block also holds `friction`, read
+with one `git blame` of the log.
 
 ### DEC-TRC-038: Figures computed in the page, bounded by the history read
 The page computes the points, the throughput, the rework rate and the grains from the block, so that filters and periods

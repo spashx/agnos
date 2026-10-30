@@ -80,6 +80,8 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
   tier is a shade of its period's colour (light S, medium M, full L); the points over time keep their form, their
   columns neutral and the A and B areas in the periods' colours; no identity colour and no pattern in these charts.
 
+- **Amendment**: Amended by RQ-TRC-095 and RQ-TRC-096 (FTR-TRC-006, 2026-10-30): friction and rework marks over the points over time.
+
 ### RQ-TRC-084: Readable checks radar
 - **Category**: Functional
 - **EARS Type**: State-driven
@@ -172,5 +174,6 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
   after a first load.
 - **Priority**: Should
 - **Acceptance Criteria**: Given 1,000 delivered tasks, Then the tab is drawn in less than 300 ms and the P95 is under
-  50 ms; Given the fixture, Then the Quality view is drawn in less than 300 ms.
+  100 ms; Given the fixture, Then the Quality view is drawn in less than 300 ms.
 - **Dependencies**: RQ-TRC-078, RQ-TRC-080
+- **Amendment**: owner decision of 2026-10-31 (TASK-TRC-084): the P95 limit goes from 50 ms to 100 ms; 64 to 77 ms were measured with the libraries on 1,000 tasks.

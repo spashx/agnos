@@ -52,7 +52,7 @@ chart container has `tabindex="0"`, an accessible name and a description; the ar
 Amended at the owner's review of 2026-10-28 (TASK-TRC-070): two semantic tokens, `period-a` (the accent blue) and
 `period-b` (amber), with their on-colours, mark A and B in the header and colour the charts; the tiers are the
 `delivery-tier-*-opacity` shades of the period's colour; decals are off, values are written on the bars; identity
-colours stay in the History tab.
+colours stay in the History tab. Extended by DEC-TRC-049 (2026-10-30): friction and rework marks on a second axis.
 
 ### DEC-TRC-044: Grouped marks in the History timeline
 The timeline stays the page's own inline SVG (DEC-HST-005). When drawing a row, marks are walked in time order; a mark

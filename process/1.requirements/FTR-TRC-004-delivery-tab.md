@@ -123,6 +123,7 @@ projects with each other; a score or a grade of delivery.
   band shows four figures for A, B and their variation; Given a page generated without `--history`, Then there is no
   Delivery tab.
 - **Dependencies**: RQ-TRC-070, RQ-TRC-071, RQ-TRC-072
+- **Amendment**: Amended by RQ-TRC-092 and RQ-TRC-093 (FTR-TRC-006, 2026-10-30): a fifth figure, a variation said in words.
 
 ### RQ-TRC-075: Charts of the delivery
 - **Category**: Functional
@@ -149,6 +150,7 @@ projects with each other; a score or a grade of delivery.
 - **Acceptance Criteria**: Given the fixture, When the tag L alone is on, Then the band, the charts and the table count
   L tasks only; When the text "TASK-A" is typed, Then only TASK-A is counted.
 - **Dependencies**: RQ-TRC-074, RQ-HST-009
+- **Amendment**: Amended by RQ-TRC-094 (FTR-TRC-006, 2026-10-30): the friction follows only the periods, trigrams and identities.
 
 ### RQ-TRC-077: The table of delivered tasks
 - **Category**: Functional
@@ -173,7 +175,7 @@ projects with each other; a score or a grade of delivery.
 - **EARS Type**: Ubiquitous
 - **Statement**: On the generated repository of RQ-HST-013 with 1,000 delivered tasks, the delivery SHALL add less than
   2 seconds to the generation and less than 300 KB to the data file, the Delivery tab SHALL be drawn in less than 300
-  ms, and a change of filter or period SHALL be redrawn in less than 50 ms.
+  ms, and a change of filter or period SHALL be redrawn in less than 100 ms.
 - **Metric**: generation time and data size added by the delivery; drawing time of the tab; P95 of the redraw time over
   50 filter and period changes.
 - **Measurement Method**: the skill's performance test (`AGNOS_TRACE_PERF=1`), times measured in the headless browser.
@@ -181,6 +183,7 @@ projects with each other; a score or a grade of delivery.
 - **Acceptance Criteria**: Given the generated repository, When the performance test runs, Then each measure is under
   its threshold.
 - **Dependencies**: RQ-HST-013, RQ-TRC-069
+- **Amendment**: owner decision of 2026-10-31 (TASK-TRC-084): the redraw limit goes from 50 ms to 100 ms.
 
 ### RQ-TRC-079: A readable delivery view
 - **Category**: Non-Functional

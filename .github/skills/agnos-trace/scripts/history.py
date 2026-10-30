@@ -7,6 +7,7 @@ import datetime
 import json
 import re
 import subprocess
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -85,6 +86,14 @@ FIELD_STATUS = "Status"
 FIELD_TIER = "Tier"
 SIGN_ADDED = "+"
 SIGN_REMOVED = "-"
+
+# FTR-TRC-006, DEC-TRC-045: the rows of the friction log at HEAD, each with the commit that added it.
+FRICTION_LOG = Path("_sessionstate") / "METRICS_LOG.md"
+BLAME_HEADER_RE = re.compile(r"^([0-9a-f]{40,64}) \d+ \d+")
+BLAME_TEXT = "\t"
+TABLE_MARK = "|"
+TABLE_RULE_RE = re.compile(r"^[\s|:-]+$")
+FRICTION_ROW_RE = re.compile(r"^\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z]{3})" + r"\s*\|\s*(\d+)" * 4 + r"\s*\|\s*$")
 
 
 class HistoryUnavailable(Exception):
@@ -790,6 +799,41 @@ def delivery_block(tasks, events, tally, authored, listed, settings):
     return {"tasks": rows, "activeDays": active_days(listed), "settings": settings}
 
 
+def blamed_lines(repo, path):
+    """[(commit hash, text)] of a file at HEAD, or nothing when HEAD does not hold it."""
+    try:
+        output = git(["blame", "--porcelain", HEAD, "--", path], repo.top)
+    except GitError:
+        return []
+    lines, commit = [], None
+    for line in output.splitlines():
+        header = BLAME_HEADER_RE.match(line)
+        if header:
+            commit = header.group(1)
+        elif line.startswith(BLAME_TEXT):
+            lines.append((commit, line[len(BLAME_TEXT):].strip()))
+    return lines
+
+
+def friction_block(lines, position, merges):
+    """RQ-TRC-090, RQ-TRC-091: [date, trigram, 4 counters, commit index] of each data row of the log's blamed lines; a
+    row outside the history read is left out, a malformed row or one of a merge also named on the error stream."""
+    rows, in_table = [], False
+    for commit, text in lines:
+        if not text.startswith(TABLE_MARK):
+            continue
+        if not in_table:
+            in_table = bool(TABLE_RULE_RE.match(text))
+            continue
+        found = FRICTION_ROW_RE.match(text)
+        if found is None or commit in merges:
+            print(f"agnos-trace: warning: {FRICTION_LOG.name}: row left out: {text}", file=sys.stderr)
+        elif commit in position:
+            date, trigram, *counters = found.groups()
+            rows.append([date, trigram, *map(int, counters), position[commit]])
+    return rows
+
+
 def build(folder, documents, files, functions, scope, since=None, depth=None, patterns=None, tasks=None):
     """The data file's history block, for the repository holding folder. documents is {path: [(ID, first, last)]} of
     the process documents, files {shown path: path} of the scanned files, functions [(shown path, first, last)] of the
@@ -816,6 +860,9 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
              KEY_GRAPH: build_graph(repo, since, position)}
     if tasks is not None:
         block[KEY_DELIVERY] = delivery_block(tasks, events, tally, authored, listed, load_delivery_settings())
+        log = relative_to(Path(folder) / FRICTION_LOG, repo.top)
+        block[KEY_DELIVERY]["friction"] = friction_block(blamed_lines(repo, log), position,
+                                                         {c[KEY_HASH] for c in commits if is_merge(c)})
     return block
 
 

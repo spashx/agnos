@@ -3546,6 +3546,14 @@
   }
   const deliveryRows = DELIVERY ? DELIVERY.tasks.map(deliveryRow) : [];
 
+  // RQ-TRC-090, DEC-TRC-045: a session of the friction log, its counters in the log's order.
+  const FRICTION_COUNTERS = ["questions", "recoveries", "re-tiered", "verification"];
+  const sumOf = (values) => values.reduce((sum, value) => sum + value, 0);
+  const frictionRows = DELIVERY ? (DELIVERY.friction || []).map(([day, tri, ...rest]) => {
+    const commit = rest.pop();
+    return { day, tri, counters: rest, total: sumOf(rest), commit, author: HISTORY.commits[commit].author };
+  }) : [];
+
   // RQ-TRC-072: the days a period may hold; the first day is left out when the history read may have cut it.
   function deliveryBounds() {
     const { since, depth, shallow, first, last } = HISTORY.limits;
@@ -3632,6 +3640,25 @@
   }
   const variation = (a, b) => (a === null || b === null || b === 0 ? null : (a - b) / b);
 
+  // RQ-TRC-094, DEC-TRC-048: the log knows a session's date, trigram and author, nothing else.
+  const frictionKept = (r, filter, bounds) => r.day >= bounds.first && (!filter.tris.size || filter.tris.has(r.tri))
+    && (!filter.people.size || filter.people.has(r.author));
+
+  // RQ-TRC-092, DEC-TRC-046: the sessions of a period, their events, per session (null without a session), per counter.
+  function frictionFigures(period, filter, bounds) {
+    const rows = frictionRows.filter((r) => frictionKept(r, filter, bounds) && inPeriod(r.day, period));
+    const events = sumOf(rows.map((r) => r.total));
+    return { sessions: rows.length, events, perSession: rows.length ? events / rows.length : null,
+      counters: FRICTION_COUNTERS.map((_, i) => sumOf(rows.map((r) => r.counters[i]))) };
+  }
+
+  // RQ-TRC-094: the filters on that the friction cannot follow, named in its tooltip.
+  function frictionIgnored(filter) {
+    const named = [[filter.tiers.size, "tier"], [filter.kinds.size, "kind"], [filter.types.size, "commit type"],
+      [filter.text, "text"], [!filter.reTiered, "re-tiered tasks"]];
+    return named.filter(([on]) => on).map(([, name]) => name);
+  }
+
   // RQ-TRC-075: per identity of the period, its points by tier, its active days and its throughput.
   function perIdentity(period, filter, bounds) {
     const { rows } = deliveryFigures(period, filter, bounds);
@@ -3658,18 +3685,28 @@
     const buckets = new Map();
     for (let day = bounds.first; day <= bounds.last; day = addDays(day, 1)) {
       const key = bucketOf(day, grain);
-      if (!buckets.has(key)) buckets.set(key, Object.fromEntries(TIERS.map((t) => [t, 0])));
+      if (!buckets.has(key)) buckets.set(key, { bucket: key, byTier: Object.fromEntries(TIERS.map((t) => [t, 0])), reworked: 0, sessions: [] });
     }
     for (const r of deliveryRows) {
-      if (deliveryKept(r, filter) && buckets.has(bucketOf(r.day, grain)) && r.day >= bounds.first) {
-        buckets.get(bucketOf(r.day, grain))[r.tier] += pointsOf(r);
+      const entry = buckets.get(bucketOf(r.day, grain));
+      if (deliveryKept(r, filter) && entry && r.day >= bounds.first) {
+        entry.byTier[r.tier] += pointsOf(r);
+        if (r.reworked) entry.reworked += 1;                           // RQ-TRC-095: at its delivery date
       }
     }
-    return [...buckets.entries()].map(([bucket, byTier]) => ({ bucket, byTier }));
+    for (const r of frictionRows) {
+      const entry = buckets.get(bucketOf(r.day, grain));
+      if (entry && frictionKept(r, filter, bounds)) entry.sessions.push(r);
+    }
+    return [...buckets.values()];
   }
 
+  // RQ-TRC-093: from what a figure measures, not from its sign; no word without a variation.
+  const verdict = (change, lowerIsBetter) => (change ? ((change > 0) !== Boolean(lowerIsBetter) ? "better" : "worse") : "");
+
   const deliveryApi = { rows: deliveryRows, bounds: deliveryBounds, presets: presetPeriods, defaults: defaultPeriods, checkDay,
-    grains: grainsOf, bucketOf, filter: deliveryFilter, figures: deliveryFigures, variation, perIdentity, pointsOverTime };
+    grains: grainsOf, bucketOf, filter: deliveryFilter, figures: deliveryFigures, variation, perIdentity, pointsOverTime,
+    friction: frictionFigures, frictionIgnored, verdict, currentFilter: () => dlv.filter };
 
   // ---- delivery view (TASK-TRC-059: RQ-TRC-072, RQ-TRC-074, RQ-TRC-076, RQ-TRC-079; DEC-TRC-039) ----
   const DELIVERY_VIEW = "delivery";
@@ -3680,8 +3717,12 @@
   const ARROW_UP = "▲";
   const ARROW_DOWN = "▼";
   const ARROW_SAME = "=";
+  const NO_VALUE = "—";
   const FIELD_KIND = "kind";
-  const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false, sort: { key: null, direction: null } };
+  const OVERLAY_FRICTION = "friction";
+  const OVERLAY_REWORK = "rework";
+  const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false, sort: { key: null, direction: null },
+    overlays: { [OVERLAY_FRICTION]: true, [OVERLAY_REWORK]: true }, zoom: null };   // RQ-TRC-096
   const periodInput = (key, side) => $(`delivery-${side}-${key}`);
   const dataNumber = (value, digits) => (value === null ? "" : digits ? value.toFixed(digits) : String(value));
 
@@ -3777,7 +3818,7 @@
 
   // RQ-TRC-074: a figure for A, for B and the variation from B to A, its arrow and sign written, never its colour alone.
   function changeText(change) {
-    if (change === null) return "no variation";
+    if (change === null) return NO_VALUE;
     const arrow = change > 0 ? ARROW_UP : change < 0 ? ARROW_DOWN : ARROW_SAME;
     return `${arrow} ${change > 0 ? "+" : ""}${pct(change, 1)} %`;
   }
@@ -3785,30 +3826,47 @@
   // TASK-TRC-070: a period's mark, in its colour, wherever A and B are written.
   const periodBadge = (key) => el(TAG_SPAN, { class: `delivery-badge delivery-mark-${key}`, text: key.toUpperCase() });
 
-  function deliveryFigure(key, label, values, show, lowerIsBetter) {
+  function deliveryFigure(key, label, values, show, lowerIsBetter, moreLines) {
     const [a, b] = values;
     const change = variation(a, b);
-    const better = change !== null && change !== 0 && (change > 0) !== Boolean(lowerIsBetter);
+    const word = verdict(change, lowerIsBetter);
+    const changeWords = `${changeText(change)}${word ? ` ${word}` : ""}`;
     const node = el("div", { class: "kpi", "data-figure": key, "data-a": dataNumber(a, show.digits), "data-b": dataNumber(b, show.digits),
       "data-change": dataNumber(change, FIGURE_DIGITS) },
     el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }),
     el(TAG_SPAN, { class: CLASS_KPI_VALUE }, periodBadge(PERIOD_KEYS[0]), show.text(a)),
     el(TAG_SPAN, { class: VALUE_KPI_SUB }, periodBadge(PERIOD_KEYS[1]), ` ${show.text(b)} · `, el(TAG_SPAN, {
-      class: `delivery-change${change ? (better ? " is-better" : " is-worse") : ""}`, text: changeText(change) })));
+      class: `delivery-change${word ? ` is-${word}` : ""}`, text: changeWords })));
     return richTip(node, () => ({ head: label, lines: [`Period A, ${dlv.periods.a.from} to ${dlv.periods.a.to}: ${show.text(a)}`,
-      `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeText(change)}`] }));
+      `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeWords}`,
+      ...(moreLines ? moreLines() : [])] }));
+  }
+
+  // RQ-TRC-092, RQ-TRC-094: what the friction figure of a period is made of, and the filters it does not follow.
+  function frictionLines(friction) {
+    const lines = PERIOD_KEYS.map((key, k) => `${key.toUpperCase()}: ${friction[k].sessions} sessions, ${friction[k].events} events (${
+      FRICTION_COUNTERS.map((name, i) => `${name} ${friction[k].counters[i]}`).join(", ")})`);
+    const ignored = frictionIgnored(dlv.filter);
+    return ignored.length ? [...lines, `Not filtered by ${ignored.join(", ")}: the log holds only a session's date, trigram and author`] : lines;
   }
 
   function renderDeliveryKpis(figures) {
     const [fa, fb] = figures;
     const count = { digits: 0, text: String };
-    const rate = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : `${pct(v, 1)} %`) };
-    const perDay = { digits: FIGURE_DIGITS, text: (v) => (v === null ? "—" : v.toFixed(SHOWN_DIGITS)) };
-    clear($("delivery-kpis")).append(
+    const rate = { digits: FIGURE_DIGITS, text: (v) => (v === null ? NO_VALUE : `${pct(v, 1)} %`) };
+    const perDay = { digits: FIGURE_DIGITS, text: (v) => (v === null ? NO_VALUE : v.toFixed(SHOWN_DIGITS)) };
+    const friction = PERIOD_KEYS.map((key) => frictionFigures(dlv.periods[key], dlv.filter, dlv.bounds));
+    const band = [
       deliveryFigure("tasks", "Tasks delivered", [fa.tasks, fb.tasks], count),
       deliveryFigure("points", "Points", [fa.points, fb.points], count),
       deliveryFigure("throughput", "Points per active day", [fa.throughput, fb.throughput], perDay),
-      deliveryFigure("rework", "Rework", [fa.reworkRate, fb.reworkRate], rate, true));
+      deliveryFigure(OVERLAY_REWORK, "Rework", [fa.reworkRate, fb.reworkRate], rate, true),
+      frictionRows.length ? deliveryFigure(OVERLAY_FRICTION, "Friction per session", friction.map((f) => f.perSession), perDay, true,
+        () => frictionLines(friction)) : null,
+    ].filter(Boolean);
+    const box = clear($("delivery-kpis"));
+    box.style.setProperty("--figures", String(band.length));
+    box.append(...band);
   }
 
   // ---- delivery charts (TASK-TRC-066: RQ-TRC-083, RQ-TRC-075 as amended, RQ-TRC-087; DEC-TRC-043) ----
@@ -3899,6 +3957,54 @@
     };
   }
 
+  // RQ-TRC-095, RQ-TRC-096, DEC-TRC-049: the marks over the points; shape tells them apart without colour.
+  const OVERLAYS = [
+    { key: OVERLAY_REWORK, name: "Rework", symbol: "diamond", value: (b) => b.reworked,
+      hint: "Show or hide the tasks delivered in each bucket and reworked later" },
+    { key: OVERLAY_FRICTION, name: "Friction", symbol: "circle", value: (b) => sumOf(b.sessions.map((s) => s.total)),
+      hint: "Show or hide the friction events of the sessions of each bucket" },
+  ];
+  const NO_LOG_HINT = "No friction to show: METRICS_LOG.md is not committed in the process folder, or holds no row";
+  const overlayAvailable = (overlay) => overlay.key !== OVERLAY_FRICTION || frictionRows.length > 0;
+  const overlayShown = (overlay) => dlv.overlays[overlay.key] && overlayAvailable(overlay);
+
+  function overlaySeries(overlay, buckets, theme) {
+    return { type: "scatter", name: overlay.name, yAxisIndex: 1, symbol: overlay.symbol, symbolSize: cssSize("--c-delivery-overlay-mark"),
+      itemStyle: { color: resolvedColour(cssValue(`--c-delivery-${overlay.key}`)), borderColor: theme.colour.surface, borderWidth: cssSize("--s-stroke-hairline") },
+      data: buckets.map((b) => overlay.value(b) || null) };
+  }
+
+  function sessionLine(session) {
+    const c = HISTORY.commits[session.commit];
+    return `Friction, ${session.tri}: ${session.total} (${FRICTION_COUNTERS.map((name, i) => `${name} ${session.counters[i]}`).join(", ")}), ${HISTORY.people[c.author].name}, ${c.hash}`;
+  }
+
+  // RQ-TRC-095: a bucket's points by tier, the tasks reworked and each session, for the marks shown.
+  function bucketTip(bucket) {
+    const reworked = dlv.overlays[OVERLAY_REWORK] && bucket.reworked;
+    return tipHtml([bucket.bucket, ...TIERS.filter((t) => bucket.byTier[t]).map((t) => `${tierLabel(t)}: ${pointCount(bucket.byTier[t])}`),
+      ...(reworked ? [`Rework: ${taskCount(bucket.reworked)} delivered then reworked`] : []),
+      ...(dlv.overlays[OVERLAY_FRICTION] ? bucket.sessions.map(sessionLine) : [])]);
+  }
+
+  // RQ-TRC-096: a tag changes the marks only, and the zoom stays.
+  function toggleOverlay(overlay) {
+    const box = document.querySelector(`[data-chart="${CHART_TIMELINE}"]`);
+    const [zoom] = window[GLOBAL_ECHARTS]?.getInstanceByDom(box)?.getOption().dataZoom || [];
+    dlv.overlays[overlay.key] = !dlv.overlays[overlay.key];
+    dlv.zoom = zoom ? { start: zoom.start, end: zoom.end } : null;
+    renderDeliveryCharts(PERIOD_KEYS.map((key) => deliveryFigures(dlv.periods[key], dlv.filter, dlv.bounds)));
+    dlv.zoom = null;
+  }
+
+  function overlayTags() {
+    return el("div", { class: "chips delivery-overlays", role: "group", [VALUE_ARIA_LABEL]: "Marks shown" }, ...OVERLAYS.map((overlay) => el(TAG_BUTTON, {
+      class: "chip", type: TAG_BUTTON, "data-overlay": overlay.key, [VALUE_ARIA_PRESSED]: String(overlayShown(overlay)),
+      disabled: !overlayAvailable(overlay), title: overlayAvailable(overlay) ? overlay.hint : NO_LOG_HINT,
+      on: { [EVENT_CLICK]: () => toggleOverlay(overlay) } },
+    el(TAG_SPAN, { class: `delivery-overlay-mark is-${overlay.key}` }), overlay.name)));
+  }
+
   // RQ-TRC-083: the points of every bucket of the history read, stacked by tier, A and B marked, a zoom on the time axis.
   function timelineOption(theme) {
     const buckets = pointsOverTime(dlv.filter, dlv.grain, dlv.bounds);
@@ -3916,11 +4022,12 @@
     return {
       legend: { data: TIERS.map(tierLabel), top: 0 },
       grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: legendGap() },
-      tooltip: { trigger: TRIGGER_AXIS },
+      tooltip: { trigger: TRIGGER_AXIS, formatter: ([first]) => bucketTip(buckets[first.dataIndex]) },
       xAxis: { type: AXIS_CATEGORY, data: buckets.map((b) => b.bucket) },
-      yAxis: { type: AXIS_VALUE, name: "points" },
-      dataZoom: [{ type: "inside" }, { type: "slider", height: cssSize("--s-space-lg"), bottom: 0 }],
-      series,
+      yAxis: [{ type: AXIS_VALUE, name: "points" },
+        { type: AXIS_VALUE, name: "count", minInterval: 1, splitLine: { show: false }, show: OVERLAYS.some(overlayShown) }],
+      dataZoom: [{ type: "inside", ...dlv.zoom }, { type: "slider", height: cssSize("--s-space-lg"), bottom: 0, ...dlv.zoom }],
+      series: [...series, ...OVERLAYS.filter(overlayShown).map((overlay) => overlaySeries(overlay, buckets, theme))],
     };
   }
 
@@ -3945,7 +4052,7 @@
     const charts = [
       [CHART_THROUGHPUT, "Points per active day", "For each identity, the points it delivered per active day in period A, then in period B, stacked by tier: a lighter shade for a smaller tier.",
         throughputOption, [...people].sort((a, b) => a - b).flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k * TIERS.length, dataIndex: i })))],
-      [CHART_TIMELINE, "Points over time", `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded.`,
+      [CHART_TIMELINE, "Points over time", `The points delivered per ${dlv.grain} over the history read, stacked by tier; periods A and B are shaded; circles give the friction events and diamonds the tasks later reworked, on the second axis.`,
         timelineOption, pointsOverTime(dlv.filter, dlv.grain, dlv.bounds).map((_, i) => ({ seriesIndex: 0, dataIndex: i }))],
       [CHART_TIERS, "Tasks per tier", "The tasks delivered in each tier, in period A beside period B.",
         (theme) => tiersOption(theme, figures), TIERS.flatMap((_, i) => PERIOD_KEYS.map((__, k) => ({ seriesIndex: k, dataIndex: i })))],
@@ -3954,7 +4061,7 @@
       const box = el("div", { class: "delivery-chart", "data-chart": key });
       if (key === CHART_THROUGHPUT) box.style.setProperty("--rows", String(Math.max(people.size, 1)));
       return { box, card: el(TAG_ARTICLE, { class: `card chart-card${key === CHART_TIMELINE ? " delivery-wide" : ""}` },
-        el(TAG_HEADER, { class: "card-header" }, el("h3", { class: "card-title", text: title })), box) };
+        el(TAG_HEADER, { class: "card-header" }, el("h3", { class: "card-title", text: title }), key === CHART_TIMELINE ? overlayTags() : null), box) };
     });
     clear($("delivery-charts")).append(...cards.map((c) => c.card));
     charts.forEach(([, title, description, build, items], i) => libraryChart(cards[i].box, build, { label: title, description, items }));

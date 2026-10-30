@@ -1106,7 +1106,12 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-period select:focus, .delivery-period input:focus { outline: none; border-color: var(--s-focus); box-shadow: 0 0 0 var(--c-focus-ring) var(--s-accent-border); }
 .delivery-versus { color: var(--s-text-muted); font-size: var(--s-text-small); }
 .delivery-message { margin: var(--s-space-none); color: var(--s-status-error); font-size: var(--s-text-small); }
-.delivery-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.delivery-kpis { grid-template-columns: repeat(var(--figures), minmax(0, 1fr)); }
+/* RQ-TRC-096, DEC-TRC-049: the tags of the marks over the points, each showing its mark's shape */
+.delivery-overlays { margin-left: auto; }
+.delivery-overlay-mark { width: var(--c-delivery-overlay-mark); height: var(--c-delivery-overlay-mark); }
+.delivery-overlay-mark.is-friction { background: var(--c-delivery-friction); border-radius: var(--s-radius-pill); }
+.delivery-overlay-mark.is-rework { background: var(--c-delivery-rework); transform: rotate(45deg); }
 .delivery-change { font-weight: var(--s-weight-strong); }
 .delivery-change.is-better { color: var(--s-status-ok); }
 .delivery-change.is-worse { color: var(--s-status-error); }

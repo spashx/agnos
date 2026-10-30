@@ -107,7 +107,10 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   Two periods, A and B, chosen among ready-made ranges or as two dates, never beyond the history read: a range that
   reaches beyond is disabled and says why, a date outside is refused with a message (RQ-TRC-072); the history read is
   stated. A band gives, for A, for B and from B to A (arrow and sign written, green or red), the tasks delivered, the
-  points, the points per active day and the rework rate. Three charts: points per active day of each identity, stacked
+  points, the points per active day, the rework rate and, when the log has rows, the friction per session; each variation
+  says "better" or "worse", a fall being better for rework and friction. The friction follows only the periods, trigrams
+  and identities, and its tooltip names the filters it ignores. Over the points over time, circles give the friction
+  events and diamonds the tasks later reworked, on a second axis, each behind a tag (FTR-TRC-006). Three charts: points per active day of each identity, stacked
   by tier (the tier told by the opacity of the identity's History colour), A plain and B hatched; points over time by
   day, week or month (month beyond 12 weeks read) with A and B shaded; lines changed per task, median and quartiles per
   tier. Filters: text (ID, title, plan, requirements), tags for tiers, kinds, commit types and trigrams, identities,
@@ -224,7 +227,10 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   threshold (12 weeks), the ready-made ranges and the two default ones: change a number there, never in the code.
 - Written to the data file beside `history` as `delivery`: `tasks` as `[ID, tier, re-tiered, commit index into
   history.commits, lines changed in the scanned files, commit type or null, reworked, reason set aside or null]`,
-  `activeDays` (`{person index: [day, …]}`) and `settings` (a copy of `delivery.json`). Without `--history`, nothing.
+  `activeDays` (`{person index: [day, …]}`), `settings` (a copy of `delivery.json`) and `friction`, the rows of
+  `_sessionstate/METRICS_LOG.md` at HEAD read with `git blame`, as `[date, trigram, 4 counters by position, commit index]`:
+  a row outside the history read is left out, a malformed row or one of a merge also named on the error stream.
+  Without `--history`, nothing.
 
 ## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
 

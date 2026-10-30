@@ -46,7 +46,14 @@ TASKS = [
 ACTIVE_DAYS = {"0": ["2026-09-15", "2026-10-15", "2026-10-22"], "1": ["2026-10-22", "2026-10-23", "2026-10-27"]}
 
 
-def add_delivery(page):
+FRICTION = [
+    ["2026-10-15", "DEM", 5, 5, 5, 5, 1],                              # period B, Alice: 20 events
+    ["2026-10-22", "DEM", 2, 1, 0, 1, 2],                              # period A, Alice: 4 events
+    ["2026-10-27", "OTH", 3, 3, 1, 1, 4],                              # period A, Claude: 8 events
+]
+
+
+def add_delivery(page, friction=None):
     """Writes the synthetic history and delivery blocks into the data files of a generated page."""
     json_path, _ = tm.data_paths(page)
     data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -54,7 +61,8 @@ def add_delivery(page):
                        "limits": {"since": "6.weeks", "depth": None, "commits": len(COMMITS), "first": COMMITS[0]["date"],
                                   "last": COMMITS[-1]["date"], "shallow": False},
                        "interventions": {"elements": {}, "files": {}}}
-    data["delivery"] = {"tasks": TASKS, "activeDays": ACTIVE_DAYS, "settings": history.load_delivery_settings()}
+    data["delivery"] = {"tasks": TASKS, "activeDays": ACTIVE_DAYS, "settings": history.load_delivery_settings(),
+                        "friction": friction or []}
     tm.write_outputs(page, data, data["meta"]["title"])
 
 
@@ -392,7 +400,7 @@ document.querySelector('#delivery-grain [data-grain="week"]').click();
 const weeks = optionOf("timeline");
 const buckets = [].concat(weeks.xAxis)[0].data;
 out.weeks = String(buckets.length);
-out.last = buckets[buckets.length - 1] + ":" + sumOf(weeks.series, buckets.length - 1);
+out.last = buckets[buckets.length - 1] + ":" + sumOf(weeks.series.filter((s) => s.stack), buckets.length - 1);
 """, "days", "areas", "zoom", "weeks", "last")
         self.assertEqual(("42", "2", "true", "7"), (got["days"], got["areas"], got["zoom"], got["weeks"]))
         self.assertEqual("2026-10-26:1", got["last"])
@@ -415,6 +423,137 @@ box.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: tru
 out.tip = box.textContent;
 """, "tip")
         self.assertIn("Alice", got["tip"])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class DeliveryFrictionTest(unittest.TestCase):
+    """TASK-TRC-083, TASK-TRC-084: RQ-TRC-092 to RQ-TRC-096."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_delivery(cls.path, FRICTION)
+        cls.no_log = Path(cls.tmp.name) / "no_log.html"
+        generate(cls.no_log)
+        add_delivery(cls.no_log)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names, path=None):
+        return found(rendered_dom_after(path or self.path, TAB + CHARTS + OPEN.split("\n", 2)[2] + """
+const shown = (name) => { const option = optionOf("timeline"); const s = option.series.find((x) => x.name === name);
+  if (!s) return "none"; const days = [].concat(option.xAxis)[0].data;
+  return days.flatMap((day, i) => (s.data[i] ? [`${day}=${s.data[i]}`] : [])).join(","); };
+""" + script), *names)
+
+    def test_RQ_TRC_092_given_sessions_in_a_and_b_then_the_figure_is_the_events_per_session_and_a_fall_is_better(self):
+        got = self.run_script("""
+out.ab = ab("friction"); out.text = figure("friction").textContent;
+out.place = [...document.querySelectorAll("#delivery-kpis [data-figure]")].map((f) => f.dataset.figure).join(",");
+""", "ab", "text", "place")
+        self.assertEqual("6.000|20.000|-0.700", got["ab"])
+        self.assertIn("better", got["text"])
+        self.assertEqual("tasks,points,throughput,rework,friction", got["place"])
+
+    def test_RQ_TRC_092_given_a_period_without_a_session_then_it_reads_a_dash_with_no_word(self):
+        got = self.run_script("""
+for (const [side, day] of [["from", "2026-10-01"], ["to", "2026-10-02"]]) {
+  const input = document.getElementById(`delivery-${side}-b`);
+  input.value = day; input.dispatchEvent(new Event("change"));
+}
+out.ab = ab("friction"); out.sub = figure("friction").querySelector(".kpi-sub").textContent;
+""", "ab", "sub")
+        self.assertEqual("6.000||", got["ab"])
+        self.assertIn("—", got["sub"])
+        self.assertNotIn("better", got["sub"])
+        self.assertNotIn("worse", got["sub"])
+
+    def test_RQ_TRC_092_given_no_row_then_the_band_keeps_its_four_figures(self):
+        got = self.run_script("""
+out.count = String(document.querySelectorAll("#delivery-kpis [data-figure]").length);
+""", "count", path=self.no_log)
+        self.assertEqual("4", got["count"])
+
+    def test_RQ_TRC_093_given_a_variation_then_its_word_comes_from_what_the_figure_measures(self):
+        got = self.run_script("""
+out.rise = d.verdict(0.5, false); out.reworkrise = d.verdict(0.5, true); out.fall = d.verdict(-0.5, true);
+out.zero = d.verdict(0, true) || "no word"; out.unknown = d.verdict(null, false) || "no word";
+out.points = figure("points").textContent;
+""", "rise", "reworkrise", "fall", "zero", "unknown", "points")
+        self.assertEqual(("better", "worse", "better"), (got["rise"], got["reworkrise"], got["fall"]))
+        self.assertEqual(("no word", "no word"), (got["zero"], got["unknown"]))
+        self.assertIn("better", got["points"])
+
+    def test_RQ_TRC_094_given_a_trigram_or_an_identity_then_the_friction_follows_it(self):
+        got = self.run_script("""
+const tri = d.filter(); tri.tris.add("OTH");
+out.bytrigram = String(d.friction(A, tri, bounds).perSession);
+const person = d.filter(); person.people.add(0);
+out.byauthor = String(d.friction(A, person, bounds).perSession);
+""", "bytrigram", "byauthor")
+        self.assertEqual(("8", "4"), (got["bytrigram"], got["byauthor"]))
+
+    def test_RQ_TRC_094_given_another_filter_then_the_friction_is_unchanged_and_the_filter_is_named(self):
+        got = self.run_script("""
+document.querySelector('#delivery-tiers [data-tier="L"]').click();
+out.ab = ab("friction"); out.ignored = d.frictionIgnored(agnosTrace.delivery.currentFilter()).join(",");
+""", "ab", "ignored")
+        self.assertEqual("6.000|20.000|-0.700", got["ab"])
+        self.assertEqual("tier", got["ignored"])
+
+    def test_RQ_TRC_095_given_the_grain_then_circles_and_diamonds_stand_on_their_buckets_on_a_second_axis(self):
+        got = self.run_script("""
+out.friction = shown("Friction"); out.rework = shown("Rework");
+const option = optionOf("timeline");
+out.symbols = option.series.filter((s) => !s.stack).map((s) => `${s.symbol}:${s.yAxisIndex}`).join(",");
+out.axes = String([].concat(option.yAxis).length);
+out.colours = String(option.series.find((s) => s.name === "Friction").itemStyle.color === resolved(css("--c-delivery-friction"))
+  && option.series.find((s) => s.name === "Rework").itemStyle.color === resolved(css("--c-delivery-rework")));
+document.querySelector('#delivery-grain [data-grain="week"]').click();
+out.week = shown("Friction");
+""", "friction", "rework", "symbols", "axes", "colours", "week")
+        self.assertEqual("2026-10-15=20,2026-10-22=4,2026-10-27=8", got["friction"])
+        self.assertEqual("2026-10-27=1", got["rework"])
+        self.assertEqual(("diamond:1,circle:1", "2", "true"), (got["symbols"], got["axes"], got["colours"]))
+        self.assertEqual("2026-10-12=20,2026-10-19=4,2026-10-26=8", got["week"])
+
+    def test_RQ_TRC_095_given_a_bucket_with_a_session_then_its_tooltip_gives_its_trigram_counters_author_and_commit(self):
+        got = self.run_script("""
+const box = document.querySelector('#delivery-charts [data-chart="timeline"]');
+const days = [].concat(optionOf("timeline").xAxis)[0].data;
+chartOf("timeline").dispatchAction({ type: "showTip", seriesIndex: 0, dataIndex: days.indexOf("2026-10-27") });
+out.tip = box.textContent;
+""", "tip")
+        for text in ("OTH", "questions 3", "verification 1", "Claude Opus 5.5", "d000000004", "reworked"):
+            self.assertIn(text, got["tip"], text)
+
+    def test_RQ_TRC_096_given_a_tag_off_then_its_marks_go_and_the_figures_stay(self):
+        got = self.run_script("""
+const tag = (key) => document.querySelector(`#delivery-charts [data-overlay="${key}"]`);
+out.pressed = tag("friction").getAttribute("aria-pressed");
+const before = document.getElementById("delivery-kpis").textContent;
+tag("friction").click();
+out.off = shown("Friction"); out.rework = shown("Rework");
+out.pressedoff = tag("friction").getAttribute("aria-pressed");
+out.same = String(before === document.getElementById("delivery-kpis").textContent);
+tag("friction").click();
+out.back = shown("Friction");
+""", "pressed", "off", "rework", "pressedoff", "same", "back")
+        self.assertEqual(("true", "none", "2026-10-27=1", "false", "true"),
+                         (got["pressed"], got["off"], got["rework"], got["pressedoff"], got["same"]))
+        self.assertEqual("2026-10-15=20,2026-10-22=4,2026-10-27=8", got["back"])
+
+    def test_RQ_TRC_096_given_no_log_then_the_friction_tag_is_disabled_and_says_why(self):
+        got = self.run_script("""
+const tag = document.querySelector('#delivery-charts [data-overlay="friction"]');
+out.disabled = String(tag.disabled); out.why = tag.title; out.series = shown("Friction");
+""", "disabled", "why", "series", path=self.no_log)
+        self.assertEqual(("true", "none"), (got["disabled"], got["series"]))
+        self.assertIn("METRICS_LOG", got["why"])
 
 
 @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
