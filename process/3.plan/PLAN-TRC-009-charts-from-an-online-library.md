@@ -223,19 +223,31 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: the Total row carries the overall grade and score of the report card; the colours are the existing
   coverage and grade tokens, one row-height token added (`quality-area-row-height`, 18 px).
 
-### TASK-TRC-068: Grouped marks in the History timeline
-- **Tier**: M
-- **Status**: Not Started
+### TASK-TRC-068: Grouped marks and a readable "together" mark in the History timeline
+- **Tier**: L
+- **Status**: Done
 - **Description**: Merge the marks of a row that overlap at the current zoom into one group mark with its count and kind,
-  its tooltip listing its commits, its activation zooming on them.
-- **Requirement refs**: RQ-TRC-086, RQ-HST-007, RQ-HST-014
+  its tooltip listing its commits, its activation zooming on them; replace the ringed "together" mark by a circle holding
+  a diamond whose two colours can never be confused.
+- **Requirement refs**: RQ-TRC-086, RQ-TRC-089, RQ-HST-007, RQ-HST-014
 - **ADR refs**: ADR-TRC-010 (DEC-TRC-044); ADR-HST-001 (DEC-HST-005)
 - **Acceptance Criteria**: Given a row with three commits within one hour and the whole history in view, Then one group
-  mark reading 3 is drawn; When the view is zoomed on that hour, Then three marks are drawn.
+  mark reading 3 is drawn; When the view is zoomed on that hour, Then three marks are drawn. Given a commit by a human and
+  an agent, Then a circle of the human's colour and a diamond of the agent's are drawn with no ring, also when the agent
+  is the author; Given the two with the same colour, Then the diamond differs by at least the threshold in both themes.
+  Given a group of two humans, Then its mark is neutral; Given a group of one human, Then it has that human's colour;
+  Given a human and an agent commit grouped, Then the mark is the mixed rounded square.
 - **Dependencies**: TASK-TRC-064
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_history_groups.py`: 13 tests OK, those of the fixed size, of the count beside the symbol and of
+  the bold dates in a group's tooltip failing before the code (one mark reading 3 then three on zoom; circle and diamond
+  with no ring, either author; the diamond differing in both themes; neutral, single-identity and mixed groups; count at
+  4.5:1). Full suite: 317 tests OK, 3 skipped. `AGNOS_TRACE_PERF=1`: History tab drawn in 34 ms, P95 11.7 ms on 2000 commits. Visual check left to the owner.
+- **Assumptions**: threshold 0.12 in OKLab; sizes from the UX proposal 2 chosen by the owner (row 28, circle 9, diamond
+  10.5, inner diamond 7, square 8, separator 1.5, count 12, reach 40); the proposal's count background is a text halo;
+  the owner's choice of the proposal covers its lines changed moving to the tooltip; counts above 99 read "99+"; a group
+  that cannot split selects its newest commit when activated; the git graph's own ring marks its current commit and is
+  unchanged.
 
 ### TASK-TRC-069: Speed, documentation and a run on XS56K
 - **Tier**: M

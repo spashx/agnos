@@ -361,13 +361,14 @@
   const TIP_LINE = "tip-line";
   let richTipTimer = null;
 
-  // content: { head, type (a dot of that element type before the head), lines, mono (the lines that are code) }
+  // content: { head, type (a dot of that element type before the head), lines (a text, or a list of texts and nodes),
+  // mono (the lines that are code) }
   function showRichTip(target, content) {
     clearTimeout(richTipTimer);
     const tip = $(TIP_ID);
     const head = el("div", { class: TIP_HEAD }, content.type ? el("span", { class: `dot t-${content.type}` }) : null, content.head);
     clear(tip).append(head, ...(content.lines || []).filter((line) => line !== null && line !== undefined && line !== "")
-      .map((line, i) => el("div", { class: `${TIP_LINE}${(content.mono || []).includes(i) ? " tip-mono" : ""}`, text: line })));
+      .map((line, i) => el("div", { class: `${TIP_LINE}${(content.mono || []).includes(i) ? " tip-mono" : ""}` }, line)));
     const box = target.getBoundingClientRect ? target.getBoundingClientRect() : target;
     tip.hidden = false;
     const size = tip.getBoundingClientRect();
@@ -2283,7 +2284,24 @@
   const KIND_HUMAN = "human";
   const KIND_AGENT = "agent";
   const KIND_TOGETHER = "together";
-  const KIND_LABEL = { [KIND_HUMAN]: "human", [KIND_AGENT]: "agent", [KIND_TOGETHER]: "human and agent together" };
+  const KIND_MIXED = "mixed";           // a group of commits of different kinds (RQ-TRC-086)
+  const KIND_LABEL = { [KIND_HUMAN]: "human", [KIND_AGENT]: "agent", [KIND_TOGETHER]: "human and agent together", [KIND_MIXED]: "mixed group" };
+  const GROUP_FILL = "var(--c-history-group-fill)";
+  const INK_LIGHT = "var(--c-history-ink-light)";
+  const INK_DARK = "var(--c-history-ink-dark)";
+  const CLASS_MARK_INNER = "history-mark-inner";
+  const GROUP_COUNT_MAX = 99;           // a larger count would not fit its mark
+  const GROUP_TIP_COMMITS = 10;         // DEC-TRC-044
+  // The sRGB transfer, WCAG's luminance and the OKLab matrices: published constants, not visual choices.
+  const BYTE_MAX = 255;
+  const SRGB_KNEE = 0.04045;
+  const SRGB_SLOPE = 12.92;
+  const SRGB_OFFSET = 0.055;
+  const SRGB_GAMMA = 2.4;
+  const LUMINANCE = [0.2126, 0.7152, 0.0722];
+  const LUMINANCE_FLARE = 0.05;
+  const OKLAB_CONES = [[0.4122214708, 0.5363325363, 0.0514459929], [0.2119034982, 0.6806995451, 0.1073969566], [0.0883024619, 0.2817188376, 0.6299787005]];
+  const OKLAB_AXES = [[0.2104542553, 0.793617785, -0.0040720468], [1.9779984951, -2.428592205, 0.4505937099], [0.0259040371, 0.7827717662, -0.808675766]];
   const IDENTITY_TOKENS = 12;           // the identities past these take a golden-angle hue (DEC-HST-005)
   const ROW_OVERSCAN = 6;               // rows drawn above and below the view, so that a scroll shows no gap
   const PAN_FRACTION = 0.1;             // an arrow key moves the period by this share of its width
@@ -2295,7 +2313,9 @@
   const WHEEL_NOTCH = 100;              // one wheel notch, in deltaY units
   const TICK_FROM = 0.25;               // an overview tick spans the middle half of the strip
   const TICK_TO = 0.75;
-  const DIAMOND_RATIO = 1.25;           // a diamond's half-diagonal, as a share of a circle's radius of the same area
+  const CSS_MARK = "--c-history-mark";
+  const CSS_MARK_DIAMOND = "--c-history-mark-diamond";
+  const CSS_MARK_SQUARE = "--c-history-mark-square";
   const FULL_HUE = 360;
   const LOCALE = "en";
   const UTC = "UTC";
@@ -2326,11 +2346,8 @@
   const ID_HISTORY_GROUPING = "history-grouping";
   const ID_HISTORY_ANGLE = "history-angle";
   const ID_HISTORY_OVERVIEW = "history-overview";
-  const CLASS_RING = "history-ring";
   const CLASS_LEGEND_ITEM = "history-legend-item";
   const CLASS_COUNT = "history-count";
-  const CSS_RING_GAP = "--c-history-ring-gap";
-  const CSS_MARK_MAX = "--c-history-mark-max";
   const ATTR_VIEWBOX = "viewBox";
   const ATTR_ARIA_HIDDEN = "aria-hidden";
   const MONTHS_PER_QUARTER = 3;
@@ -2377,8 +2394,6 @@
   const isEntry = (row) => !row.group && !isFolder(row);           // a row of an element, a file or a function
   const commitTime = HISTORY ? HISTORY.commits.map((c) => Date.parse(c.date)) : [];
   const fnIndex = new Map(fnKeys.map((key, i) => [key, i]));
-  const maxLines = HISTORY ? Object.values(HISTORY.interventions).flatMap((byKey) => Object.values(byKey))
-    .reduce((most, list) => list.reduce((m, [, lines]) => Math.max(m, lines), most), 1) : 1;
 
   // RQ-HST-014: a colour of its own per identity, from the tokens: twelve categorical ones, then golden-angle hues.
   function identityColour(index) {
@@ -2859,34 +2874,146 @@
   }
 
   // ---- rows in view ----
-  function markRadius(lines) {
-    const low = cssNumber("--c-history-mark-min");
-    return low + (cssNumber(CSS_MARK_MAX) - low) * Math.sqrt(lines / maxLines);
-  }
-
   function markLabel(row, ci, lines) {
     const commit = HISTORY.commits[ci];
     const people = [commit.author, ...commit.coAuthors].map((i) => HISTORY.people[i].name).join(" with ");
     return `${commit.hash}, ${DATE_TEXT.format(commitTime[ci])}, ${people}: ${lines} lines changed in ${row.label}`;
   }
 
+  // RQ-TRC-089: a colour read as sRGB, whatever its notation, then compared in OKLab.
+  const colourProbe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const colourValues = new Map();
+  const srgbLinear = (c) => (c <= SRGB_KNEE ? c / SRGB_SLOPE : ((c + SRGB_OFFSET) / (1 + SRGB_OFFSET)) ** SRGB_GAMMA);
+
+  function linearRgb(colour) {
+    const value = colour.startsWith("var(") ? getComputedStyle(document.documentElement).getPropertyValue(colour.slice(4, -1)).trim() : colour;
+    if (!colourValues.has(value)) {
+      colourProbe.fillStyle = value;
+      colourProbe.fillRect(0, 0, 1, 1);
+      colourValues.set(value, [...colourProbe.getImageData(0, 0, 1, 1).data].slice(0, 3).map((c) => srgbLinear(c / BYTE_MAX)));
+    }
+    return colourValues.get(value);
+  }
+
+  function oklab(colour) {
+    const rgb = linearRgb(colour);
+    const cone = OKLAB_CONES.map((row) => Math.cbrt(row.reduce((sum, w, i) => sum + w * rgb[i], 0)));
+    return OKLAB_AXES.map((row) => row.reduce((sum, w, i) => sum + w * cone[i], 0));
+  }
+
+  const colourGap = (a, b) => Math.hypot(...oklab(a).map((v, i) => v - oklab(b)[i]));
+  const luminance = (colour) => linearRgb(colour).reduce((sum, c, i) => sum + LUMINANCE[i] * c, 0);
+  // The black or the white token, for a diamond too close to its circle (RQ-TRC-089).
+  const inkOn = (colour) => ((1 + LUMINANCE_FLARE) / (luminance(colour) + LUMINANCE_FLARE) >= (luminance(colour) + LUMINANCE_FLARE) / LUMINANCE_FLARE
+    ? INK_LIGHT : INK_DARK);
+  const distinctFrom = (colour, other) => (colourGap(colour, other) < cssNumber("--c-history-colour-gap") ? inkOn(other) : colour);
+
+  const diamondPath = (x, y, d, attrs) => svgEl(VALUE_PATH, { d: `M${x} ${y - d}L${x + d} ${y}L${x} ${y + d}L${x - d} ${y}Z`, ...attrs });
+
+  // DEC-HST-005 as amended: one size per shape.
+  const kindShape = (kind, x, y, fill) => (kind === KIND_AGENT ? diamondPath(x, y, cssNumber(CSS_MARK_DIAMOND), { fill })
+    : svgEl(SVG_CIRCLE, { cx: x, cy: y, r: cssNumber(CSS_MARK), fill }));
+
+  // RQ-TRC-089: the circle of the human holding the diamond of the agent, within the mark's radius.
+  const togetherShapes = (x, y, human, agent) => [svgEl(SVG_CIRCLE, { cx: x, cy: y, r: cssNumber(CSS_MARK), fill: human }),
+    diamondPath(x, y, cssNumber("--c-history-mark-inner"), { class: CLASS_MARK_INNER, fill: distinctFrom(agent, human) })];
+
+  const contributors = (commit) => [commit.author, ...commit.coAuthors];
+  const firstOfKind = (commit, kind) => contributors(commit).find((i) => HISTORY.people[i].kind === kind);
+
+  function markAttrs(selected) {
+    return { class: `history-mark${selected ? " " + IS_SELECTED : ""}`, tabindex: "0", role: "img" };
+  }
+
   function markElement(row, ci, lines, y) {
     const commit = HISTORY.commits[ci];
     const x = localX(commitTime[ci]);
-    const r = markRadius(lines);
-    const fill = colourOf[commit.author];
-    const shape = commit.kind === KIND_AGENT
-      ? svgEl(VALUE_PATH, { d: `M${x} ${y - r * DIAMOND_RATIO}L${x + r * DIAMOND_RATIO} ${y}L${x} ${y + r * DIAMOND_RATIO}L${x - r * DIAMOND_RATIO} ${y}Z`, fill })
-      : svgEl(SVG_CIRCLE, { cx: x, cy: y, r, fill });
-    const agent = commit.coAuthors.find((i) => HISTORY.people[i].kind === KIND_AGENT);
-    const ring = commit.kind === KIND_TOGETHER ? svgEl(SVG_CIRCLE, { class: CLASS_RING, cx: x, cy: y,
-      r: r + cssNumber(CSS_RING_GAP), stroke: colourOf[agent ?? commit.coAuthors[0] ?? commit.author] }) : null;
-    const mark = svgEl(SVG_GROUP, { class: `history-mark${hist.commit === ci ? " " + IS_SELECTED : ""}`, "data-commit": ci,
-      "data-kind": commit.kind, "data-lines": lines, tabindex: "0", role: "img", [VALUE_ARIA_LABEL]: markLabel(row, ci, lines) },
-    shape, ring);
+    const shapes = commit.kind === KIND_TOGETHER
+      ? togetherShapes(x, y, colourOf[firstOfKind(commit, KIND_HUMAN)], colourOf[firstOfKind(commit, KIND_AGENT)])
+      : [kindShape(commit.kind, x, y, colourOf[commit.author])];
+    const mark = svgEl(SVG_GROUP, { ...markAttrs(hist.commit === ci), "data-commit": ci, "data-kind": commit.kind, "data-lines": lines,
+      [VALUE_ARIA_LABEL]: markLabel(row, ci, lines) }, ...shapes);
     mark.addEventListener(EVENT_FOCUS, () => showHistoryTip(mark, row, ci, lines));
     mark.addEventListener(EVENT_BLUR, hideHistoryTip);
     return mark;
+  }
+
+  // ---- grouped marks (TASK-TRC-068: RQ-TRC-086; DEC-TRC-044) ----
+  // The marks of a row in time order: one joins the previous group when its centre is closer than the largest mark.
+  function markGroups(marks) {
+    const reach = cssNumber("--c-history-group-reach");
+    const groups = [];
+    for (const item of [...marks].sort(([a], [b]) => commitTime[a] - commitTime[b])) {
+      const x = localX(commitTime[item[0]]);
+      const last = groups[groups.length - 1];
+      if (last && x - last.x < reach) {
+        last.x += (x - last.x) / (last.items.length + 1);
+        last.items.push(item);
+      } else {
+        groups.push({ x, items: [item] });
+      }
+    }
+    return groups;
+  }
+
+  // A group keeps an identity's colour only when it has one person of that kind: a colour always names someone.
+  function soleColour(commits, kind) {
+    const people = new Set(commits.map((commit) => firstOfKind(commit, kind)));
+    return people.size === 1 && commits.every((commit) => contributors(commit).filter((i) => HISTORY.people[i].kind === kind).length === 1)
+      ? colourOf[[...people][0]] : GROUP_FILL;
+  }
+
+  const squareShape = (x, y, fill) => {
+    const half = cssNumber(CSS_MARK_SQUARE);
+    return svgEl(SVG_RECT, { x: x - half, y: y - half, width: 2 * half, height: 2 * half, rx: cssNumber("--c-history-square-corner"), fill });
+  };
+
+  function groupShapes(kind, commits, x, y) {
+    if (kind === KIND_MIXED) return [squareShape(x, y, GROUP_FILL)];
+    if (kind === KIND_TOGETHER) return togetherShapes(x, y, soleColour(commits, KIND_HUMAN), soleColour(commits, KIND_AGENT));
+    return [kindShape(kind, x, y, soleColour(commits, kind))];
+  }
+
+  function groupElement(row, group, y) {
+    const cis = group.items.map(([ci]) => ci);
+    const commits = cis.map((ci) => HISTORY.commits[ci]);
+    const lines = group.items.reduce((sum, [, n]) => sum + n, 0);
+    const kinds = new Set(commits.map((commit) => commit.kind));
+    const kind = kinds.size === 1 ? commits[0].kind : KIND_MIXED;
+    const shapes = groupShapes(kind, commits, group.x, y);
+    const text = cis.length > GROUP_COUNT_MAX ? `${GROUP_COUNT_MAX}+` : cis.length;
+    const countX = group.x + cssNumber(kind === KIND_AGENT ? CSS_MARK_DIAMOND : CSS_MARK) + cssNumber("--c-history-count-gap");
+    const count = svgEl(SVG_TEXT, { class: "history-mark-count", x: countX, y }, text);   // beside the symbol, never on a colour
+    const mark = svgEl(SVG_GROUP, { ...markAttrs(cis.includes(hist.commit)), "data-commits": cis.join(","), "data-count": cis.length,
+      "data-kind": kind, "data-lines": lines, [VALUE_ARIA_LABEL]: `${commitCount(cis.length)}, ${lines} lines changed in ${row.label}` }, ...shapes, count);
+    mark.addEventListener(EVENT_FOCUS, () => showTipLines(mark, groupTipLines(row, cis, lines)));
+    mark.addEventListener(EVENT_BLUR, hideHistoryTip);
+    return mark;
+  }
+
+  // DEC-TRC-044: the first commits of a group, then how many more.
+  function groupTipLines(row, cis, lines) {
+    const person = (ci) => contributors(HISTORY.commits[ci]).map((i) => HISTORY.people[i].name).join(" with ");
+    const shown = cis.slice(0, GROUP_TIP_COMMITS).map((ci) => [`${person(ci)} · `,
+      el(TAG_SPAN, { class: "tip-date", text: DATE_TEXT.format(commitTime[ci]) }), ` · ${HISTORY.commits[ci].subject}`]);
+    const more = cis.length - shown.length;
+    return [`${commitCount(cis.length)}, ${lines} lines changed in ${row.title || row.label}`, ...shown, more ? `+${more} more` : ""].filter(Boolean);
+  }
+
+  const groupCommits = (mark) => mark.dataset.commits.split(",").map(Number);
+
+  // Zooms on the group; where the view can narrow no further, its newest commit is selected instead (RQ-TRC-086).
+  function activateGroup(mark) {
+    const cis = groupCommits(mark);
+    const times = cis.map((ci) => commitTime[ci]);
+    const [first, last] = [Math.min(...times), Math.max(...times)];
+    const before = spanWidth();
+    const width = Math.max((last - first) * (1 + 2 * EDGE_PAD), MIN_SPAN_MS);
+    if (width >= before) {
+      selectCommit(cis.reduce((newest, ci) => (commitTime[ci] > commitTime[newest] ? ci : newest)));
+      return;
+    }
+    setSpan((first + last) / 2 - width / 2, width);
   }
 
   // RQ-HST-017: a row, its changes, its identities and its last change.
@@ -2918,10 +3045,11 @@
     const width = plotWidth();
     const strip = svgEl("svg", { class: "history-strip", [ATTR_VIEWBOX]: `0 0 ${width} ${height}` },
       ...hist.ticks.map(({ t }) => svgEl(VALUE_LINE, { class: "history-grid-line", x1: localX(t), x2: localX(t), y1: 0, y2: height })));
-    const reach = cssNumber(CSS_MARK_MAX) * DIAMOND_RATIO + cssNumber(CSS_RING_GAP);
-    for (const [ci, lines] of row.marks) {
-      const x = localX(commitTime[ci]);
-      if (x >= -reach && x <= width + reach) strip.append(markElement(row, ci, lines, height / 2));
+    const reach = cssNumber("--c-history-group-reach");
+    const inView = row.marks.filter(([ci]) => { const x = localX(commitTime[ci]); return x >= -reach && x <= width + reach; });
+    for (const group of markGroups(inView)) {
+      strip.append(group.items.length > 1 ? groupElement(row, group, height / 2)
+        : markElement(row, group.items[0][0], group.items[0][1], height / 2));
     }
     richTip(label, () => rowTip(row), CSS_TIP_DELAY);
     return el("div", { class: "history-row", "data-key": row.key, style: { top } }, label, strip);
@@ -3182,7 +3310,9 @@
   // The mark of the selected commit is marked in the timeline; another selection unmarks it.
   function markCommit(key) {
     hist.commit = knownCommit(key) ? commitOf.get(hashOf(key)) ?? null : null;
-    for (const mark of $(ID_HISTORY_ROWS).querySelectorAll(CLASS_MARK)) mark.classList.toggle(IS_SELECTED, Number(mark.dataset.commit) === hist.commit);
+    for (const mark of $(ID_HISTORY_ROWS).querySelectorAll(CLASS_MARK)) {
+      mark.classList.toggle(IS_SELECTED, mark.dataset.commits ? groupCommits(mark).includes(hist.commit) : Number(mark.dataset.commit) === hist.commit);
+    }
   }
 
   const selectCommit = (ci) => select(COMMIT_PREFIX + HISTORY.commits[ci].hash);
@@ -3195,11 +3325,12 @@
     rowsBox.addEventListener(EVENT_MOUSEOVER, (event) => {
       const mark = event.target.closest(CLASS_MARK);
       if (!mark) return;
-      scheduleRichTip(mark, () => linesTip(tipLines(rowOfMark(mark), Number(mark.dataset.commit), Number(mark.dataset.lines))),
-        cssNumber(CSS_TIP_DELAY));
+      const lines = Number(mark.dataset.lines);
+      scheduleRichTip(mark, () => linesTip(mark.dataset.commits ? groupTipLines(rowOfMark(mark), groupCommits(mark), lines)
+        : tipLines(rowOfMark(mark), Number(mark.dataset.commit), lines)), cssNumber(CSS_TIP_DELAY));
     });
     rowsBox.addEventListener(EVENT_MOUSEOUT, (event) => { if (event.target.closest(CLASS_MARK)) hideHistoryTip(); });
-    const pinFrom = (mark) => selectCommit(Number(mark.dataset.commit));          // RQ-HST-023
+    const pinFrom = (mark) => (mark.dataset.commits ? activateGroup(mark) : selectCommit(Number(mark.dataset.commit)));   // RQ-HST-023, RQ-TRC-086
     rowsBox.addEventListener(EVENT_CLICK, (event) => { const mark = event.target.closest(CLASS_MARK); if (mark) pinFrom(mark); });
     rowsBox.addEventListener(EVENT_KEYDOWN, (event) => {
       const mark = event.target.closest(CLASS_MARK);
@@ -3330,22 +3461,19 @@
     applyFilters();
   }
 
-  // The shapes of the marks, drawn as the timeline draws them, at the largest mark's size (RQ-HST-014).
+  // The shapes of the marks, drawn as the timeline draws them (RQ-HST-014).
   function renderHistoryLegend() {
-    const r = cssNumber(CSS_MARK_MAX);
-    const ring = r + cssNumber(CSS_RING_GAP);
-    const reach = Math.max(r * DIAMOND_RATIO, ring + cssNumber("--s-stroke-medium"));
+    const reach = cssNumber(CSS_MARK_DIAMOND);
     const sample = (kind, ...shapes) => el(TAG_SPAN, { class: CLASS_LEGEND_ITEM },
       svgEl("svg", { [ATTR_VIEWBOX]: `${-reach} ${-reach} ${2 * reach} ${2 * reach}`, [ATTR_ARIA_HIDDEN]: VALUE_TRUE }, ...shapes),
       KIND_LABEL[kind]);
     const neutral = "var(--s-text-subtle)";               // the shapes alone: the colours are the identities'
-    const d = r * DIAMOND_RATIO;
     clear($("history-legend")).append(
-      sample(KIND_HUMAN, svgEl(SVG_CIRCLE, { r, fill: neutral })),
-      sample(KIND_AGENT, svgEl(VALUE_PATH, { d: `M0 ${-d}L${d} 0L0 ${d}L${-d} 0Z`, fill: neutral })),
-      sample(KIND_TOGETHER, svgEl(SVG_CIRCLE, { r, fill: neutral }),
-        svgEl(SVG_CIRCLE, { class: CLASS_RING, r: ring, fill: VALUE_NONE, stroke: neutral })),
-      el(TAG_SPAN, { class: CLASS_LEGEND_ITEM, text: "Colour: the author · size: the lines changed · wheel over the marks to zoom, drag to pan" }));
+      sample(KIND_HUMAN, kindShape(KIND_HUMAN, 0, 0, neutral)),
+      sample(KIND_AGENT, kindShape(KIND_AGENT, 0, 0, neutral)),
+      sample(KIND_TOGETHER, ...togetherShapes(0, 0, neutral, neutral)),
+      sample(KIND_MIXED, squareShape(0, 0, neutral)),
+      el(TAG_SPAN, { class: CLASS_LEGEND_ITEM, text: "Colour: the identity, neutral for several · number: the commits grouped · wheel over the marks to zoom, drag to pan" }));
   }
 
   // RQ-HST-001, RQ-HST-012: the limits applied, and a cut history said as such.
@@ -3377,7 +3505,7 @@
       drawHistory();
     },
     span: () => [...hist.span], setSpan, timeAt, xOf, state: hist, redraw: drawHistory,
-    known: knownCommit, render: renderCommitDetail, markCommit,                           // DEC-HST-009
+    known: knownCommit, render: renderCommitDetail, markCommit, colourGap,                // DEC-HST-009, RQ-TRC-089
   };
   if (HISTORY) {
     document.querySelector(`.tab[data-view=${HISTORY_VIEW}]`).hidden = false;

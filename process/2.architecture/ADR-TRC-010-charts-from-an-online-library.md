@@ -58,8 +58,12 @@ colours stay in the History tab.
 The timeline stays the page's own inline SVG (DEC-HST-005). When drawing a row, marks are walked in time order; a mark
 whose centre is closer to the previous group's than the largest mark size (a token) joins that group. A group of two or
 more is drawn as one mark of the group's kind (mixed when its kinds differ) with its count written in it; its tooltip lists
-its commits (author, date, subject; the first ten, then "+n more"), and activating it zooms the view on the group's span.
-Groups are computed for the rows in view only, so the cost stays within RQ-HST-013. Fulfils RQ-TRC-086.
+its commits (author, date, subject; the first ten, then "+n more"), and activating it zooms the view on the group's span,
+or selects its newest commit when the view cannot zoom further. Groups are computed for the rows in view only, so the
+cost stays within RQ-HST-013. Owner amendment of 2026-10-30: a group keeps an identity's colour only when it has one
+contributor of its kind, else a neutral token; a mixed group is a rounded square; the count is written beside the symbol
+in the text colour, on a halo of the surface; a mark joins a group within a reach token that leaves room for that count,
+not within the largest mark size. Fulfils RQ-TRC-086, RQ-TRC-089.
 
 ## Consequences
 - The page needs the network once to load its libraries; the browser's cache usually serves them afterwards, without

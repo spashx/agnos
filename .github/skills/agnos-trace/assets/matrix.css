@@ -244,6 +244,7 @@ button, input, select { font: inherit; color: inherit; }
 /* RQ-HST-016, DEC-HST-007: a bold first line, its details below */
 .tip-head { display: flex; align-items: center; gap: var(--s-space-xs); font-weight: var(--s-weight-strong); }
 .tip-line { margin-top: var(--s-space-hair); color: var(--s-text-muted); }
+.tip-date { font-weight: var(--s-weight-strong); }
 .tip-mono { color: var(--s-text-muted); font-family: var(--s-font-mono); font-size: var(--s-text-caption); }
 
 .side-section { display: flex; flex-direction: column; gap: var(--s-space-sm); }
@@ -1054,7 +1055,8 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-strip .history-grid-line { stroke: var(--c-history-grid); stroke-width: var(--s-stroke-hairline); }
 .history-mark { cursor: pointer; }
 .history-mark > :first-child { stroke: var(--c-history-mark-outline); stroke-width: var(--s-stroke-hairline); }
-.history-ring { fill: none; stroke-width: var(--s-stroke-medium); }
+.history-mark-inner { stroke: var(--c-history-mark-outline); stroke-width: var(--c-history-mark-separator); }
+.history-mark-count { fill: var(--c-history-count-ink); stroke: var(--c-history-mark-outline); stroke-width: var(--c-history-count-halo); paint-order: stroke; font-size: var(--c-history-count-size); font-weight: var(--s-weight-strong); dominant-baseline: central; }
 .history-mark:hover > :first-child, .history-mark:focus > :first-child, .history-mark.is-selected > :first-child { stroke: var(--s-text); stroke-width: var(--s-stroke-focus); }
 .history-mark:focus { outline: none; }
 .tip { max-width: var(--c-history-card-width); }

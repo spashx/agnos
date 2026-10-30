@@ -69,8 +69,10 @@ The History view is drawn by the page script with no new library: a header of ke
 bars per day, week or month, chosen from the visible time span), and the timeline, a grid of rows (labels on the left,
 marks on a time scale) with an overview strip below whose window is the visible span. Only the rows in view are in the
 document, so that thousands of rows redraw in less than 50 ms (RQ-HST-013). A mark's shape tells the kind (circle:
-human; diamond: agent; ringed circle: together, the ring in the co-author's colour), its colour the author, and its
-radius the changed lines on a square-root scale bounded by two tokens. Each identity has a colour of its own (owner
+human; diamond: agent; circle holding a diamond: together, in the human's and the agent's colours, the diamond taking a
+contrasting ink if they are too close: RQ-TRC-089, owner amendment of 2026-10-30 replacing the ring), its colour the
+author. Owner amendment of 2026-10-30: marks have one size per shape from tokens, the lines changed moving to the
+tooltip, for legibility, replacing a radius on a square-root scale. Each identity has a colour of its own (owner
 amendment of 2026-10-24): the first twelve, by number of commits, take a categorical set of twelve global tokens; the
 next ones take a hue turned by the golden angle at the lightness and chroma given by tokens, so that every colour is
 distinct and still comes from the design system. The colour is computed once per identity and used by the marks, the

@@ -83,9 +83,12 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
 - **History**, with `--history` (FTR-HST-001; the tab comes before Quality): a timeline of who changed what, read from
   two angles. **Requirements**: one row per process element, grouped by type; **Code**: the files in a tree of their
   folders that opens and closes (their functions below them with a call graph), or the elements by the code citing
-  them. A mark is one commit on a row: its shape tells the kind (circle: human, diamond: agent, ringed circle: human
-  and agent together, the ring in the agent's colour), its colour the author (one colour per identity), its size the
-  lines changed; hover it for the commit, click it (or Enter) to select the commit in the detail panel (RQ-HST-023:
+  them. A mark is one commit on a row: its shape tells the kind (circle: human, diamond: agent, circle holding a
+  diamond: human and agent together, each in their colour, the diamond taking a contrasting ink when the two are too
+  close), its colour the author (one colour per identity), all of one size. Marks that would overlap merge
+  into a group with its count beside it, in its identity's colour when it has one, neutral otherwise, a rounded square
+  when its kinds differ; hover it for its commits, click it to zoom on them (at the narrowest view, to select the newest).
+  Hover a mark for the commit, click it (or Enter) to select the commit in the detail panel (RQ-HST-023:
   its kind, hash, subject, date, contributors, lines and branch in the fixed band; below, the **git graph** of the
   commits around it, a lane and a colour per branch, its name at its newest commit, the lines to the parents curving
   where a branch starts or is merged, a click on a row selecting that commit (RQ-HST-025); then what the commit

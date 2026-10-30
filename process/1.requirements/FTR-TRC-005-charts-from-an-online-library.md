@@ -112,12 +112,33 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
 - **Statement**: WHEN two or more marks of one row of the History timeline would overlap at the current zoom, the page
   SHALL draw them as one group mark showing the count of its commits, of the kind of its commits (human, agent or
   together, or mixed when they differ), whose tooltip lists its commits and whose activation zooms on them; zooming in
-  SHALL split a group as its marks stop overlapping.
-- **Rationale**: overlapping marks hide each other, chiefly the ringed "human and agent together" ones.
+  SHALL split a group as its marks stop overlapping. The count SHALL be written beside the symbol, in the text colour,
+  never on a mark's colour, and all marks of a kind SHALL have one size, the lines changed being read in the tooltip
+  (owner decision of 2026-10-30). A group SHALL take the colours of its identities only when its
+  commits all have the same contributors of its kind, and neutral design-system colours otherwise. A group of mixed kinds
+  SHALL be a rounded square, a shape used for nothing else. IF the view cannot zoom further on a group, THEN activating
+  it SHALL select its newest commit.
+- **Rationale**: overlapping marks hide each other, and a colour must always name someone.
 - **Priority**: Should
 - **Acceptance Criteria**: Given a row with three commits within one hour and the whole history in view, Then one group
-  mark reading 3 is drawn; When the view is zoomed on that hour, Then three marks are drawn.
-- **Dependencies**: RQ-HST-007, RQ-HST-014
+  mark reading 3 is drawn; When the view is zoomed on that hour, Then three marks are drawn. Given a group of two humans,
+  Then its mark is neutral; Given a group of one human, Then it has that human's colour; Given a human commit and an agent
+  commit grouped, Then the mark is the mixed rounded square.
+- **Dependencies**: RQ-HST-007, RQ-HST-014, RQ-TRC-089
+
+### RQ-TRC-089: A "together" mark a circle holding a diamond
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: The page SHALL draw a commit made by a human and an agent together as a circle in the human's colour
+  holding a diamond in the agent's colour, outlined, with no ring and within the mark's radius, whichever of them is the
+  git author. IF the two colours differ by less than a design-system threshold in OKLab, THEN the diamond SHALL take the
+  design-system ink that contrasts most with the circle.
+- **Rationale**: the two known shapes read without a legend, and a ring enlarges a mark and tangles with its neighbours.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a commit by a human and an agent, Then a circle of the human's colour and a diamond of the
+  agent's are drawn with no ring, also when the agent is the author; Given the two identities with the same colour, Then
+  the diamond's colour differs from the circle's by at least the threshold, in both themes.
+- **Dependencies**: RQ-HST-014, ADR-HST-001
 
 ---
 
