@@ -90,7 +90,7 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
 - Always put traceability references into **commments** format , never as plain text.
 
 ### MANDATORY INSTRUCTIONS-FILE LINE BUDGET
-- This file (`agnos-sw-eng.instructions.md`) SHALL NOT exceed 800 lines.
+- This file (`agnos-sw-eng.instructions.md`) SHALL NOT exceed 400 lines.
 - Any task that edits this file SHALL report its post-edit line count in the task's `Verification` field before being marked Done.
 
 ### MANDATORY DESIGN SYSTEM (UI PROJECTS)
@@ -297,6 +297,7 @@ Tag every task with a tier before starting. The tier determines which steps are 
 
 - Default to **M** when uncertain.
 - A Tier S task that unexpectedly requires a new file SHALL be re-tiered to M or L before continuing.
+- Scope grows: re-tier and get approval before continuing. Amending a DEC: Tier L minimum. <!-- RQ-FIX-004 -->
 
 ### Plan/Task File Template
 

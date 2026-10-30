@@ -44,6 +44,21 @@ corrects them without changing the traceability page itself.
 
 ---
 
+### RQ-FIX-004: A task whose scope grows is re-tiered
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN a task's scope grows or it comes to amend an ADR decision, the process instructions SHALL require
+  re-tiering it and getting approval before continuing, Tier L at least when it amends a decision.
+- **Rationale**: TASK-TRC-068 grew to amend DEC-HST-005 and was re-tiered only by judgment.
+- **Priority**: Should
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the instructions file
+  - **When** its TASK TIERS section is read
+  - **Then** it states the rule, and the file stays within its line budget
+- **Dependencies**: None
+
+---
+
 ## Non-Functional Requirements
 
 ### RQ-FIX-003: The traceability page is unchanged

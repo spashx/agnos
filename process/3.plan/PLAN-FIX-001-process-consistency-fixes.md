@@ -4,7 +4,7 @@
 Implements FTR-FIX-001: design-system dependencies of the UI requirements and the tier of TASK-DSY-002.
 
 ## References
-- **Requirements**: RQ-FIX-001 to RQ-FIX-003
+- **Requirements**: RQ-FIX-001 to RQ-FIX-004
 - **ADRs**: ADR-FIX-001 (DEC-FIX-001, DEC-FIX-002)
 
 ---
@@ -31,3 +31,20 @@ Implements FTR-FIX-001: design-system dependencies of the UI requirements and th
   duplicate.
 - **Assumptions**: The 14 requirements are the ones judged UI by ADR-TRC-002 (RQ-TRC-011 to RQ-TRC-016)
   and by reading (the others). No unit test: documentation only (`unit_tests=false`).
+
+### TASK-FIX-002: Re-tier rule for a task whose scope grows
+- **Tier**: S
+- **Status**: Done
+- **Description**: Add the re-tier rule to TASK TIERS (recursive self-improvement, iteration 1/1), and record the owner's
+  lowering of the instructions file's line budget from 800 to 400.
+- **Requirement refs**: RQ-FIX-004
+- **ADR refs**: None
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the instructions file
+  - **When** it is read
+  - **Then** TASK TIERS holds the rule and the file is within 400 lines
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: FTR-FIX-001 hosts the rule, being the feature of process corrections; the owner's "ajoute" covers the
+  pending budget change and the session's metrics row in this commit.
