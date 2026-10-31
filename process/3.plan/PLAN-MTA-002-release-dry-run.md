@@ -75,12 +75,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-008: The skill packaged and said
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `SKILL.md` and its pointer with `skill-creator`'s practices, name the skill in `CHANGELOG.md`, and hand the report's lines to read to the owner.
 - **Requirement refs**: RQ-MTA-013, RQ-MTA-012
 - **ADR refs**: ADR-MTA-002 (DEC-MTA-007)
 - **Acceptance Criteria**: Given the skill, Then the criterion of RQ-MTA-013 holds; Given the rehearsal on this repository, Then the owner has its report.
 - **Dependencies**: TASK-MTA-007
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: `test_skill.py`: 4 OK, failing before the files. `agnos-meta-release/tests` 40 OK; `agnos-meta-demo` 12, `agnos-meta-docs-sync` 14 OK; `agnos-perf-center/tests` OK, 3 skipped. Rehearsal on a throwaway clone of this task's files: 58 files, 1,102 IDs removed, both checks true, exit 0; 11 mentions and 2 lines to read, both false alarms, handed to the owner.
+- **Assumptions**: 5 lines the removal left reading badly were reworded in the repository, in comments and docstrings only, moving their citations into parentheses; the skill is added to `test_meta_prefix.py`'s names; `CONTRIBUTING.md` and `AGENTS.md` stay unchanged, as a maintainer skill is not listed there.

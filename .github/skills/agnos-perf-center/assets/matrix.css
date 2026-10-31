@@ -940,7 +940,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .shape-FILE { border-radius: var(--s-space-none); }
 .shape-UNDEFINED { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
 
-/* ---- History view (FTR-HST-001; DEC-HST-005, DEC-HST-006; tokens of ADR-TRC-002) ---------------------------- */
+/* ---- History view (FTR-HST-001; DEC-HST-005, DEC-HST-006; ADR-TRC-002) ---------------------------- */
 .tab[hidden], .side-section[hidden], .segmented[hidden] { display: none; }
 .icon-sprite { position: absolute; width: var(--s-space-none); height: var(--s-space-none); overflow: hidden; }
 .kind-icon { flex: none; width: var(--c-history-icon-size); height: var(--c-history-icon-size); fill: currentColor; }

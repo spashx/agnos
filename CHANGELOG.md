@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-meta-release` maintainer skill: rehearses a release in a folder, from a commit, without AGNOS's own IDs, and proves it behaves as the repository does, publishing nothing <!-- ADR-MTA-002, TASK-MTA-005 to TASK-MTA-008, RQ-MTA-006 to RQ-MTA-013 -->
 - `agnos-index` and `agnos-perf-center` show on their output line the time the run took, never written into the generated files <!-- TASK-IDX-003, TASK-TRC-090, RQ-IDX-018, RQ-TRC-107 -->
 - `agnos-meta-qa` maintainer skill: a code quality report on request, as normalised JSON from pinned analysers, blocking
   nothing <!-- ADR-QLT-001, TASK-QLT-001, RQ-QLT-001 to RQ-QLT-008 -->

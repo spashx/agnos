@@ -1,6 +1,6 @@
 """agnos-perf-center call graph: the functions and calls of the scanned source files, parsed with tree-sitter.
 
-Implements FTR-TRC-002 after ADR-TRC-004. perf_center.py loads this file only for --call-graph (DEC-TRC-013,
+perf_center.py loads this file only for --call-graph (FTR-TRC-002, ADR-TRC-004, DEC-TRC-013,
 RQ-TRC-026, RQ-TRC-039): it imports the standard library only, py-tree-sitter and the grammar wheels when it runs.
 Languages are data, assets/callgraph/languages.json and one query file each (DEC-TRC-014, RQ-TRC-032).
 """

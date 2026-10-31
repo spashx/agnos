@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """agnos-perf-center: the traceability matrix of an AGNOS process and its sources, as one self-contained HTML page.
 
-Implements FTR-TRC-001 after ADR-TRC-001, ADR-TRC-002 and ADR-TRC-003. Procedure and options: ../SKILL.md.
+Procedure and options: ../SKILL.md (FTR-TRC-001; ADR-TRC-001, ADR-TRC-002, ADR-TRC-003).
 Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS ID grammar and the INDEX.idx.md format,
 nothing of the product being developed (RQ-TRC-019). --call-graph loads callgraph.py beside it (FTR-TRC-002,
 ADR-TRC-004). Kept free of quality findings (RQ-QLT-009, DEC-QLT-008).
