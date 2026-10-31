@@ -1,10 +1,10 @@
 ---
 name: agnos-meta-release
-description: "AGNOS maintainer skill. Rehearses a release of this repository in a folder: selects the delivered layers of a commit, removes the IDs of AGNOS's own development, checks none is left, and proves on the demo that the output behaves as the repository does. USE FOR: checking what a release would hold before deciding to publish. It publishes nothing: no commit on main, no tag, no push."
+description: "AGNOS maintainer skill. Rehearses a release of this repository in a folder: selects the delivered layers of a commit, writes them as a marketplace holding the plugin agnos, removes the IDs of AGNOS's own development, checks none is left, and proves on the demo that the output behaves as the repository does. USE FOR: checking what a release would hold before deciding to publish. It publishes nothing: no commit on main, no tag, no push."
 argument-hint: "--dry-run --output <folder> [--demo <folder>] [--repo <folder>]"
 ---
 
-<!-- FTR-MTA-002; RQ-MTA-006 to RQ-MTA-013 / ADR-MTA-002 (DEC-MTA-007 to DEC-MTA-011) -->
+<!-- FTR-MTA-002; RQ-MTA-006 to RQ-MTA-013 / ADR-MTA-002 (DEC-MTA-007 to DEC-MTA-011); RQ-PLG-001 to RQ-PLG-003, RQ-PLG-007 / ADR-PLG-001 (DEC-PLG-001, DEC-PLG-002) -->
 # AGNOS Release Rehearsal
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-release/`) and Claude Code
@@ -28,6 +28,20 @@ not delivered.
    - `1`: nothing is to be published. Each problem is on the error stream and in the report's `problems`. Report them to the maintainer.
 4. Give the maintainer the report's `toRead` and `mentions`. They fail nothing: a person judges them.
 
+## What it writes
+
+| Path | What |
+|---|---|
+| `.claude-plugin/marketplace.json` | The catalogue read by Claude Code and Copilot |
+| `.agents/plugins/marketplace.json` | The catalogue read by Codex |
+| `plugins/agnos/plugin.json`, `plugins/agnos/.claude-plugin/plugin.json` | The manifests, with the version of the changelog's latest release |
+| `plugins/agnos/skills/<name>/` | Each delivered skill |
+| `plugins/agnos/skills/agnos-process/SKILL.md` | The process instructions as a skill, generated |
+| `README.md`, `LICENSE.md`, `CHANGELOG.md`, `GETTING_STARTED.MD`, `agnos-overview.png`, `.gitignore` | From the repository |
+| `.gitattributes` | The marketplace's own, from `assets/marketplace.gitattributes.txt` |
+
+What the manifests say comes from `assets/marketplace.json`.
+
 ## What it checks
 
 | Check | How | On failure |
@@ -35,6 +49,8 @@ not delivered.
 | Every tracked file has a layer | `assets/layers.json`, and the prefix `agnos-meta-` for skills and sub-agents | Exit 1 before writing anything: add a rule |
 | No ID of the repository is left | Reads the output: contents, binary files and paths | Exit 1, with file and line |
 | The output behaves as the repository | Parses its Python, JSON, JavaScript, PowerShell and bash; compares what `agnos-index`, `agnos-perf-center` and `agnos-init` write | Exit 1, naming the file or the skill |
+| Claude Code accepts the marketplace | `claude plugin validate --strict` on the plugin and the catalogue, with `claude` on the PATH or named by `AGNOS_CLAUDE`; its absence is said on the error stream | Exit 1, with the end of its output |
+| The plugin has what it needs | The instructions file and a released version in `CHANGELOG.md` at HEAD | Exit 1 before writing anything |
 
 An ID belongs to the repository when its trigram appears in the commit's `process/INDEX.idx.md`, defined there or not. Examples
 such as `RQ-EXP-001` use another trigram, and stay: keep it that way when writing an example.

@@ -26,23 +26,22 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
 | **`agnos-perf-center`** | Generates a complete offline application to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
-**Supported tools:** GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code
-(`CLAUDE.md`, `.claude/skills/`) — one canonical process, two entry points.
-**Supported platforms:** Windows (PowerShell 5.1), Linux and macOS (bash).
+**Delivered as:** one marketplace holding the plugin `agnos`, for Claude Code, GitHub Copilot and OpenAI Codex.
+**Scripts for:** Windows (PowerShell 5.1), Linux and macOS (bash).
 
 ---
 
 ## Adding AGNOS to a Project
 
-Keep a clone of this repository next to your project, then call `agnos-init` once, from your project's root. This step is required: until it runs, an agent in your project does not know about AGNOS.
+**1. Install the plugin**, where `<marketplace>` is this marketplace's folder or Git address:
 
-```powershell
-powershell -NoProfile -File ../agnos-lightweight-process/.github/skills/agnos-init/scripts/init.ps1 -Target . -Toolkit ../agnos-lightweight-process
-```
+| Tool | Commands |
+|---|---|
+| Claude Code | `claude plugin marketplace add <marketplace>`, then `claude plugin install agnos@agnos-marketplace` |
+| GitHub Copilot CLI | `copilot plugin marketplace add <marketplace>`, then `copilot plugin install agnos@agnos-marketplace` |
+| OpenAI Codex | `codex plugin marketplace add <marketplace>`, then install the plugin from the ChatGPT desktop app, as Codex's documentation says |
 
-```bash
-bash ../agnos-lightweight-process/.github/skills/agnos-init/scripts/init.sh --target . --toolkit ../agnos-lightweight-process
-```
+**2. Ask your agent to call the `agnos-init` skill once**, from your project's root. This step is required: until it runs, an agent in your project does not know about AGNOS.
 
 Commit the result and start a new agent session. Your own content stays as it is: AGNOS only owns the lines between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGNOS changes, call it again.
 
@@ -50,8 +49,8 @@ Commit the result and start a new agent session. Your own content stays as it is
 
 ## How a Session Runs
 
-1. **Load the instructions** — Copilot loads the instructions file automatically; in this repository Claude Code
-   imports it through `CLAUDE.md`, and in an initialised project the `agnos-init` block orders the agent to read it first.
+1. **Load the process** — in an initialised project, the `agnos-init` block orders the agent to invoke the skill
+   `agnos-process`, which holds the process, before any other action.
 2. **Resolve the session state** — when you ask to start a session, the agent detects the platform,
    asks whether unit tests are required, and writes `process/_sessionstate/session.yaml`.
 3. **Index and scan** — `agnos-index` rebuilds the index; the agent reviews open requirements,
@@ -137,7 +136,4 @@ or removed.
 |---|---|
 | [GETTING_STARTED.MD](GETTING_STARTED.MD) | Worked example — start here |
 | [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process |
-| [CLAUDE.md](CLAUDE.md) | Claude Code entry point |
-| [.github/skills/](.github/skills/) | Canonical skills: `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center` |
-| [.claude/skills/](.claude/skills/) | Claude Code pointers to the canonical skills |
-| [process/](process/) | This repository's own AGNOS artifacts and index |
+| [.github/skills/](.github/skills/) | The skills: `agnos-init`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center` |

@@ -28,10 +28,10 @@ comes back. Most of what follows is short prompts and short reviews.
 
 ## Before you start
 
-1. **AGNOS is added to your project.** Call the `agnos-init` skill once, from your project's root; this
-   step is required (see the README's "Adding AGNOS to a Project"). It completes your `CLAUDE.md` and
-   `AGENTS.md` with one delimited block, which tells the agent where the process and its skills are, and leaves your own content
-   as it is. <!-- RQ-INI-007 -->
+1. **AGNOS is added to your project.** Install the plugin, then call the `agnos-init` skill once, from your
+   project's root; this step is required (see the README's "Adding AGNOS to a Project"). It completes your `CLAUDE.md` and
+   `AGENTS.md` with one delimited block, which tells the agent to load the process skill, and leaves your own content
+   as it is. <!-- RQ-INI-007, RQ-PLG-004 -->
 2. **`process/` exists** with its four folders (`1.requirements/`, `2.architecture/`, `3.plan/`,
    `_sessionstate/`). `agnos-init` creates those that are absent.
 3. **You have a trigram in mind.** Three uppercase letters naming the functional area you are about
@@ -657,7 +657,7 @@ panel lists its callers, its callees and the IDs it cites; the graph's **Impleme
 draws them at the level of the function, the class or the namespace. Supported languages: C, C++,
 C#, Java, JavaScript / Node.js, Python and Rust — not TypeScript, so this guide's example would get
 no functions. The option needs the tree-sitter packages, installed once with
-`pip install -r .github/skills/agnos-perf-center/requirements-callgraph.txt`; without them the page is
+`pip install -r requirements-callgraph.txt`, from the folder of the `agnos-perf-center` skill; without them the page is
 written all the same, without functions.
 
 **Your job here — read the findings, every non-zero one is a defect to fix or to justify:**

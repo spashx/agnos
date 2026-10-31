@@ -1,0 +1,12 @@
+{
+  "_comment": "FTR-PLG-001, ADR-PLG-001 (DEC-PLG-005): what each tool's agent file says for each value of a definition in .github/agents. A value missing here stops the build. A null model is left out: the tool picks one, as Copilot's model values were not verified.",
+  "tools": {
+    "read": { "claude": ["Read"], "copilot": ["read"] },
+    "search": { "claude": ["Grep", "Glob"], "copilot": ["search"] },
+    "edit": { "claude": ["Edit"], "copilot": ["edit"] },
+    "execute": { "claude": ["Bash"], "copilot": ["execute"] }
+  },
+  "models": {
+    "haiku": { "claude": "haiku", "copilot": null }
+  }
+}

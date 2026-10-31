@@ -21,6 +21,9 @@ from pathlib import Path
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 LAYERS_PATH = ASSETS / "layers.json"
+MARKETPLACE_PATH = ASSETS / "marketplace.json"
+ATTRIBUTES_PATH = ASSETS / "marketplace.gitattributes.txt"
+AGENT_TABLE_PATH = ASSETS / "agent-frontmatter.json"
 ENCODING = "utf-8"
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -63,9 +66,38 @@ PERF_PAGE = "process/PERF-CENTER.html"
 PERF_RESULTS = ("process/PERF-CENTER.json", "process/PERF-CENTER.data.js")
 INIT_RESULTS = ("CLAUDE.md", "AGENTS.md", "process/1.requirements/readme.md", "process/2.architecture/readme.md",
                 "process/3.plan/readme.md", "process/_sessionstate/readme.md")
-INDEX_SCRIPT = ".github/skills/agnos-index/scripts/build-index"
-INIT_SCRIPT = ".github/skills/agnos-init/scripts/init"
-PERF_SCRIPT = ".github/skills/agnos-perf-center/scripts/perf_center.py"
+INDEX_SCRIPT = "agnos-index/scripts/build-index"
+INIT_SCRIPT = "agnos-init/scripts/init"
+PERF_SCRIPT = "agnos-perf-center/scripts/perf_center.py"
+# RQ-PLG-001, RQ-PLG-002, DEC-PLG-001: where the delivered files go, and the marketplace around them.
+WORKSHOP_SKILLS = ".github/skills/"
+INSTRUCTIONS = ".github/instructions/agnos-sw-eng.instructions.md"
+PLUGIN_FOLDER = "plugins/agnos"
+PLUGIN_SKILLS = f"{PLUGIN_FOLDER}/skills/"
+PROCESS_SKILL_FILE = f"{PLUGIN_SKILLS}agnos-process/SKILL.md"
+SKILL_FILE = "SKILL.md"
+CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"
+CODEX_CATALOGUE = ".agents/plugins/marketplace.json"
+ROOT_MANIFEST = f"{PLUGIN_FOLDER}/plugin.json"
+CLAUDE_MANIFEST = f"{PLUGIN_FOLDER}/.claude-plugin/plugin.json"
+ATTRIBUTES_FILE = ".gitattributes"
+AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+CHANGELOG = "CHANGELOG.md"
+USER_DOCUMENTS = {"README.md", "GETTING_STARTED.MD"}      # RQ-PLG-008: their links lead into the plugin
+# RQ-PLG-006, DEC-PLG-005: an agent defined once, one file per tool.
+AGENT_SOURCE_RE = re.compile(r"^\.github/agents/(.+)\.agent\.md$")
+AGENT_HEADER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n(.*)\Z", re.S)
+CLAUDE_KEY = "claude"
+COPILOT_KEY = "copilot"
+AGENT_PLACES = {CLAUDE_KEY: f"{PLUGIN_FOLDER}/agents/{{}}.md", COPILOT_KEY: f"{PLUGIN_FOLDER}/com.github.copilot/agents/{{}}.agent.md"}
+TOOLS_KEY = "tools"
+MODEL_KEY = "model"
+MODELS_KEY = "models"
+LIST_SEPARATOR = ", "
+RELEASE_RE = re.compile(r"^## \[v?(\d+)\.(\d+)(?:\.(\d+))?\]", re.M)
+CLAUDE_TOOL_VARIABLE = "AGNOS_CLAUDE"     # the Claude Code binary, when it is not on the PATH
+CLAUDE_TOOL = "claude"
+FRONT_MATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n\s*", re.S)
 PARSE_MESSAGE_LENGTH = 200
 IS_WINDOWS = os.name == "nt"
 POWERSHELL = "powershell"
@@ -120,6 +152,86 @@ def tracked_files(repo):
 
 
 # RQ-MTA-006
+# RQ-PLG-001 / DEC-PLG-001
+def place_of(path):
+    """Where a delivered file goes in the marketplace."""
+    if path == INSTRUCTIONS:
+        return PROCESS_SKILL_FILE
+    if path.startswith(WORKSHOP_SKILLS):
+        return PLUGIN_SKILLS + path[len(WORKSHOP_SKILLS):]
+    return path
+
+
+# RQ-PLG-002
+def release_version(changelog):
+    """The version of the changelog's latest release as x.y.z, or None."""
+    found = RELEASE_RE.search(changelog)
+    return ".".join(part or "0" for part in found.groups()) if found else None
+
+
+def write_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding=ENCODING, newline="\n")
+
+
+def write_marketplace(output, version):
+    """The catalogues, the manifests and the attributes: same name, version and description in each."""
+    said = json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))
+    plugin = {**said["plugin"], "version": version}
+    listed = {"name": plugin["name"], "description": plugin["description"], "version": version}
+    write_json(output / ROOT_MANIFEST, {"$schema": AGENT_PLUGINS_SCHEMA, **plugin})
+    write_json(output / CLAUDE_MANIFEST, plugin)
+    write_json(output / CLAUDE_CATALOGUE, {**said["marketplace"], "plugins": [{**listed, "source": f"./{PLUGIN_FOLDER}"}]})
+    write_json(output / CODEX_CATALOGUE, {**said["marketplace"], "plugins": [{
+        **listed, "source": {"source": "local", "path": f"./{PLUGIN_FOLDER}"}, **said["codex"]}]})
+    (output / ATTRIBUTES_FILE).write_bytes(ATTRIBUTES_PATH.read_bytes())
+
+
+# RQ-PLG-003 / DEC-PLG-002
+def process_skill(text):
+    """The process instructions as a skill."""
+    said = json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))["process"]
+    return f'---\nname: {said["name"]}\ndescription: "{said["description"]}"\n---\n\n{FRONT_MATTER_RE.sub("", text)}'
+
+
+# RQ-PLG-006 / DEC-PLG-005
+def agent_parts(text):
+    """(the header's lines, the body) of an agent definition."""
+    found = AGENT_HEADER_RE.match(text)
+    return (found.group(1).splitlines(), found.group(2)) if found else ([], text)
+
+
+def header_value(line):
+    return line.partition(":")[2].strip()
+
+
+def agent_values(lines):
+    """The tools and the model a definition names."""
+    said = {line.partition(":")[0]: header_value(line) for line in lines}
+    return [tool.strip() for tool in said.get(TOOLS_KEY, "").split(",") if tool.strip()], said.get(MODEL_KEY)
+
+
+def agent_refusals(path, text, table):
+    """What the table does not know in this definition."""
+    tools, model = agent_values(agent_parts(text)[0])
+    unknown = [tool for tool in tools if tool not in table[TOOLS_KEY]]
+    if model and model not in table[MODELS_KEY]:
+        unknown.append(model)
+    return [f"{path}: {value} is not in {AGENT_TABLE_PATH.name}" for value in unknown]
+
+
+def agent_file(text, tool, table):
+    """A definition as this tool reads it: its header translated, its body unchanged."""
+    lines, body = agent_parts(text)
+    tools, model = agent_values(lines)
+    header = [line for line in lines if line.partition(":")[0] not in (TOOLS_KEY, MODEL_KEY)]
+    if tools:
+        header.append(f"{TOOLS_KEY}: {LIST_SEPARATOR.join(name for tool_name in tools for name in table[TOOLS_KEY][tool_name][tool])}")
+    if model and table[MODELS_KEY][model][tool]:
+        header.append(f"{MODEL_KEY}: {table[MODELS_KEY][model][tool]}")
+    return "---\n" + "\n".join(header) + "\n---\n" + body
+
+
 def output_refusal(repo, output):
     """Why this output cannot be used, or None."""
     if output == repo or repo in output.parents:
@@ -205,7 +317,7 @@ def check_output(output, pattern, rules):
     problems = []
     for path in sorted(p for p in output.rglob("*") if p.is_file()):
         name = path.relative_to(output).as_posix()
-        if rules and layer_of(name, rules) == LAYER_META:
+        if rules and name != ATTRIBUTES_FILE and layer_of(name, rules) == LAYER_META:    # the workshop's stays, this one is the marketplace's
             problems.append(f"{name}: a file of the Meta layer")
         problems += [f"{name}: its path holds {found}" for found in pattern.findall(name)]
         for number, line in enumerate(path.read_bytes().decode(BYTE_TRANSPARENT).split("\n"), 1):
@@ -235,29 +347,51 @@ def ids_outside_comments(text, pattern):
     return [(number, found) for number, line in enumerate(visible.split("\n"), 1) for found in pattern.findall(line)]
 
 
+def adapted(path, text):
+    """A delivered text as the marketplace holds it (RQ-PLG-003, RQ-PLG-008)."""
+    if path == INSTRUCTIONS:
+        return process_skill(text)
+    if path in USER_DOCUMENTS:
+        return text.replace(INSTRUCTIONS, PROCESS_SKILL_FILE).replace(WORKSHOP_SKILLS, PLUGIN_SKILLS)
+    return text
+
+
+def contents_of(path, text, table):
+    """The marketplace's file or files for a delivered path, with their text (None for a binary file)."""
+    agent = AGENT_SOURCE_RE.match(path)
+    if agent:
+        return {place.format(agent.group(1)): agent_file(text, tool, table) for tool, place in AGENT_PLACES.items()}
+    return {place_of(path): text}
+
+
+def write_contents(output, contents, data, mode):
+    for place, content in contents.items():
+        target = output / place
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data if content is None else content.encode(ENCODING))
+        if mode == EXECUTABLE_MODE:
+            os.chmod(target, target.stat().st_mode | stat.S_IXUSR)
+
+
 def write_delivered(repo, output, entries, pattern, left_out):
     """Writes each delivered file without the workshop's IDs, and returns what the report says of them."""
     findings = {"removed": {}, "toRead": [], "mentions": []}
     delivered_names = {Path(path).name for path, _ in entries}
+    table = json.loads(AGENT_TABLE_PATH.read_text(encoding=ENCODING))
     for path, mode in entries:
         data = git(repo, "show", f"HEAD:{path}")
         try:
             text, count, to_read = remove_ids(data.decode(ENCODING), pattern)
+            text = adapted(path, text)
         except UnicodeDecodeError:      # a binary file: RQ-MTA-010 still reads it
             text = None
-        target = output / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if text is None:
-            target.write_bytes(data)
-        else:
-            target.write_bytes(text.encode(ENCODING))
+        write_contents(output, contents_of(path, text, table), data, mode)
+        if text is not None:
             if count:
                 findings["removed"][path] = count
             findings["toRead"] += [{"file": path, "line": line, "text": said} for line, said in to_read]
             findings["mentions"] += [{"file": path, "line": line, "what": what}
                                      for line, what in mentions(text, left_out, delivered_names)]
-        if mode == EXECUTABLE_MODE:
-            os.chmod(target, target.stat().st_mode | stat.S_IXUSR)
     return findings
 
 
@@ -368,6 +502,21 @@ def run_init(toolkit, workspace):
 RUNNERS = (("agnos-index", run_index), ("agnos-perf-center", run_perf_center), ("agnos-init", run_init))
 
 
+# RQ-PLG-002: the tools' own check of what they will read.
+def claude_validation(output):
+    """What Claude Code refuses in the plugin and the catalogue. Its absence is said, and not checked."""
+    tool = os.environ.get(CLAUDE_TOOL_VARIABLE) or shutil.which(CLAUDE_TOOL)
+    if not tool:
+        print(f"agnos-meta-release: {CLAUDE_TOOL} is absent, the marketplace is not validated", file=sys.stderr)
+        return []
+    problems = []
+    for folder in (output / PLUGIN_FOLDER, output):
+        done = subprocess.run([tool, "plugin", "validate", str(folder), "--strict"], capture_output=True, text=True, errors="replace")
+        if done.returncode:
+            problems.append(f"{CLAUDE_TOOL} plugin validate {folder.name}: {done.stdout.strip()[-PARSE_MESSAGE_LENGTH:]}")
+    return problems
+
+
 def write_baseline(repo, folder):
     """The delivered files as committed, IDs included: what the output is compared with, whatever the working tree holds."""
     rules = load_rules()
@@ -388,13 +537,13 @@ def prove(repo, output, demo):
     demo_path = demo_folder(repo, demo)
     if not demo_path.is_dir():
         return [f"no demo at {demo_path}: build it with agnos-meta-demo"]
-    problems = parse_problems(output)
+    problems = parse_problems(output) + claude_validation(output)
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as holder:
         workspace = Path(holder)
         baseline = workspace / "baseline"
         write_baseline(repo, baseline)
         git(workspace, "clone", "--quiet", str(demo_path), "demo")
-        problems += compare_runs(baseline, output, workspace, RUNNERS)
+        problems += compare_runs(baseline / WORKSHOP_SKILLS, output / PLUGIN_SKILLS, workspace, RUNNERS)
     return problems
 
 
@@ -406,6 +555,16 @@ def rehearse(repo, output, demo, proof):
     if unknown:
         return fail(f"no layer in {LAYERS_PATH.name} for: {', '.join(unknown)}")
     delivered = [entry for entry in entries if layer_of(entry[0], rules) == LAYER_DELIVERED]
+    table = json.loads(AGENT_TABLE_PATH.read_text(encoding=ENCODING))
+    refusals = [refusal for path, _ in delivered if AGENT_SOURCE_RE.match(path)
+                for refusal in agent_refusals(path, git(repo, "show", f"HEAD:{path}").decode(ENCODING), table)]
+    if refusals:
+        return fail("; ".join(refusals))
+    if INSTRUCTIONS not in [path for path, _ in delivered]:
+        return fail(f"no {INSTRUCTIONS} at HEAD: the plugin would hold no process")
+    version = release_version(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in [path for path, _ in delivered] else None
+    if not version:
+        return fail(f"no released version in {CHANGELOG} at HEAD: the plugin would have none")
     left_out = [path for path, _ in entries if layer_of(path, rules) == LAYER_META]
     try:
         pattern = id_pattern(index_trigrams(git(repo, "show", f"HEAD:{INDEX_PATH}").decode(ENCODING)))
@@ -413,6 +572,7 @@ def rehearse(repo, output, demo, proof):
         return fail(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
     output.mkdir(parents=True, exist_ok=True)
     findings = write_delivered(repo, output, delivered, pattern, left_out)
+    write_marketplace(output, version)
     left = check_output(output, pattern, rules)
     unproved = proof(repo, output, demo)
     problems = left + unproved
@@ -426,7 +586,7 @@ def rehearse(repo, output, demo, proof):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(prog="release.py", description="AGNOS release rehearsal, publishing nothing")
+    parser = argparse.ArgumentParser(prog="release.py", description="AGNOS release rehearsal: writes the marketplace in a folder, publishing nothing")
     parser.add_argument("--dry-run", action="store_true", help="rehearse; the only mode that exists")
     parser.add_argument("--output", required=True, help="folder to write, outside the repository and empty")
     parser.add_argument("--repo", default=".", help="repository root (default: the current folder)")

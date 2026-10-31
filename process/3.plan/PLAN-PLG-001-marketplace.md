@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-003: Delivered scripts on Linux
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the delivered suites on Ubuntu 24.04 under WSL and fix what fails, including `python3` where only that name exists.
 - **Requirement refs**: RQ-PLG-008
 - **ADR refs**: ADR-PLG-001
 - **Acceptance Criteria**: Given WSL, When the delivered suites run on a copy of the repository, Then they pass with the Windows results unchanged.
 - **Dependencies**: TASK-PLG-002
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: Ubuntu 24.04, Python 3.12.3, git 2.43, no PowerShell, on a copy of the tree: `test-build-index.sh` all passed, `validate-ids.sh` 5 of 5 as expected, init 16 OK, skill paths 4 OK, perf-center 366 run OK with 237 skipped (no Chromium, no tree-sitter there, so the page and call-graph tests did not run on Linux). Windows: perf-center 366 run OK, 3 skipped. Real defects found: dates depended on git's version (`+00:00` before 2.46, `Z` after), now one form in `history.py`, with a test. Test defects found: `test_init` needed PowerShell, `RQ-TRC-062` had no browser guard, `RQ-TRC-081` called no browser when cdnjs was down, and the cdnjs probe read a redirect of its root as an outage, which had silently skipped 192 page tests.
+- **Assumptions**: the page of `agnos-perf-center` is tested in a browser on Windows only, as the WSL image has none.
 
 ### TASK-PLG-004: The block with no path
 - **Tier**: L
@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-005: The marketplace target
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: `agnos-meta-release` gains the target: tree, four manifests, generated `agnos-process`, the existing removal and proof applied to the output, `claude plugin validate --strict` when the binary is present.
 - **Requirement refs**: RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-007
 - **ADR refs**: ADR-PLG-001, ADR-MTA-002
 - **Acceptance Criteria**: Given RQ-PLG-001, RQ-PLG-002, RQ-PLG-003 and RQ-PLG-007's criteria, Then they hold on a real run from HEAD; Given the mentions in the report (`agnos-meta-` in delivered files), Then each is removed or read and kept.
 - **Dependencies**: TASK-PLG-004
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: the plugin is named `agnos` and the marketplace `agnos-marketplace`; version from `CHANGELOG.md`'s latest release.
+- **Verification**: meta-release 61 OK, including `test_marketplace.py` and a rehearsal of this repository with `claude plugin validate --strict` on the plugin and the catalogue; demo checked to stay unchanged. A first real run gave 49 files, 1,088 IDs removed, `noIdLeft` and `sameBehaviour` true, and showed the instructions' own `applyTo` header in the skill, now removed with a test. Mentions read: `agnos-meta-` in `CHANGELOG.md`, which is history, and two perf test names in `references/maintaining.md`, which describes a maintainer's tests: both kept. The generation of agents is in this commit's code; TASK-PLG-006 proves it.
+- **Assumptions**: there is one output, so no `--target` option: the rehearsal writes the marketplace. Plugin `agnos`, marketplace `agnos-marketplace`, version from `CHANGELOG.md`'s latest release, license AGPL-3.0-only as in `LICENSE.md`. `README.md` and `GETTING_STARTED.MD` address plugin users, and the build translates their links. The `.gitattributes` is the marketplace's own.
 
 ### TASK-PLG-006: Agents generated per tool
 - **Tier**: M

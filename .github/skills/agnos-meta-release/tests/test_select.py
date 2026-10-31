@@ -22,16 +22,22 @@ EXIT_OK = 0
 EXIT_FAILED = 1
 TOOLKIT_FILE = "README.md"
 SKILL_FILE = ".github/skills/agnos-index/SKILL.md"
+SKILL_PLACE = "plugins/agnos/skills/agnos-index/SKILL.md"
+PROCESS_PLACE = "plugins/agnos/skills/agnos-process/SKILL.md"
+INSTRUCTIONS_FILE = ".github/instructions/agnos-sw-eng.instructions.md"
+CHANGELOG_FILE = "CHANGELOG.md"
+GENERATED = (".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", ".gitattributes",
+             "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json")
 SKILL_TEST = ".github/skills/agnos-index/tests/test_a.py"
 META_SKILL = ".github/skills/agnos-meta-other/SKILL.md"
 PROCESS_FILE = "process/INDEX.idx.md"
 SETTINGS = ".claude/settings.json"
 UNKNOWN_FILE = "stray.txt"
-PUBLIC_FILES = ("LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".github/ISSUE_TEMPLATE.md",
-                ".github/PULL_REQUEST_TEMPLATE.md", ".gitignore", ".gitattributes")
-TOOLKIT_FILES = ("CLAUDE.md", "AGENTS.md", "README.md", "GETTING_STARTED.MD", "CHANGELOG.md", "agnos-overview.png",
-                 ".github/instructions/agnos-sw-eng.instructions.md", ".github/skills/agnos-init/SKILL.md",
-                 ".claude/skills/agnos-init/SKILL.md")
+PUBLIC_FILES = ("LICENSE.md", ".gitignore")
+TOOLKIT_FILES = ("README.md", "GETTING_STARTED.MD", "CHANGELOG.md", "agnos-overview.png",
+                 ".github/instructions/agnos-sw-eng.instructions.md", ".github/skills/agnos-init/SKILL.md")
+WORKSHOP_FILES = ("CLAUDE.md", "AGENTS.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".github/ISSUE_TEMPLATE.md",
+                  ".github/PULL_REQUEST_TEMPLATE.md", ".gitattributes", ".claude/skills/agnos-init/SKILL.md")
 REPORT_SUFFIX = ".report.json"
 INDEX_TEXT = "RQ-ABC-001|1-2||A requirement\n"
 
@@ -70,7 +76,7 @@ class RehearsalCase(unittest.TestCase):
         self.repo.mkdir()
         git(self.repo, "init", "-q")
         self.commit({TOOLKIT_FILE: "# Toolkit\n", SKILL_FILE: "skill\n", SKILL_TEST: "test\n", META_SKILL: "meta\n",
-                     PROCESS_FILE: INDEX_TEXT, SETTINGS: "{}\n"})
+                     PROCESS_FILE: INDEX_TEXT, SETTINGS: "{}\n", INSTRUCTIONS_FILE: "# Process\n", CHANGELOG_FILE: "## [v1.2]\n"})
 
     def commit(self, files):
         for name, text in files.items():
@@ -154,7 +160,7 @@ class LayersTest(RehearsalCase):
 
     def test_RQ_MTA_008_given_the_rules_then_the_meta_layer_is_left_out_and_the_rest_delivered(self):
         self.assertEqual(EXIT_OK, self.rehearse()[0])
-        self.assertEqual([SKILL_FILE, TOOLKIT_FILE], files_under(self.output))
+        self.assertEqual(sorted((CHANGELOG_FILE, PROCESS_PLACE, SKILL_PLACE, TOOLKIT_FILE) + GENERATED), files_under(self.output))
         report = json.loads(Path(f"{self.output}{REPORT_SUFFIX}").read_text(encoding="utf-8"))
         self.assertEqual(sorted([SKILL_TEST, META_SKILL, PROCESS_FILE, SETTINGS]), sorted(report["leftOut"]))
 
@@ -182,6 +188,8 @@ class LayersTest(RehearsalCase):
         delivered = {path for path, layer in layers.items() if layer == release.LAYER_DELIVERED}
         for path in PUBLIC_FILES + TOOLKIT_FILES:
             self.assertIn(path, delivered)
+        for path in WORKSHOP_FILES:
+            self.assertNotIn(path, delivered)
         for path in delivered:
             self.assertFalse(path.startswith("process/"), path)
             self.assertNotIn("agnos-meta-", path)
