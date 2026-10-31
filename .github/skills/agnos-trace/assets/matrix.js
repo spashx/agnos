@@ -3,6 +3,7 @@
    Panels (TASK-TRC-008): splitter bars, see the "resizable panels" section.
    Graph (TASK-TRC-006): see the "graph" section — the selection's neighbourhood as a traceability flow, columns by type.
    Call graph (FTR-TRC-002, ADR-TRC-004; TASK-TRC-012): functions as nodes, calls in typed arrays, see "call graph".
+   Kept free of quality findings (RQ-QLT-009, DEC-QLT-008), each function under a cognitive complexity of 15.
    Every text taken from the data is inserted with textContent, never as HTML (RQ-TRC-022); every visual value comes
    from the design tokens' custom properties (RQ-TRC-018). */
 "use strict";

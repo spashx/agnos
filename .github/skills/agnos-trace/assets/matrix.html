@@ -1,7 +1,8 @@
 <!doctype html>
 <!-- agnos-trace page skeleton (RQ-TRC-010, DEC-TRC-005, DEC-TRC-007). The generator replaces each marker once:
      tokens, page styles, the library scripts from cdnjs (RQ-TRC-080), the page script and the name of the data script written beside
-     the page (RQ-TRC-010 as amended: the data live in <page>.json and <page>.data.js). -->
+     the page (RQ-TRC-010 as amended: the data live in <page>.json and <page>.data.js). The accessibility findings kept
+     here are justified in TASK-QLT-006 (RQ-QLT-010). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -168,7 +169,7 @@
        aria-label="Resize the filters panel" title="Drag, or use the arrow keys, to resize · double-click to reset"></div>
 
   <main class="main">
-    <nav class="tabs" role="tablist" aria-label="Views">
+    <div class="tabs" role="tablist" aria-label="Views">
       <button class="tab" role="tab" type="button" data-view="overview" aria-selected="true"
               title="Counts, requirement coverage, quality checks and coverage per trigram">Overview</button>
       <!-- TASK-TRC-078: Matrix before Graph -->
@@ -184,7 +185,7 @@
               title="The tasks delivered (their status turned to Done) in two periods: points per active day, by tier and identity">Delivery</button>
       <button class="tab" role="tab" type="button" data-view="quality" aria-selected="false"
               title="The traceability checks, each scored out of 10 with its findings; the count is the total of findings">Quality <span id="quality-grade"></span> <span class="tab-count" id="quality-count"></span></button>
-    </nav>
+    </div>
 
     <section class="view" id="view-overview" role="tabpanel">
       <div class="kpis" id="kpis"></div>
@@ -281,12 +282,12 @@
       <!-- RQ-HST-008: the figures of what is shown; RQ-HST-009: the filters -->
       <div class="history-kpis" id="history-kpis"></div>
       <div class="history-filters" id="history-filters">
-        <div class="chips history-people" id="history-people" role="group" aria-label="Identities"></div>
+        <fieldset class="chips history-people" id="history-people" aria-label="Identities"></fieldset>
         <div class="history-filter-line">
           <!-- RQ-HST-021: the rows' own filter, by text and, with the requirements angle, by type; RQ-HST-022: first -->
           <input class="history-filter" id="history-filter" type="search" placeholder="Filter rows: ID, title, path…" autocomplete="off" spellcheck="false"
                  aria-label="Filter the rows" title="Keep the rows whose ID, title, file path or function name holds this text">
-          <div class="chips" id="history-types" role="group" aria-label="Element types"></div>
+          <fieldset class="chips" id="history-types" aria-label="Element types"></fieldset>
           <label class="toggle" title="While a filter is on, also show the rows it leaves without a change"><input type="checkbox" id="history-show-empty"> Rows without changes</label>
           <span class="graph-status" id="history-kept"></span>
           <span class="toolbar-spacer"></span>
@@ -328,14 +329,14 @@
       <p class="delivery-message" id="delivery-message" role="alert" hidden></p>
       <div class="history-kpis delivery-kpis" id="delivery-kpis"></div>
       <div class="history-filters" id="delivery-filters">
-        <div class="chips history-people" id="delivery-people" role="group" aria-label="Identities"></div>
+        <fieldset class="chips history-people" id="delivery-people" aria-label="Identities"></fieldset>
         <div class="history-filter-line">
           <input class="history-filter" id="delivery-filter" type="search" placeholder="Filter tasks: ID, title, plan, requirement…" autocomplete="off" spellcheck="false"
                  aria-label="Filter the tasks" title="Keep the tasks whose ID, title, plan or requirements hold this text">
-          <div class="chips" id="delivery-tiers" role="group" aria-label="Tiers"></div>
-          <div class="chips" id="delivery-kinds" role="group" aria-label="Kinds"></div>
-          <div class="chips" id="delivery-types" role="group" aria-label="Commit types"></div>
-          <div class="chips" id="delivery-tris" role="group" aria-label="Trigrams"></div>
+          <fieldset class="chips" id="delivery-tiers" aria-label="Tiers"></fieldset>
+          <fieldset class="chips" id="delivery-kinds" aria-label="Kinds"></fieldset>
+          <fieldset class="chips" id="delivery-types" aria-label="Commit types"></fieldset>
+          <fieldset class="chips" id="delivery-tris" aria-label="Trigrams"></fieldset>
           <label class="toggle" title="Count the tasks whose tier was changed before their delivery"><input type="checkbox" id="delivery-retiered" checked> Re-tiered tasks</label>
           <span class="toolbar-spacer"></span>
           <button class="button" type="button" id="delivery-reset" title="Every tier, kind, type, trigram and identity: all the tasks delivered again">Reset filters</button>

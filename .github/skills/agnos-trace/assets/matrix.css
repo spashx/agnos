@@ -258,7 +258,8 @@ button, input, select { font: inherit; color: inherit; }
   letter-spacing: var(--s-tracking-kicker);
 }
 
-.chips { display: flex; flex-wrap: wrap; gap: var(--s-space-xs); }
+/* RQ-QLT-010, TASK-QLT-006: some are fieldsets, which then lay out as a div does */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-space-xs); min-width: auto; margin: var(--s-space-none); padding: var(--s-space-none); border: none; }
 
 .chip {
   display: inline-flex;
