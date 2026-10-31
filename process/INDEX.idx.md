@@ -506,7 +506,7 @@ PLAN-MTA-002|1-86||The Release Rehearsal
 TASK-MTA-004|16-27|Done|The specification accepted
 TASK-MTA-009|28-39|Done|The workshop's citations moved into comments
 TASK-MTA-005|40-51|Done|Select the delivered files from a commit
-TASK-MTA-006|52-63|Not Started|Remove the defined IDs and check the output
+TASK-MTA-006|52-63|Done|Remove the defined IDs and check the output
 TASK-MTA-007|64-75|Not Started|Prove the output on the demo
 TASK-MTA-008|76-86|Not Started|The skill packaged and said
 @process/3.plan/PLAN-QLT-001-code-quality-report.md

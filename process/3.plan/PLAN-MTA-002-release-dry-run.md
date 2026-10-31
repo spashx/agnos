@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-006: Remove the defined IDs and check the output
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the removal rules and the check that reads the output, and the report's lines to read; tests first, including real forms taken from this repository.
 - **Requirement refs**: RQ-MTA-009, RQ-MTA-010, RQ-MTA-012
 - **ADR refs**: ADR-MTA-002 (DEC-MTA-009)
 - **Acceptance Criteria**: Given the forms of the criteria, Then each criterion of RQ-MTA-009, RQ-MTA-010 and RQ-MTA-012 holds in Gherkin-named tests; Given this repository, When the rehearsal runs, Then no defined ID is left.
 - **Dependencies**: TASK-MTA-005
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: Module tests failed before the code; the first rehearsal then showed cleaning rules altering text away from a removal (`.a .b` to `.a.b`, `: ../SKILL.md`), covered by 6 further tests that failed first, then fixed by anchoring every rule on the removal. `agnos-meta-release/tests`: 26 OK. This repository at `5ee2425`: 58 files, 1,096 IDs removed in 45 files, 0 problem, exit 0; every delivered Python and JSON file parses; 7 lines to read, 10 mentions, 0 ID outside a comment.
+- **Assumptions**: a number followed by a lowercase word is a quantity, not an abbreviated ID; a comment left with only its labels goes whole; mentions cover meta skills and tests only, as a project has its own `process/` and settings; the 7 lines to read, 2 of them false alarms, are handed over in TASK-MTA-008.
 
 ### TASK-MTA-007: Prove the output on the demo
 - **Tier**: L
