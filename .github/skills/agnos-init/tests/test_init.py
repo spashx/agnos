@@ -17,10 +17,10 @@ ROOT = SKILL_DIR.parents[2]
 PS_SCRIPT = SKILL_DIR / "scripts" / "init.ps1"
 SH_SCRIPT = SKILL_DIR / "scripts" / "init.sh"
 GIT_BASH = Path(r"C:\Program Files\Git\bin\bash.exe")
-INSTRUCTIONS = ".github/instructions/agnos-sw-eng.instructions.md"
 SKILL_NAME = "agnos-init"
-TOOLKIT_ARG = "../agnos"
-TOOLKIT_ARG_WINDOWS = "..\\agnos"
+PROCESS_SKILL = "agnos-process"
+ANY_PATH_RE = re.compile(rb"\.\./|\.github|\.claude|\{\{")
+MISSING_TARGET = "missing"
 ENTRY_FILES = ("CLAUDE.md", "AGENTS.md")
 PROCESS_FOLDERS = ("1.requirements", "2.architecture", "3.plan", "_sessionstate")
 README = "readme.md"
@@ -40,17 +40,19 @@ def bash_command():
     return str(GIT_BASH) if GIT_BASH.exists() else "bash"
 
 
-def run_powershell(project, toolkit):
-    return subprocess.run(["powershell", "-NoProfile", "-File", str(PS_SCRIPT), "-Target", ".", "-Toolkit", toolkit],
+def run_powershell(project, target="."):
+    return subprocess.run(["powershell", "-NoProfile", "-File", str(PS_SCRIPT), "-Target", target],
                           cwd=project, capture_output=True, text=True, encoding="utf-8")
 
 
-def run_bash(project, toolkit):
-    return subprocess.run([bash_command(), SH_SCRIPT.as_posix(), "--target", ".", "--toolkit", toolkit],
+def run_bash(project, target="."):
+    return subprocess.run([bash_command(), SH_SCRIPT.as_posix(), "--target", target],
                           cwd=project, capture_output=True, text=True, encoding="utf-8")
 
 
-RUNNERS = {"powershell": run_powershell, "bash": run_bash}
+# RQ-PLG-008: a system runs the scripts it can; Linux usually has no PowerShell, and the two are compared where both run.
+RUNNERS = {name: runner for name, tool, runner in (("powershell", "powershell", run_powershell), ("bash", bash_command(), run_bash))
+           if shutil.which(tool)}
 
 
 def snapshot(project):
@@ -61,9 +63,6 @@ class InitCase(unittest.TestCase):
     def setUp(self):
         self.base = Path(tempfile.mkdtemp(prefix="agnos-init-"))
         self.addCleanup(shutil.rmtree, self.base, ignore_errors=True)
-        instructions = self.base / "agnos" / INSTRUCTIONS
-        instructions.parent.mkdir(parents=True)
-        instructions.write_text("# instructions\n", encoding="utf-8")
 
     def project(self, name, files=None):
         project = self.base / name
@@ -74,13 +73,14 @@ class InitCase(unittest.TestCase):
             target.write_bytes(data)
         return project
 
-    def each_script(self, files=None, toolkit=TOOLKIT_ARG):
+    def each_script(self, files=None):
         """Runs both scripts, checks they wrote the same bytes, and returns (name, project, result) for each."""
         runs = []
         for name, runner in RUNNERS.items():
             project = self.project(name, files)
-            runs.append((name, project, runner(project, toolkit)))
-        self.assertEqual(snapshot(runs[0][1]), snapshot(runs[1][1]))
+            runs.append((name, project, runner(project)))
+        for _, project, _result in runs[1:]:
+            self.assertEqual(snapshot(runs[0][1]), snapshot(project))
         return runs
 
 
@@ -96,11 +96,13 @@ class ResultTest(InitCase):
                 self.assertTrue(data.endswith(END + b"\n"), name)
                 self.assertIn(f"created {name}", result.stdout)
 
-    def test_RQ_INI_001_given_a_toolkit_without_instructions_when_either_script_runs_then_it_exits_1_and_writes_nothing(self):
-        for _, project, result in self.each_script(toolkit="../missing"):
-            self.assertEqual(1, result.returncode)
-            self.assertEqual({}, snapshot(project))
-            self.assertIn("agnos-init:", result.stderr)
+    def test_RQ_INI_001_given_a_missing_target_when_either_script_runs_then_it_exits_1_and_writes_nothing(self):
+        for name, runner in RUNNERS.items():
+            project = self.project(name)
+            result = runner(project, MISSING_TARGET)
+            self.assertEqual(1, result.returncode, name)
+            self.assertEqual({}, snapshot(project), name)
+            self.assertIn("agnos-init:", result.stderr, name)
 
     def test_RQ_INI_002_given_a_crlf_file_with_bom_and_no_final_newline_when_run_then_its_bytes_stay_and_the_block_is_crlf(self):
         original = BOM + "# Règles\r\nmine".encode("utf-8")
@@ -134,16 +136,16 @@ class ResultTest(InitCase):
             self.assertEqual(data.count(b"\n"), data.count(b"\r\n"))
             self.assertIn("updated AGENTS.md", result.stdout)
 
-    def test_RQ_INI_006_given_a_windows_toolkit_path_when_run_then_the_block_gives_it_with_slashes(self):
-        for _, project, result in self.each_script(toolkit=TOOLKIT_ARG_WINDOWS):
+    def test_RQ_PLG_004_given_a_new_project_when_run_then_both_blocks_name_the_process_skill_and_hold_no_path(self):
+        for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
             for name in ENTRY_FILES:
                 data = (project / name).read_bytes()
-                self.assertIn(f"{TOOLKIT_ARG}/{INSTRUCTIONS}".encode(), data, name)
-                self.assertIn(f"{TOOLKIT_ARG}/.github/skills/".encode(), data, name)
+                self.assertIn(f"`{PROCESS_SKILL}`".encode(), data, name)
+                self.assertIsNone(ANY_PATH_RE.search(data), name)
 
     def test_RQ_INI_010_given_both_blocks_then_each_orders_the_read_and_none_relies_on_an_import(self):
-        order = (f"Before any other action, read in full `{TOOLKIT_ARG}/{INSTRUCTIONS}`. "
+        order = (f"Before any other action, invoke the skill named `{PROCESS_SKILL}` and follow it. "
                  "Run its START SESSION ACTION only when the user asks to start a session.").encode()
         for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
@@ -167,12 +169,12 @@ class RepeatTest(InitCase):
         for name, runner in RUNNERS.items():
             with self.subTest(script=name):
                 project = self.project(name)
-                self.assertEqual(0, runner(project, TOOLKIT_ARG).returncode)
+                self.assertEqual(0, runner(project).returncode)
                 before = snapshot(project)
                 for path in project.rglob("*"):
                     if path.is_file():
                         os.utime(path, (OLD_TIME, OLD_TIME))
-                result = runner(project, TOOLKIT_ARG)
+                result = runner(project)
                 self.assertEqual(0, result.returncode, result.stderr)
                 self.assertEqual(before, snapshot(project))
                 for path in project.rglob("*"):
@@ -202,13 +204,9 @@ class DamagedBlockTest(InitCase):
                 for name, runner in RUNNERS.items():
                     project = base / name
                     project.mkdir()
-                    (base / "agnos").mkdir(exist_ok=True)
-                    (base / "agnos" / ".github").mkdir(exist_ok=True)
-                    shutil.copytree(self.base / "agnos" / ".github" / "instructions",
-                                    base / "agnos" / ".github" / "instructions", dirs_exist_ok=True)
                     for path, data in files.items():
                         (project / path).write_bytes(data)
-                    result = runner(project, TOOLKIT_ARG)
+                    result = runner(project)
                     self.assertEqual(1, result.returncode, name)
                     self.assertIn("AGENTS.md", result.stderr, name)
                     self.assertEqual(files, snapshot(project), name)
@@ -239,17 +237,22 @@ class ProcessFolderTest(InitCase):
         for name, runner in RUNNERS.items():
             with self.subTest(script=name):
                 project = self.project(name)
-                self.assertEqual(0, runner(project, TOOLKIT_ARG).returncode)
+                self.assertEqual(0, runner(project).returncode)
                 readme = project / "process/3.plan" / README
                 readme.write_bytes(b"# Mine\n")
-                self.assertEqual(0, runner(project, TOOLKIT_ARG).returncode)
+                self.assertEqual(0, runner(project).returncode)
                 self.assertEqual(b"# Mine\n", readme.read_bytes())
 
     def test_RQ_INI_005_given_a_new_project_when_init_then_index_run_then_both_exit_0(self):
         project = self.project("indexed")
-        self.assertEqual(0, run_powershell(project, TOOLKIT_ARG).returncode)
-        index = ROOT / ".github/skills/agnos-index/scripts/build-index.ps1"
-        result = subprocess.run(["powershell", "-NoProfile", "-File", str(index)], cwd=project, capture_output=True, text=True)
+        index = ROOT / ".github/skills/agnos-index/scripts/build-index"
+        if "powershell" in RUNNERS:
+            self.assertEqual(0, run_powershell(project).returncode)
+            command = ["powershell", "-NoProfile", "-File", f"{index}.ps1"]
+        else:
+            self.assertEqual(0, run_bash(project).returncode)
+            command = [bash_command(), f"{index.as_posix()}.sh"]
+        result = subprocess.run(command, cwd=project, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn(": 0 entries, 0 documents", result.stdout)
 

@@ -54,7 +54,7 @@
       "time": "09:17",
       "by": "omar-arch",
       "message": "chore: start the project",
-      "init": "../agnos-lightweight-process",
+      "init": true,
       "add": [
         {
           "from": "project/gitignore.txt",

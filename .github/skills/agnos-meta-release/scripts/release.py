@@ -63,7 +63,6 @@ PERF_PAGE = "process/PERF-CENTER.html"
 PERF_RESULTS = ("process/PERF-CENTER.json", "process/PERF-CENTER.data.js")
 INIT_RESULTS = ("CLAUDE.md", "AGENTS.md", "process/1.requirements/readme.md", "process/2.architecture/readme.md",
                 "process/3.plan/readme.md", "process/_sessionstate/readme.md")
-PLACEHOLDER = b"<toolkit>"
 INDEX_SCRIPT = ".github/skills/agnos-index/scripts/build-index"
 INIT_SCRIPT = ".github/skills/agnos-init/scripts/init"
 PERF_SCRIPT = ".github/skills/agnos-perf-center/scripts/perf_center.py"
@@ -312,11 +311,6 @@ def parse_problems(folder):
     return problems
 
 
-def without_path(data, toolkit):
-    """A result with the toolkit's path taken out, as agnos-init writes it as given."""
-    return data.replace(str(toolkit).encode(ENCODING), PLACEHOLDER)
-
-
 def compare_runs(baseline, output, workspace, runners):
     """Runs each skill from the workshop's files and from the output, and names the results that differ."""
     problems = []
@@ -363,12 +357,11 @@ def run_perf_center(toolkit, workspace):
 
 def run_init(toolkit, workspace):
     target = Path(tempfile.mkdtemp(dir=workspace))
-    code = run_tool(script_command(toolkit, INIT_SCRIPT, ["-Target", str(target), "-Toolkit", str(toolkit)],
-                                   ["--target", str(target), "--toolkit", str(toolkit)]), target)
+    code = run_tool(script_command(toolkit, INIT_SCRIPT, ["-Target", str(target)], ["--target", str(target)]), target)
     results = {"exit": code}
     for name in INIT_RESULTS:
         path = target / name
-        results[name] = without_path(path.read_bytes(), toolkit) if path.exists() else None
+        results[name] = path.read_bytes() if path.exists() else None
     return results
 
 

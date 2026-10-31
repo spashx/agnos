@@ -3,9 +3,9 @@
 ## Overview
 A developer adds AGNOS to an existing or new repository by one explicit call, `agnos-init`. It completes the agent entry-point
 files without touching what the developer wrote, keeps what belongs to AGNOS clearly apart, and gives the same result each time.
-It works from a toolkit on disk, and needs no plugin.
+It runs from the installed AGNOS plugin (amended on 2026-11-01, DEC-PLG-003).
 
-Out of scope: the plugin itself, removing AGNOS from a project, and copying the toolkit into a project.
+Out of scope: the plugin itself, removing AGNOS from a project, and copying AGNOS into a project.
 
 ## Stakeholders
 - **Owner**: the repository owner (maintainer of AGNOS).
@@ -18,13 +18,13 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
 ### RQ-INI-001: An explicit, scripted initialisation
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN `agnos-init` is called with a target folder and the path of the toolkit as seen from that folder, its script
+- **Statement**: WHEN `agnos-init` is called with a target folder (amended on 2026-11-01, DEC-PLG-003: no toolkit path), its script
   SHALL write the result from the templates of its `assets/`, the agent writing none of the content, with a PowerShell 5.1 and a
   bash version giving the same bytes.
 - **Rationale**: the owner wants no non-deterministic behaviour, so the setup cannot depend on what an agent writes or a harness does.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the same target and toolkit path, When either script runs, Then the files written are byte-identical;
-  Given a toolkit path without the instructions file, When it runs, Then it exits 1 and writes nothing.
+- **Acceptance Criteria**: Given the same target, When either script runs, Then the files written are byte-identical;
+  Given a target that does not exist, When it runs, Then it exits 1 and writes nothing.
 - **Dependencies**: ADR-INI-001
 
 ### RQ-INI-002: Existing files are completed
@@ -43,7 +43,7 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
 ### RQ-INI-003: A second call changes nothing
 - **Category**: Functional
 - **EARS Type**: State-driven
-- **Statement**: WHILE a project is already initialised with the same toolkit path and templates, `agnos-init` SHALL rewrite no file,
+- **Statement**: WHILE a project is already initialised with the same templates, `agnos-init` SHALL rewrite no file,
   and SHALL report each entry-point file as `created`, `added`, `updated` or `unchanged`.
 - **Rationale**: the call is safe to repeat, and an update of AGNOS is the same call.
 - **Priority**: Must
@@ -75,25 +75,23 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
   `agnos-init` runs, Then that folder gets no `readme.md`, And that file is unchanged; Given a `readme.md` the user changed, When `agnos-init` runs again, Then it stays.
 - **Dependencies**: RQ-INI-001, RQ-IDX-008
 
-### RQ-INI-006: The block leads the agent to the toolkit
+### RQ-INI-006: The block leads the agent to the process skill
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The block SHALL give the toolkit path as passed, with `/` separators, and SHALL state the instructions file to load,
-  where each skill's `SKILL.md` is, and that the procedures' `.github/skills/` paths are relative to the toolkit while commands run from
-  the project's root. It SHALL hold no artifact ID of AGNOS's own development.
-- **Rationale**: the project holds no skill, so nothing else tells the agent where they are; a relative path keeps a committed block valid for each clone.
+- **Statement**: The block SHALL name the skill `agnos-process`, SHALL say what to do if it is not available, and that commands run from
+  the project's root. It SHALL hold no path and no artifact ID of AGNOS's own development. (amended on 2026-11-01, RQ-PLG-004, DEC-PLG-003)
+- **Rationale**: the project holds no skill, so nothing else tells the agent the process exists; an installed plugin's folder changes with each version, so a path would not hold.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the toolkit path `..\agnos`, When `agnos-init` runs, Then `CLAUDE.md` and `AGENTS.md` each name
-  `../agnos/.github/instructions/agnos-sw-eng.instructions.md` to read, And neither holds an artifact ID. (amended on 2026-10-31; RQ-INI-010)
+- **Acceptance Criteria**: Given a project, When `agnos-init` runs, Then `CLAUDE.md` and `AGENTS.md` each name `agnos-process`, And neither holds a path or an artifact ID. (amended on 2026-11-01; RQ-INI-010)
 - **Dependencies**: RQ-INI-002
 
-### RQ-INI-010: Reading the instructions is an order, in every entry point
+### RQ-INI-010: Loading the process is an order, in every entry point
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: Each entry-point block SHALL order the agent, before any other action, to read the instructions file in full, SHALL state that START SESSION ACTION runs only when the user asks to start a session, and SHALL NOT rely on an `@` import.
+- **Statement**: Each entry-point block SHALL order the agent, before any other action, to invoke the process skill and follow it (amended on 2026-11-01, DEC-PLG-003), SHALL state that START SESSION ACTION runs only when the user asks to start a session, and SHALL NOT rely on an `@` import.
 - **Rationale**: a session in the demo received the `@` line without the file's content and without any order to read it; it followed the process only because the agent chose to read the file. The user owns starting a session, as they own closing it.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the toolkit path `../agnos`, When `agnos-init` runs, Then both blocks hold the same order naming that path and the same statement on START SESSION ACTION, And no line of a block starts with `@`. (amended on 2026-10-31)
+- **Acceptance Criteria**: Given a project, When `agnos-init` runs, Then both blocks hold the same order naming `agnos-process` and the same statement on START SESSION ACTION, And no line of a block starts with `@`. (amended on 2026-11-01)
 - **Dependencies**: RQ-INI-006
 
 ### RQ-INI-007: The call is stated where it is needed
@@ -111,8 +109,8 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
 ### RQ-INI-008: The demo is an initialised project
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The demo's first commit SHALL contain the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` with the toolkit path
-  `../agnos-lightweight-process`, and `agnos-meta-demo verify` SHALL fail if a new `agnos-init` call on the demo would change a file.
+- **Statement**: The demo's first commit SHALL contain the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` (amended on 2026-11-01,
+  DEC-PLG-003: with no toolkit path), and `agnos-meta-demo verify` SHALL fail if a new `agnos-init` call on the demo would change a file.
 - **Rationale**: the demo then shows what a project receives, and fails when the templates change and it was not rebuilt.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the rebuilt demo, When `verify` runs, Then every check passes, And `CLAUDE.md` and `AGENTS.md` hold the

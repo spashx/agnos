@@ -40,7 +40,7 @@ Run from the repository root with `session.platform = windows` (PowerShell 5.1; 
 powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/build.ps1 [-Verify]
 ```
 
-1. Creates the repository, which holds the project and the block of `agnos-init`, whose relative path requires the demo to stay beside this repository <!-- RQ-MTA-005, RQ-INI-008 -->.
+1. Creates the repository, which holds the project and the block of `agnos-init` <!-- RQ-MTA-005, RQ-INI-008 -->; a session in it needs the AGNOS plugin installed.
 2. Replays `assets/scenario.json` with `assets/content/`, committing with the identity and dates of each
    step through environment variables only: no git configuration is changed, no remote is added, nothing
    is pushed. The index of each step comes from this working tree's `agnos-index`.

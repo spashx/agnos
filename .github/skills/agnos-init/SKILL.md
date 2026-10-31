@@ -1,10 +1,10 @@
 ---
 name: agnos-init
 description: "AGNOS process initialisation skill. Adds AGNOS to a project by completing its CLAUDE.md and AGENTS.md with one delimited block and creating its process/ folders, without touching what the developer wrote. USE FOR: adding AGNOS to a new or existing repository, updating the block after AGNOS changes, or whenever agnos-index reports that process/ is missing."
-argument-hint: "<project folder> <toolkit path as seen from the project>"
+argument-hint: "<project folder>"
 ---
 
-<!-- RQ-INI-001 to RQ-INI-006, RQ-INI-009 / ADR-INI-001 (DEC-INI-001 to DEC-INI-004) -->
+<!-- RQ-INI-001 to RQ-INI-006, RQ-INI-009, RQ-PLG-004 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003) -->
 # AGNOS Init
 
 A script does all the work, so that the same call always gives the same files: do not write or edit
@@ -12,15 +12,13 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
 
 ## Procedure
 
-1. Get both inputs from the user if they did not give them: the project folder, and the toolkit's path as
-   seen from that folder. Prefer a relative path (`../agnos-lightweight-process`), because the block is
-   committed and has to hold in other clones.
-2. Run the script matching the platform, with its path taken from the toolkit:
+1. Take the project folder from the user, by default the current folder.
+2. Run the script matching the platform:
 
    | Platform | Command |
    |---|---|
-   | Windows | `powershell -NoProfile -File <skill-folder>/scripts/init.ps1 -Target <project> -Toolkit <path>` |
-   | Linux / macOS | `bash <skill-folder>/scripts/init.sh --target <project> --toolkit <path>` |
+   | Windows | `powershell -NoProfile -File <skill-folder>/scripts/init.ps1 -Target <project>` |
+   | Linux / macOS | `bash <skill-folder>/scripts/init.sh --target <project>` |
 
    Use `powershell` (Windows PowerShell 5.1), never `pwsh`: PowerShell 7 is not guaranteed to be installed.
 
@@ -48,4 +46,4 @@ To update a project after AGNOS changes, call it again.
 | Path | Role |
 |---|---|
 | `scripts/init.ps1`, `scripts/init.sh` | The two versions, giving the same bytes |
-| `assets/templates/` | One block per entry-point file; `{{TOOLKIT}}` is the only placeholder |
+| `assets/templates/` | One block per entry-point file, written as it is, and one `readme.md` per process folder |

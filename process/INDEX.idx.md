@@ -101,17 +101,17 @@ RQ-IDX-015|274-292||Byte-identical output across platforms
 RQ-IDX-016|293-309||Runtime compatibility
 RQ-IDX-017|310-324||Generation time
 @process/1.requirements/FTR-INI-001-project-initialisation.md
-FTR-INI-001|1-136||Adding AGNOS to a Project
+FTR-INI-001|1-134||Adding AGNOS to a Project
 RQ-INI-001|18-29||An explicit, scripted initialisation
 RQ-INI-002|30-42||Existing files are completed
 RQ-INI-003|43-53||A second call changes nothing
 RQ-INI-004|54-64||A damaged block stops the call
 RQ-INI-005|65-77||The process folder
-RQ-INI-006|78-89||The block leads the agent to the toolkit
-RQ-INI-010|90-98||Reading the instructions is an order, in every entry point
-RQ-INI-007|99-110||The call is stated where it is needed
-RQ-INI-008|111-123||The demo is an initialised project
-RQ-INI-009|126-136||The skill follows the documented practices
+RQ-INI-006|78-87||The block leads the agent to the process skill
+RQ-INI-010|88-96||Loading the process is an order, in every entry point
+RQ-INI-007|97-108||The call is stated where it is needed
+RQ-INI-008|109-121||The demo is an initialised project
+RQ-INI-009|124-134||The skill follows the documented practices
 @process/1.requirements/FTR-MTA-001-toolkit-and-meta-separation.md
 FTR-MTA-001|1-79||The Toolkit Apart from its Own Development
 RQ-MTA-001|22-33||Meta skills carry a prefix
@@ -537,7 +537,7 @@ PLAN-PLG-001|1-98||AGNOS Marketplace
 TASK-PLG-001|16-27|Done|Feature, decisions and plan
 TASK-PLG-002|28-39|Done|Skills name their files from their own folder
 TASK-PLG-003|40-51|Not Started|Delivered scripts on Linux
-TASK-PLG-004|52-63|Not Started|The block with no path
+TASK-PLG-004|52-63|Done|The block with no path
 TASK-PLG-005|64-75|Not Started|The marketplace target
 TASK-PLG-006|76-87|Not Started|Agents generated per tool
 TASK-PLG-007|88-98|Not Started|Install proof and user documents

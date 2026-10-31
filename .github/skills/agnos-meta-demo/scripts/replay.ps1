@@ -176,9 +176,9 @@ function Update-Index([string]$TargetFull) {
   if ($result.ExitCode -ne 0) { throw "agnos-index failed ($($result.ExitCode)): $($result.Error.Trim())" }
 }
 
-# RQ-INI-008: the step's `init` is the toolkit path written in the block, valid from the target.
-function Invoke-Init([string]$TargetFull, [string]$ToolkitPath) {
-  $result = Invoke-Process $POWERSHELL_EXE @('-NoProfile', '-File', (Join-Path (Get-FullPath $Toolkit) $INIT_SCRIPT), '-Target', '.', '-Toolkit', $ToolkitPath) $TargetFull
+# RQ-INI-008: a step's `init` calls agnos-init on the target.
+function Invoke-Init([string]$TargetFull) {
+  $result = Invoke-Process $POWERSHELL_EXE @('-NoProfile', '-File', (Join-Path (Get-FullPath $Toolkit) $INIT_SCRIPT), '-Target', '.') $TargetFull
   if ($result.ExitCode -ne 0) { throw "agnos-init failed ($($result.ExitCode)): $($result.Error.Trim())" }
 }
 
@@ -230,7 +230,7 @@ function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$TargetFull, [h
     }
     'commit' {
       $environment = Get-CommitEnvironment $Plan.identities $Step $Plan.utcOffset
-      if ($Step.init) { Invoke-Init $TargetFull $Step.init }
+      if ($Step.init) { Invoke-Init $TargetFull }
       foreach ($item in @($Step.add)) { if ($item) { Add-ContentItem $item $ContentFull $TargetFull } }
       foreach ($edit in @($Step.edits)) { if ($edit) { Edit-File $edit $TargetFull } }
       foreach ($taskId in @($Step.closeTasks)) { if ($taskId) { Close-Task $taskId $ContentFull $TargetFull } }

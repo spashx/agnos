@@ -21,9 +21,6 @@ PLACEHOLDER = "<skill-folder>"
 WORKSHOP_PATH_RE = re.compile(r"\.github/|\.claude/|CLAUDE_")
 COMMAND_RE = re.compile(r"scripts/\S+\.(?:ps1|sh|py)")
 TEXT_SUFFIXES = {".md", ".ps1", ".sh", ".py", ".json", ".txt"}
-# What agnos-init reads of the toolkit goes with its block, TASK-PLG-004.
-LEFT_TO_THE_BLOCK_TASK = {"agnos-init/assets/templates/AGENTS.block.md", "agnos-init/assets/templates/CLAUDE.block.md",
-                          "agnos-init/scripts/init.ps1", "agnos-init/scripts/init.sh"}
 GIT_BASH = Path(r"C:\Program Files\Git\bin\bash.exe")
 INDEX_FILE = "process/INDEX.idx.md"
 PERF_PAGE = "process/PERF-CENTER.html"
@@ -51,9 +48,8 @@ class WordingTest(unittest.TestCase):
     def test_RQ_PLG_005_given_the_delivered_files_when_searched_then_none_holds_a_workshop_path(self):
         found = []
         for path in delivered_files():
-            name = path.relative_to(SKILLS).as_posix()
-            if name not in LEFT_TO_THE_BLOCK_TASK and WORKSHOP_PATH_RE.search(path.read_text(encoding="utf-8")):
-                found.append(name)
+            if WORKSHOP_PATH_RE.search(path.read_text(encoding="utf-8")):
+                found.append(path.relative_to(SKILLS).as_posix())
         self.assertEqual([], found)
 
     def test_RQ_PLG_005_given_a_skill_that_runs_a_script_then_it_says_what_its_folder_is(self):

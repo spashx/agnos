@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 # agnos-init (bash): adds AGNOS to a project, the block of its entry-point files and its process folders.
-# RQ-INI-001 to RQ-INI-006 / ADR-INI-001 (DEC-INI-001 to DEC-INI-004).
-# Usage: init.sh --target <project folder> --toolkit <toolkit path as seen from the target>
+# RQ-INI-001 to RQ-INI-006, RQ-PLG-004 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003).
+# Usage: init.sh --target <project folder>
 # Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
 # written (message on the error stream). init.ps1 gives the same bytes.
 set -u
 export LC_ALL=C    # DEC-INI-002: files are handled as bytes
 
 REPORT_PREFIX='agnos-init: '
-INSTRUCTIONS='.github/instructions/agnos-sw-eng.instructions.md'
 BEGIN_PATTERN='^<!-- AGNOS:BEGIN'
 END_MARKER='<!-- AGNOS:END -->'
 CR=$(printf '\r')
@@ -24,32 +23,21 @@ fail() {
 }
 
 target=''
-toolkit=''
 while [ $# -gt 0 ]; do
   case "$1" in
     --target) target=${2-}; shift 2 ;;
-    --toolkit) toolkit=${2-}; shift 2 ;;
     *) fail "unknown argument: $1" ;;
   esac
 done
-[ -n "$target" ] && [ -n "$toolkit" ] || fail 'usage: init.sh --target <folder> --toolkit <path>'
+[ -n "$target" ] || fail 'usage: init.sh --target <folder>'
 [ -d "$target" ] || fail "target folder not found: $target"
-
-written=${toolkit//\\//}    # DEC-INI-004
-while [ "${written%/}" != "$written" ]; do written=${written%/}; done
-case "$written" in
-  /*|[A-Za-z]:/*) toolkit_from_here=$written ;;
-  *) toolkit_from_here=$target/$written ;;
-esac
-[ -f "$toolkit_from_here/$INSTRUCTIONS" ] || fail "no AGNOS toolkit at '$toolkit' as seen from the target: $INSTRUCTIONS not found"
 
 work=$(mktemp -d) || fail 'no temporary folder'
 trap 'rm -rf "$work"' EXIT
-sed_toolkit=$(printf '%s' "$written" | sed 's/[&|\\]/\\&/g')
 
-# RQ-INI-006: writes the template with the toolkit path, in the file's line ending, with a final one.
+# RQ-INI-006: writes the template, in the file's line ending, with a final one.
 write_block() {   # <file> <crlf|lf> <output>
-  tr -d '\r' < "$SCRIPT_DIR/../assets/templates/${1%.md}.block.md" | sed "s|{{TOOLKIT}}|$sed_toolkit|g" > "$3.lf"
+  tr -d '\r' < "$SCRIPT_DIR/../assets/templates/${1%.md}.block.md" > "$3.lf"
   if [ "$2" = crlf ]; then awk '{ printf "%s\r\n", $0 }' "$3.lf" > "$3"; else cp "$3.lf" "$3"; fi
 }
 

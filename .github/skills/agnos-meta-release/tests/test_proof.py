@@ -74,9 +74,6 @@ class ComparisonTest(Workspace):
         self.assertIn("skill", problems[0])
         self.assertIn("file", problems[0])
 
-    def test_RQ_MTA_011_given_the_toolkit_path_in_a_result_then_it_makes_no_difference(self):
-        self.assertEqual(release.without_path(b"see /x/a/.github", "/x/a"), release.without_path(b"see /y/b/.github", "/y/b"))
-
 
 class DemoTest(Workspace):
     """RQ-MTA-011."""

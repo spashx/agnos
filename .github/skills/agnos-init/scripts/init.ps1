@@ -2,22 +2,18 @@
 .SYNOPSIS
   Adds AGNOS to a project: the block of its entry-point files and its process folders.
 .DESCRIPTION
-  RQ-INI-001 to RQ-INI-006 / ADR-INI-001 (DEC-INI-001 to DEC-INI-004).
+  RQ-INI-001 to RQ-INI-006, RQ-PLG-004 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003).
   Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
   written (message on the error stream). init.sh gives the same bytes.
 .PARAMETER Target   Folder of the project.
-.PARAMETER Toolkit  Path of the AGNOS toolkit as seen from the target, written as given with '/' separators.
 #>
 param(
-  [Parameter(Mandatory = $true)][string]$Target,
-  [Parameter(Mandatory = $true)][string]$Toolkit
+  [Parameter(Mandatory = $true)][string]$Target
 )
 
 $ErrorActionPreference = 'Stop'
 
 $REPORT_PREFIX = 'agnos-init: '
-$INSTRUCTIONS = '.github/instructions/agnos-sw-eng.instructions.md'
-$PLACEHOLDER = '{{TOOLKIT}}'
 $BEGIN_PATTERN = '(?m)^<!-- AGNOS:BEGIN'
 $END_PATTERN = '(?m)^<!-- AGNOS:END -->(?=\r?$)'
 $LF = "`n"
@@ -36,23 +32,23 @@ function Get-Eol([string]$Text) {
   return $LF
 }
 
-# RQ-INI-006: the template with the toolkit path, in the given line ending, with no final line ending.
-function Get-Block([string]$File, [string]$ToolkitBytes, [string]$Eol) {
+# RQ-INI-006: the template, in the given line ending, with no final line ending.
+function Get-Block([string]$File, [string]$Eol) {
   $template = Join-Path $PSScriptRoot "../assets/templates/$($File -replace '\.md$', '.block.md')"
-  $text = (Read-Bytes $template).Replace($CRLF, $LF).TrimEnd($LF).Replace($PLACEHOLDER, $ToolkitBytes)
+  $text = (Read-Bytes $template).Replace($CRLF, $LF).TrimEnd($LF)
   return $text.Replace($LF, $Eol)
 }
 
 # RQ-INI-002, RQ-INI-004: what the file should hold and the action it takes.
-function Get-Plan([string]$File, [string]$Path, [string]$ToolkitBytes) {
+function Get-Plan([string]$File, [string]$Path) {
   if (-not (Test-Path -LiteralPath $Path)) {
-    return @{ Path = $Path; File = $File; Text = (Get-Block $File $ToolkitBytes $LF) + $LF; Action = 'created'; Old = $null }
+    return @{ Path = $Path; File = $File; Text = (Get-Block $File $LF) + $LF; Action = 'created'; Old = $null }
   }
   $old = Read-Bytes $Path
   $begins = [regex]::Matches($old, $BEGIN_PATTERN)
   $ends = [regex]::Matches($old, $END_PATTERN)
   $eol = Get-Eol $old
-  $block = Get-Block $File $ToolkitBytes $eol
+  $block = Get-Block $File $eol
   if ($begins.Count -eq 0 -and $ends.Count -eq 0) {
     $text = $old
     if ($text.Length -gt 0) {
@@ -72,12 +68,7 @@ function Get-Plan([string]$File, [string]$Path, [string]$ToolkitBytes) {
 try {
   $targetFull = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $Target))
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) { throw "target folder not found: $Target" }
-  $written = $Toolkit.Replace('\', '/').TrimEnd('/')          # DEC-INI-004
-  if (-not (Test-Path -LiteralPath ([System.IO.Path]::Combine($targetFull, $written, $INSTRUCTIONS)) -PathType Leaf)) {
-    throw "no AGNOS toolkit at '$Toolkit' as seen from the target: $INSTRUCTIONS not found"
-  }
-  $toolkitBytes = $BYTES.GetString([System.Text.Encoding]::UTF8.GetBytes($written))
-  $plans = @($ENTRY_FILES | ForEach-Object { Get-Plan $_ (Join-Path $targetFull $_) $toolkitBytes })
+  $plans = @($ENTRY_FILES | ForEach-Object { Get-Plan $_ (Join-Path $targetFull $_) })
   foreach ($plan in $plans) {
     if ($plan.Text -ceq $plan.Old) {                          # RQ-INI-003
       Write-Output "$($REPORT_PREFIX)unchanged $($plan.File)"

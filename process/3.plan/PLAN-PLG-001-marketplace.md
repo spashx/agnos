@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-004: The block with no path
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: `agnos-init` writes the block naming `agnos-process`, with no toolkit input; its requirements are amended, its two scripts and `agnos-meta-demo` follow, and the demo is rebuilt.
 - **Requirement refs**: RQ-PLG-004, RQ-INI-001, RQ-INI-006, RQ-INI-008
 - **ADR refs**: ADR-PLG-001, ADR-INI-001
 - **Acceptance Criteria**: Given RQ-PLG-004's criteria, Then they hold on both scripts; Given the rebuilt demo, Then its checks pass.
 - **Dependencies**: TASK-PLG-002
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: the rebuild goes through a background Haiku subagent.
+- **Verification**: `test_init.py`: 20 failures and errors before the change, 16 OK after, on both scripts; meta-release 45, meta-demo 12, docs-sync 16 OK. Demo rebuilt by a background Haiku subagent: `verify` 23 passed, 0 failed, HEAD `36f221f`; its `CLAUDE.md` re-read: names `agnos-process`, holds no path; its tree is clean.
+- **Assumptions**: the block adds one line the trial did not run: if the skill is not available, stop and tell the user to install the plugin. The scenario's `init` becomes `true`.
 
 ### TASK-PLG-005: The marketplace target
 - **Tier**: L

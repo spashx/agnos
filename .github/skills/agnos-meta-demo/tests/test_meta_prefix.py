@@ -27,7 +27,6 @@ TOOLKIT_PATHS = (".github/skills/agnos-index/SKILL.md", ".claude/settings.json",
                  "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "agnos-overview.png")
 PROJECT_PATHS = ("README.md", ".gitignore", ".gitattributes", "CLAUDE.md", "AGENTS.md", "process/INDEX.idx.md", "service/roombook/CHANGELOG.md", "client/src/app.ts")
 OWN_FILES = {".gitignore", ".gitattributes"}
-DEMO_TOOLKIT_PATH = "../agnos-lightweight-process"
 TRIGRAMS_RE = re.compile(r"^\$TOOLKIT_TRIGRAMS = '([^']*)'", re.M)
 OWN_TRIGRAMS = {"INI", "MTA"}
 
@@ -74,8 +73,8 @@ class DemoContentTest(unittest.TestCase):
         for path in PROJECT_PATHS:
             self.assertNotRegex(path, pattern)
 
-    def test_RQ_INI_008_given_the_scenario_then_the_first_commit_calls_agnos_init_with_a_relative_path(self):
-        self.assertEqual(DEMO_TOOLKIT_PATH, self.plan["steps"][0]["init"])
+    def test_RQ_INI_008_given_the_scenario_then_the_first_commit_calls_agnos_init(self):
+        self.assertIs(True, self.plan["steps"][0]["init"])
 
     def test_RQ_INI_008_given_the_verification_then_it_refuses_the_ids_of_this_feature_and_checks_the_block(self):
         text = VERIFY.read_text(encoding="utf-8")

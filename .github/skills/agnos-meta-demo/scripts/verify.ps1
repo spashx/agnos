@@ -278,7 +278,7 @@ Report 'RQ-DMO-022' (($uiMissing.Count -eq 0) -and $webCitesDesign -and ($uxComm
 $blockOnly = @($INIT_FILES | Where-Object {
   (Test-Path -LiteralPath (Join-Path $Demo $_)) -and ([System.IO.File]::ReadAllText((Join-Path $Demo $_)).TrimEnd()) -match "^$([regex]::Escape($BLOCK_BEGIN))" -and ([System.IO.File]::ReadAllText((Join-Path $Demo $_)).TrimEnd()).EndsWith($BLOCK_END)
 })
-$initRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INIT_SCRIPT), '-Target', '.', '-Toolkit', $plan.steps[0].init -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
+$initRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INIT_SCRIPT), '-Target', '.' -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
 $initDirty = @(Demo-Git @('status', '--porcelain'))
 Report 'RQ-INI-008' (($blockOnly.Count -eq $INIT_FILES.Count) -and ($initRun.ExitCode -eq 0) -and ($initDirty.Count -eq 0)) "files with the block alone: $($blockOnly.Count) of $($INIT_FILES.Count); agnos-init exit $($initRun.ExitCode); changes after the call: $($initDirty.Count)"
 
@@ -290,7 +290,7 @@ Report 'RQ-DMO-020' (($absent.Count -eq 0) -and ($skillText -match '(?m)^### `bu
 
 # RQ-DMO-021
 if ($SkipRebuild) { Report 'RQ-DMO-021' $true 'skipped (-SkipRebuild)' } else {
-  $temp = Join-Path (Split-Path -Parent $Toolkit) ($REBUILD_FOLDER_PREFIX + [guid]::NewGuid().ToString('N'))   # beside the toolkit, as the block's relative path requires (RQ-INI-008)
+  $temp = Join-Path (Split-Path -Parent $Toolkit) ($REBUILD_FOLDER_PREFIX + [guid]::NewGuid().ToString('N'))   # beside the toolkit, as the check of the demo's place requires (RQ-DMO-001)
   $replay = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $PSScriptRoot 'replay.ps1'), '-Scenario', $Scenario, '-Content', (Join-Path $PSScriptRoot '../assets/content'), '-Toolkit', $Toolkit, '-Target', $temp -Wait -PassThru -WindowStyle Hidden
   $same = $false
   if ($replay.ExitCode -eq 0) { $same = ((& git -C $temp rev-parse HEAD) -eq (& git -C $Demo rev-parse HEAD)) }
