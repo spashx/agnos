@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-init` skill: adds AGNOS to a project with one block in its `CLAUDE.md` and `AGENTS.md`, every other byte
+  preserved, and its `process/` folders (ADR-INI-001, TASK-INI-001, RQ-INI-001 to RQ-INI-006)
 - `agnos-index` skill: the index generators (PowerShell and bash) with shared golden tests
   (ADR-IDX-001, TASK-IDX-001)
 - `agnos-index` skill packaged and integrated into the process (ADR-IDX-001, TASK-IDX-002)

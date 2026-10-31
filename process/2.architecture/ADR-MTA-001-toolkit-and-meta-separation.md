@@ -41,9 +41,10 @@ merged into the workshop. **Everything stays local until the owner lifts this**:
 integration branch of this work. Its requirements come in a later feature.
 
 ### DEC-MTA-005: A plugin is a further target, after the first clean release
-The same build gets a `plugin` target, and the copy format stays for agents without plugins. It needs a process skill, `agnos-init`,
+The same build gets a `plugin` target, and the copy format stays for agents without plugins. It needs the process skill `agnos-init`,
 because a plugin's `CLAUDE.md` is not loaded and AGNOS needs its rules in every session; `SKILL.md` paths rewritten to the plugin
-root by the build; and no repository of its own at first. Its requirements come in a later feature.
+root by the build; and no repository of its own at first. Its requirements come in a later feature. Amended on 2026-10-31 by
+DEC-INI-005: `agnos-init` comes first and needs no plugin, which will only supply the toolkit's path.
 
 ### DEC-MTA-006: The demo holds the project only
 Owner's decision of 2026-10-31: since projects will install AGNOS as a plugin, the demo keeps its code, `process/`, its README and its
