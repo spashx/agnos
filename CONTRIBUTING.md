@@ -47,7 +47,9 @@ only criterion: tools read it, and no list of names is kept.
    ID from process-definition files under `.github/`, keep the citation out of the file's own
    normative text — this is the convention this repository has settled on for its own process
    files (see recent history for the rationale).
-5. **If you're using this process to build a real feature** (not editing AGNOS itself), follow the
+5. **Ask for a quality report on code you changed.** The `agnos-meta-qa` skill reports on Python and JavaScript as JSON, for
+   you or an agent to correct before the pull request. You call it: no hook runs it and it blocks nothing. <!-- RQ-QLT-001, RQ-QLT-008 -->
+6. **If you're using this process to build a real feature** (not editing AGNOS itself), follow the
    full session workflow: open a session with a trigram, author the requirement, get the plan
    approved, then commit through the `agnos-git-workflow` skill's `commit-task` sub-command so the
    Conventional-Commits message is computed for you, not typed by hand.

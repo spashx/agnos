@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-meta-qa` maintainer skill: a code quality report on request, as normalised JSON from pinned analysers, blocking
+  nothing (ADR-QLT-001, TASK-QLT-001, RQ-QLT-001 to RQ-QLT-008)
 - `agnos-init` skill: adds AGNOS to a project with one block in its `CLAUDE.md` and `AGENTS.md`, every other byte
   preserved, and its `process/` folders (ADR-INI-001, TASK-INI-001, RQ-INI-001 to RQ-INI-006)
 - `agnos-index` skill: the index generators (PowerShell and bash) with shared golden tests
@@ -77,6 +79,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- `agnos-trace` scripts and page script: no open quality finding, with the same data generated (TASK-QLT-002 to
+  TASK-QLT-005, RQ-QLT-009)
+- `agnos-trace` page skeleton: a plain `div` for the tabs and `fieldset` for the filter groups (TASK-QLT-006, RQ-QLT-010)
 - `agnos-index`'s error without `process/`, START SESSION, `README.md` and `GETTING_STARTED.MD` say to call `agnos-init`
   (TASK-INI-002, RQ-INI-007, RQ-IDX-008)
 - The demo is an initialised project: its first commit holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`
