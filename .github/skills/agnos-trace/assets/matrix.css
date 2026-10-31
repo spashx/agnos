@@ -1111,6 +1111,25 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-period select:focus, .delivery-period input:focus { outline: none; border-color: var(--s-focus); box-shadow: 0 0 0 var(--c-focus-ring) var(--s-accent-border); }
 .delivery-versus { color: var(--s-text-muted); font-size: var(--s-text-small); }
 .delivery-message { margin: var(--s-space-none); color: var(--s-status-error); font-size: var(--s-text-small); }
+/* RQ-TRC-101, DEC-TRC-052: the guide scrolls, its list and its close control stay in view */
+.help-dialog { width: min(var(--c-help-width), 100%); height: min(var(--c-help-height), 100%); min-width: min(var(--c-help-min-width), 100%); min-height: min(var(--c-help-min-height), 100%); resize: both; overflow: hidden; padding: var(--s-space-none); color: var(--s-text); background: var(--c-card-bg); border: var(--s-stroke-hairline) solid var(--c-card-border); border-radius: var(--c-card-radius); }
+.help-dialog[open] { display: grid; grid-template: auto minmax(0, 1fr) / auto minmax(0, 1fr); }
+.help-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: var(--s-space-md) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--c-card-border); }
+.help-list { display: flex; flex-direction: column; gap: var(--s-space-xs); padding: var(--s-space-md); border-right: var(--s-stroke-hairline) solid var(--c-card-border); }
+.help-topic { padding: var(--s-space-xs) var(--s-space-md); color: var(--s-text-muted); font: inherit; text-align: left; white-space: nowrap; background: none; border: none; border-radius: var(--s-radius-md); cursor: pointer; }
+.help-topic:hover { background: var(--c-table-row-hover); }
+.help-topic[aria-current] { color: var(--s-text); font-weight: var(--s-weight-strong); background: var(--c-table-row-hover); }
+.help-body { padding: var(--s-space-md) var(--s-space-xl); overflow-y: auto; }
+.help-body section[hidden] { display: none; }
+/* RQ-TRC-103: the links of the About topic, each with its site's icon */
+.about-links { display: flex; flex-wrap: wrap; gap: var(--s-space-md); }
+.about-link { display: flex; align-items: center; gap: var(--s-space-md); padding: var(--s-space-md) var(--s-space-lg); color: var(--s-text); text-decoration: none; border: var(--s-stroke-hairline) solid var(--c-card-border); border-radius: var(--c-card-radius); }
+.about-link:hover { color: var(--s-accent); border-color: var(--s-accent); }
+.about-icon { width: var(--c-control-height); height: var(--c-control-height); flex: none; fill: currentColor; }
+.about-text { display: flex; align-items: center; gap: var(--s-space-xs); }
+.about-badge { padding: var(--s-space-hair) var(--s-space-sm); color: var(--s-accent); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); background: var(--s-accent-subtle); border: var(--s-stroke-hairline) solid var(--s-accent-border); border-radius: var(--c-chip-radius); }
+.help-body h3 { margin-top: var(--s-space-none); font-size: var(--s-text-heading); }
+.help-body h4 { margin-bottom: var(--s-space-xs); font-size: var(--s-text-small); font-weight: var(--s-weight-strong); }
 .delivery-kpis { grid-template-columns: repeat(var(--figures), minmax(0, 1fr)); }
 /* RQ-TRC-096, DEC-TRC-049: the tags of the marks over the points, each showing its mark's shape */
 .delivery-overlays { margin-left: auto; }

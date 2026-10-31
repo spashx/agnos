@@ -53,7 +53,8 @@ view and written to the URL fragment; `hashchange` and `popstate` restore it (RQ
 `.github/skills/agnos-trace/` holds `SKILL.md` (the canonical procedure), `scripts/trace_matrix.py`, `scripts/vendor/`,
 `assets/` and `tests/` (Python `unittest` on a synthetic fixture process); `.claude/skills/agnos-trace/SKILL.md` points to
 it, as for the other AGNOS skills. The generated page is not committed by the skill; a project that does not want it in
-its working tree ignores the output path.
+its working tree ignores the output path. Extended by DEC-TRC-050 and DEC-TRC-051 (2026-10-31): `SKILL.md` holds the contract,
+`references/` the rest.
 
 ### DEC-TRC-012: Splitter bars between the three panels
 Owner request after the first review (RQ-TRC-025). The page grid gets two columns of its own between the sidebar, the

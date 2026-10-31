@@ -218,6 +218,7 @@ ADR-TRC-003).
 - **Acceptance Criteria**: Given an agent that loads the skill, When it follows the procedure, Then it produces the page and
   reports the quality score and the check scores printed by the generator.
 - **Dependencies**: DEC-TRC-008
+- **Amendment**: Refined by RQ-TRC-098 and RQ-TRC-102 (FTR-TRC-007, 2026-10-31): the skill holds its contract, 50 lines at most.
 
 ### RQ-TRC-018: Design system of the page
 - **Category**: Functional

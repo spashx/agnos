@@ -4078,7 +4078,7 @@
       data: [area(PERIOD_KEYS[0], periodColour(PERIOD_KEYS[0])), area(PERIOD_KEYS[1], periodColour(PERIOD_KEYS[1]))] };
     return {
       legend: { data: TIERS.map(tierLabel), top: 0 },                  // RQ-TRC-096: the tags are the marks' legend
-      grid: { containLabel: true, left: 0, right: 0, top: legendGap(), bottom: legendRoom() },   // RQ-TRC-097: room for the slider
+      grid: { containLabel: true, left: 0, right: cssSize("--s-space-sm"), top: legendGap(), bottom: legendRoom() },   // RQ-TRC-097: room for the slider and its right handle
       tooltip: { trigger: TRIGGER_AXIS, formatter: ([first]) => bucketTip(buckets[first.dataIndex]) },
       xAxis: { type: AXIS_CATEGORY, data: buckets.map((b) => b.bucket) },
       yAxis: [{ type: AXIS_VALUE, name: "points" },
@@ -4512,6 +4512,27 @@
     if (!fromHistory && location.hash !== hash) history.pushState({ key }, "", hash);
   }
 
+  // ---- help (TASK-TRC-087: RQ-TRC-101; DEC-TRC-052): the guide of the current tab, the others a choice away ----
+  function setupHelp() {
+    const dialog = $("help-dialog");
+    const hiddenTab = (topic) => document.querySelector(`.tab[data-view="${topic}"]`)?.hidden;
+    for (const part of dialog.querySelectorAll("[data-help]")) if (hiddenTab(part.dataset.help)) part.remove();
+    if (!CALL_GRAPH) for (const part of dialog.querySelectorAll('[data-needs="call-graph"]')) part.remove();
+    const guides = [...dialog.querySelectorAll("[data-help]")];
+    const show = (topic) => {
+      for (const part of guides) part.hidden = part.dataset.help !== topic;
+      for (const b of $("help-list").children) {
+        if (b.dataset.topic === topic) b.setAttribute("aria-current", VALUE_TRUE);
+        else b.removeAttribute("aria-current");
+      }
+      $("help-body").scrollTop = 0;
+    };
+    $("help-list").append(...guides.map((part) => el(TAG_BUTTON, { class: "help-topic", type: TAG_BUTTON, "data-topic": part.dataset.help,
+      text: part.dataset.title, on: { [EVENT_CLICK]: () => show(part.dataset.help) } })));
+    $("help-button").addEventListener(EVENT_CLICK, () => { show(state.view); dialog.showModal(); });
+    $("help-close").addEventListener(EVENT_CLICK, () => dialog.close());   // the browser returns the focus to the button
+  }
+
   function showView(view) {
     state.view = view;
     for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.view === view));
@@ -4644,6 +4665,7 @@
   renderDetail();
   setupPanels();
   document.querySelector(`.tab[data-view="${DELIVERY_VIEW}"]`).hidden = !DELIVERY;     // RQ-TRC-074
+  setupHelp();
   const initial = hashKey();
   if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
   const readyMs = Math.round(performance.now());   // since the navigation started, the page's parsing included

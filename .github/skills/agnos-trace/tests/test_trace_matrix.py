@@ -244,8 +244,10 @@ class PageAssemblyTest(unittest.TestCase):
             self.assertTrue(src.startswith("https://cdnjs.cloudflare.com/ajax/libs/"), src)
             self.assertIn(f'integrity="{lib["integrity"]}"', attributes)
             self.assertIn('crossorigin="anonymous"', attributes)
+        # RQ-TRC-103: the About topic's links load nothing until followed; any other address is still refused
+        loaded = re.sub(r'<a class="about-link" href="https://[^"]*"', "", lowered)
         for needle in ("<link", "url(http", "@import", "href=\"http"):
-            self.assertNotIn(needle, lowered)
+            self.assertNotIn(needle, loaded)
         json_path, script_path = tm.data_paths(self.page.path)
         script = script_path.read_text(encoding="utf-8")
         self.assertTrue(script.startswith(tm.DATA_GLOBAL + " = "))

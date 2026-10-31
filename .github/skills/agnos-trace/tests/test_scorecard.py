@@ -137,7 +137,8 @@ class VocabularyTest(unittest.TestCase):
         self.assertEqual(0, code)
         self.assertNotIn(GAP_WORD, data.lower())
         self.assertNotIn(GAP_WORD, out.lower())
-        for name in ("SKILL.md", "assets/matrix.html", "assets/scoring.json"):
+        for name in ("SKILL.md", "references/rules.md", "references/data-format.md", "references/maintaining.md",
+                     "assets/matrix.html", "assets/scoring.json"):
             self.assertNotIn(GAP_WORD, (SKILL / name).read_text(encoding="utf-8").lower(), name)
 
     @unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_TRACE_BROWSER)")

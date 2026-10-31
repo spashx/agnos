@@ -1,6 +1,6 @@
 ---
 name: agnos-trace
-description: "AGNOS traceability matrix skill. From an AGNOS process folder (the one holding INDEX.idx.md) and one or more source folders, writes one self-contained HTML page: every FTR/RQ/ADR/DEC/PLAN/TASK, the source files and lines that cite them, coverage of each requirement, a quality score and grade, with the findings of each check (uncovered requirements, tasks without requirement, undefined IDs...), searchable, with an interactive graph. USE FOR: checking MANDATORY TRACEABILITY at the end of a session or before a release; answering 'what implements / cites this requirement'; with --history, who (humans and agents) changed each element and its code, and when, and what was delivered: the tasks closed per period, tier and identity. Independent of the product developed."
+description: "AGNOS traceability matrix skill. From an AGNOS process folder and source folders, writes an HTML page and its data: every artifact, what cites it, coverage, a quality score and findings. USE FOR: checking MANDATORY TRACEABILITY at session end or before a release; what cites a requirement; with --call-graph, its functions; with --history, who changed what and what was delivered."
 argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--title <t>] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 <!-- RQ-TRC-017, DEC-TRC-008 -->
 
 This is a thin pointer, kept in sync with the canonical procedure so the process has a single source of truth. Read and
-follow the full procedure (command, arguments, exit codes, rules behind the numbers, tests) at:
+follow the procedure (command, parameters, exit codes, where to find the rest) at:
 
 `.github/skills/agnos-trace/SKILL.md`
 

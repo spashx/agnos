@@ -32,10 +32,108 @@
       </div>
     </div>
     <div class="topbar-meta" id="meta"></div>
+    <!-- RQ-TRC-101, DEC-TRC-052: apart from the tabs, it changes no view -->
+    <button class="icon-button" id="help-button" type="button" title="What this view shows and how to use it" aria-label="Help" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 15h2v2h-2Zm1-11a4 4 0 0 1 2.2 7.3c-.8.6-1.2 1-1.2 1.7h-2c0-1.6.9-2.4 2-3.2A2 2 0 1 0 10 10H8a4 4 0 0 1 4-4Z"></path></svg>
+    </button>
     <button class="icon-button" id="theme-toggle" type="button" title="Switch light / dark theme" aria-label="Switch theme">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"></path></svg>
     </button>
   </header>
+
+  <!-- RQ-TRC-101, DEC-TRC-052: the reader's guide, one section per tab; the script removes those of tabs the page does not hold -->
+  <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+    <header class="help-head">
+      <h2 class="card-title" id="help-title">Help</h2>
+      <button class="button" id="help-close" type="button" title="Close the help (Esc)">Close</button>
+    </header>
+    <nav class="help-list" id="help-list" aria-label="Help topics"></nav>
+    <div class="help-body" id="help-body" tabindex="0">
+      <section data-help="overview" data-title="Overview" hidden>
+        <h3>Overview</h3>
+        <p>The project at a glance: how many elements it holds, the share of requirements covered, indirectly covered and uncovered, the quality score and grade with the findings of each check, and the coverage of each trigram.</p>
+        <p><b>Covered</b>: a source file cites the requirement. <b>Indirect</b>: a source file cites a decision, task, ADR, plan or feature linked to it. <b>Uncovered</b>: neither.</p>
+      </section>
+      <section data-help="matrix" data-title="Matrix" hidden>
+        <h3>Matrix</h3>
+        <p>One row per requirement, with its feature, ADRs and decisions, plans and tasks, source files and lines, and coverage. Click a header to sort; the search and the trigram filters narrow the rows; Export CSV saves them, always in the same columns.</p>
+        <ul>
+          <li><b>Move a column</b>: drag a header onto another, or press Alt+← or Alt+→ on a focused header.</li>
+          <li><b>Resize a column</b>: drag the edge of its header.</li>
+          <li><b>Reset columns</b> brings back the default order and widths; otherwise the browser remembers them.</li>
+        </ul>
+      </section>
+      <section data-help="graph" data-title="Graph" hidden>
+        <h3>Graph</h3>
+        <p>The selected element and its links, as a flow of columns: features, requirements, ADRs and decisions, plans and tasks, source files, undefined IDs. <b>Depth</b> follows links 1 to 3 steps away; <b>Whole graph</b> draws everything the filters show. The wheel zooms.</p>
+        <ul>
+          <li><b>Source files</b> draws the files, linked to the IDs they cite and the functions they define.</li>
+          <li><b>Specification hierarchy</b> draws and follows feature to requirement, ADR to decision, plan to task.</li>
+        </ul>
+        <div data-needs="call-graph">
+          <h4>Implementation</h4>
+          <p>Functions are off when the page opens: turn on <b>Implementation</b>, or the Functions filter, to draw them, with a selected function's callers on its left and callees on its right. At most 400 nodes are drawn; the status line says how many are left out.</p>
+          <p><b>Implementation detail</b> draws functions in the frame of their class or namespace, one node per class, or one node per namespace, the calls merged with their count. What stands in no named namespace is the <code>(global namespace)</code>. <b>Enclosing scopes</b> draws each class inside its namespace. Select a scope like any element: its panel lists its functions, callers, callees and the requirements they cite.</p>
+        </div>
+      </section>
+      <section data-help="history" data-title="History" hidden>
+        <h3>History</h3>
+        <p>Who changed what, and when. <b>Requirements</b> shows one row per process element, grouped by type. <b>Code</b> shows the files in a tree of their folders, or the elements by the code citing them.</p>
+        <h4>Reading the marks</h4>
+        <p>A mark is one commit on a row. Its shape tells the kind (circle: human, diamond: agent, circle holding a diamond: together), its colour the author. Marks that would overlap merge into a group with its count beside it: a rounded square when its kinds differ. Hover a mark for its commit; click it or press Enter to open it in the detail panel, with its git graph and what it changed. Click a group to zoom on its commits.</p>
+        <h4>Moving in time</h4>
+        <ul>
+          <li>The wheel over the marks zooms, a drag pans; <kbd>+</kbd> <kbd>-</kbd> <kbd>0</kbd> and the arrow keys do the same.</li>
+          <li>The strip at the bottom shows the whole history. Drag its window to move the period, or a handle at either end, or its arrow keys once focused, to change that end. Press elsewhere on the strip to centre the window there.</li>
+        </ul>
+        <h4>Filtering</h4>
+        <p>The figures and the activity band follow the rows shown. Filter by identity, by text on the rows, by kind and, in the Requirements angle, by element type; <b>Rows without changes</b> shows the rows a filter empties. The sidebar's History section opens this tab on one identity; the detail panel's History button opens it on the selected element. Resize the labels column by its edge.</p>
+      </section>
+      <section data-help="delivery" data-title="Delivery" hidden>
+        <h3>Delivery</h3>
+        <p>What was delivered, not how long it took: git records when a task is closed, never when its work began. Compare two periods, A and B, chosen among ready-made ranges or as two dates within the history read.</p>
+        <h4>Figures</h4>
+        <p>Each gives A, B and the variation from B to A, said "better" or "worse": more is better for tasks, points and points per active day, less is better for rework and friction. A task's points come from its tier. An active day is a day with a commit by an identity the filters keep. A task is <b>reworked</b> when a <code>fix</code> commit names it, or a requirement it cites, in the days after its delivery. <b>Friction per session</b> is the events of the session log divided by its sessions in the period; it follows only the periods, trigrams and identities, and its tooltip names the filters it ignores.</p>
+        <h4>Charts and table</h4>
+        <p><b>Points per active day</b> of each identity and <b>Tasks per tier</b> compare A and B. <b>Points over time</b> goes by day, week or month, with A and B shaded; its slider zooms, and the Rework and Friction tags add their marks on a second axis, placed at the delivery date for rework. The table lists the tasks of A and B (sortable, CSV), then those set aside with their reason; a click or Enter opens the task.</p>
+      </section>
+      <section data-help="quality" data-title="Quality" hidden>
+        <h3>Quality</h3>
+        <p>The report card gives the project's grade from A to E, its score out of 10, a verdict, the grade of each feature area and the checks to fix first. The charts show the checks, the feature areas and the coverage; a radar axis opens its check.</p>
+        <p>Below, each check shows its title, risk, score and findings. Its chevron opens the rule, the formula, the figures and the findings, each a link to its detail. <b>Expand all</b> and <b>Collapse all</b> act on every check.</p>
+        <p>An ID quoted in prose as an example counts as a citation: it shows as an undefined ID. Write such examples without the ID grammar.</p>
+      </section>
+      <section data-help="common" data-title="Search and details" hidden>
+        <h3>Search and details</h3>
+        <ul>
+          <li><b>Search</b> (shortcut <kbd>/</kbd>): by ID, title, file or function. Pointing at a result shows its whole name and location.</li>
+          <li><b>Detail panel</b>: the selection's type, title, status, location and link counts stay at the top; its links scroll below, grouped by type. Click a count to show only that group. A link to <code>#&lt;ID&gt;</code> selects an element; back and forward follow the selections.</li>
+          <li><b>Tooltips</b>: every element, figure, grade, identity and commit tells more on hover and on keyboard focus.</li>
+          <li><b>Panels</b>: drag their edges, or use the arrow keys on them, to resize; double-click to reset.</li>
+        </ul>
+        <p data-needs="call-graph">A function's panel lists its callers and callees (ambiguous ones marked) and the IDs it cites; a requirement's panel lists its functions.</p>
+        <p>The page needs the network once to load its chart and graph libraries; without them, the views that need them say so. Share the page's three files together.</p>
+      </section>
+      <section data-help="about" data-title="About" hidden>
+        <h3>About</h3>
+        <p>This page is generated by agnos-trace, a skill of the AGNOS process, by spashx.</p>
+        <div class="about-links">
+          <a class="about-link" href="https://github.com/spashx" target="_blank" rel="noopener noreferrer">
+            <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3Z"></path></svg>
+            <span class="about-text"><b>GitHub:</b><span>spashx</span></span>
+          </a>
+          <a class="about-link" href="https://www.linkedin.com/in/64493197" target="_blank" rel="noopener noreferrer">
+            <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"></path></svg>
+            <span class="about-text"><b>LinkedIn:</b><span>spashx</span></span>
+          </a>
+          <a class="about-link" href="https://github.com/spashx/agnos-lightweight-process/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer">
+            <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3h2v2h6l3 8a4 4 0 0 1-8 0l2.5-6H13v12h4v2H7v-2h4V7H7.5L10 13a4 4 0 0 1-8 0l3-8h6V3Zm-6 5.5L3.7 12h2.6L5 8.5Zm14 0L17.7 12h2.6L19 8.5Z"></path></svg>
+            <span class="about-text"><b>Licence:</b><span class="about-badge">GNU AGPL-3.0</span></span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </dialog>
 
   <aside class="sidebar" aria-label="Search and filters">
     <div class="search">

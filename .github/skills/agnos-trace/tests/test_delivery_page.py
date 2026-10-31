@@ -416,6 +416,20 @@ out.raised = String(grid.top === Number.parseFloat(css("--s-space-2xl")));
 """, "inside", "room", "raised")
         self.assertEqual({"inside": "true", "room": "true", "raised": "true"}, got)
 
+    def test_RQ_TRC_097_given_the_slider_spanning_the_whole_axis_then_both_handles_are_drawn_inside_the_chart_box(self):
+        got = self.run_script("""
+const box = document.querySelector('#delivery-charts [data-chart="timeline"]');
+const frame = box.getBoundingClientRect();
+const slider = optionOf("timeline").dataZoom.find((z) => z.type === "slider");
+const band = frame.bottom - slider.bottom - slider.height - Number.parseFloat(css("--s-space-xs"));
+const drawn = [...box.querySelectorAll("svg path")].map((p) => p.getBoundingClientRect())
+  .filter((r) => r.width > 0 && r.height > 0 && r.top >= band);
+out.drawn = String(drawn.length > 0);
+out.slider_from = String(drawn.every((r) => r.left >= frame.left));
+out.slider_to = String(drawn.every((r) => r.right <= frame.right));
+""", "drawn", "slider_from", "slider_to")
+        self.assertEqual({"drawn": "true", "slider_from": "true", "slider_to": "true"}, got)
+
     def test_RQ_TRC_083_given_the_tiers_chart_then_it_counts_the_tasks_per_tier_for_a_and_b_and_follows_the_filters(self):
         got = self.run_script("""
 const counts = () => optionOf("tiers").series.map((s) => s.name + ":" + s.data.map((d) => d.value ?? d).join(",")).join(" ");
