@@ -65,7 +65,8 @@ session's work); weighting the counters; a filter of the friction by tier, commi
 - **EARS Type**: Ubiquitous
 - **Statement**: The Delivery band SHALL write beside each non-zero variation the word "better" or "worse", from what the
   figure measures and not from its sign: a rise is better for the tasks, the points and the throughput, a fall is better
-  for the rework and the friction; a variation that is zero or cannot be computed SHALL have no word.
+  for the rework and the friction; a variation that is zero or cannot be computed SHALL have no word; each figure's
+  tooltip SHALL say "More is better, less is worse" or "Less is better, more is worse" accordingly.
 - **Rationale**: the two families of figures read in opposite directions, and colour alone does not say so.
 - **Priority**: Must
 - **Acceptance Criteria**: Given points rising, Then "better"; Given rework rising, Then "worse"; Given friction falling,
@@ -101,9 +102,9 @@ session's work); weighting the counters; a filter of the friction by tier, commi
 ### RQ-TRC-096: Tags of the overlays
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN the user toggles the tag Rework or Friction in the header of "Points over time", on by default, the
-  page SHALL show or hide those marks and fit the second axis to what stays shown, without changing the figures or the
-  table; IF no friction entry exists, THEN the tag Friction SHALL be disabled and its tooltip SHALL say why.
+- **Statement**: WHEN the user toggles the tag Rework or Friction in the header of "Points over time", off by default, the
+  page SHALL show or hide those marks, each tag showing its mark's shape and colour as their only legend, and fit the second axis to what stays shown, without changing the
+  figures or the table; IF no friction entry exists, THEN the tag Friction SHALL be disabled and its tooltip SHALL say why.
 - **Rationale**: friction peaks would otherwise flatten the rework on a shared axis.
 - **Priority**: Must
 - **Acceptance Criteria**: Given friction peaking at 20 and rework at 3, When Friction is off, Then the axis ends near 3

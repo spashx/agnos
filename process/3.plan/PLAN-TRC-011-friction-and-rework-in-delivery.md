@@ -70,3 +70,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: RQ-TRC-095, 096 tests OK within the full suite. `AGNOS_TRACE_PERF=1`: P95 66-77 ms against the former 50 ms limit, 64-73 ms on the previous commit; owner set the limit to 100 ms on 2026-10-31 (RQ-TRC-078, RQ-TRC-088); the fixture of the speed test holds no friction row. Visual check left to the owner.
 - **Assumptions**: the marks reuse the History mark size; a tag keeps the chart's zoom; series order Rework then Friction, as in the tags.
+
+### TASK-TRC-085: Corrections of the owner's review
+- **Tier**: L
+- **Status**: Done
+- **Description**: Period A in violet, period B in teal and rework in blue, the better direction in each figure's tooltip, the friction's definition in its tooltip, the marks off by default, their icons in the tags as their only legend.
+- **Requirement refs**: RQ-TRC-083, RQ-TRC-093, RQ-TRC-096
+- **ADR refs**: ADR-TRC-011 (DEC-TRC-049), ADR-TRC-010 (DEC-TRC-043), ADR-TRC-002
+- **Acceptance Criteria**: Given the tab, Then no mark is drawn until its tag is on; Given a tag, Then it shows its mark's icon; Given a points figure or a friction figure, Then its tooltip says which way is better.
+- **Dependencies**: TASK-TRC-084
+- **Assignee**: AI
+- **Verification**: full suite: 336 tests OK, 3 skipped; `AGNOS_TRACE_PERF=1` alone, 5 runs: P95 66.3 to 121.2 ms, 2 runs over the 100 ms limit, cause not established at this commit. Owner's visual check: accepted on 2026-10-31.
+- **Assumptions**: violet and teal are the pair farthest apart that avoids red, teal staying nearer the green of "better"; teal-700 added for white text on B in light theme; the title "Friction per session" is kept, the figure being an average per session within the period.

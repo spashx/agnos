@@ -41,7 +41,8 @@ between sessions: circles for friction, diamonds for rework, placed at the deliv
 rework rate and need no new data. The tokens `--c-delivery-friction` and `--c-delivery-rework` colour them, and shape
 tells them apart without colour. Two tags in the card header, kept in the tab's state and outside its filters, rebuild the
 chart's option; the second axis fits what is shown. The series stay out of the tier legend. Extends DEC-TRC-043. Fulfils
-RQ-TRC-095, RQ-TRC-096.
+RQ-TRC-095, RQ-TRC-096. Owner review of 2026-10-31: both tags off by default, each showing its mark's icon, the tags being
+the marks' only legend; `rework` takes blue, left free by period A (DEC-TRC-043).
 
 ## Consequences
 - The page is reproducible for one commit; a row shows only once committed.

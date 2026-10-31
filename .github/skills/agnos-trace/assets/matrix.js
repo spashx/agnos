@@ -3722,7 +3722,7 @@
   const OVERLAY_FRICTION = "friction";
   const OVERLAY_REWORK = "rework";
   const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false, sort: { key: null, direction: null },
-    overlays: { [OVERLAY_FRICTION]: true, [OVERLAY_REWORK]: true }, zoom: null };   // RQ-TRC-096
+    overlays: { [OVERLAY_FRICTION]: false, [OVERLAY_REWORK]: false }, zoom: null };   // RQ-TRC-096
   const periodInput = (key, side) => $(`delivery-${side}-${key}`);
   const dataNumber = (value, digits) => (value === null ? "" : digits ? value.toFixed(digits) : String(value));
 
@@ -3839,6 +3839,7 @@
       class: `delivery-change${word ? ` is-${word}` : ""}`, text: changeWords })));
     return richTip(node, () => ({ head: label, lines: [`Period A, ${dlv.periods.a.from} to ${dlv.periods.a.to}: ${show.text(a)}`,
       `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeWords}`,
+      lowerIsBetter ? "Less is better, more is worse" : "More is better, less is worse",   // RQ-TRC-093
       ...(moreLines ? moreLines() : [])] }));
   }
 
@@ -3846,8 +3847,9 @@
   function frictionLines(friction) {
     const lines = PERIOD_KEYS.map((key, k) => `${key.toUpperCase()}: ${friction[k].sessions} sessions, ${friction[k].events} events (${
       FRICTION_COUNTERS.map((name, i) => `${name} ${friction[k].counters[i]}`).join(", ")})`);
+    lines.unshift("The events of a period divided by its sessions");
     const ignored = frictionIgnored(dlv.filter);
-    return ignored.length ? [...lines, `Not filtered by ${ignored.join(", ")}: the log holds only a session's date, trigram and author`] : lines;
+    return ignored.length ? [...lines,`Not filtered by ${ignored.join(", ")}: the log holds only a session's date, trigram and author`] : lines;
   }
 
   function renderDeliveryKpis(figures) {
@@ -4020,7 +4022,7 @@
     series[0].markArea = { silent: true, label: { color: theme.colour.muted, fontSize: theme.caption.fontSize },
       data: [area(PERIOD_KEYS[0], periodColour(PERIOD_KEYS[0])), area(PERIOD_KEYS[1], periodColour(PERIOD_KEYS[1]))] };
     return {
-      legend: { data: TIERS.map(tierLabel), top: 0 },
+      legend: { data: TIERS.map(tierLabel), top: 0 },                  // RQ-TRC-096: the tags are the marks' legend
       grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: legendGap() },
       tooltip: { trigger: TRIGGER_AXIS, formatter: ([first]) => bucketTip(buckets[first.dataIndex]) },
       xAxis: { type: AXIS_CATEGORY, data: buckets.map((b) => b.bucket) },

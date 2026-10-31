@@ -448,6 +448,8 @@ class DeliveryFrictionTest(unittest.TestCase):
 const shown = (name) => { const option = optionOf("timeline"); const s = option.series.find((x) => x.name === name);
   if (!s) return "none"; const days = [].concat(option.xAxis)[0].data;
   return days.flatMap((day, i) => (s.data[i] ? [`${day}=${s.data[i]}`] : [])).join(","); };
+const tag = (key) => document.querySelector(`#delivery-charts [data-overlay="${key}"]`);
+const marksOn = () => { tag("rework").click(); tag("friction").click(); };
 """ + script), *names)
 
     def test_RQ_TRC_092_given_sessions_in_a_and_b_then_the_figure_is_the_events_per_session_and_a_fall_is_better(self):
@@ -507,7 +509,12 @@ out.ab = ab("friction"); out.ignored = d.frictionIgnored(agnosTrace.delivery.cur
 
     def test_RQ_TRC_095_given_the_grain_then_circles_and_diamonds_stand_on_their_buckets_on_a_second_axis(self):
         got = self.run_script("""
+marksOn();
 out.friction = shown("Friction"); out.rework = shown("Rework");
+const icon = (key) => tag(key).querySelector(".delivery-overlay-mark");
+out.icons = String(["rework", "friction"].every((key) => icon(key).offsetWidth > 0
+  && getComputedStyle(icon(key)).backgroundColor === resolved(css(`--c-delivery-${key}`))));
+out.marklegend = [].concat(optionOf("timeline").legend)[0].data.join(",");
 const option = optionOf("timeline");
 out.symbols = option.series.filter((s) => !s.stack).map((s) => `${s.symbol}:${s.yAxisIndex}`).join(",");
 out.axes = String([].concat(option.yAxis).length);
@@ -515,7 +522,9 @@ out.colours = String(option.series.find((s) => s.name === "Friction").itemStyle.
   && option.series.find((s) => s.name === "Rework").itemStyle.color === resolved(css("--c-delivery-rework")));
 document.querySelector('#delivery-grain [data-grain="week"]').click();
 out.week = shown("Friction");
-""", "friction", "rework", "symbols", "axes", "colours", "week")
+""", "friction", "rework", "icons", "marklegend", "symbols", "axes", "colours", "week")
+        self.assertEqual("true", got["icons"])
+        self.assertNotIn("Rework", got["marklegend"])
         self.assertEqual("2026-10-15=20,2026-10-22=4,2026-10-27=8", got["friction"])
         self.assertEqual("2026-10-27=1", got["rework"])
         self.assertEqual(("diamond:1,circle:1", "2", "true"), (got["symbols"], got["axes"], got["colours"]))
@@ -523,6 +532,7 @@ out.week = shown("Friction");
 
     def test_RQ_TRC_095_given_a_bucket_with_a_session_then_its_tooltip_gives_its_trigram_counters_author_and_commit(self):
         got = self.run_script("""
+marksOn();
 const box = document.querySelector('#delivery-charts [data-chart="timeline"]');
 const days = [].concat(optionOf("timeline").xAxis)[0].data;
 chartOf("timeline").dispatchAction({ type: "showTip", seriesIndex: 0, dataIndex: days.indexOf("2026-10-27") });
@@ -531,26 +541,32 @@ out.tip = box.textContent;
         for text in ("OTH", "questions 3", "verification 1", "Claude Opus 5.5", "d000000004", "reworked"):
             self.assertIn(text, got["tip"], text)
 
-    def test_RQ_TRC_096_given_a_tag_off_then_its_marks_go_and_the_figures_stay(self):
+    def test_RQ_TRC_096_given_the_tab_then_the_marks_are_off_until_their_tag_is_on_and_the_figures_stay(self):
         got = self.run_script("""
-const tag = (key) => document.querySelector(`#delivery-charts [data-overlay="${key}"]`);
 out.pressed = tag("friction").getAttribute("aria-pressed");
+out.off = shown("Friction") + "|" + shown("Rework");
 const before = document.getElementById("delivery-kpis").textContent;
 tag("friction").click();
-out.off = shown("Friction"); out.rework = shown("Rework");
-out.pressedoff = tag("friction").getAttribute("aria-pressed");
+out.on = shown("Friction"); out.rework = shown("Rework");
+out.pressedon = tag("friction").getAttribute("aria-pressed");
 out.same = String(before === document.getElementById("delivery-kpis").textContent);
-tag("friction").click();
-out.back = shown("Friction");
-""", "pressed", "off", "rework", "pressedoff", "same", "back")
-        self.assertEqual(("true", "none", "2026-10-27=1", "false", "true"),
-                         (got["pressed"], got["off"], got["rework"], got["pressedoff"], got["same"]))
-        self.assertEqual("2026-10-15=20,2026-10-22=4,2026-10-27=8", got["back"])
+""", "pressed", "off", "on", "rework", "pressedon", "same")
+        self.assertEqual(("false", "none|none", "none", "true", "true"),
+                         (got["pressed"], got["off"], got["rework"], got["pressedon"], got["same"]))
+        self.assertEqual("2026-10-15=20,2026-10-22=4,2026-10-27=8", got["on"])
+
+    def test_RQ_TRC_093_given_each_family_of_figures_then_its_tooltip_says_which_way_is_better(self):
+        got = self.run_script("""
+const tipOf = (key) => { figure(key).dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
+  figure(key).dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); return document.body.textContent; };
+out.pointstip = String(tipOf("points").includes("More is better, less is worse"));
+out.frictiontip = String(tipOf("friction").includes("Less is better, more is worse"));
+""", "pointstip", "frictiontip")
+        self.assertEqual(("true", "true"), (got["pointstip"], got["frictiontip"]))
 
     def test_RQ_TRC_096_given_no_log_then_the_friction_tag_is_disabled_and_says_why(self):
         got = self.run_script("""
-const tag = document.querySelector('#delivery-charts [data-overlay="friction"]');
-out.disabled = String(tag.disabled); out.why = tag.title; out.series = shown("Friction");
+out.disabled = String(tag("friction").disabled); out.why = tag("friction").title; out.series = shown("Friction");
 """, "disabled", "why", "series", path=self.no_log)
         self.assertEqual(("true", "none"), (got["disabled"], got["series"]))
         self.assertIn("METRICS_LOG", got["why"])

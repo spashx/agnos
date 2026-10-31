@@ -1109,7 +1109,7 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .delivery-kpis { grid-template-columns: repeat(var(--figures), minmax(0, 1fr)); }
 /* RQ-TRC-096, DEC-TRC-049: the tags of the marks over the points, each showing its mark's shape */
 .delivery-overlays { margin-left: auto; }
-.delivery-overlay-mark { width: var(--c-delivery-overlay-mark); height: var(--c-delivery-overlay-mark); }
+.delivery-overlay-mark { width: var(--s-space-sm); height: var(--s-space-sm); margin-right: var(--s-space-sm); }
 .delivery-overlay-mark.is-friction { background: var(--c-delivery-friction); border-radius: var(--s-radius-pill); }
 .delivery-overlay-mark.is-rework { background: var(--c-delivery-rework); transform: rotate(45deg); }
 .delivery-change { font-weight: var(--s-weight-strong); }

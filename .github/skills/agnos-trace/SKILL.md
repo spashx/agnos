@@ -110,7 +110,7 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   points, the points per active day, the rework rate and, when the log has rows, the friction per session; each variation
   says "better" or "worse", a fall being better for rework and friction. The friction follows only the periods, trigrams
   and identities, and its tooltip names the filters it ignores. Over the points over time, circles give the friction
-  events and diamonds the tasks later reworked, on a second axis, each behind a tag (FTR-TRC-006). Three charts: points per active day of each identity, stacked
+  events and diamonds the tasks later reworked, on a second axis, each behind a tag showing its icon, off by default (FTR-TRC-006). Three charts: points per active day of each identity, stacked
   by tier (the tier told by the opacity of the identity's History colour), A plain and B hatched; points over time by
   day, week or month (month beyond 12 weeks read) with A and B shaded; lines changed per task, median and quartiles per
   tier. Filters: text (ID, title, plan, requirements), tags for tiers, kinds, commit types and trigrams, identities,
