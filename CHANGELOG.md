@@ -75,6 +75,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- Maintainer skills renamed `agnos-meta-demo` and `agnos-meta-docs-sync`, with the sub-agent; the prefix `agnos-meta-` is
+  the only criterion that marks them (TASK-MTA-001, RQ-MTA-001, RQ-MTA-002)
 - `agnos-trace` graph and legend styling: thicker relation samples, triangle arrows on contains links,
   opaque legend samples, group labels and faint frames (TASK-TRC-021, TASK-TRC-022, TASK-TRC-030)
 - `README.md` rewritten and `GETTING_STARTED.MD` aligned with `agnos-index`, `agnos-trace` and

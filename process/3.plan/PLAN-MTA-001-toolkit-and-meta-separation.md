@@ -28,12 +28,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-002: State the layers
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the three layers and the prefix rule to `CONTRIBUTING.md`, correct its line budget from 800 to 400, and add one `CHANGELOG.md` bullet under `[Unreleased]` for the renaming.
 - **Requirement refs**: RQ-MTA-004
 - **ADR refs**: ADR-MTA-001 (DEC-MTA-002)
 - **Acceptance Criteria**: Given `CONTRIBUTING.md`, Then the criterion of RQ-MTA-004 holds.
 - **Dependencies**: TASK-MTA-001
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `CONTRIBUTING.md` re-read: three layers (lines 29-31), prefix rule (33), 400 lines (44). `git diff --quiet` on `.github/instructions`: unchanged, 382 lines. Demo rebuilt with the new files, HEAD 4323b56: 22 passed, 0 failed. For TASK-MTA-001 after commit 6ff3495: `git log --follow` reaches earlier history (3, 2 and 2 commits on the renamed files).
+- **Assumptions**: this task's plan text changed the tier from S to M before approval, since the edits exceed 5 lines; no unit test for documentation text, as `agnos-index` and `agnos-trace` suites were last run on TASK-MTA-001 and no code changed since.

@@ -413,7 +413,7 @@ TASK-IDX-002|36-53|Done|Skill packaging and process integration
 @process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-39||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion
-TASK-MTA-002|29-39|Not Started|State the layers
+TASK-MTA-002|29-39|Done|State the layers
 @process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
 PLAN-TRC-001|1-177||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references

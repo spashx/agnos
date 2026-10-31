@@ -18,6 +18,21 @@ By participating, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md
 - **Tooling** — the `validate-ids` scripts (`.github/skills/agnos-git-workflow/scripts/`), kept
   exit-code-equivalent between the PowerShell and bash versions.
 
+## The layers of this repository
+
+<!-- RQ-MTA-004 / ADR-MTA-001 (DEC-MTA-002, DEC-MTA-003) -->
+
+AGNOS is developed with AGNOS, so this tree holds three layers:
+
+| Layer | What it holds | Delivered |
+|---|---|---|
+| **Toolkit** | The instructions file, `CLAUDE.md`, `AGENTS.md`, the process skills, `README.md`, `GETTING_STARTED.MD`, `CHANGELOG.md` | Yes |
+| **Public repository** | `LICENSE.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, this file, the GitHub templates | Yes, at the repository's root |
+| **Meta** | `process/`, the `agnos-meta-*` skills and sub-agents, the tests of every skill | No |
+
+A skill or sub-agent that serves only the development of AGNOS takes the prefix `agnos-meta-`. The prefix is the
+only criterion: tools read it, and no list of names is kept.
+
 ## Before you open a pull request
 
 1. **Read before editing.** Don't propose a change to a file you haven't actually read in full —
@@ -26,7 +41,7 @@ By participating, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md
    instruction file and one canonical `agnos-git-workflow/SKILL.md` under `.github/`; the
    `.claude/` copies are thin pointers. Don't fork the content between them.
 3. **Respect the instructions-file line budget.** `agnos-sw-eng.instructions.md` must stay at or
-   under 800 lines. If your change would exceed it, trim an existing section in the same change
+   under 400 lines. If your change would exceed it, trim an existing section in the same change
    rather than deferring cleanup.
 4. **Traceability stays in comments, not prose.** If you reference a requirement, ADR, or decision
    ID from process-definition files under `.github/`, keep the citation out of the file's own
