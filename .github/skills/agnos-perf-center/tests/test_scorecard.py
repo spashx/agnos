@@ -234,6 +234,7 @@ out.summaryopen = agnosTrace.state.view + "@" + [...agnosTrace.state.openChecks]
 class CheckOrderTest(unittest.TestCase):
     """TASK-TRC-077: RQ-TRC-062 amended, RQ-TRC-015 (DEC-TRC-034)."""
 
+    @unittest.skipUnless(BROWSER, "no Chromium-family browser found (set AGNOS_PERF_CENTER_BROWSER)")
     def test_RQ_TRC_062_given_the_checks_then_they_stand_by_risk_then_title_three_in_a_row_and_alike_everywhere(self):
         import re
         with tempfile.TemporaryDirectory() as tmp:

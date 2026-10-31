@@ -173,13 +173,18 @@ def parse_contact(text):
     return (m.group(1).strip(), m.group(2)) if m else None
 
 
+def utc_marked(date):
+    """RQ-PLG-008: a date from git in one form, since git writes UTC as `+00:00` before 2.46 and as `Z` after."""
+    return date[:-len(UTC_OFFSET)] + UTC_MARK if date.endswith(UTC_OFFSET) else date
+
+
 def parse_header(record):
     """A commit of one log record: hash, parents, raw and mapped author, author date, subject, co-authors."""
     parts = record.split(FIELD)
     full, parents, raw_name, raw_mail, name, mail, date, subject, trailers = parts[:len(LOG_FIELDS)]
     co_authors = [c for c in (parse_contact(t) for t in trailers.split(TRAILER_SEPARATOR) if t.strip()) if c]
     return {KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_RAW: (raw_name, raw_mail), KEY_AUTHOR: (name, mail),
-            KEY_DATE: date, KEY_SUBJECT: subject, KEY_CO_AUTHORS: co_authors}
+            KEY_DATE: utc_marked(date), KEY_SUBJECT: subject, KEY_CO_AUTHORS: co_authors}
 
 
 def log_args(since=None, depth=None, paths=(), options=()):
@@ -659,7 +664,7 @@ def read_graph(repo, since=None):
     for record in out.split(RECORD):
         if record.strip():
             full, parents, date, subject = record.rstrip("\n").split(FIELD)
-            nodes.append({KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_DATE: date, KEY_SUBJECT: subject})
+            nodes.append({KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_DATE: utc_marked(date), KEY_SUBJECT: subject})
     return nodes
 
 

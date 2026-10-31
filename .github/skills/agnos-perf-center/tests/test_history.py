@@ -104,6 +104,17 @@ class RepoTestCase(unittest.TestCase):
         return history.identify(repo, commits, patterns or history.load_agent_patterns())
 
 
+class GitDateTest(unittest.TestCase):
+    """RQ-PLG-008: git writes a UTC date `Z` from 2.46 and `+00:00` before; the data holds one form."""
+
+    def test_RQ_PLG_008_given_a_utc_date_of_either_form_then_it_reads_with_z(self):
+        for written in ("2026-10-01T10:00:00Z", "2026-10-01T10:00:00+00:00"):
+            self.assertEqual("2026-10-01T10:00:00Z", history.utc_marked(written))
+
+    def test_RQ_PLG_008_given_a_date_in_another_zone_then_it_stays(self):
+        self.assertEqual("2026-10-01T10:00:00+02:00", history.utc_marked("2026-10-01T10:00:00+02:00"))
+
+
 class RepositoryCheckTest(RepoTestCase):
     """TASK-HST-001: RQ-HST-012."""
 

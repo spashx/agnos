@@ -401,7 +401,7 @@ def find_browser():
     return next((p for p in found if p), None)
 
 
-CDN_PROBE = "https://cdnjs.cloudflare.com/"
+CDN_PROBE = "https://cdnjs.cloudflare.com/ajax/libs/echarts/6.1.0/echarts.min.js"   # a file the page loads: the site's root may redirect endlessly
 CDN_TIMEOUT_S = 5
 
 
@@ -428,7 +428,7 @@ def rendered_dom(page_path, fragment="", window=BROWSER_WINDOW):
     """The DOM of the page once its script ran, from a headless browser (--dump-dom) in a window of the given size."""
     import subprocess
     with tempfile.TemporaryDirectory() as profile:
-        done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+        done = subprocess.run([BROWSER_FOUND, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                                f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}",
                                f"--window-size={window}", "--dump-dom",
                                page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False)
