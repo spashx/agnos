@@ -51,43 +51,43 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-QLT-004: Python, the rule findings
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Correct the `ruff` findings of the four scripts of `agnos-trace`.
 - **Requirement refs**: RQ-QLT-009
 - **ADR refs**: ADR-QLT-001 (DEC-QLT-006, DEC-QLT-008)
 - **Acceptance Criteria**: Given the scripts, When the report is read, Then only complexity findings are left, And the skill's unit tests pass.
 - **Dependencies**: TASK-QLT-001
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: committed with TASK-QLT-005, the same output proving both: report on the scripts 0 open and 1 exception, from 38 `ruff` findings; `agnos-trace/tests`: 356 OK (3 skipped).
+- **Assumptions**: `build`'s `patterns` was removed, since no caller passed it; its `depth` and `tasks` became keyword-only; `build` keeps 8 parameters as the one recorded exception (PLR0913), since the tests fix the first 6.
 
 ### TASK-QLT-005: Python, the complex functions
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Cut the 13 functions above a cognitive complexity of 15 into named helpers, with no change of behaviour, the data file staying byte-identical.
 - **Requirement refs**: RQ-QLT-009
 - **ADR refs**: ADR-QLT-001 (DEC-QLT-008)
 - **Acceptance Criteria**: Given the scripts, When the report is read, Then no open finding is left; Given this repository, When the generator runs before and after with a fixed time, Then the page's data is byte-identical, And the suite passes.
 - **Dependencies**: TASK-QLT-004
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: report on the scripts and assets: 0 open, 1 exception, from 13 functions above 15. `page.json` and `page.data.js` byte-identical before and after, with `--call-graph --history` and a fixed time, on a clone of this repository (166 commits, 1646 functions) and on the demo (80 commits, merges, 7 identities). `page.html` identical apart from the data script's name in the comparison. `agnos-trace/tests`: 356 OK (3 skipped), performance tests included.
+- **Assumptions**: the clone's checkout stopped on Windows' path limit, so it also ran with files missing from its working tree; SonarQube's own Python rules were read only in VS Code, where `trace_matrix.py`, `history.py` and `qa.py` show none and `scorecard.py` and `callgraph.py`, not open, may simply not be analysed.
 
 ### TASK-QLT-006: matrix.html, the accessibility findings
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Correct, or record with a reason, each of the 20 findings of `matrix.html`, with no visual change.
 - **Requirement refs**: RQ-QLT-010
 - **ADR refs**: ADR-QLT-001 (DEC-QLT-007)
 - **Acceptance Criteria**: Given the file's diagnostics, Then each one left is recorded here with its reason, And the page tests pass.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: diagnostics: 20 to 12. Corrected, 8: `nav role=tablist` became a `div` (S6842), seven `div role=group` became `fieldset` (S6819). Kept, 12, with the reason of each: `#split-left`, `#split-right`, `#history-split` (3 S6845, 3 S6819), the focusable separator of WAI-ARIA's window splitter, which an `hr` cannot be; `#search-results` (S6842, S6819), the popup listbox of WAI-ARIA's combobox, whose rich rows a `datalist` cannot show; `#help-body` (S6845), a scrolling region must take the keyboard's focus; `#history-plot` (S6845), it handles its zoom and pan keys; `#history-overview` (S6819), an `svg` cannot be a `fieldset`; `#matrix-table` (S5256), its `th` are added by the script. Rendering in Edge at 1440x900, six tabs, the demo's data: 232 rectangles measured, 0 different. `agnos-trace/tests`: 356 OK (3 skipped).
+- **Assumptions**: the rectangles cover the elements with an `id` and the tabs; no human looked at the page, and no screen reader was run.
 
 ### TASK-QLT-007: Say the skill exists
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Mention the skill in `CONTRIBUTING.md` and `CHANGELOG.md`.
 - **Requirement refs**: RQ-QLT-001, RQ-QLT-008
 - **ADR refs**: ADR-QLT-001 (DEC-QLT-001)

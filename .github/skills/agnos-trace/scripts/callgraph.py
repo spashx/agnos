@@ -199,7 +199,8 @@ def file_functions(shown, grammar, api, data, cited, evidence):
             if top <= line <= last:
                 ids.setdefault(target, []).append(proof)
         functions.append({KEY_FILE: shown, KEY_FIRST: first, KEY_LAST: last, KEY_QUALIFIED: qualified,
-                          KEY_NAME: qualified.split(separator)[-1], KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
+                          KEY_NAME: qualified.split(separator)[-1],
+                          KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
                           KEY_NODE: node})
     return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE])
@@ -300,8 +301,9 @@ def assign_keys(functions):
 # RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
 def assign_scopes(graph, declared, grammars):
     """graph.scopes, [qualified name, kind, parent index] of each scope holding a function, in name order, and each
-    function's scope_index (NO_SCOPE: none, or a language without scopes). A part of a function's scope that no scanned
-    file declares is a class when it is the innermost part, else a namespace; a class guess wins over a namespace one."""
+    function's scope_index (NO_SCOPE: none, or a language without scopes). A part of a function's scope that no
+    scanned file declares is a class when it is the innermost part, else a namespace; a class guess wins over a
+    namespace one."""
     kinds = {}
     for function in graph.functions:
         grammar = grammars[function[LANGUAGE_FUNCTION]]
@@ -351,11 +353,12 @@ class CallGraph:
         scope index (-1: none)]; scopes [qualified name, kind, parent index (-1: none)] (RQ-TRC-047, DEC-TRC-019);
         calls, one flat list of integers per caller in function order: caller - previous caller, callee count, then per
         callee: callee - caller, ambiguous + 2 * line count, each call-site line - the caller's first line;
-        ids [function index, ID, [lines]] (the proofs' texts are the file's). The functions citing no ID are the findings of
-        the quality block's "functions traced" check, stored there once (ADR-TRC-008)."""
+        ids [function index, ID, [lines]] (the proofs' texts are the file's). The functions citing no ID are the
+        findings of the quality block's "functions traced" check, stored there once (ADR-TRC-008)."""
         languages = sorted({f[LANGUAGE_FUNCTION] for f in self.functions})
-        functions = [[file_index[f[KEY_FILE]], f[KEY_FIRST], f[KEY_LAST], f[KEY_QUALIFIED], languages.index(f[LANGUAGE_FUNCTION]),
-                      f[KEY_TEXT], f["dup"], f[KEY_SCOPE_INDEX]] for f in self.functions]
+        functions = [[file_index[f[KEY_FILE]], f[KEY_FIRST], f[KEY_LAST], f[KEY_QUALIFIED],
+                      languages.index(f[LANGUAGE_FUNCTION]), f[KEY_TEXT], f["dup"], f[KEY_SCOPE_INDEX]]
+                     for f in self.functions]
         by_caller = {}
         for caller, callee, ambiguous, lines in self.calls:
             by_caller.setdefault(caller, []).append((callee, ambiguous, lines))

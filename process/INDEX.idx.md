@@ -469,10 +469,10 @@ PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill
 TASK-QLT-002|28-39|Done|matrix.js, the simple findings
 TASK-QLT-003|40-51|Done|matrix.js, the complex functions
-TASK-QLT-004|52-63|Not Started|Python, the rule findings
-TASK-QLT-005|64-75|Not Started|Python, the complex functions
-TASK-QLT-006|76-87|Not Started|matrix.html, the accessibility findings
-TASK-QLT-007|88-98|Not Started|Say the skill exists
+TASK-QLT-004|52-63|Done|Python, the rule findings
+TASK-QLT-005|64-75|Done|Python, the complex functions
+TASK-QLT-006|76-87|Done|matrix.html, the accessibility findings
+TASK-QLT-007|88-98|Done|Say the skill exists
 @process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
 PLAN-TRC-001|1-177||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references

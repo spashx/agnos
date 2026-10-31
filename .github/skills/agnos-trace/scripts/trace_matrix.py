@@ -4,7 +4,7 @@
 Implements FTR-TRC-001 after ADR-TRC-001, ADR-TRC-002 and ADR-TRC-003. Procedure and options: ../SKILL.md.
 Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS ID grammar and the INDEX.idx.md format,
 nothing of the product being developed (RQ-TRC-019). --call-graph loads callgraph.py beside it (FTR-TRC-002,
-ADR-TRC-004).
+ADR-TRC-004). Kept free of quality findings (RQ-QLT-009, DEC-QLT-008).
 """
 import argparse
 import datetime
@@ -53,19 +53,21 @@ TYPES = ("FTR", "RQ", "ADR", "DEC", "PLAN", "TASK")
 ID_PATTERN = r"(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}"
 NUMBER_LENGTH = 3
 INDEX_TITLE_FIELD = 3                          # "ID|first-last|status|title": the title is the fourth field
+INDEX_FIELDS = INDEX_TITLE_FIELD + 1
 PREFIX_CUT = -(NUMBER_LENGTH + 1)              # "RQ-ABC-001"[:PREFIX_CUT] == "RQ-ABC"
 LINE_TEXT_MAX = 200                            # characters of a line kept as evidence (DEC-TRC-003)
 
-# RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command line.
+# RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command
+# line.
 DEFAULT_EXTENSIONS = frozenset(
-    ".c .cc .cpp .cxx .c++ .h .hh .hpp .hxx .h++ .inl .ipp .tpp .m .mm .cs .fs .vb .java .kt .kts .scala .groovy .gradle "
-    ".go .rs .swift .dart .py .pyi .pyw .rb .php .pl .pm .lua .r .jl .ex .exs .erl .hs .clj .js .jsx .mjs .cjs .ts .tsx "
-    ".vue .svelte .html .htm .css .scss .sass .less .sql .sh .bash .zsh .fish .ps1 .psm1 .psd1 .bat .cmd .cmake .mk "
-    ".yml .yaml .toml .ini .cfg .xml .proto .graphql .tf .glsl .hlsl .metal .cu .asm .s .v .sv .vhd".split())
+    ".c .cc .cpp .cxx .c++ .h .hh .hpp .hxx .h++ .inl .ipp .tpp .m .mm .cs .fs .vb .java .kt .kts .scala .groovy "
+    ".gradle .go .rs .swift .dart .py .pyi .pyw .rb .php .pl .pm .lua .r .jl .ex .exs .erl .hs .clj .js .jsx .mjs "
+    ".cjs .ts .tsx .vue .svelte .html .htm .css .scss .sass .less .sql .sh .bash .zsh .fish .ps1 .psm1 .psd1 .bat .cmd "
+    ".cmake .mk .yml .yaml .toml .ini .cfg .xml .proto .graphql .tf .glsl .hlsl .metal .cu .asm .s .v .sv .vhd".split())
 DEFAULT_NAMES = frozenset({"CMakeLists.txt", "Makefile", "makefile", "GNUmakefile", "Dockerfile", "Jenkinsfile",
                            "Rakefile", "Gemfile", "meson.build", "BUILD", "BUILD.bazel", "WORKSPACE"})
-DEFAULT_EXCLUDES = (".git", ".hg", ".svn", "node_modules", "build", "build-*", "build_*", "cmake-build-*", "dist", "out",
-                    "_deps", ".venv", "venv", "__pycache__", ".idea", ".vs", ".vscode", "target", "bin", "obj")
+DEFAULT_EXCLUDES = (".git", ".hg", ".svn", "node_modules", "build", "build-*", "build_*", "cmake-build-*", "dist",
+                    "out", "_deps", ".venv", "venv", "__pycache__", ".idea", ".vs", ".vscode", "target", "bin", "obj")
 MAX_SOURCE_BYTES = 2 * 1024 * 1024             # a larger file is taken as generated or as data (DEC-TRC-003)
 BINARY_PROBE_BYTES = 8192                      # a NUL byte in this head marks a binary file
 
@@ -82,7 +84,7 @@ HISTORY_PATH = Path(__file__).resolve().parent / "history.py"        # FTR-HST-0
 HISTORY_MODULE = "agnos_trace_history"
 MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES)@")
 DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
-DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk cannot fetch a file)
+DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk fetches no file)
 DATA_GLOBAL = "window.AGNOS_TRACE_DATA"
 SCRIPT_END_RE = re.compile(r"</(script)", re.IGNORECASE)
 TOKEN_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -161,7 +163,7 @@ def parse_index(index_path):
             doc = raw[1:].strip()
             continue
         parts = raw.split("|", INDEX_TITLE_FIELD)
-        if len(parts) != 4 or not FULL_ID_RE.match(parts[0]):
+        if len(parts) != INDEX_FIELDS or not FULL_ID_RE.match(parts[0]):
             continue
         first, _, last = parts[1].partition("-")
         rows.append({"id": parts[0], KEY_KIND: KEY_ELEMENT, KEY_TYPE: id_type(parts[0]), "tri": parts[0].split("-")[1],
@@ -181,7 +183,8 @@ def resolve_document(process_dir, doc):
 def add_containment(model, members):
     """Links each element of one document to the element whose range most closely encloses its own."""
     for child in members:
-        parents = [p for p in members if p is not child and p[KEY_FIRST] <= child[KEY_FIRST] and child[KEY_LAST] <= p[KEY_LAST]
+        parents = [p for p in members if p is not child
+                   and p[KEY_FIRST] <= child[KEY_FIRST] and child[KEY_LAST] <= p[KEY_LAST]
                    and (p[KEY_FIRST], p[KEY_LAST]) != (child[KEY_FIRST], child[KEY_LAST])]
         if parents:
             parent = min(parents, key=lambda p: p[KEY_LAST] - p[KEY_FIRST])
@@ -265,6 +268,17 @@ def display_path(path, root, base):
         return (Path(root.resolve().name) / path.relative_to(root)).as_posix()
 
 
+def link_file_lines(model, shown, lines, defined):
+    """Links a source file to the IDs of its lines, with their numbers and texts; returns how many links it holds."""
+    count = 0
+    for ln, text in enumerate(lines, 1):
+        for target in sorted(extract_ids(text, defined)):
+            model.ensure(target)
+            model.add_edge(shown, target, KEY_CODE, evidence(ln, text))
+            count += 1
+    return count
+
+
 # RQ-TRC-006, RQ-TRC-007 (TASK-TRC-002)
 def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, excludes=DEFAULT_EXCLUDES):
     """Links every scanned source file to the IDs its lines hold, with the line numbers and texts; returns the files
@@ -276,17 +290,10 @@ def scan_sources(model, roots, base=None, extensions=DEFAULT_EXTENSIONS, exclude
     for root in map(Path, roots):
         for path in source_files(root, extensions, excludes):
             lines = read_source(path)
-            if lines is None:
-                continue
-            shown = display_path(path, root, base)
-            count = 0
-            for ln, text in enumerate(lines, 1):
-                for target in sorted(extract_ids(text, defined)):
-                    model.ensure(target)
-                    model.add_edge(shown, target, KEY_CODE, evidence(ln, text))
-                    count += 1
-            model.files[shown] = {"path": shown, "ids": count}
-            scanned.append((shown, path))
+            if lines is not None:
+                shown = display_path(path, root, base)
+                model.files[shown] = {"path": shown, "ids": link_file_lines(model, shown, lines, defined)}
+                scanned.append((shown, path))
     return scanned
 
 
@@ -361,7 +368,7 @@ def build_history(args, process, model, scanned, graph):
         [(f["file"], f[KEY_FIRST], f[KEY_LAST]) for f in graph.functions]
     try:
         return module, module.build(process, documents, dict(scanned), functions, [process, *map(Path, args.sources)],
-                                    args.history_since, history_depth(args.history_depth),
+                                    args.history_since, depth=history_depth(args.history_depth),
                                     tasks=task_tiers(process, model))
     except (module.HistoryUnavailable, module.GitError) as error:
         print(f"agnos-trace: warning: no history: {error}", file=sys.stderr)
@@ -422,25 +429,50 @@ def refs_to_type(links, model, element_id, wanted):
     return any(model.elements[t][KEY_TYPE] == wanted for t in links.refs_out.get(element_id, ()))
 
 
+def is_untasked(rq, links, model):
+    return not any(model.elements[s][KEY_TYPE] == TYPE_TASK for s in links.refs_in.get(rq, ()))
+
+
+def is_adr_without_rq(adr, links, model):
+    return not any(refs_to_type(links, model, x, TYPE_RQ) for x in [adr] + links.descendants(adr))
+
+
+def is_empty(element, links, model):
+    """A feature, ADR or plan that holds none of the elements of its contained type."""
+    contained = CONTAINED_TYPE[element[KEY_TYPE]]
+    return not any(model.elements[c][KEY_TYPE] == contained for c in links.children.get(element["id"], ()))
+
+
+def is_isolated(element_id, links):
+    return not any(links.touched(x) for x in [element_id] + links.descendants(element_id))
+
+
+def ids_by_type(defined):
+    return {t: [e["id"] for e in defined if e[KEY_TYPE] == t] for t in (TYPE_RQ, TYPE_TASK, "ADR")}
+
+
+def element_findings(defined, coverage, links, model):
+    """The findings of the rules on the elements the index defines, IDs in index order."""
+    of_type = ids_by_type(defined)
+    return {
+        KEY_UNCOVERED: [rq for rq, r in coverage.items() if r == KEY_UNCOVERED],
+        "untasked": [rq for rq in of_type[TYPE_RQ] if is_untasked(rq, links, model)],
+        "task-no-rq": [t for t in of_type[TYPE_TASK] if not refs_to_type(links, model, t, TYPE_RQ)],
+        "adr-no-rq": [a for a in of_type["ADR"] if is_adr_without_rq(a, links, model)],
+        "empty": [e["id"] for e in defined if e[KEY_TYPE] in CONTAINED_TYPE and is_empty(e, links, model)],
+        "isolated": [e["id"] for e in defined if is_isolated(e["id"], links)],
+    }
+
+
 # RQ-TRC-009, DEC-TRC-004 (TASK-TRC-003)
 def analyse(model):
-    """The coverage of every requirement and the findings of each rule, IDs in index order, undefined IDs and files by name."""
+    """The coverage of every requirement and the findings of each rule, IDs in index order, undefined IDs and files by
+    name."""
     links = Links(model)
     defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
-    coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e[KEY_TYPE] == "RQ"}
-    of_type = lambda t: [e["id"] for e in defined if e[KEY_TYPE] == t]  # noqa: E731
+    coverage = {e["id"]: rate(e["id"], links, model) for e in defined if e[KEY_TYPE] == TYPE_RQ}
     findings = {
-        KEY_UNCOVERED: [rq for rq, r in coverage.items() if r == KEY_UNCOVERED],
-        "untasked": [rq for rq in of_type("RQ")
-                     if not any(model.elements[s][KEY_TYPE] == TYPE_TASK for s in links.refs_in.get(rq, ()))],
-        "task-no-rq": [t for t in of_type(TYPE_TASK) if not refs_to_type(links, model, t, "RQ")],
-        "adr-no-rq": [a for a in of_type("ADR") if not any(refs_to_type(links, model, x, "RQ")
-                                                           for x in [a] + links.descendants(a))],
-        "empty": [e["id"] for e in defined if e[KEY_TYPE] in CONTAINED_TYPE
-                  and not any(model.elements[c][KEY_TYPE] == CONTAINED_TYPE[e[KEY_TYPE]]
-                              for c in links.children.get(e["id"], ()))],
-        "isolated": [e["id"] for e in defined
-                     if not any(links.touched(x) for x in [e["id"]] + links.descendants(e["id"]))],
+        **element_findings(defined, coverage, links, model),
         KEY_UNDEFINED: sorted(i for i, e in model.elements.items() if e[KEY_KIND] == KEY_UNDEFINED),
         "untraced-files": sorted(p for p, f in model.files.items() if not f["ids"]),
     }
@@ -448,12 +480,13 @@ def analyse(model):
 
 
 def summary(model, analysis, quality):
-    """The one line the generator ends with: element and file counts, coverage, the quality score (RQ-TRC-017, RQ-TRC-064)."""
+    """The one line the generator ends with: element and file counts, coverage, the quality score (RQ-TRC-017,
+    RQ-TRC-064)."""
     defined = sum(e[KEY_KIND] == KEY_ELEMENT for e in model.elements.values())
     rated = list(analysis[KEY_COVERAGE].values())
     return (f"agnos-trace: {defined} elements, {len(model.files)} files; RQ {len(rated)}: covered "
-            f"{rated.count(KEY_COVERED)}, indirect {rated.count(KEY_INDIRECT)}, uncovered {rated.count(KEY_UNCOVERED)}; "
-            f"{scorecard.summary_part(quality)}")
+            f"{rated.count(KEY_COVERED)}, indirect {rated.count(KEY_INDIRECT)}, "
+            f"uncovered {rated.count(KEY_UNCOVERED)}; {scorecard.summary_part(quality)}")
 
 
 # ---- design tokens -----------------------------------------------------------------------------------------------
@@ -516,15 +549,20 @@ def library_meta(libraries):
     return [{k: lib[k] for k in ("name", "version", "licence", "global", "use")} for lib in libraries]
 
 
-# DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
-def page_data(model, analysis, quality, meta, call_graph=None, history=None):
+def page_elements(model):
+    """The elements as the page reads them: those defined in index order, then the undefined ones by name."""
     defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
     undefined = sorted((e for e in model.elements.values() if e[KEY_KIND] == KEY_UNDEFINED), key=lambda e: e["id"])
     fields = ("id", KEY_KIND, KEY_TYPE, "tri", "doc", KEY_FIRST, KEY_LAST, KEY_STATUS, KEY_TITLE)
+    return [{f: e[f] for f in fields} for e in defined + undefined]
+
+
+# DEC-TRC-002: everything the page shows, computed here; sorted so that two runs write the same bytes (RQ-TRC-023).
+def page_data(model, analysis, quality, meta, call_graph=None, history=None):
     paths = sorted(model.files)
     data = {
         "meta": meta,
-        "elements": [{f: e[f] for f in fields} for e in defined + undefined],
+        "elements": page_elements(model),
         "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         KEY_COVERAGE: analysis[KEY_COVERAGE],
@@ -566,7 +604,8 @@ def render_page(title, data_script):
 
 def data_paths(page_path):
     """(<page>.json, <page>.data.js) beside the page (RQ-TRC-010, DEC-TRC-005 as amended)."""
-    return page_path.with_name(page_path.stem + DATA_JSON_SUFFIX), page_path.with_name(page_path.stem + DATA_SCRIPT_SUFFIX)
+    stem = page_path.stem
+    return page_path.with_name(stem + DATA_JSON_SUFFIX), page_path.with_name(stem + DATA_SCRIPT_SUFFIX)
 
 
 def write_outputs(path, data, title):
@@ -586,7 +625,8 @@ def parse_args(argv):
     parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
     parser.add_argument("--sources", required=True, action=KEY_APPEND, help="source folder to scan (repeatable)")
     parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
-    parser.add_argument("--ext", action=KEY_APPEND, help="source extension to scan, replaces the default list (repeatable)")
+    parser.add_argument("--ext", action=KEY_APPEND,
+                        help="source extension to scan, replaces the default list (repeatable)")
     parser.add_argument("--exclude", action=KEY_APPEND,
                         help="file or folder name pattern to skip, replaces the default list (repeatable)")
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")

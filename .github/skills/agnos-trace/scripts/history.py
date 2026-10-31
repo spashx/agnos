@@ -1,7 +1,8 @@
 """agnos-trace history: who worked on the process elements and on the code, from the repository's git history.
 
 Implements FTR-HST-001 after ADR-HST-001. Loaded by trace_matrix.py only with --history (DEC-HST-001, RQ-HST-015).
-Python >= 3.9, standard library only; git is read through its command line, never through a library.
+Python >= 3.9, standard library only; git is read through its command line, never through a library. Kept free of quality
+findings (RQ-QLT-009, DEC-QLT-008).
 """
 import datetime
 import json
@@ -54,7 +55,7 @@ LOG_FIELDS = ("%H", "%P", "%an", "%ae", "%aN", "%aE", "%aI", "%s",
 LOG_FORMAT = RECORD + "%x1f".join(LOG_FIELDS) + FIELD
 SHORT_HASH = 10
 CONTACT_RE = re.compile(r"^([^<>]*)<([^<>]*)>\s*$")
-MAILMAP_CHUNK = 200                                # contacts per `git check-mailmap` call, within the command-line limit
+MAILMAP_CHUNK = 200                                # contacts per `git check-mailmap`, within the command-line limit
 
 # DEC-HST-002: zero-context patches with renames, paths written as they are, every parent of a merge walked.
 QUOTE_OFF = ("-c", "core.quotepath=false")
@@ -108,7 +109,7 @@ def git(args, cwd):
     """The standard output of one git command run in cwd."""
     try:
         done = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding=ENCODING,
-                              errors=ERRORS)
+                              errors=ERRORS, check=False)
     except FileNotFoundError:
         raise HistoryUnavailable(CAUSE_NO_GIT) from None
     if done.returncode != 0:
@@ -227,9 +228,9 @@ class Identities:
 
     def add(self, raw, mapped, role):
         kind, key = self.key_of(mapped)
-        person = self.by_key.setdefault(key, {KEY_KIND: kind, KEY_NAMES: Counter(), KEY_RAW: set(), KEY_SPELLINGS: set(),
-                                              KEY_EMAILS: set(), MERGED_BY_MAILMAP: False, KEY_COMMITS: 0,
-                                              KEY_CO_COMMITS: 0})
+        person = self.by_key.setdefault(key, {KEY_KIND: kind, KEY_NAMES: Counter(), KEY_RAW: set(),
+                                              KEY_SPELLINGS: set(), KEY_EMAILS: set(), MERGED_BY_MAILMAP: False,
+                                              KEY_COMMITS: 0, KEY_CO_COMMITS: 0})
         person[KEY_NAMES][mapped[0]] += 1
         person[KEY_RAW].add(raw[0])
         person[KEY_SPELLINGS].add(mapped)
@@ -244,10 +245,12 @@ class Identities:
         for key, person in self.by_key.items():
             names = person[KEY_NAMES]
             name = min(names, key=lambda n, seen=names: (-seen[n], n))
-            merged = ([MERGED_BY_EMAIL] if len(person[KEY_SPELLINGS]) > 1 else []) +                      ([MERGED_BY_MAILMAP] if person[MERGED_BY_MAILMAP] else [])
+            merged = ([MERGED_BY_EMAIL] if len(person[KEY_SPELLINGS]) > 1 else []) + \
+                     ([MERGED_BY_MAILMAP] if person[MERGED_BY_MAILMAP] else [])
             result.append({"key": key, KEY_NAME: name, KEY_NAMES: sorted(set(names) | person[KEY_RAW]),
-                           KEY_EMAILS: sorted(person[KEY_EMAILS]), "mergedBy": sorted(merged), KEY_KIND: person[KEY_KIND],
-                           KEY_COMMITS: person[KEY_COMMITS], KEY_CO_COMMITS: person[KEY_CO_COMMITS]})
+                           KEY_EMAILS: sorted(person[KEY_EMAILS]), "mergedBy": sorted(merged),
+                           KEY_KIND: person[KEY_KIND], KEY_COMMITS: person[KEY_COMMITS],
+                           KEY_CO_COMMITS: person[KEY_CO_COMMITS]})
         result.sort(key=lambda p: (-(p[KEY_COMMITS] + p[KEY_CO_COMMITS]), p[KEY_NAME], p["key"]))
         return result
 
@@ -257,6 +260,14 @@ def commit_kind(kinds):
     if KIND_AGENT not in kinds:
         return KIND_HUMAN
     return KIND_AGENT if KIND_HUMAN not in kinds else KIND_TOGETHER
+
+
+def listed_commit(commit, author, co, index, people):
+    """A commit as the data file holds it: its author and co-authors as indexes into people, and its kind."""
+    contributors = [index[author]] + [index[k] for k in co]
+    return {KEY_HASH: commit[KEY_HASH][:SHORT_HASH], KEY_DATE: commit[KEY_DATE], KEY_SUBJECT: commit[KEY_SUBJECT],
+            KEY_AUTHOR: index[author], KEY_CO_AUTHORS: [index[k] for k in co],
+            KEY_KIND: commit_kind({people[i][KEY_KIND] for i in contributors})}
 
 
 def identify(repo, commits, patterns):
@@ -272,13 +283,7 @@ def identify(repo, commits, patterns):
         keys.append((author, [k for k in dict.fromkeys(co) if k != author]))
     people = identities.people()
     index = {p.pop("key"): n for n, p in enumerate(people)}
-    result = []
-    for commit, (author, co) in zip(authored, keys):
-        contributors = [index[author]] + [index[k] for k in co]
-        result.append({KEY_HASH: commit[KEY_HASH][:SHORT_HASH], KEY_DATE: commit[KEY_DATE],
-                       KEY_SUBJECT: commit[KEY_SUBJECT], KEY_AUTHOR: index[author], KEY_CO_AUTHORS: [index[k] for k in co],
-                       KEY_KIND: commit_kind({people[i][KEY_KIND] for i in contributors})})
-    return people, result
+    return people, [listed_commit(commit, author, co, index, people) for commit, (author, co) in zip(authored, keys)]
 
 
 # ---- line tracking -----------------------------------------------------------------------------------------------
@@ -344,31 +349,44 @@ def read_hunk_line(diff, line, old_next, new_next):
     return (old_next + 1, new_next) if removed else (old_next, new_next + 1)
 
 
-def parse_patch(lines):
-    """[(header record or None, [FileDiff])] in the order of the output; a hunk's lines are counted, never parsed as
-    headers, so that a changed line that looks like a header is read as a line; its status and tier lines are kept
-    as marks (DEC-TRC-036)."""
-    entries, diffs, diff, pending = [], None, None, 0
-    old_next = new_next = 0
-    for line in lines:
-        if pending:
-            if not line.startswith(NO_NEWLINE):
-                pending -= 1
-                old_next, new_next = read_hunk_line(diff, line, old_next, new_next)
-            continue
-        if line.startswith(RECORD):
-            diffs, diff = [], None
-            entries.append((line[1:], diffs))
-            continue
-        if diffs is None:
-            diffs = []
-            entries.append((None, diffs))
+class PatchReader:
+    """Reads a patch line by line: the entries so far, the current record's diffs, the current file's diff, how many
+    lines of its hunk remain, and the numbers its next removed and added lines will have."""
+
+    def __init__(self):
+        self.entries = []
+        self.diffs = None
+        self.diff = None
+        self.pending = 0
+        self.old_next = self.new_next = 0
+
+    def read(self, line):
+        if self.pending:
+            self.read_hunk(line)
+        elif line.startswith(RECORD):
+            self.diffs, self.diff = [], None
+            self.entries.append((line[1:], self.diffs))
+        else:
+            self.read_file_line(line)
+
+    def read_hunk(self, line):
+        if not line.startswith(NO_NEWLINE):
+            self.pending -= 1
+            self.old_next, self.new_next = read_hunk_line(self.diff, line, self.old_next, self.new_next)
+
+    def read_file_line(self, line):
+        if self.diffs is None:
+            self.diffs = []
+            self.entries.append((None, self.diffs))
         if line.startswith(DIFF_PREFIX):
-            diff = FileDiff(same_path(line))
-            diffs.append(diff)
-        elif diff is None:
-            continue
-        elif line.startswith(RENAME_FROM):
+            self.diff = FileDiff(same_path(line))
+            self.diffs.append(self.diff)
+        elif self.diff is not None:
+            self.read_diff_header(line)
+
+    def read_diff_header(self, line):
+        diff = self.diff
+        if line.startswith(RENAME_FROM):
             diff.old = unquote(line[len(RENAME_FROM):])
         elif line.startswith(RENAME_TO):
             diff.new = unquote(line[len(RENAME_TO):])
@@ -377,13 +395,42 @@ def parse_patch(lines):
         elif line.startswith(NEW_PREFIX):
             diff.new = side_path(line[len(NEW_PREFIX):])
         else:
-            m = HUNK_RE.match(line)
-            if m:
-                old_start, old_count, new_start, new_count = (int(g) if g is not None else 1 for g in m.groups())
-                diff.hunks.append((old_start, old_count, new_start, new_count))
-                pending = old_count + new_count
-                old_next, new_next = old_start, new_start
-    return entries
+            self.start_hunk(line)
+
+    def start_hunk(self, line):
+        m = HUNK_RE.match(line)
+        if m:
+            old_start, old_count, new_start, new_count = (int(g) if g is not None else 1 for g in m.groups())
+            self.diff.hunks.append((old_start, old_count, new_start, new_count))
+            self.pending = old_count + new_count
+            self.old_next, self.new_next = old_start, new_start
+
+
+def parse_patch(lines):
+    """[(header record or None, [FileDiff])] in the order of the output; a hunk's lines are counted, never parsed as
+    headers, so that a changed line that looks like a header is read as a line; its status and tier lines are kept
+    as marks (DEC-TRC-036)."""
+    reader = PatchReader()
+    for line in lines:
+        reader.read(line)
+    return reader.entries
+
+
+def widened(span, start, end):
+    """The span (first, last), or None, made to hold start to end."""
+    return (start, end) if span is None else (min(span[0], start), max(span[1], end))
+
+
+def hunk_touch(old_count, new_start, new_count, first, last):
+    """(whether a hunk touches the range [first, last], the lines it changed there)."""
+    if new_count:
+        overlap = min(new_start + new_count - 1, last) - max(new_start, first) + 1
+        if overlap > 0:
+            return True, overlap + (old_count * overlap + new_count // 2) // new_count
+        return False, 0
+    if first <= new_start < last:
+        return True, old_count
+    return False, 0
 
 
 def shift(first, last, hunks):
@@ -391,37 +438,25 @@ def shift(first, last, hunks):
     lines the hunks changed in it). The old range spans the unchanged lines of the range and the old lines of the hunks
     that touch it, as `git log -L` follows a range; a hunk's removed lines count in proportion of its added lines in the
     range, a pure removal inside the range counts whole."""
-    low = high = None
-    delta = changed = 0                        # old line = new line + delta, for the unchanged lines past the hunks seen
+    span = None
+    delta = changed = 0                        # old line = new line + delta, for the unchanged lines past the hunks
     position = first
-
-    def keep(start, end):
-        nonlocal low, high
-        low = start if low is None else min(low, start)
-        high = end if high is None else max(high, end)
-
     for old_start, old_count, new_start, new_count in hunks:
         start = new_start if new_count else new_start + 1
         if start > last:
             break
-        if max(position, first) <= start - 1:
-            keep(max(position, first) + delta, min(start - 1, last) + delta)
-        if new_count:
-            overlap = min(new_start + new_count - 1, last) - max(new_start, first) + 1
-            touched = overlap > 0
-            if touched:
-                changed += overlap + (old_count * overlap + new_count // 2) // new_count
-        else:
-            touched = first <= new_start < last
-            if touched:
-                changed += old_count
+        unchanged = max(position, first)
+        if unchanged <= start - 1:
+            span = widened(span, unchanged + delta, min(start - 1, last) + delta)
+        touched, lines = hunk_touch(old_count, new_start, new_count, first, last)
+        changed += lines
         if touched and old_count:
-            keep(old_start, old_start + old_count - 1)
+            span = widened(span, old_start, old_start + old_count - 1)
         delta += old_count - new_count
         position = start + new_count
     if max(position, first) <= last:
-        keep(max(position, first) + delta, last + delta)
-    return ((low, high) if low is not None else None), changed
+        span = widened(span, max(position, first) + delta, last + delta)
+    return span, changed
 
 
 def note_marks(events, key, commit, diff, first, last, span):
@@ -434,10 +469,43 @@ def note_marks(events, key, commit, diff, first, last, span):
         events.setdefault(key, {})[commit] = (added, removed, span is None)
 
 
-def transform(state, diffs, commit, tally, events=None, watch=frozenset()):
+class Watching:
+    """The keys whose status and tier lines are noted as the commits change them, and where (TASK-TRC-057)."""
+
+    def __init__(self, events, keys):
+        self.events = events
+        self.keys = keys
+
+
+NOT_WATCHING = Watching({}, frozenset())
+
+
+def range_through(diff, first, last):
+    """(the range in the diff's old version, the lines the diff changed in it); first None: the whole file."""
+    if first is None:
+        return (None, None), sum(old + new for _, old, _, new in diff.hunks)
+    return shift(first, last, diff.hunks)
+
+
+def carried_ranges(items, diff, commit, tally, watching):
+    """The ranges of one file carried through its diff; each one touched is credited to commit, unless None."""
+    kept = []
+    for key, first, last in items:
+        span, changed = range_through(diff, first, last)
+        if commit is not None and changed:
+            by_commit = tally.setdefault(key, {})
+            by_commit[commit] = by_commit.get(commit, 0) + changed
+        if commit is not None and key in watching.keys:
+            note_marks(watching.events, key, commit, diff, first, last, span)
+        if span is not None:
+            kept.append((key, *span))
+    return kept
+
+
+def transform(state, diffs, commit, tally, watching=NOT_WATCHING):
     """The ranges of state, {path: [(key, first, last)]} in a version's coordinates (first None: the whole file), in the
-    coordinates of the version the diffs start from; each range the diffs touch is credited to commit in tally, unless None;
-    the ranges of watch also note their marks in events (TASK-TRC-057)."""
+    coordinates of the version the diffs start from; each range the diffs touch is credited to commit in tally, unless
+    None; the watched ranges also note their marks (TASK-TRC-057)."""
     by_new = {d.new: d for d in diffs if d.new is not None}
     moved = {}
     for path, items in state.items():
@@ -445,19 +513,7 @@ def transform(state, diffs, commit, tally, events=None, watch=frozenset()):
         if diff is None:
             moved.setdefault(path, []).extend(items)
             continue
-        kept = []
-        for key, first, last in items:
-            if first is None:
-                span, changed = (None, None), sum(old + new for _, old, _, new in diff.hunks)
-            else:
-                span, changed = shift(first, last, diff.hunks)
-            if commit is not None and changed:
-                by_commit = tally.setdefault(key, {})
-                by_commit[commit] = by_commit.get(commit, 0) + changed
-            if commit is not None and key in watch:
-                note_marks(events, key, commit, diff, first, last, span)
-            if span is not None:
-                kept.append((key, *span))
+        kept = carried_ranges(items, diff, commit, tally, watching)
         if diff.old is not None and kept:
             moved.setdefault(diff.old, []).extend(kept)
     return moved
@@ -471,8 +527,9 @@ def union(into, state):
         for key, first, last in items:
             seen = by_key.get((key, first is None))
             if seen is not None and first is not None:
-                first, last = min(first, seen[1]), max(last, seen[2])
-            by_key[(key, first is None)] = (key, first, last)
+                by_key[(key, False)] = (key, min(first, seen[1]), max(last, seen[2]))
+            else:
+                by_key[(key, first is None)] = (key, first, last)
         into[path] = sorted(by_key.values(), key=lambda item: (item[0], item[1] or 0))
 
 
@@ -496,7 +553,8 @@ def authored_since(commit, cutoff):
 
 
 def commit_groups(entries):
-    """[(commit, [diffs per parent])] from the log's entries: git writes a merge once per parent, one after the other."""
+    """[(commit, [diffs per parent])] from the log's entries: git writes a merge once per parent, one after the
+    other."""
     groups = []
     for record, diffs in entries:
         if record is None:
@@ -528,12 +586,8 @@ def tracked_files(repo, paths):
     return set(filter(None, out.split("\0")))
 
 
-def read_history(repo, ranges, wholes, paths=(), since=None, depth=None, events=None, watch=frozenset()):
-    """(commits, credits): the commits authored in the period read, newest first, merges included; and
-    {key: {full hash: changed lines}}, the non-merge commits that changed each range. ranges is {path: [(key, first,
-    last)]} and wholes {path: [key]}, at the working tree, paths relative to the top of the repository; paths limits
-    the history read to these folders. The uncommitted changes credit no one. The keys of watch note their status and
-    tier lines in events, as those commits do (TASK-TRC-057)."""
+def working_tree_state(repo, ranges, wholes, paths, tally):
+    """The tracked ranges and whole files in HEAD's coordinates: the uncommitted changes move them and credit no one."""
     tracked = tracked_files(repo, paths)
     state = {}
     for path, items in ranges.items():
@@ -541,29 +595,44 @@ def read_history(repo, ranges, wholes, paths=(), since=None, depth=None, events=
     for path, keys in wholes.items():
         state.setdefault(path, []).extend((key, None, None) for key in keys)
     state = {path: items for path, items in state.items() if path in tracked}
-    tally = {}
     for _, diffs in parse_patch(git_lines([*QUOTE_OFF, "diff", *PATCH_OPTIONS, HEAD, "--", *paths], repo.top)):
         state = transform(state, diffs, None, tally)
+    return state
+
+
+def carry_to_parents(here, commit, per_parent, credited, walk):
+    """Carries the ranges of a commit back to its parents; walk is (tally, the parents' states, watching)."""
+    tally, states, watching = walk
+    parents = commit[KEY_PARENTS]
+    if not parents:
+        transform(here, per_parent[0], credited, tally, watching)
+        return
+    for number, parent in enumerate(parents):
+        diffs = per_parent[number] if number < len(per_parent) else []
+        union(states.setdefault(parent, {}), transform(here, diffs, credited, tally, watching))
+
+
+def read_history(repo, ranges, wholes, paths=(), since=None, depth=None, watching=NOT_WATCHING):
+    """(commits, credits): the commits authored in the period read, newest first, merges included; and
+    {key: {full hash: changed lines}}, the non-merge commits that changed each range. ranges is {path: [(key, first,
+    last)]} and wholes {path: [key]}, at the working tree, paths relative to the top of the repository; paths limits
+    the history read to these folders. The uncommitted changes credit no one. The watched keys note their status and
+    tier lines, as those commits do (TASK-TRC-057)."""
+    tally = {}
+    state = working_tree_state(repo, ranges, wholes, paths, tally)
     cutoff = author_cutoff(repo, since)
     merges = merge_hashes(repo, since)
-    groups = commit_groups(parse_patch(git_lines(log_args(since, depth, paths, PATCH_OPTIONS + WALK_OPTIONS), repo.top)))
+    patch = git_lines(log_args(since, depth, paths, PATCH_OPTIONS + WALK_OPTIONS), repo.top)
     commits, states = [], {}
-    for position, (commit, per_parent) in enumerate(groups):
+    for position, (commit, per_parent) in enumerate(commit_groups(parse_patch(patch))):
         here = state if position == 0 else states.pop(commit[KEY_HASH], None)
         commit[KEY_MERGE] = commit[KEY_HASH] in merges or len(commit[KEY_PARENTS]) > 1
         authored = authored_since(commit, cutoff)
         if authored:
             commits.append(commit)
-        if here is None:
-            continue                                         # reached by no commit read: nothing to carry back
-        parents = commit[KEY_PARENTS]
-        credited = commit[KEY_HASH] if authored and not commit[KEY_MERGE] else None
-        if not parents:
-            transform(here, per_parent[0], credited, tally, events, watch)
-            continue
-        for number, parent in enumerate(parents):
-            diffs = per_parent[number] if number < len(per_parent) else []
-            union(states.setdefault(parent, {}), transform(here, diffs, credited, tally, events, watch))
+        if here is not None:                                 # else reached by no commit read: nothing to carry back
+            credited = commit[KEY_HASH] if authored and not commit[KEY_MERGE] else None
+            carry_to_parents(here, commit, per_parent, credited, (tally, states, watching))
     return commits, tally
 
 
@@ -614,41 +683,53 @@ def merge_name(subject):
     return None
 
 
+class BranchClaims:
+    """The branch of each node so far, and the branches' names in the order found."""
+
+    def __init__(self, nodes):
+        self.nodes = nodes
+        self.index = {n[KEY_HASH]: i for i, n in enumerate(nodes)}
+        self.branch_of = [None] * len(nodes)
+        self.names = []
+        self.numbers = {}
+
+    def number_of(self, name):
+        if name is None or name not in self.numbers:
+            self.names.append(name)
+            if name is not None:
+                self.numbers[name] = len(self.names) - 1
+        return len(self.names) - 1 if name is None else self.numbers[name]
+
+    def claim(self, start, name):
+        """Follows the first parents from a node until a commit already claimed."""
+        if start is None or self.branch_of[start] is not None:
+            return
+        number = self.number_of(name)
+        i = start
+        while i is not None and self.branch_of[i] is None:
+            self.branch_of[i] = number
+            parents = self.nodes[i][KEY_PARENTS]
+            i = self.index.get(parents[0]) if parents else None
+
+
 def assign_branches(nodes, tips, current):
     """(names, branch of each node): from the default branch's tip, the other tips oldest first, then the second parent
     of each merge naming its branch, newest first, the first parents are followed until a commit already claimed; the
     commits left take one unnamed branch (None) per first-parent chain."""
-    index = {n[KEY_HASH]: i for i, n in enumerate(nodes)}
-    branch_of = [None] * len(nodes)
-    names, numbers = [], {}
-
-    def claim(start, name):
-        if start is None or branch_of[start] is not None:
-            return
-        if name is None or name not in numbers:
-            names.append(name)
-            if name is not None:
-                numbers[name] = len(names) - 1
-        number = len(names) - 1 if name is None else numbers[name]
-        i = start
-        while i is not None and branch_of[i] is None:
-            branch_of[i] = number
-            parents = nodes[i][KEY_PARENTS]
-            i = index.get(parents[0]) if parents else None
-
-    present = {name: index[tip] for tip, name in tips if tip in index}
+    claims = BranchClaims(nodes)
+    present = {name: claims.index[tip] for tip, name in tips if tip in claims.index}
     default = next((b for b in DEFAULT_BRANCHES if b in present), current if current in present else None)
     if default is not None:
-        claim(present[default], default)
+        claims.claim(present[default], default)
     for name in sorted((n for n in present if n != default), key=lambda n: (-present[n], n)):
-        claim(present[name], name)
+        claims.claim(present[name], name)
     for node in nodes:
         name = merge_name(node[KEY_SUBJECT]) if len(node[KEY_PARENTS]) > 1 else None
         if name is not None:
-            claim(index.get(node[KEY_PARENTS][1]), name)
+            claims.claim(claims.index.get(node[KEY_PARENTS][1]), name)
     for i in range(len(nodes)):
-        claim(i, None)
-    return names, branch_of
+        claims.claim(i, None)
+    return claims.names, claims.branch_of
 
 
 def graph_block(nodes, names, branch_of, position):
@@ -723,7 +804,7 @@ REASON_CREATED_DONE = "created-done"
 REASON_ANNOTATED = "annotated"
 REASON_REOPENED = "reopened"
 REASON_NO_TIER = "no-tier"
-DAY_LENGTH = 10                                    # "2026-10-27" at the head of an ISO author date: the author's own day
+DAY_LENGTH = 10                                    # "2026-10-27" at the head of an ISO author date: the author's day
 SECONDS_PER_DAY = 86400
 COMMIT_TYPE_RE = re.compile(r"^([a-z]+)(?:\([^)]*\))?!?:")
 ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}(?![0-9])")
@@ -770,33 +851,49 @@ def active_days(listed):
     return {str(person): sorted(found) for person, found in sorted(days.items())}
 
 
-def delivery_block(tasks, events, tally, authored, listed, settings):
-    """The data file's delivery block: each task delivered in the history read, as [ID, tier, re-tiered, commit index,
-    lines changed in the scanned files, commit type, reworked, reason set aside or None], in the order of tasks
-    {ID: (tier or None, [requirement IDs])}; the active days of each identity; the settings (DEC-TRC-037)."""
-    position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
-    file_lines = Counter()
-    for (kind, _), by_commit in tally.items():
-        if kind == KIND_FILE:
-            file_lines.update(by_commit)
-    fixes = [(n, set(ID_RE.findall(c[KEY_SUBJECT]))) for n, c in enumerate(authored)
-             if commit_type(c[KEY_SUBJECT]) == FIX_TYPE]
-    window = settings["reworkDays"] * SECONDS_PER_DAY
-    rows = []
-    for task_id, (tier, requirements) in tasks.items():
-        by_commit = events.get((KIND_ELEMENT, task_id), {})
-        timeline = sorted((position[h], e) for h, e in by_commit.items() if h in position)
+class DeliveryReader:
+    """What the delivery rows are read from: the commits authored in order, the marks noted, the lines changed in the
+    scanned files per commit, the fix commits with the IDs they cite, and the rework window in seconds."""
+
+    def __init__(self, events, tally, authored, settings):
+        self.events = events
+        self.authored = authored
+        self.position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
+        self.file_lines = Counter()
+        for (kind, _), by_commit in tally.items():
+            if kind == KIND_FILE:
+                self.file_lines.update(by_commit)
+        self.fixes = [(n, set(ID_RE.findall(c[KEY_SUBJECT]))) for n, c in enumerate(authored)
+                      if commit_type(c[KEY_SUBJECT]) == FIX_TYPE]
+        self.window = settings["reworkDays"] * SECONDS_PER_DAY
+
+    def reworked(self, index, cited):
+        """A fix citing the task or a requirement it cites came within the window after its delivery."""
+        limit = timestamp(self.authored[index]) + self.window
+        return any(n > index and timestamp(self.authored[n]) <= limit and ids & cited for n, ids in self.fixes)
+
+    def row(self, task_id, tier, requirements):
+        """[ID, tier, re-tiered, commit index, lines changed, commit type, reworked, reason set aside or None], or None
+        for a task not delivered in the history read."""
+        by_commit = self.events.get((KIND_ELEMENT, task_id), {})
+        timeline = sorted((self.position[h], e) for h, e in by_commit.items() if h in self.position)
         found = first_delivery(timeline)
         if found is None:
-            continue
+            return None
         index, value, created = found
-        commit = authored[index]
+        commit = self.authored[index]
         re_tiered = any(field == FIELD_TIER for _, (added, _, new) in timeline if not new for field, _ in added)
-        cited, limit = {task_id, *requirements}, timestamp(commit) + window
-        reworked = any(n > index and timestamp(authored[n]) <= limit and ids & cited for n, ids in fixes)
-        rows.append([task_id, tier, re_tiered, index, file_lines[commit[KEY_HASH]], commit_type(commit[KEY_SUBJECT]),
-                     reworked, set_aside(timeline, index, value, created, tier)])
-    return {"tasks": rows, "activeDays": active_days(listed), "settings": settings}
+        return [task_id, tier, re_tiered, index, self.file_lines[commit[KEY_HASH]], commit_type(commit[KEY_SUBJECT]),
+                self.reworked(index, {task_id, *requirements}), set_aside(timeline, index, value, created, tier)]
+
+
+def delivery_block(tasks, events, tally, authored, listed, settings):
+    """The data file's delivery block: each task delivered in the history read, as DeliveryReader.row gives it, in the
+    order of tasks {ID: (tier or None, [requirement IDs])}; the active days of each identity; the settings
+    (DEC-TRC-037)."""
+    reader = DeliveryReader(events, tally, authored, settings)
+    rows = (reader.row(task_id, tier, requirements) for task_id, (tier, requirements) in tasks.items())
+    return {"tasks": [row for row in rows if row is not None], "activeDays": active_days(listed), "settings": settings}
 
 
 def blamed_lines(repo, path):
@@ -834,7 +931,25 @@ def friction_block(lines, position, merges):
     return rows
 
 
-def build(folder, documents, files, functions, scope, since=None, depth=None, patterns=None, tasks=None):
+def interventions_of(tally, position, functions):
+    """{kind: {name: [[commit index, lines changed]]}}, a function's kind only with a call graph (RQ-HST-006)."""
+    interventions = {KIND_ELEMENT: {}, KIND_FILE: {}}
+    if functions:
+        interventions[KIND_FUNCTION] = {}
+    for (kind, name), by_commit in tally.items():
+        interventions[kind][str(name)] = sorted([position[h], lines] for h, lines in by_commit.items() if h in position)
+    return interventions
+
+
+def history_limits(since, depth, listed, shallow):
+    """What limited the history read, and its first and last dates (RQ-HST-001)."""
+    dates = [c[KEY_DATE] for c in listed]
+    return {"since": since or None, "depth": depth or None, KEY_COMMITS: len(listed),
+            "first": dates[0] if dates else None, "last": dates[-1] if dates else None, "shallow": shallow}
+
+
+# agnos-qa-exception: PLR0913 the generator's one entry here: its tracked lists and limits are separate inputs
+def build(folder, documents, files, functions, scope, since=None, *, depth=None, tasks=None):
     """The data file's history block, for the repository holding folder. documents is {path: [(ID, first, last)]} of
     the process documents, files {shown path: path} of the scanned files, functions [(shown path, first, last)] of the
     call graph in its order (empty without one), scope the folders whose history is read; with tasks {ID: (tier,
@@ -843,23 +958,16 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
     repo = check_repository(folder)
     ranges, wholes = ranges_to_track(repo.top, documents, files, functions)
     paths = sorted({p for p in (relative_to(f, repo.top) for f in scope) if p is not None}) or ["."]
-    events, watch = {}, frozenset((KIND_ELEMENT, t) for t in tasks or ())
-    commits, tally = read_history(repo, ranges, wholes, paths, since, depth, events, watch)
+    watching = Watching({}, frozenset((KIND_ELEMENT, t) for t in tasks or ()))
+    commits, tally = read_history(repo, ranges, wholes, paths, since, depth, watching)
     authored = sorted((c for c in commits if not is_merge(c)), key=lambda c: (timestamp(c), c[KEY_HASH]))
-    people, listed = identify(repo, authored, patterns or load_agent_patterns())
+    people, listed = identify(repo, authored, load_agent_patterns())
     position = {c[KEY_HASH]: n for n, c in enumerate(authored)}
-    interventions = {KIND_ELEMENT: {}, KIND_FILE: {}}
-    if functions:
-        interventions[KIND_FUNCTION] = {}
-    for (kind, name), by_commit in tally.items():
-        interventions[kind][str(name)] = sorted([position[h], lines] for h, lines in by_commit.items() if h in position)
-    dates = [c[KEY_DATE] for c in listed]
-    limits = {"since": since or None, "depth": depth or None, KEY_COMMITS: len(listed),
-              "first": dates[0] if dates else None, "last": dates[-1] if dates else None, "shallow": repo.shallow}
-    block = {KEY_LIMITS: limits, KEY_PEOPLE: people, KEY_COMMITS: listed, "interventions": interventions,
+    block = {KEY_LIMITS: history_limits(since, depth, listed, repo.shallow), KEY_PEOPLE: people, KEY_COMMITS: listed,
+             "interventions": interventions_of(tally, position, functions),
              KEY_GRAPH: build_graph(repo, since, position)}
     if tasks is not None:
-        block[KEY_DELIVERY] = delivery_block(tasks, events, tally, authored, listed, load_delivery_settings())
+        block[KEY_DELIVERY] = delivery_block(tasks, watching.events, tally, authored, listed, load_delivery_settings())
         log = relative_to(Path(folder) / FRICTION_LOG, repo.top)
         block[KEY_DELIVERY]["friction"] = friction_block(blamed_lines(repo, log), position,
                                                          {c[KEY_HASH] for c in commits if is_merge(c)})
@@ -867,7 +975,8 @@ def build(folder, documents, files, functions, scope, since=None, depth=None, pa
 
 
 def summary(block):
-    """The part of the generator's last line about the history (RQ-HST-006), each noun singular for one (TASK-TRC-055)."""
+    """The part of the generator's last line about the history (RQ-HST-006), each noun singular for one
+    (TASK-TRC-055)."""
     kinds = Counter(p[KEY_KIND] for p in block[KEY_PEOPLE])
     counts = ((block[KEY_LIMITS][KEY_COMMITS], "commit"), (kinds[KIND_HUMAN], "human"), (kinds[KIND_AGENT], "agent"))
     return "history: " + ", ".join(f"{n} {noun}{'' if n == 1 else 's'}" for n, noun in counts)
