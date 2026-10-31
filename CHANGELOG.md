@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-index` and `agnos-perf-center` show on their output line the time the run took, never written into the generated files (TASK-IDX-003, TASK-TRC-090, RQ-IDX-018, RQ-TRC-107)
 - `agnos-meta-qa` maintainer skill: a code quality report on request, as normalised JSON from pinned analysers, blocking
   nothing (ADR-QLT-001, TASK-QLT-001, RQ-QLT-001 to RQ-QLT-008)
 - `agnos-init` skill: adds AGNOS to a project with one block in its `CLAUDE.md` and `AGENTS.md`, every other byte

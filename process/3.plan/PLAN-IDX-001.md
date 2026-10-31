@@ -5,7 +5,7 @@ Implements FTR-IDX-001: the `agnos-index` skill, its two scripts and tests, and 
 the AGNOS process.
 
 ## References
-- **Requirements**: RQ-IDX-001 to RQ-IDX-017
+- **Requirements**: RQ-IDX-001 to RQ-IDX-018
 - **ADRs**: ADR-IDX-001 (DEC-IDX-001 to DEC-IDX-004)
 
 ---
@@ -51,3 +51,18 @@ the AGNOS process.
   statuses extracted. Instructions file: 382 lines (budget 800). `commit-task` now refreshes the
   index at step 4, before confirmation and staging.
 - **Assumptions**: None
+
+### TASK-IDX-003: Duration on the index report line
+- **Tier**: M
+- **Status**: Done
+- **Description**: Both generators end their single report line with the elapsed time; the shared tests strip it before comparing the line and assert it; SKILL.md describes it.
+- **Requirement refs**: RQ-IDX-018
+- **ADR refs**: None
+- **Acceptance Criteria** (Gherkin):
+  - **Given** nominal documents
+  - **When** either generator runs
+  - **Then** stdout is one line ending with ` in <s>.<mmm> s`, And the index holds no duration
+- **Dependencies**: TASK-IDX-001
+- **Assignee**: AI
+- **Verification**: Test written first: `test-build-index.sh` failed 2 checks (default, posix), `test-build-index.ps1` failed 1, on the duration check. After the change: `test-build-index.sh` 28 PASS (default + `POSIXLY_CORRECT=1`), `test-build-index.ps1` all checks passed. Real runs: `agnos-index: 533 entries, 72 documents, process/INDEX.idx.md updated in 0.435 s` (ps1), `... unchanged in 0.690 s` (sh, same index bytes). RQ-IDX-009 amended.
+- **Assumptions**: Format ` in <seconds>.<milliseconds> s`; `build-index.sh` has millisecond resolution where `date +%N` exists and whole seconds elsewhere (BSD/macOS); existing exact-line checks compare the line with the duration stripped.

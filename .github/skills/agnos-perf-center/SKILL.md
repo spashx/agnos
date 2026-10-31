@@ -31,7 +31,7 @@ them; share the three together. The page loads its libraries from cdnjs, so it n
 
 **Exit codes:**
 - `0`: written. The last line reads `agnos-perf-center: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>;
-  quality: <grade> <score>/10; checks: <key> <score>, …; findings <n>; <page> written`, with the call graph and the history before
+  quality: <grade> <score>/10; checks: <key> <score>, …; findings <n>; <page> written in <s.mmm> s`, with the call graph and the history before
   the page when asked. A `no history: <cause>` warning on the error stream still means the page is written.
 - `1`: input error on the error stream, nothing written. Apply the Error Recovery Protocol.
 

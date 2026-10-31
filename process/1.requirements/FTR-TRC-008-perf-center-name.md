@@ -39,3 +39,12 @@ means the execution of the process, not the speed of the code. The IDs `*-TRC-*`
 - **Priority**: Must
 - **Acceptance Criteria**: Given the repository, When the skill's tests run, Then no such file holds a former name, And the rule MANDATORY TRACEABILITY of the instructions is still there.
 - **Dependencies**: DEC-TRC-055
+
+### RQ-TRC-107: Execution time on the last output line
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the generator ends a successful run, the generator SHALL print on standard output a last line ending with ` written in <seconds>.<milliseconds> s`, and SHALL NOT write that time into the page, `PERF-CENTER.json` or `PERF-CENTER.data.js`.
+- **Rationale**: the owner sees at once what a run cost, while the generated files stay deterministic. Amends RQ-TRC-017.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a process folder and a source folder, When the generator runs, Then it exits 0 and its last stdout line ends with ` written in 0.123 s` (three decimals), And the page and its data files hold no such duration.
+- **Dependencies**: RQ-TRC-017, RQ-TRC-105

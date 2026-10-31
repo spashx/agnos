@@ -15,12 +15,14 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))    # scorecard.py, beside this script (ADR-TRC-008)
 import scorecard  # noqa: E402
 
 # RQ-TRC-067: a literal written more than once is a named constant.
+DURATION_FORMAT = ".3f"    # RQ-TRC-107: seconds, three decimals
 KEY_UNCOVERED = "uncovered"
 KEY_COVERED = "covered"
 KEY_INDIRECT = "indirect"
@@ -657,6 +659,7 @@ def check_history_options(args):
 
 
 def main(argv=None):
+    started = time.perf_counter()    # RQ-TRC-107
     args = parse_args(argv)
     process = Path(args.process)
     out = Path(args.out) if args.out else process / DEFAULT_OUT_NAME
@@ -690,7 +693,8 @@ def main(argv=None):
         print(f"agnos-perf-center: {error}", file=sys.stderr)
         return 1
     write_outputs(out, data, title)
-    print(f"{line}; {out.as_posix()} written")
+    # RQ-TRC-107: the duration is printed only, never put in the generated files.
+    print(f"{line}; {out.as_posix()} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
     return 0
 
 

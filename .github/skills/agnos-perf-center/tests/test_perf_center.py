@@ -4,6 +4,7 @@ Run from the repository root: python -m unittest discover -s .github/skills/agno
 """
 import contextlib
 import io
+import re
 import sys
 import tempfile
 import unittest
@@ -183,7 +184,20 @@ class CoverageAndFindingsTest(unittest.TestCase):
                      "connected 7.3", "files-traced 7.5", "findings 17"):
             self.assertIn(part, summary)
 
+    def test_RQ_TRC_107_given_the_fixture_when_the_generator_runs_then_the_last_stdout_line_ends_with_the_duration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            code, out, _ = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(page)])
+            generated = page.read_text(encoding="utf-8") + page.with_suffix(".json").read_text(encoding="utf-8")
+        self.assertEqual(0, code)
+        lines = out.strip().splitlines()
+        self.assertRegex(lines[-1], DURATION_LINE_RE)
+        self.assertEqual(1, len([line for line in lines if re.search(DURATION_LINE_RE, line)]))
+        self.assertNotRegex(generated, DURATION_OUTPUT_RE)    # the generated files stay deterministic
 
+
+DURATION_LINE_RE = r" written in \d+\.\d{3} s$"    # RQ-TRC-107
+DURATION_OUTPUT_RE = r" in \d+\.\d{3} s"
 GENERATED_AT = "2026-01-01T00:00Z"
 SKILL = HERE.parent
 RAW_VISUAL_RE = r"#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(|\b\d+(?:\.\d+)?(?:px|ms)\b"

@@ -1,9 +1,11 @@
 # agnos-index generator (Windows PowerShell 5.1): builds process/INDEX.idx.md.
-# Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
+# Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016, RQ-IDX-018 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
 # Output must stay byte-identical to build-index.sh. Keep this file ASCII-only (PowerShell 5.1).
 # Usage (from the repository root): powershell -NoProfile -File .github/skills/agnos-index/scripts/build-index.ps1
 # Exit codes: 0 ok, 1 error (nothing written), 2 duplicate IDs (index written).
 $ErrorActionPreference = 'Stop'
+$Stopwatch = [Diagnostics.Stopwatch]::StartNew()   # RQ-IDX-018
+$DurationFormat = '0.000'
 
 $ProcessDir = 'process'
 $IndexFile = 'process/INDEX.idx.md'
@@ -167,6 +169,8 @@ if ([IO.File]::Exists($indexPath) -and [string]::Equals($encoding.GetString([IO.
 }
 
 foreach ($d in $duplicates) { [Console]::Error.WriteLine($d) }
-[Console]::Out.WriteLine("agnos-index: $($entries.Count) entries, $($paths.Count) documents, $IndexFile $state")
+# RQ-IDX-018: the duration goes on the report line only, never in the index.
+$seconds = $Stopwatch.Elapsed.TotalSeconds.ToString($DurationFormat, [Globalization.CultureInfo]::InvariantCulture)
+[Console]::Out.WriteLine("agnos-index: $($entries.Count) entries, $($paths.Count) documents, $IndexFile $state in $seconds s")
 if ($duplicates.Count -gt 0) { exit 2 }
 exit 0

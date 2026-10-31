@@ -167,7 +167,8 @@ GitHub Copilot and Claude Code. The index is versioned in git.
 - **EARS Type**: Event-driven
 - **Statement**: WHEN it runs, the index generator SHALL rewrite `process/INDEX.idx.md` only if the
   generated content differs from the file content, and SHALL print on the output stream the single
-  line `agnos-index: <E> entries, <D> documents, process/INDEX.idx.md <updated|unchanged>`.
+  line `agnos-index: <E> entries, <D> documents, process/INDEX.idx.md <updated|unchanged>`, followed by the
+  duration of RQ-IDX-018 (amended on 2026-10-31).
 - **Rationale**: A one-line report costs the agent almost no token; an unchanged index is left
   untouched.
 - **Priority**: Must
@@ -175,7 +176,7 @@ GitHub Copilot and Claude Code. The index is versioned in git.
   - **Given** an index already up to date
   - **When** the generator runs again
   - **Then** the index file bytes and last-write time are unchanged
-  - **And** the output line ends with `unchanged`
+  - **And** the output line says `unchanged`
 - **Dependencies**: RQ-IDX-005
 
 ### RQ-IDX-010: Skill invocation
@@ -253,6 +254,18 @@ GitHub Copilot and Claude Code. The index is versioned in git.
   - **When** a new ADR is written from it
   - **Then** each decision is a `### DEC-<TRI>-<NNN>: <title>` heading under `## Decision`
 - **Dependencies**: RQ-IDX-002
+
+### RQ-IDX-018: Execution time on the report line
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the index generator finishes a run that found the `process/` folder, the generator SHALL end its single report line with the elapsed wall-clock time as ` in <seconds>.<milliseconds> s`, and SHALL NOT write that time into `process/INDEX.idx.md`.
+- **Rationale**: the owner sees at once what a run cost, while the index stays deterministic and byte-identical across platforms (RQ-IDX-015).
+- **Priority**: Should
+- **Acceptance Criteria** (Gherkin):
+  - **Given** nominal documents
+  - **When** either generator runs
+  - **Then** stdout is one line ending with ` in 0.123 s` (three decimals), And the index file holds no duration
+- **Dependencies**: RQ-IDX-009, RQ-IDX-015
 
 ---
 

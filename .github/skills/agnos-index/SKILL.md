@@ -4,7 +4,7 @@ description: "AGNOS process index skill. Regenerates process/INDEX.idx.md, the m
 argument-hint: "(no arguments)"
 ---
 
-<!-- RQ-IDX-010, RQ-IDX-011, RQ-IDX-013 / ADR-IDX-001 (DEC-IDX-001, DEC-IDX-003, DEC-IDX-004) -->
+<!-- RQ-IDX-010, RQ-IDX-011, RQ-IDX-013, RQ-IDX-018 / ADR-IDX-001 (DEC-IDX-001, DEC-IDX-003, DEC-IDX-004) -->
 # AGNOS Index
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-index/`) and Claude Code
@@ -21,7 +21,9 @@ Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-index/`) an
    | `linux` / `macos` | `bash .github/skills/agnos-index/scripts/build-index.sh` |
 
 2. Check the exit code:
-   - `0`: done. The single output line gives the entry and document counts.
+   - `0`: done. The single output line gives the entry and document counts, then the
+     time the run took (`agnos-index: <n> entries, <n> documents, <index> <updated|unchanged> in <s.mmm> s`);
+     the duration is never written into the index (RQ-IDX-018).
    - `2`: duplicate IDs, listed on the error stream. The index is written; report the duplicates
      to the user (MANDATORY UNIQUE IDENTIFIERS).
    - `1`: error, nothing written. Apply the Error Recovery Protocol.

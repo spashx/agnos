@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests of build-index.sh against the shared fixtures and expected files.
-# Covers RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015 and RQ-IDX-016 (ADR-IDX-001, DEC-IDX-004).
+# Covers RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016 and RQ-IDX-018 (ADR-IDX-001, DEC-IDX-004).
 # The whole suite runs twice: default mode, then POSIX mode (POSIXLY_CORRECT=1).
 # Usage: bash .github/skills/agnos-index/tests/test-build-index.sh
 set -u
@@ -13,6 +13,7 @@ EXPECTED_NOMINAL_REPORT="agnos-index: 13 entries, 6 documents, process/INDEX.idx
 EXPECTED_DUPLICATE_REPORT="agnos-index: 3 entries, 1 documents, process/INDEX.idx.md updated"
 EXPECTED_DUPLICATE_ERROR="agnos-index: DUPLICATE RQ-DUP-001 process/1.requirements/FTR-DUP-001.md:5 (first: process/1.requirements/FTR-DUP-001.md:3)"
 EXPECTED_MISSING_ERROR="agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
+DURATION_SUFFIX_ERE=' in [0-9]+\.[0-9]{3} s$'  # RQ-IDX-018
 failures=0
 
 new_scenario() {
@@ -28,6 +29,7 @@ run_generator() {
   fi
   code=$?
   out=$(cat "$dir/.out")
+  report=$(printf %s "$out" | sed -E "s/$DURATION_SUFFIX_ERE//")  # report without its RQ-IDX-018 duration
   err=$(cat "$dir/.err")
 }
 
@@ -42,10 +44,13 @@ for mode in default posix; do
   [ "$code" = 0 ]; check "Given nominal documents When indexing Then the exit code is 0 [RQ-IDX-009]" $?
   cmp -s "$dir/$INDEX_REL" "$HERE/expected/nominal.idx.md"
   check "Given nominal documents When indexing Then the index equals the expected bytes [RQ-IDX-001..006, RQ-IDX-015]" $?
-  [ "$out" = "$EXPECTED_NOMINAL_REPORT updated" ]; check "Given nominal documents When indexing Then the report says updated [RQ-IDX-009]" $?
+  [ "$report" = "$EXPECTED_NOMINAL_REPORT updated" ]; check "Given nominal documents When indexing Then the report says updated [RQ-IDX-009]" $?
+  printf %s "$out" | grep -Eq "$DURATION_SUFFIX_ERE" && [ "$(printf %s "$out" | wc -l)" -eq 0 ]
+  check "Given nominal documents When indexing Then the single report line ends with the duration [RQ-IDX-018]" $?
+  ! grep -Eq ' in [0-9]+\.[0-9]{3} s' "$dir/$INDEX_REL"; check "Given nominal documents When indexing Then the index holds no duration [RQ-IDX-018]" $?
   touch -t "$OLD_TIME" "$dir/$INDEX_REL" "$dir/.marker"
   run_generator
-  [ "$out" = "$EXPECTED_NOMINAL_REPORT unchanged" ]; check "Given an up-to-date index When indexing again Then the report says unchanged [RQ-IDX-009]" $?
+  [ "$report" = "$EXPECTED_NOMINAL_REPORT unchanged" ]; check "Given an up-to-date index When indexing again Then the report says unchanged [RQ-IDX-009]" $?
   ! [ "$dir/$INDEX_REL" -nt "$dir/.marker" ]; check "Given an up-to-date index When indexing again Then the file is not rewritten [RQ-IDX-009]" $?
   rm -rf "$dir"
 
@@ -56,7 +61,7 @@ for mode in default posix; do
   [ "$err" = "$EXPECTED_DUPLICATE_ERROR" ]; check "Given a duplicate ID When indexing Then the duplicate is reported [RQ-IDX-007]" $?
   cmp -s "$dir/$INDEX_REL" "$HERE/expected/duplicate.idx.md"
   check "Given a duplicate ID When indexing Then the index is still written [RQ-IDX-007, RQ-IDX-015]" $?
-  [ "$out" = "$EXPECTED_DUPLICATE_REPORT" ]; check "Given a duplicate ID When indexing Then the report line is printed [RQ-IDX-009]" $?
+  [ "$report" = "$EXPECTED_DUPLICATE_REPORT" ]; check "Given a duplicate ID When indexing Then the report line is printed [RQ-IDX-009]" $?
   rm -rf "$dir"
 
   # Scenario: no process folder

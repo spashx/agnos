@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # agnos-index generator (bash + POSIX awk): builds process/INDEX.idx.md.
-# Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
+# Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016, RQ-IDX-018 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
 # Output must stay byte-identical to build-index.ps1. No gawk extension, no regex interval {n}.
 # Usage (from the repository root): bash .github/skills/agnos-index/scripts/build-index.sh
 # Exit codes: 0 ok, 1 error (nothing written), 2 duplicate IDs (index written).
@@ -10,6 +10,19 @@ export LC_ALL=C
 PROCESS_DIR="process"
 INDEX_FILE="$PROCESS_DIR/INDEX.idx.md"
 SCAN_DIRS="1.requirements 2.architecture 3.plan"
+NANOS_PER_MILLI=1000000
+NANOS_PER_SECOND=1000000000
+MILLIS_PER_SECOND=1000
+
+# RQ-IDX-018: wall-clock time in ns; whole seconds where date has no %N (BSD, macOS).
+now_ns() {
+  t=$(date +%s%N 2>/dev/null)
+  case "$t" in
+    ''|*[!0-9]*) t=$(( $(date +%s) * NANOS_PER_SECOND )) ;;
+  esac
+  echo "$t"
+}
+start_ns=$(now_ns)
 
 if [ ! -d "$PROCESS_DIR" ]; then
   echo "agnos-index: '$PROCESS_DIR' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project" >&2
@@ -123,5 +136,8 @@ else
   state="updated"
 fi
 
-echo "agnos-index: $counts, $INDEX_FILE $state"
+# RQ-IDX-018: the duration goes on the report line only, never in the index.
+elapsed_ms=$(( ($(now_ns) - start_ns) / NANOS_PER_MILLI ))
+printf 'agnos-index: %s, %s %s in %d.%03d s\n' "$counts" "$INDEX_FILE" "$state" \
+  $((elapsed_ms / MILLIS_PER_SECOND)) $((elapsed_ms % MILLIS_PER_SECOND))
 exit "$status"

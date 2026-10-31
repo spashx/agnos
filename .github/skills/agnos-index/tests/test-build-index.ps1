@@ -1,5 +1,5 @@
 # Tests of build-index.ps1 against the shared fixtures and expected files.
-# Covers RQ-IDX-001 to RQ-IDX-009 and RQ-IDX-015 (ADR-IDX-001, DEC-IDX-004).
+# Covers RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015 and RQ-IDX-018 (ADR-IDX-001, DEC-IDX-004).
 # Usage: powershell -NoProfile -File .github/skills/agnos-index/tests/test-build-index.ps1
 $ErrorActionPreference = 'Stop'
 
@@ -14,6 +14,7 @@ $ExpectedNominalReport = 'agnos-index: 13 entries, 6 documents, process/INDEX.id
 $ExpectedDuplicateReport = 'agnos-index: 3 entries, 1 documents, process/INDEX.idx.md updated'
 $ExpectedDuplicateError = 'agnos-index: DUPLICATE RQ-DUP-001 process/1.requirements/FTR-DUP-001.md:5 (first: process/1.requirements/FTR-DUP-001.md:3)'
 $ExpectedMissingError = "agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
+$DurationSuffixRx = ' in \d+\.\d{3} s$'   # RQ-IDX-018
 $script:Failures = 0
 
 function New-Scenario([string]$Fixture) {
@@ -29,6 +30,7 @@ function Invoke-Generator([string]$Dir) {
     @{
         Code = $p.ExitCode
         Out  = ([IO.File]::ReadAllText((Join-Path $Dir $OutFile))).TrimEnd()
+        Report = (([IO.File]::ReadAllText((Join-Path $Dir $OutFile))).TrimEnd()) -replace $DurationSuffixRx, ''   # RQ-IDX-018
         Err  = ([IO.File]::ReadAllText((Join-Path $Dir $ErrFile))).TrimEnd()
     }
 }
@@ -49,10 +51,14 @@ $r = Invoke-Generator $dir
 Assert-That 'Given nominal documents When indexing Then the exit code is 0 [RQ-IDX-009]' ($r.Code -eq 0)
 Assert-That 'Given nominal documents When indexing Then the index equals the expected bytes [RQ-IDX-001..006, RQ-IDX-015]' `
     (Test-SameBytes $index (Join-Path $Here 'expected\nominal.idx.md'))
-Assert-That 'Given nominal documents When indexing Then the report says updated [RQ-IDX-009]' ($r.Out -ceq "$ExpectedNominalReport updated")
+Assert-That 'Given nominal documents When indexing Then the report says updated [RQ-IDX-009]' ($r.Report -ceq "$ExpectedNominalReport updated")
+Assert-That 'Given nominal documents When indexing Then the single report line ends with the duration [RQ-IDX-018]' `
+    (($r.Out -cmatch $DurationSuffixRx) -and ($r.Out -notmatch "`n"))
+Assert-That 'Given nominal documents When indexing Then the index holds no duration [RQ-IDX-018]' `
+    (-not ([IO.File]::ReadAllText($index) -cmatch ' in \d+\.\d{3} s'))
 (Get-Item -LiteralPath $index).LastWriteTime = $OldTime
 $r = Invoke-Generator $dir
-Assert-That 'Given an up-to-date index When indexing again Then the report says unchanged [RQ-IDX-009]' ($r.Out -ceq "$ExpectedNominalReport unchanged")
+Assert-That 'Given an up-to-date index When indexing again Then the report says unchanged [RQ-IDX-009]' ($r.Report -ceq "$ExpectedNominalReport unchanged")
 Assert-That 'Given an up-to-date index When indexing again Then the file is not rewritten [RQ-IDX-009]' `
     ((Get-Item -LiteralPath $index).LastWriteTime -eq $OldTime)
 Remove-Item -Recurse -Force -LiteralPath $dir
@@ -64,7 +70,7 @@ Assert-That 'Given a duplicate ID When indexing Then the exit code is 2 [RQ-IDX-
 Assert-That 'Given a duplicate ID When indexing Then the duplicate is reported [RQ-IDX-007]' ($r.Err -ceq $ExpectedDuplicateError)
 Assert-That 'Given a duplicate ID When indexing Then the index is still written [RQ-IDX-007, RQ-IDX-015]' `
     (Test-SameBytes (Join-Path $dir $IndexRel) (Join-Path $Here 'expected\duplicate.idx.md'))
-Assert-That 'Given a duplicate ID When indexing Then the report line is printed [RQ-IDX-009]' ($r.Out -ceq $ExpectedDuplicateReport)
+Assert-That 'Given a duplicate ID When indexing Then the report line is printed [RQ-IDX-009]' ($r.Report -ceq $ExpectedDuplicateReport)
 Remove-Item -Recurse -Force -LiteralPath $dir
 
 # Scenario: no process folder
