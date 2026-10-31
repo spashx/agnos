@@ -75,6 +75,14 @@ class ComparisonTest(Workspace):
         self.assertIn("file", problems[0])
 
 
+    def test_RQ_MTA_011_given_a_skill_that_fails_the_same_way_on_both_sides_then_it_is_named(self):
+        failing = {"a": {"exit": b"exit 1"}, "b": {"exit": b"exit 1"}}
+        problems = release.compare_runs("a", "b", self.base, [("skill", self.runner(failing))])
+        self.assertEqual(1, len(problems))
+        self.assertIn("skill", problems[0])
+        self.assertIn("exit 1", problems[0])
+
+
 class DemoTest(Workspace):
     """RQ-MTA-011."""
 

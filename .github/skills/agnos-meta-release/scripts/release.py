@@ -99,6 +99,8 @@ CLAUDE_TOOL_VARIABLE = "AGNOS_CLAUDE"     # the Claude Code binary, when it is n
 CLAUDE_TOOL = "claude"
 FRONT_MATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n\s*", re.S)
 PARSE_MESSAGE_LENGTH = 200
+EXIT_KEY = "exit"
+EXIT_ZERO = b"exit 0"
 IS_WINDOWS = os.name == "nt"
 POWERSHELL = "powershell"
 BASH = "bash"
@@ -451,6 +453,8 @@ def compare_runs(baseline, output, workspace, runners):
     for label, runner in runners:
         expected = runner(baseline, workspace)
         obtained = runner(output, workspace)
+        if expected.get(EXIT_KEY, EXIT_ZERO) != EXIT_ZERO:     # failing alike would prove nothing
+            problems.append(f"{label}: {expected[EXIT_KEY].decode(ENCODING)} from the workshop's own files")
         for name in sorted(set(expected) | set(obtained)):
             if expected.get(name) != obtained.get(name):
                 problems.append(f"{label}: {name} differs from the workshop's")

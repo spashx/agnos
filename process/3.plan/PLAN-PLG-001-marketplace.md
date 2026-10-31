@@ -75,15 +75,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-006: Agents generated per tool
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The target generates each delivered agent for Claude Code and Copilot from a table of frontmatter values, proved on a test agent.
 - **Requirement refs**: RQ-PLG-006
 - **ADR refs**: ADR-PLG-001
 - **Acceptance Criteria**: Given RQ-PLG-006's criteria, Then they hold, And the test agent is run once from an install in each tool.
 - **Dependencies**: TASK-PLG-005
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: `AgentTest` 4 OK, failing before the code. A marketplace built with a test agent, from a clean local clone: Claude Code lists it and its subagent `agnos:agnos-helper` returned `AGENT-MARKER-GENERATED` on Haiku; Copilot CLI, with no read tool, quoted the same from `--agent agnos:agnos-helper`. Found on the way, by the same proof: `init.ps1` failed on an absolute `-Target`, and the release passes one, so the comparison of `agnos-init` had compared two failures. Both fixed, with tests: the target is combined with the current folder, and `compare_runs` names a skill that fails from the workshop's own files.
+- **Assumptions**: Codex receives no agent (DEC-PLG-005). The test agent is not in the repository: AGNOS delivers no agent today.
 
 ### TASK-PLG-007: Install proof and user documents
 - **Tier**: M

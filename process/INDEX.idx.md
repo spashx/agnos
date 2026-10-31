@@ -539,7 +539,7 @@ TASK-PLG-002|28-39|Done|Skills name their files from their own folder
 TASK-PLG-003|40-51|Done|Delivered scripts on Linux
 TASK-PLG-004|52-63|Done|The block with no path
 TASK-PLG-005|64-75|Done|The marketplace target
-TASK-PLG-006|76-87|Not Started|Agents generated per tool
+TASK-PLG-006|76-87|Done|Agents generated per tool
 TASK-PLG-007|88-98|Not Started|Install proof and user documents
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

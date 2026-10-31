@@ -96,6 +96,13 @@ class ResultTest(InitCase):
                 self.assertTrue(data.endswith(END + b"\n"), name)
                 self.assertIn(f"created {name}", result.stdout)
 
+    def test_RQ_INI_001_given_an_absolute_target_when_either_script_runs_then_it_writes_there(self):
+        for name, runner in RUNNERS.items():
+            target = self.project(f"{name}-target")
+            result = runner(self.project(f"{name}-elsewhere"), target.as_posix())
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertTrue((target / ENTRY_FILES[0]).is_file(), name)
+
     def test_RQ_INI_001_given_a_missing_target_when_either_script_runs_then_it_exits_1_and_writes_nothing(self):
         for name, runner in RUNNERS.items():
             project = self.project(name)

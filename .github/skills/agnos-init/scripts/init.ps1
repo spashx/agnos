@@ -66,7 +66,7 @@ function Get-Plan([string]$File, [string]$Path) {
 }
 
 try {
-  $targetFull = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $Target))
+  $targetFull = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).Path, $Target))   # an absolute target stays as it is
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) { throw "target folder not found: $Target" }
   $plans = @($ENTRY_FILES | ForEach-Object { Get-Plan $_ (Join-Path $targetFull $_) })
   foreach ($plan in $plans) {
