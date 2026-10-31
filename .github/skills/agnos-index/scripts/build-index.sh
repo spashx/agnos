@@ -12,7 +12,7 @@ INDEX_FILE="$PROCESS_DIR/INDEX.idx.md"
 SCAN_DIRS="1.requirements 2.architecture 3.plan"
 
 if [ ! -d "$PROCESS_DIR" ]; then
-  echo "agnos-index: '$PROCESS_DIR' folder not found - run from the repository root" >&2
+  echo "agnos-index: '$PROCESS_DIR' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project" >&2
   exit 1
 fi
 

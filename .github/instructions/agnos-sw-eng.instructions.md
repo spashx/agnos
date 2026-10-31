@@ -44,6 +44,7 @@ At the start of every session, run these steps in order before any task:
      read `process/_sessionstate/session.yaml` and reload them before applying any conditional guard.
 4. Invoke the `agnos-index` skill, then read `process/INDEX.idx.md`: it is the primary source for
    steps 4 to 6, which open process documents only by the line ranges it gives. <!-- RQ-IDX-011 -->
+   IF the project has no `process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
    Scan `process/1.requirements/` for open or unimplemented requirement IDs.
 5. Scan `process/2.architecture/` for existing ADRs to avoid creating duplicates.
 6. Scan `process/3.plan/` for existing plans and tasks to avoid creating duplicates.

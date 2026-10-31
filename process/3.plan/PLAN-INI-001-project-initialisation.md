@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-002: State where the call is needed
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Amend RQ-IDX-008. Update its tests, then the error of `agnos-index` in both versions. Add the rule to START SESSION, and the step to `README.md` and `GETTING_STARTED.MD`.
 - **Requirement refs**: RQ-INI-007, RQ-IDX-008
 - **ADR refs**: ADR-INI-001 (DEC-INI-006)
 - **Acceptance Criteria**: Given the `agnos-index` tests in both versions, Then they pass with the new text; Given the instructions file, Then the criterion of RQ-INI-007 holds, And its post-edit line count is at most 400; Given `README.md` and `GETTING_STARTED.MD`, Then each gives the step.
 - **Dependencies**: TASK-INI-001
 - **Assignee**: AI
-- **Verification**: Pending.
-- **Assumptions**: Pending.
+- **Verification**: `agnos-index` tests: 1 and 2 FAIL before the scripts' change, then "All checks passed" in PowerShell and Git Bash. Instructions: rule at line 47, 383 lines. `README.md` lines 37-44 and `GETTING_STARTED.MD` line 31 give the step. `agnos-init/tests` and `agnos-meta-docs-sync/tests`: OK.
+- **Assumptions**: the test's expected text changed because the required behaviour changed (RQ-IDX-008 amended); the README's commands assume the clone beside the project, its usual layout.
 
 ### TASK-INI-003: The demo as an initialised project
 - **Tier**: L

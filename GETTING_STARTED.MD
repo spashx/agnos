@@ -28,11 +28,12 @@ comes back. Most of what follows is short prompts and short reviews.
 
 ## Before you start
 
-1. **The repository is set up for your tool.** GitHub Copilot reads `.github/instructions/` and
-   `.github/skills/` automatically. Claude Code reads the root `CLAUDE.md`, which imports the same
-   instruction file. Nothing to configure.
+1. **AGNOS is added to your project.** Call the `agnos-init` skill once, from your project's root; this
+   step is required (see the README's "Adding AGNOS to a Project"). It completes your `CLAUDE.md` and
+   `AGENTS.md` with one delimited block, which tells the agent where the process and its skills are, and leaves your own content
+   as it is. <!-- RQ-INI-007 -->
 2. **`process/` exists** with its four folders (`1.requirements/`, `2.architecture/`, `3.plan/`,
-   `_sessionstate/`).
+   `_sessionstate/`). `agnos-init` creates those that are absent.
 3. **You have a trigram in mind.** Three uppercase letters naming the functional area you are about
    to work on — `USR` for user management, `EXP` for export, `PAY` for payments. It goes in every
    artifact ID and in the branch name, so pick one you can live with.

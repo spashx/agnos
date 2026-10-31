@@ -151,10 +151,10 @@ GitHub Copilot and Claude Code. The index is versioned in git.
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the working directory holds no `process/` folder, THEN the index generator SHALL
   write no file, SHALL report
-  `agnos-index: 'process' folder not found - run from the repository root` on the error stream and
-  SHALL exit with code 1.
+  `agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project`
+  on the error stream and SHALL exit with code 1 (message amended on 2026-10-31, RQ-INI-007).
 - **Rationale**: The generator must be run from the repository root; failing loudly avoids writing
-  an index elsewhere.
+  an index elsewhere, and the message holds whatever the agent has read.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** a working directory without `process/` folder

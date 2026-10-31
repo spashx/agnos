@@ -27,7 +27,7 @@ $IdNumberLength = 3
 
 $cwd = (Get-Location).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $cwd $ProcessDir) -PathType Container)) {
-    [Console]::Error.WriteLine("agnos-index: '$ProcessDir' folder not found - run from the repository root")
+    [Console]::Error.WriteLine("agnos-index: '$ProcessDir' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project")
     exit 1
 }
 

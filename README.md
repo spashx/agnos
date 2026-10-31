@@ -20,6 +20,7 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 | Component | What it does |
 |---|---|
 | **The process** | Requirements (EARS) → Architecture Decision Records → Plans and tasks (Gherkin), each artifact with a unique ID and explicit links to the others. |
+| **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched, and creates its `process/` folders. |
 | **`agnos-index`** | Deterministically regenerates `process/INDEX.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
@@ -28,6 +29,22 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 **Supported tools:** GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code
 (`CLAUDE.md`, `.claude/skills/`) — one canonical process, two entry points.
 **Supported platforms:** Windows (PowerShell 5.1), Linux and macOS (bash).
+
+---
+
+## Adding AGNOS to a Project
+
+Keep a clone of this repository next to your project, then call `agnos-init` once, from your project's root. This step is required: until it runs, an agent in your project does not know about AGNOS.
+
+```powershell
+powershell -NoProfile -File ../agnos-lightweight-process/.github/skills/agnos-init/scripts/init.ps1 -Target . -Toolkit ../agnos-lightweight-process
+```
+
+```bash
+bash ../agnos-lightweight-process/.github/skills/agnos-init/scripts/init.sh --target . --toolkit ../agnos-lightweight-process
+```
+
+Commit the result and start a new agent session. Your own content stays as it is: AGNOS only owns the lines between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGNOS changes, call it again.
 
 ---
 

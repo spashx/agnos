@@ -13,7 +13,7 @@ $ReportPrefix = 'agnos-index: '
 $ExpectedNominalReport = 'agnos-index: 13 entries, 6 documents, process/INDEX.idx.md'
 $ExpectedDuplicateReport = 'agnos-index: 3 entries, 1 documents, process/INDEX.idx.md updated'
 $ExpectedDuplicateError = 'agnos-index: DUPLICATE RQ-DUP-001 process/1.requirements/FTR-DUP-001.md:5 (first: process/1.requirements/FTR-DUP-001.md:3)'
-$ExpectedMissingError = "agnos-index: 'process' folder not found - run from the repository root"
+$ExpectedMissingError = "agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
 $script:Failures = 0
 
 function New-Scenario([string]$Fixture) {

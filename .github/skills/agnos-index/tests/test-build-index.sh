@@ -12,7 +12,7 @@ OLD_TIME="200001010000"
 EXPECTED_NOMINAL_REPORT="agnos-index: 13 entries, 6 documents, process/INDEX.idx.md"
 EXPECTED_DUPLICATE_REPORT="agnos-index: 3 entries, 1 documents, process/INDEX.idx.md updated"
 EXPECTED_DUPLICATE_ERROR="agnos-index: DUPLICATE RQ-DUP-001 process/1.requirements/FTR-DUP-001.md:5 (first: process/1.requirements/FTR-DUP-001.md:3)"
-EXPECTED_MISSING_ERROR="agnos-index: 'process' folder not found - run from the repository root"
+EXPECTED_MISSING_ERROR="agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
 failures=0
 
 new_scenario() {

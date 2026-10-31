@@ -434,7 +434,7 @@ TASK-IDX-002|36-53|Done|Skill packaging and process integration
 @process/3.plan/PLAN-INI-001-project-initialisation.md
 PLAN-INI-001|1-50||The agnos-init Skill
 TASK-INI-001|16-27|Done|The skill and its scripts
-TASK-INI-002|28-39|Not Started|State where the call is needed
+TASK-INI-002|28-39|Done|State where the call is needed
 TASK-INI-003|40-50|Not Started|The demo as an initialised project
 @process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers

@@ -77,6 +77,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- `agnos-index`'s error without `process/`, START SESSION, `README.md` and `GETTING_STARTED.MD` say to call `agnos-init`
+  (TASK-INI-002, RQ-INI-007, RQ-IDX-008)
 - The demo holds the project only, with no AGNOS file, and `agnos-meta-demo` runs the skills on it from this
   repository (TASK-MTA-003, RQ-MTA-005)
 - Maintainer skills renamed `agnos-meta-demo` and `agnos-meta-docs-sync`, with the sub-agent; the prefix `agnos-meta-` is
