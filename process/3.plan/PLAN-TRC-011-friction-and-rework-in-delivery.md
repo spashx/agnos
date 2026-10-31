@@ -94,3 +94,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: full suite: 336 tests OK, 3 skipped; `AGNOS_TRACE_PERF=1` alone, 5 runs: P95 66.3 to 121.2 ms, 2 runs over the 100 ms limit, cause not established at this commit. Owner's visual check: accepted on 2026-10-31.
 - **Assumptions**: violet and teal are the pair farthest apart that avoids red, teal staying nearer the green of "better"; teal-700 added for white text on B in light theme; the title "Friction per session" is kept, the figure being an average per session within the period.
+
+### TASK-TRC-091: Marks that stand out from every background
+- **Tier**: M
+- **Status**: Done
+- **Description**: Give the Rework and Friction marks and their tags an amber or red fill and a dark outline, from tokens, with their contrast computed on every background of the chart.
+- **Requirement refs**: RQ-TRC-108, RQ-TRC-095, RQ-TRC-096
+- **ADR refs**: ADR-TRC-011 (DEC-TRC-049), ADR-TRC-002
+- **Acceptance Criteria**: Given the tokens and the page, Then the criteria of RQ-TRC-108 hold.
+- **Dependencies**: TASK-TRC-085
+- **Assignee**: AI
+- **Verification**: Both RQ-TRC-108 tests failed before the change (no outline token). The contrast test then refused `red-400` in the dark theme, 2.6 to 2.7:1 on period A's tier S bars; `red-300` there, then 3:1 reached on every background of both themes. `agnos-perf-center/tests`: 364 run, OK, 3 skipped. Owner's visual check: accepted on 2026-10-31.
+- **Assumptions**: `color.red-300` added for the dark theme; the outline may reach 3:1 alone, as approved in the criterion.

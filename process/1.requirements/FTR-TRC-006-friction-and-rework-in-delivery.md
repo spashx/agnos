@@ -99,6 +99,15 @@ session's work); weighting the counters; a filter of the friction by tier, commi
   When the grain is week, Then the values add up per week.
 - **Dependencies**: RQ-TRC-071, RQ-TRC-083, RQ-TRC-085, RQ-TRC-087, RQ-TRC-090, RQ-TRC-094
 
+### RQ-TRC-108: The marks stand out from every background
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: In both themes, each Rework and Friction mark of the chart "Points over time" and of its tag SHALL have a fill and an outline taken from design-system tokens, so that one of the two reaches a contrast of at least 3:1 with whatever lies behind the mark: outside periods A and B, in either period's area, or on a bar of any tier.
+- **Rationale**: no single colour holds on all these backgrounds (owner review of 2026-10-31): a dark one is lost on the full bars, a light one on the areas and outside them.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the design tokens, When the contrast of each mark is computed in each theme against the card's surface, each period's area and each period's bar of each tier, Then its fill or its outline reaches 3:1; Given the marks shown, Then each series and each tag uses these fill and outline tokens.
+- **Dependencies**: RQ-TRC-018, RQ-TRC-095, RQ-TRC-096
+
 ### RQ-TRC-096: Tags of the overlays
 - **Category**: Functional
 - **EARS Type**: Event-driven

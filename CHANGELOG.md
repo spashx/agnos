@@ -80,6 +80,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- `agnos-perf-center` Delivery: the Rework and Friction marks of "Points over time" are amber and red with a dark outline, so they
+  stand out inside and outside periods A and B (TASK-TRC-091, RQ-TRC-108)
 - `agnos-init`: the `CLAUDE.md` block orders the agent to read the instructions first, as the `AGENTS.md` block does, instead
   of an `@` import that may not load. Initialised projects call `agnos-init` again to update (ADR-INI-001, TASK-INI-004,
   RQ-INI-010)

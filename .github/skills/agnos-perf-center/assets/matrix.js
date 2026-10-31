@@ -4087,9 +4087,10 @@
   const overlayAvailable = (overlay) => overlay.key !== OVERLAY_FRICTION || frictionRows.length > 0;
   const overlayShown = (overlay) => dlv.overlays[overlay.key] && overlayAvailable(overlay);
 
-  function overlaySeries(overlay, buckets, theme) {
+  // RQ-TRC-108: the fill or the outline stands out from every background of the chart.
+  function overlaySeries(overlay, buckets) {
     return { type: "scatter", name: overlay.name, yAxisIndex: 1, symbol: overlay.symbol, symbolSize: cssSize("--c-delivery-overlay-mark"),
-      itemStyle: { color: resolvedColour(cssValue(`--c-delivery-${overlay.key}`)), borderColor: theme.colour.surface, borderWidth: cssSize("--s-stroke-hairline") },
+      itemStyle: { color: resolvedColour(cssValue(`--c-delivery-${overlay.key}`)), borderColor: resolvedColour(cssValue("--c-delivery-overlay-outline")), borderWidth: cssSize("--c-delivery-overlay-outline-width") },
       data: buckets.map((b) => overlay.value(b) || null) };
   }
 
@@ -4146,7 +4147,7 @@
       yAxis: [{ type: AXIS_VALUE, name: "points" },
         { type: AXIS_VALUE, name: "count", minInterval: 1, splitLine: { show: false }, show: OVERLAYS.some(overlayShown) }],
       dataZoom: [{ type: "inside", ...dlv.zoom }, { type: "slider", height: cssSize("--s-space-lg"), bottom: cssSize("--s-space-sm"), ...dlv.zoom }],
-      series: [...series, ...OVERLAYS.filter(overlayShown).map((overlay) => overlaySeries(overlay, buckets, theme))],
+      series: [...series, ...OVERLAYS.filter(overlayShown).map((overlay) => overlaySeries(overlay, buckets))],
     };
   }
 

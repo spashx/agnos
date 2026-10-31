@@ -450,6 +450,63 @@ out.tip = box.textContent;
         self.assertIn("Alice", got["tip"])
 
 
+TOKENS = HERE.parent / "assets" / "tokens.json"
+THEMES = ("light", "dark")
+MARKS = ("delivery-friction", "delivery-rework")
+MARK_OUTLINE = "delivery-overlay-outline"
+PERIODS = ("period-a", "period-b")
+CARD_SURFACES = ("surface", "surface-raised")
+TIER_OPACITIES = ("opacity.tier-s", "opacity.tier-m", "opacity.tier-l")
+TINT_OPACITY = "opacity.tint"
+MIN_MARK_CONTRAST = 3.0
+
+
+def rgb_of(colour):
+    return tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def over(colour, behind, opacity):
+    return tuple(opacity * c + (1 - opacity) * b for c, b in zip(colour, behind))
+
+
+def luminance(rgb):
+    r, g, b = (c / 255 / 12.92 if c / 255 <= 0.03928 else ((c / 255 + 0.055) / 1.055) ** 2.4 for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(one, other):
+    high, low = sorted((luminance(one), luminance(other)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+class DeliveryMarkContrastTest(unittest.TestCase):
+    """TASK-TRC-091: RQ-TRC-108, computed from the design tokens."""
+
+    def test_RQ_TRC_108_given_each_theme_then_each_mark_reaches_the_contrast_on_every_background(self):
+        tokens = json.loads(TOKENS.read_text(encoding="utf-8"))
+        base, semantic, component = tokens["global"], tokens["semantic"], tokens["component"]
+
+        def colour(name, theme):
+            return rgb_of(base[semantic[name][theme]])
+
+        for theme in THEMES:
+            for surface in CARD_SURFACES:
+                behind = colour(surface, theme)
+                backgrounds = {surface: behind}
+                for period in PERIODS:
+                    area = over(colour(period, theme), behind, float(base[TINT_OPACITY]))
+                    backgrounds[f"{period} area"] = area
+                    for tier in TIER_OPACITIES:
+                        backgrounds[f"{period} {tier}"] = over(colour(period, theme), area, float(base[tier]))
+                for mark in MARKS:
+                    fill = colour(component[mark], theme)
+                    outline = colour(component[MARK_OUTLINE], theme)
+                    for name, background in backgrounds.items():
+                        with self.subTest(theme=theme, mark=mark, background=name):
+                            self.assertGreaterEqual(max(contrast(fill, background), contrast(outline, background)),
+                                                    MIN_MARK_CONTRAST)
+
+
 @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
 class DeliveryFrictionTest(unittest.TestCase):
     """TASK-TRC-083, TASK-TRC-084: RQ-TRC-092 to RQ-TRC-096."""
@@ -523,6 +580,22 @@ const person = d.filter(); person.people.add(0);
 out.byauthor = String(d.friction(A, person, bounds).perSession);
 """, "bytrigram", "byauthor")
         self.assertEqual(("8", "4"), (got["bytrigram"], got["byauthor"]))
+
+    def test_RQ_TRC_108_given_the_marks_shown_then_each_series_and_each_tag_has_the_outline_token(self):
+        got = self.run_script("""
+marksOn();
+const outline = resolved(css("--c-delivery-overlay-outline"));
+const width = parseFloat(css("--c-delivery-overlay-outline-width"));
+out.series = String(["Friction", "Rework"].every((name) => {
+  const style = optionOf("timeline").series.find((s) => s.name === name).itemStyle;
+  return style.borderColor === outline && style.borderWidth === width;
+}));
+out.tags = String(["friction", "rework"].every((key) => {
+  const style = getComputedStyle(tag(key).querySelector(".delivery-overlay-mark"));
+  return style.borderTopColor === outline && parseFloat(style.borderTopWidth) > 0;
+}));
+""", "series", "tags")
+        self.assertEqual(("true", "true"), (got["series"], got["tags"]))
 
     def test_RQ_TRC_094_given_another_filter_then_the_friction_is_unchanged_and_the_filter_is_named(self):
         got = self.run_script("""
