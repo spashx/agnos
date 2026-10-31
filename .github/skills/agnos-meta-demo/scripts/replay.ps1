@@ -26,6 +26,7 @@ $POWERSHELL_EXE = 'powershell'
 $GENERATED_MARKER = 'agnos-demo-generated'
 $MARKER_TEXT = 'created by the agnos-meta-demo skill (replay.ps1)'
 $INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
+$INIT_SCRIPT = '.github/skills/agnos-init/scripts/init.ps1'
 $INDEX_PATH = 'process/INDEX.idx.md'
 $PLAN_PATH_PATTERN = '^process/3\.plan/PLAN-.*\.md$'
 $PLAN_STATUS_PATTERN = '(?m)^- \*\*Status\*\*: .*$'
@@ -175,6 +176,12 @@ function Update-Index([string]$TargetFull) {
   if ($result.ExitCode -ne 0) { throw "agnos-index failed ($($result.ExitCode)): $($result.Error.Trim())" }
 }
 
+# RQ-INI-008: the step's `init` is the toolkit path written in the block, valid from the target.
+function Invoke-Init([string]$TargetFull, [string]$ToolkitPath) {
+  $result = Invoke-Process $POWERSHELL_EXE @('-NoProfile', '-File', (Join-Path (Get-FullPath $Toolkit) $INIT_SCRIPT), '-Target', '.', '-Toolkit', $ToolkitPath) $TargetFull
+  if ($result.ExitCode -ne 0) { throw "agnos-init failed ($($result.ExitCode)): $($result.Error.Trim())" }
+}
+
 function Save-Commit([string]$TargetFull, [string]$Message, [hashtable]$Environment) {
   Invoke-Git @('add', '-A') $TargetFull | Out-Null
   $pending = Invoke-Process $GIT_EXE @('diff', '--cached', '--quiet') $TargetFull
@@ -223,6 +230,7 @@ function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$TargetFull, [h
     }
     'commit' {
       $environment = Get-CommitEnvironment $Plan.identities $Step $Plan.utcOffset
+      if ($Step.init) { Invoke-Init $TargetFull $Step.init }
       foreach ($item in @($Step.add)) { if ($item) { Add-ContentItem $item $ContentFull $TargetFull } }
       foreach ($edit in @($Step.edits)) { if ($edit) { Edit-File $edit $TargetFull } }
       foreach ($taskId in @($Step.closeTasks)) { if ($taskId) { Close-Task $taskId $ContentFull $TargetFull } }

@@ -5,8 +5,9 @@
 > process looks when a team has used it for two months. Nothing here was really done by these people.
 
 This repository holds the development of a small product, **Roombook**, following the process. AGNOS itself
-is not stored here: a project is meant to receive it as a plugin, not available yet. Read this repository to see what
-the process produces, or run the AGNOS skills against it to test them.
+is not stored here: `agnos-init` added it, so `CLAUDE.md` and `AGENTS.md` hold only a block pointing to the AGNOS repository
+beside this folder (`../agnos-lightweight-process`). Read this repository to see what the process produces, run the AGNOS
+skills against it to test them, or start an agent session in it with that repository in place.
 
 ## The product
 

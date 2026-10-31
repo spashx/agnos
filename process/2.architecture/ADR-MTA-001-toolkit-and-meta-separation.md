@@ -50,8 +50,8 @@ DEC-INI-005: `agnos-init` comes first and needs no plugin, which will only suppl
 Owner's decision of 2026-10-31: since projects will install AGNOS as a plugin, the demo keeps its code, `process/`, its README and its
 own `.gitignore` and `.gitattributes`, and no toolkit or public repository file. Its first commit starts the project instead of importing the
 toolkit. The engine and the checks run `agnos-index` and `agnos-trace` from this repository; a release is validated by running them from
-its output on the demo, which adjusts DEC-MTA-004. The stub `agnos-init` will write joins the demo when that skill exists. Until then the demo
-is shown and checked, and a session cannot be run in it. Amends RQ-DMO-002 and RQ-DMO-020. Fulfils RQ-MTA-005.
+its output on the demo, which adjusts DEC-MTA-004. Amends RQ-DMO-002 and RQ-DMO-020. Fulfils RQ-MTA-005. Amended on 2026-10-31 by DEC-INI-005:
+the demo also holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`, so a session can be run in it, with the toolkit beside it.
 
 ## Consequences
 - A third meta skill needs its name only; no list has to change.

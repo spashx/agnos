@@ -9,7 +9,7 @@ argument-hint: "build [--verify] | verify"
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-demo/`) and Claude Code
 (`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo holds no AGNOS
-file (RQ-MTA-005), and CLAUDE.md and AGENTS.md do not list it.
+file but the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` (RQ-MTA-005, RQ-INI-008), and this repository's CLAUDE.md and AGENTS.md do not list it.
 
 The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
 simulated: seven fictitious people (`linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`, and the
@@ -40,7 +40,7 @@ Run from the repository root with `session.platform = windows` (PowerShell 5.1; 
 powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/build.ps1 [-Verify]
 ```
 
-1. Creates the repository, which holds the project only: no file of AGNOS (RQ-MTA-005).
+1. Creates the repository, which holds the project and the block of `agnos-init`, whose relative path requires the demo to stay beside this repository (RQ-MTA-005, RQ-INI-008).
 2. Replays `assets/scenario.json` with `assets/content/`, committing with the identity and dates of each
    step through environment variables only: no git configuration is changed, no remote is added, nothing
    is pushed. The index of each step comes from this working tree's `agnos-index`.

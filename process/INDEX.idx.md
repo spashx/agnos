@@ -5,20 +5,20 @@
 FTR-AGT-001|1-30||Agent entry points
 RQ-AGT-001|16-30||Every agent entry point loads the whole process
 @process/1.requirements/FTR-DMO-001-demo-repository.md
-FTR-DMO-001|1-239||Demo repository
+FTR-DMO-001|1-240||Demo repository
 RQ-DMO-001|27-40||Sibling independent repository
-RQ-DMO-002|41-56||The project without AGNOS
-RQ-DMO-003|57-71||Source code in two languages
-RQ-DMO-004|72-87||Code follows the AGNOS code rules
-RQ-DMO-005|88-102||Process artifacts that led to the code
-RQ-DMO-006|103-118||The process mechanisms are showcased
-RQ-DMO-007|119-131||The index is produced by the skill
-RQ-DMO-008|132-145||Traceability between process and code
-RQ-DMO-009|146-161||README declares the demo synthetic
-RQ-DMO-020|162-181||The generator is kept as the `agnos-meta-demo` skill
-RQ-DMO-022|182-201||A user interface built on a design system
-RQ-DMO-010|204-225||Creating the demo leaves the user's environment untouched
-RQ-DMO-021|226-239||Rebuilding is reproducible
+RQ-DMO-002|41-57||The project without AGNOS
+RQ-DMO-003|58-72||Source code in two languages
+RQ-DMO-004|73-88||Code follows the AGNOS code rules
+RQ-DMO-005|89-103||Process artifacts that led to the code
+RQ-DMO-006|104-119||The process mechanisms are showcased
+RQ-DMO-007|120-132||The index is produced by the skill
+RQ-DMO-008|133-146||Traceability between process and code
+RQ-DMO-009|147-162||README declares the demo synthetic
+RQ-DMO-020|163-182||The generator is kept as the `agnos-meta-demo` skill
+RQ-DMO-022|183-202||A user interface built on a design system
+RQ-DMO-010|205-226||Creating the demo leaves the user's environment untouched
+RQ-DMO-021|227-240||Rebuilding is reproducible
 @process/1.requirements/FTR-DMO-002-simulated-team-history.md
 FTR-DMO-002|1-158||Simulated team and history
 RQ-DMO-011|19-35||Identities encode the role
@@ -111,12 +111,12 @@ RQ-INI-007|88-99||The call is stated where it is needed
 RQ-INI-008|100-112||The demo is an initialised project
 RQ-INI-009|115-125||The skill follows the documented practices
 @process/1.requirements/FTR-MTA-001-toolkit-and-meta-separation.md
-FTR-MTA-001|1-77||The Toolkit Apart from its Own Development
+FTR-MTA-001|1-78||The Toolkit Apart from its Own Development
 RQ-MTA-001|21-32||Meta skills carry a prefix
 RQ-MTA-002|33-44||The prefix is the only criterion
 RQ-MTA-003|45-54||An existing demo can still be rebuilt
 RQ-MTA-004|55-65||The layers are stated
-RQ-MTA-005|66-77||The demo holds the project only
+RQ-MTA-005|66-78||The demo holds the project only
 @process/1.requirements/FTR-TRC-001-traceability-matrix.md
 FTR-TRC-001|1-487||AGNOS Traceability Matrix
 RQ-TRC-001|21-31||Command-line inputs and output
@@ -435,7 +435,7 @@ TASK-IDX-002|36-53|Done|Skill packaging and process integration
 PLAN-INI-001|1-50||The agnos-init Skill
 TASK-INI-001|16-27|Done|The skill and its scripts
 TASK-INI-002|28-39|Done|State where the call is needed
-TASK-INI-003|40-50|Not Started|The demo as an initialised project
+TASK-INI-003|40-50|Done|The demo as an initialised project
 @process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion

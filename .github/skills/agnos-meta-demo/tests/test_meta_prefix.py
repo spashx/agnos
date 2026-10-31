@@ -1,5 +1,5 @@
 """Tests of the names of the meta skills and of the demo's content (FTR-MTA-001, TASK-MTA-001, TASK-MTA-003;
-ADR-MTA-001: DEC-MTA-003, DEC-MTA-006).
+ADR-MTA-001: DEC-MTA-003, DEC-MTA-006; TASK-INI-003, RQ-INI-008).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-demo/tests -v
 """
@@ -23,10 +23,13 @@ META_AGENT = "agnos-meta-docs-sync.md"
 OLD_NAMES = ("agnos-demo", "agnos-docs-sync")
 NAME_RE = re.compile(r"^name:\s*(\S+)\s*$", re.M)
 PATTERN_RE = re.compile(r"^\$TOOLKIT_PATTERN = '([^']*)'", re.M)
-TOOLKIT_PATHS = (".github/skills/agnos-index/SKILL.md", ".claude/settings.json", "CLAUDE.md", "AGENTS.md", "GETTING_STARTED.MD",
+TOOLKIT_PATHS = (".github/skills/agnos-index/SKILL.md", ".claude/settings.json", "GETTING_STARTED.MD",
                  "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "agnos-overview.png")
-PROJECT_PATHS = ("README.md", ".gitignore", ".gitattributes", "process/INDEX.idx.md", "service/roombook/CHANGELOG.md", "client/src/app.ts")
+PROJECT_PATHS = ("README.md", ".gitignore", ".gitattributes", "CLAUDE.md", "AGENTS.md", "process/INDEX.idx.md", "service/roombook/CHANGELOG.md", "client/src/app.ts")
 OWN_FILES = {".gitignore", ".gitattributes"}
+DEMO_TOOLKIT_PATH = "../agnos-lightweight-process"
+TRIGRAMS_RE = re.compile(r"^\$TOOLKIT_TRIGRAMS = '([^']*)'", re.M)
+OWN_TRIGRAMS = {"INI", "MTA"}
 
 
 def name_in(path):
@@ -69,6 +72,14 @@ class DemoContentTest(unittest.TestCase):
             self.assertRegex(path, pattern)
         for path in PROJECT_PATHS:
             self.assertNotRegex(path, pattern)
+
+    def test_RQ_INI_008_given_the_scenario_then_the_first_commit_calls_agnos_init_with_a_relative_path(self):
+        self.assertEqual(DEMO_TOOLKIT_PATH, self.plan["steps"][0]["init"])
+
+    def test_RQ_INI_008_given_the_verification_then_it_refuses_the_ids_of_this_feature_and_checks_the_block(self):
+        text = VERIFY.read_text(encoding="utf-8")
+        self.assertLessEqual(OWN_TRIGRAMS, set(TRIGRAMS_RE.search(text).group(1).split("|")))
+        self.assertIn("Report 'RQ-INI-008'", text)
 
     def test_RQ_MTA_005_given_the_demo_readme_then_it_gives_no_path_into_the_toolkit(self):
         for name in ("README.md", "drafts/README.web.md"):

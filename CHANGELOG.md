@@ -79,7 +79,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - `agnos-index`'s error without `process/`, START SESSION, `README.md` and `GETTING_STARTED.MD` say to call `agnos-init`
   (TASK-INI-002, RQ-INI-007, RQ-IDX-008)
-- The demo holds the project only, with no AGNOS file, and `agnos-meta-demo` runs the skills on it from this
+- The demo is an initialised project: its first commit holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`
+  (TASK-INI-003, RQ-INI-008)
+- The demo holds the project only, with no other AGNOS file, and `agnos-meta-demo` runs the skills on it from this
   repository (TASK-MTA-003, RQ-MTA-005)
 - Maintainer skills renamed `agnos-meta-demo` and `agnos-meta-docs-sync`, with the sub-agent; the prefix `agnos-meta-` is
   the only criterion that marks them (TASK-MTA-001, RQ-MTA-001, RQ-MTA-002)

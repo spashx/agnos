@@ -42,16 +42,17 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo repository SHALL NOT contain any file of the AGNOS toolkit or of this repository's public
-  repository layer, in any commit, nor any artifact or ID of this repository's own `process/` folder (amended by the
-  owner on 2026-10-24 and, for the removal of the toolkit, on 2026-10-31; RQ-MTA-005).
+  repository layer, in any commit, except the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`, nor any artifact or ID of
+  this repository's own `process/` folder (amended by the owner on 2026-10-24 and, for the removal of the toolkit, on
+  2026-10-31; RQ-MTA-005, RQ-INI-008).
 - **Rationale**: The demo must look like a project that receives AGNOS as a plugin, with no trace of how AGNOS itself
   was built.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo repository at its last commit
   - **When** the file list of its whole history is read
-  - **Then** no file of the toolkit or of the public repository layer is present
-  - **And** no ID with a trigram TRC, IDX, DSY, AGT, FIX or DMO appears in its tree
+  - **Then** no file of the toolkit or of the public repository layer is present, other than these two
+  - **And** no ID with a trigram TRC, IDX, DSY, AGT, FIX, DMO, MTA or INI appears in its tree
 - **Dependencies**: RQ-DMO-001
 
 ### RQ-DMO-003: Source code in two languages

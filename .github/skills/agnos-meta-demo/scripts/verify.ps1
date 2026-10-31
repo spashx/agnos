@@ -22,14 +22,18 @@ $ErrorActionPreference = 'Stop'
 
 $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
 $SKILL_NAME = 'agnos-meta-demo'
-$TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CLAUDE|AGENTS|CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|agnos-overview\.png$)'   # RQ-MTA-005
+$TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|agnos-overview\.png$)'   # RQ-MTA-005, RQ-INI-008
+$INIT_SCRIPT = '.github/skills/agnos-init/scripts/init.ps1'
+$INIT_FILES = @('CLAUDE.md', 'AGENTS.md')
+$BLOCK_BEGIN = '<!-- AGNOS:BEGIN'
+$BLOCK_END = '<!-- AGNOS:END -->'
 $INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
 $ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
 $ID_PATTERN = '\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b'
 $DEFINITION_PATTERN = '^\+#{1,3} ((?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}):'
-$TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO'
+$TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO|MTA|INI'
 $TASK_COMMIT_PATTERN = '^(feat|fix|docs|refactor|test|chore|perf|build|ci|style)\([A-Z]{3}\): (ADR-[A-Z]{3}-\d{3}/)?TASK-[A-Z]{3}-\d{3} .+$'
 $MIN_FEATURES = 3; $MIN_REQUIREMENTS = 12; $MIN_ADRS = 3; $MIN_PLANS = 3; $MIN_SOURCES = 4
 $MIN_COMMITS = 50; $MIN_SPAN_DAYS = 56; $MAX_SPAN_DAYS = 64; $MIN_ACTIVE_DAYS = 5; $MAX_ACTIVE_RATIO = 0.8
@@ -270,6 +274,14 @@ $uxCommits = @(Demo-Git @('log', '--all', '--author=-ux', '--format=%h'))
 $clientTests = Start-Process -FilePath node -ArgumentList '--test', 'tests/*.test.ts' -WorkingDirectory (Join-Path $Demo 'client') -Wait -PassThru -WindowStyle Hidden
 Report 'RQ-DMO-022' (($uiMissing.Count -eq 0) -and $webCitesDesign -and ($uxCommits.Count -gt 0) -and ($clientTests.ExitCode -eq 0)) "design system and interface artifacts missing: $(if ($uiMissing.Count) { $uiMissing -join ', ' } else { 'none' }); UI plan cites the design system: $webCitesDesign; commits by a ux identity: $($uxCommits.Count); client tests exit $($clientTests.ExitCode)"
 
+# RQ-INI-008: the two files hold the block alone, and a new agnos-init call on the demo changes nothing
+$blockOnly = @($INIT_FILES | Where-Object {
+  (Test-Path -LiteralPath (Join-Path $Demo $_)) -and ([System.IO.File]::ReadAllText((Join-Path $Demo $_)).TrimEnd()) -match "^$([regex]::Escape($BLOCK_BEGIN))" -and ([System.IO.File]::ReadAllText((Join-Path $Demo $_)).TrimEnd()).EndsWith($BLOCK_END)
+})
+$initRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INIT_SCRIPT), '-Target', '.', '-Toolkit', $plan.steps[0].init -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
+$initDirty = @(Demo-Git @('status', '--porcelain'))
+Report 'RQ-INI-008' (($blockOnly.Count -eq $INIT_FILES.Count) -and ($initRun.ExitCode -eq 0) -and ($initDirty.Count -eq 0)) "files with the block alone: $($blockOnly.Count) of $($INIT_FILES.Count); agnos-init exit $($initRun.ExitCode); changes after the call: $($initDirty.Count)"
+
 # RQ-DMO-020
 $skillFiles = @(".github/skills/$SKILL_NAME/SKILL.md", ".claude/skills/$SKILL_NAME/SKILL.md", ".github/skills/$SKILL_NAME/scripts/replay.ps1", ".github/skills/$SKILL_NAME/scripts/verify.ps1", ".github/skills/$SKILL_NAME/scripts/build.ps1")
 $absent = @($skillFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $Toolkit $_)) })
@@ -278,7 +290,7 @@ Report 'RQ-DMO-020' (($absent.Count -eq 0) -and ($skillText -match '(?m)^### `bu
 
 # RQ-DMO-021
 if ($SkipRebuild) { Report 'RQ-DMO-021' $true 'skipped (-SkipRebuild)' } else {
-  $temp = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + [guid]::NewGuid().ToString('N'))
+  $temp = Join-Path (Split-Path -Parent $Toolkit) ($REBUILD_FOLDER_PREFIX + [guid]::NewGuid().ToString('N'))   # beside the toolkit, as the block's relative path requires (RQ-INI-008)
   $replay = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $PSScriptRoot 'replay.ps1'), '-Scenario', $Scenario, '-Content', (Join-Path $PSScriptRoot '../assets/content'), '-Toolkit', $Toolkit, '-Target', $temp -Wait -PassThru -WindowStyle Hidden
   $same = $false
   if ($replay.ExitCode -eq 0) { $same = ((& git -C $temp rev-parse HEAD) -eq (& git -C $Demo rev-parse HEAD)) }
