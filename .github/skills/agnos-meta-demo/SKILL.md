@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-demo
-description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-lightweight-process.demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario. Not part of the toolkit shipped to the demo."
+description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-lightweight-process.demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario."
 argument-hint: "build [--verify] | verify"
 ---
 
@@ -8,8 +8,8 @@ argument-hint: "build [--verify] | verify"
 # AGNOS Demo
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-demo/`) and Claude Code
-(`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo's toolkit
-baseline leaves it out, and CLAUDE.md and AGENTS.md do not list it.
+(`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo holds no AGNOS
+file (RQ-MTA-005), and CLAUDE.md and AGENTS.md do not list it.
 
 The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
 simulated: seven fictitious people (`linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`, and the
@@ -26,7 +26,7 @@ Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001.
 | `scripts/build.ps1` | Runs the engine on this skill's scenario and content, records the build |
 | `scripts/verify.ps1` | One PASS/FAIL line per requirement RQ-DMO-001 to RQ-DMO-021 |
 | `assets/scenario.json` | Cast, calendar, and the ordered commits (date, time, identity, files) |
-| `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar |
+| `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar, and `project/` for its git files, named so they do not apply here |
 | `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion (RQ-MTA-001, RQ-MTA-002) |
 | `references/code-contract.md` | The contract given to the sub-agents that generate the code |
 
@@ -40,11 +40,10 @@ Run from the repository root with `session.platform = windows` (PowerShell 5.1; 
 powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/build.ps1 [-Verify]
 ```
 
-1. Takes the tracked files of this working tree, except `process/`, the `agnos-meta-*` skills and sub-agents and the
-   README, as the toolkit baseline (first commit).
+1. Creates the repository, which holds the project only: no file of AGNOS (RQ-MTA-005).
 2. Replays `assets/scenario.json` with `assets/content/`, committing with the identity and dates of each
    step through environment variables only: no git configuration is changed, no remote is added, nothing
-   is pushed.
+   is pushed. The index of each step comes from this working tree's `agnos-index`.
 3. Rebuilds an existing demo only if the engine created it (marker `.git/agnos-demo-generated`); any other
    folder is refused.
 4. With `-Verify`, runs `verify` and returns its exit code.
@@ -66,7 +65,7 @@ demo's history is never edited by hand.
 ## When AGNOS evolves
 
 1. Make and commit the AGNOS change.
-2. Run `build -Verify`. The new toolkit lands in the demo's first commit; the scenario is replayed on top.
+2. Run `build -Verify`. The scenario is replayed with this working tree's `agnos-index`, and `verify` runs its `agnos-trace` on the demo.
 3. If a check fails because a rule changed (a new template field, a new commit format), update
    `assets/content/` or `assets/scenario.json`, rebuild and verify again.
 4. To show a new capability, extend the scenario with new steps inside the two-month period and add the

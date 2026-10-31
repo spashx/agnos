@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+process/TRACEABILITY.html
+process/TRACEABILITY.json
+process/TRACEABILITY.data.js

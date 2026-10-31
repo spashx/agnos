@@ -1,4 +1,5 @@
-"""Tests of the prefix of the meta skills (FTR-MTA-001, TASK-MTA-001; ADR-MTA-001: DEC-MTA-003).
+"""Tests of the names of the meta skills and of the demo's content (FTR-MTA-001, TASK-MTA-001, TASK-MTA-003;
+ADR-MTA-001: DEC-MTA-003, DEC-MTA-006).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-demo/tests -v
 """
@@ -15,13 +16,17 @@ CLAUDE_SKILLS = ROOT / ".claude" / "skills"
 AGENTS = ROOT / ".claude" / "agents"
 SKILL_FILE = "SKILL.md"
 SCENARIO = SKILL_DIR / "assets" / "scenario.json"
+CONTENT = SKILL_DIR / "assets" / "content"
 VERIFY = SKILL_DIR / "scripts" / "verify.ps1"
 META_SKILLS = ("agnos-meta-demo", "agnos-meta-docs-sync")
 META_AGENT = "agnos-meta-docs-sync.md"
 OLD_NAMES = ("agnos-demo", "agnos-docs-sync")
 NAME_RE = re.compile(r"^name:\s*(\S+)\s*$", re.M)
-PATTERN_RE = re.compile(r"^\$MAINTAINER_PATTERN = '([^']*)'", re.M)
-META_EXCLUSIONS = {r"^\.github/skills/agnos-meta-", r"^\.claude/skills/agnos-meta-", r"^\.claude/agents/agnos-meta-"}
+PATTERN_RE = re.compile(r"^\$TOOLKIT_PATTERN = '([^']*)'", re.M)
+TOOLKIT_PATHS = (".github/skills/agnos-index/SKILL.md", ".claude/settings.json", "CLAUDE.md", "AGENTS.md", "GETTING_STARTED.MD",
+                 "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "agnos-overview.png")
+PROJECT_PATHS = ("README.md", ".gitignore", ".gitattributes", "process/INDEX.idx.md", "service/roombook/CHANGELOG.md", "client/src/app.ts")
+OWN_FILES = {".gitignore", ".gitattributes"}
 
 
 def name_in(path):
@@ -44,20 +49,32 @@ class NamesTest(unittest.TestCase):
             self.assertFalse((AGENTS / f"{name}.md").exists(), name)
 
 
-class CriterionTest(unittest.TestCase):
-    """RQ-MTA-002."""
+class DemoContentTest(unittest.TestCase):
+    """RQ-MTA-005."""
 
-    def test_RQ_MTA_002_given_the_baseline_exclusions_then_they_name_the_prefix_and_no_skill(self):
-        exclusions = json.loads(SCENARIO.read_text(encoding="utf-8"))["baselineExclude"]
-        self.assertTrue(META_EXCLUSIONS <= set(exclusions))
-        self.assertEqual([], [e for e in exclusions if any(n in e for n in OLD_NAMES + META_SKILLS)])
+    def setUp(self):
+        self.plan = json.loads(SCENARIO.read_text(encoding="utf-8"))
 
-    def test_RQ_MTA_002_given_the_verification_then_its_pattern_names_the_prefix_and_no_skill(self):
+    def test_RQ_MTA_005_given_the_scenario_then_it_imports_no_toolkit_and_starts_with_the_projects_own_files(self):
+        self.assertNotIn("baselineExclude", self.plan)
+        self.assertEqual([], [s for s in self.plan["steps"] if s["op"] == "baseline"])
+        first = self.plan["steps"][0]
+        self.assertEqual(OWN_FILES, {item["to"] for item in first["add"]})
+        for item in first["add"]:
+            self.assertTrue((CONTENT / item["from"]).is_file(), item["from"])
+
+    def test_RQ_MTA_005_given_the_verification_then_it_refuses_every_toolkit_file_and_no_project_file(self):
         pattern = PATTERN_RE.search(VERIFY.read_text(encoding="utf-8")).group(1)
-        for path in (".github/skills/agnos-meta-other/SKILL.md", ".claude/skills/agnos-meta-other/SKILL.md", ".claude/agents/agnos-meta-other.md"):
+        for path in TOOLKIT_PATHS:
             self.assertRegex(path, pattern)
-        self.assertNotRegex(".github/skills/agnos-index/SKILL.md", pattern)
-        self.assertEqual([], [n for n in OLD_NAMES + META_SKILLS if n in pattern])
+        for path in PROJECT_PATHS:
+            self.assertNotRegex(path, pattern)
+
+    def test_RQ_MTA_005_given_the_demo_readme_then_it_gives_no_path_into_the_toolkit(self):
+        for name in ("README.md", "drafts/README.web.md"):
+            text = (CONTENT / name).read_text(encoding="utf-8")
+            self.assertNotIn(".github/", text, name)
+            self.assertNotIn("clone of the AGNOS toolkit", text, name)
 
 
 if __name__ == "__main__":

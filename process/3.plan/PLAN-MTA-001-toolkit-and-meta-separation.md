@@ -6,8 +6,8 @@ exclusions depend on both, then state the layers. Everything stays on the local 
 build is the next plan.
 
 ## References
-- **Requirements**: RQ-MTA-001 to RQ-MTA-004; amended: RQ-DMO-002, RQ-DMO-020
-- **ADRs**: ADR-MTA-001 (DEC-MTA-002, DEC-MTA-003); amended: DEC-DMO-006
+- **Requirements**: RQ-MTA-001 to RQ-MTA-005; amended: RQ-DMO-002, RQ-DMO-020
+- **ADRs**: ADR-MTA-001 (DEC-MTA-002, DEC-MTA-003, DEC-MTA-006); amended: DEC-DMO-006
 
 This plan implements the tasks in the format specified below.
 ---
@@ -37,3 +37,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `CONTRIBUTING.md` re-read: three layers (lines 29-31), prefix rule (33), 400 lines (44). `git diff --quiet` on `.github/instructions`: unchanged, 382 lines. Demo rebuilt with the new files, HEAD 4323b56: 22 passed, 0 failed. For TASK-MTA-001 after commit 6ff3495: `git log --follow` reaches earlier history (3, 2 and 2 commits on the renamed files).
 - **Assumptions**: this task's plan text changed the tier from S to M before approval, since the edits exceed 5 lines; no unit test for documentation text, as `agnos-index` and `agnos-trace` suites were last run on TASK-MTA-001 and no code changed since.
+
+### TASK-MTA-003: The demo without the toolkit
+- **Tier**: L
+- **Status**: Done
+- **Description**: Amend RQ-DMO-002 and RQ-DMO-020. Write the checks first: invert the RQ-DMO-002 check in `verify.ps1` so that no toolkit file may be present, and test it. Replace the baseline step of the scenario with a project start that commits the demo's own `.gitignore` and `.gitattributes` from `assets/content/`, make `replay.ps1` and `verify.ps1` run `agnos-index` from `-Toolkit`, correct the toolkit paths in the demo's README and draft, and rebuild.
+- **Requirement refs**: RQ-MTA-005, RQ-DMO-002, RQ-DMO-020
+- **ADR refs**: ADR-MTA-001 (DEC-MTA-006), ADR-DMO-001 (DEC-DMO-006)
+- **Acceptance Criteria**: Given the rebuilt demo, Then each criterion of RQ-MTA-005 holds, at HEAD and in every commit of its history; Given a change to a toolkit file, When the demo is rebuilt, Then `verify` still runs that toolkit's `agnos-index` and `agnos-trace` on it.
+- **Dependencies**: TASK-MTA-001
+- **Assignee**: AI
+- **Verification**: `test_meta_prefix.py`: 5 OK, 3 of them failing before the code. `build -Verify`: HEAD 6c848f1, 22 passed, 0 failed; RQ-DMO-002 reads 0 toolkit file in the history and 0 toolkit ID in the tree; RQ-DMO-007 and RQ-DMO-008 pass from this repository's scripts, the demo having none; `git ls-files`: 95 files, none of AGNOS. Suites: `agnos-meta-docs-sync` 14 OK, `agnos-trace` 356 OK (3 skipped), `agnos-index` all passed.
+- **Assumptions**: two tests of `baselineExclude` and `MAINTAINER_PATTERN` were replaced, since both went with the toolkit, and RQ-MTA-002 now holds in the docs-sync report only; the demo's `.gitignore` and `.gitattributes` are stored as `project/*.txt` so they do not apply in this repository; the check of toolkit IDs now covers the demo's whole tree, wider than the former `process/`; the README says the plugin is not available yet.

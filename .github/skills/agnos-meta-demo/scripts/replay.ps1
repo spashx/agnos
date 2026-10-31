@@ -7,15 +7,15 @@
   dates of each commit come from environment variables of the git process, so no git configuration is
   written outside <Target> and no remote is added. An existing <Target> is rebuilt only if this engine
   created it. Exit code 0 on success, 1 on error (message on the error stream).
-.PARAMETER Scenario  Scenario JSON file (identities, baselineExclude, steps).
+.PARAMETER Scenario  Scenario JSON file (identities, steps).
 .PARAMETER Content   Content library folder; paths in `add` are relative to it.
-.PARAMETER Toolkit   Git working tree whose tracked files form the baseline step (needed only by it).
+.PARAMETER Toolkit   Working tree of AGNOS whose agnos-index script runs on the target (RQ-MTA-005).
 .PARAMETER Target    Folder of the repository to create.
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Scenario,
   [Parameter(Mandatory = $true)][string]$Content,
-  [string]$Toolkit,
+  [Parameter(Mandatory = $true)][string]$Toolkit,
   [Parameter(Mandatory = $true)][string]$Target
 )
 
@@ -88,8 +88,7 @@ function Get-FullPath([string]$Path) { return [System.IO.Path]::GetFullPath($Pat
 
 function Assert-SafeTarget([string]$TargetFull) {
   $separator = [System.IO.Path]::DirectorySeparatorChar
-  $roots = @($PSScriptRoot, $Content, $Scenario) | ForEach-Object { Get-FullPath $_ }
-  if ($Toolkit) { $roots += (Get-FullPath $Toolkit) }
+  $roots = @($PSScriptRoot, $Content, $Scenario, $Toolkit) | ForEach-Object { Get-FullPath $_ }
   foreach ($root in $roots) {
     if ($root -eq $TargetFull -or $root.StartsWith($TargetFull.TrimEnd($separator) + $separator)) {
       throw "refusing to rebuild '$TargetFull': it contains the generator, the content or the toolkit"
@@ -120,19 +119,6 @@ function Get-CommitEnvironment($Identities, $Step, [string]$Offset) {
   return @{
     GIT_AUTHOR_NAME = $Step.by; GIT_AUTHOR_EMAIL = $identity.email; GIT_AUTHOR_DATE = $stamp
     GIT_COMMITTER_NAME = $Step.by; GIT_COMMITTER_EMAIL = $identity.email; GIT_COMMITTER_DATE = $stamp
-  }
-}
-
-function Copy-Baseline([string]$ToolkitFull, [string]$TargetFull, [string[]]$Exclude) {
-  $listing = Invoke-Git @('-c', 'core.quotepath=false', 'ls-files', '-z') $ToolkitFull
-  $Exclude = @($Exclude | Where-Object { $_ })
-  foreach ($relative in ($listing -split [char]0 | Where-Object { $_ })) {
-    if ($Exclude | Where-Object { $relative -match $_ }) { continue }
-    $source = Join-Path $ToolkitFull $relative
-    if (-not (Test-Path -LiteralPath $source)) { continue }
-    $destination = Join-Path $TargetFull $relative
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-    Copy-Item -LiteralPath $source -Destination $destination -Force
   }
 }
 
@@ -185,7 +171,7 @@ function Add-Lines($Append, [string]$TargetFull) {
 }
 
 function Update-Index([string]$TargetFull) {
-  $result = Invoke-Process $POWERSHELL_EXE @('-NoProfile', '-File', $INDEX_SCRIPT) $TargetFull
+  $result = Invoke-Process $POWERSHELL_EXE @('-NoProfile', '-File', (Join-Path (Get-FullPath $Toolkit) $INDEX_SCRIPT)) $TargetFull
   if ($result.ExitCode -ne 0) { throw "agnos-index failed ($($result.ExitCode)): $($result.Error.Trim())" }
 }
 
@@ -215,7 +201,7 @@ function Resolve-Conflicts($Step, [string]$ContentFull, [string]$TargetFull) {
   if ($left) { throw "conflicts left: $left" }
 }
 
-function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$ToolkitFull, [string]$TargetFull, [hashtable]$Labels) {
+function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$TargetFull, [hashtable]$Labels) {
   switch ($Step.op) {
     'branch' {
       $arguments = @('checkout', '-q', '-b', $Step.name)
@@ -235,12 +221,8 @@ function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$ToolkitFull, [
         Invoke-Git @('commit', '-q', '--no-verify', '-m', $Step.message) $TargetFull $environment | Out-Null
       }
     }
-    { $_ -in 'baseline', 'commit' } {
+    'commit' {
       $environment = Get-CommitEnvironment $Plan.identities $Step $Plan.utcOffset
-      if ($Step.op -eq 'baseline') {
-        if (-not $ToolkitFull) { throw 'the baseline step needs -Toolkit' }
-        Copy-Baseline $ToolkitFull $TargetFull @($Plan.baselineExclude)
-      }
       foreach ($item in @($Step.add)) { if ($item) { Add-ContentItem $item $ContentFull $TargetFull } }
       foreach ($edit in @($Step.edits)) { if ($edit) { Edit-File $edit $TargetFull } }
       foreach ($taskId in @($Step.closeTasks)) { if ($taskId) { Close-Task $taskId $ContentFull $TargetFull } }
@@ -256,12 +238,11 @@ function Invoke-Step($Step, $Plan, [string]$ContentFull, [string]$ToolkitFull, [
 try {
   $targetFull = Get-FullPath $Target
   $contentFull = Get-FullPath $Content
-  $toolkitFull = if ($Toolkit) { Get-FullPath $Toolkit } else { $null }
   Assert-SafeTarget $targetFull
   $plan = Read-Text (Get-FullPath $Scenario) | ConvertFrom-Json
   Initialize-Repository $targetFull $plan.defaultBranch
   $labels = @{}
-  foreach ($step in $plan.steps) { Invoke-Step $step $plan $contentFull $toolkitFull $targetFull $labels }
+  foreach ($step in $plan.steps) { Invoke-Step $step $plan $contentFull $targetFull $labels }
   $count = (Invoke-Git @('rev-list', '--count', '--all') $targetFull).Trim()
   $head = (Invoke-Git @('rev-parse', '--short', 'HEAD') $targetFull).Trim()
   Write-Output "agnos-meta-demo replay: $count commits, HEAD $head, $targetFull"

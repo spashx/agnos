@@ -39,7 +39,7 @@ a later feature, after ADR-MTA-001), and pushing anything to a remote.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a skill `agnos-meta-other` whose description does not say maintainer, When the docs-sync report runs,
   Then it is flagged as a maintainer skill; Given a skill `agnos-other` whose description starts with "AGNOS maintainer skill", Then
-  it is not; Given the demo's baseline exclusions and its verification, When they are read, Then they name the prefix and no skill.
+  it is not. The demo's exclusions, which this criterion also covered, went with the toolkit (RQ-MTA-005, 2026-10-31).
 - **Dependencies**: RQ-MTA-001
 
 ### RQ-MTA-003: An existing demo can still be rebuilt
@@ -62,3 +62,16 @@ a later feature, after ADR-MTA-001), and pushing anything to a remote.
 - **Acceptance Criteria**: Given `CONTRIBUTING.md`, When it is read, Then it gives the three layers and the prefix rule, And it gives
   the instructions file's line budget as 400 lines, And `agnos-sw-eng.instructions.md` is unchanged.
 - **Dependencies**: ADR-MTA-001
+
+### RQ-MTA-005: The demo holds the project only
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The demo repository SHALL hold only what a project using AGNOS produces: its code, its `process/` folder, its
+  README and its own git configuration files, with no file of the AGNOS toolkit or of the public repository layer; `agnos-meta-demo`
+  SHALL run `agnos-index` and `agnos-trace` from the toolkit of this repository on it.
+- **Rationale**: a project will receive AGNOS as a plugin, so the toolkit will not be in its tree; it also removes from the demo the IDs of AGNOS's own development.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the demo at any commit, When its files are listed, Then none is under `.github/` or `.claude/`, And
+  `CLAUDE.md`, `AGENTS.md`, `GETTING_STARTED.MD`, `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` and
+  `agnos-overview.png` are absent; Given the demo, When `build -Verify` runs, Then every check passes, And `process/INDEX.idx.md` is unchanged by a new index run.
+- **Dependencies**: RQ-MTA-001, ADR-MTA-001

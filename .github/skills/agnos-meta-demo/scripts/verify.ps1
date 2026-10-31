@@ -22,7 +22,8 @@ $ErrorActionPreference = 'Stop'
 
 $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
 $SKILL_NAME = 'agnos-meta-demo'
-$MAINTAINER_PATTERN = '(skills|agents)/agnos-meta-'   # TASK-DMO-014; RQ-MTA-002, DEC-MTA-003: the prefix alone
+$TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CLAUDE|AGENTS|CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|agnos-overview\.png$)'   # RQ-MTA-005
+$INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
 $ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
@@ -96,11 +97,9 @@ $topFull = [System.IO.Path]::GetFullPath($top)
 Report 'RQ-DMO-001' ((Test-Path -LiteralPath $Demo) -and ($topFull -eq $Demo) -and ((Split-Path -Leaf $Demo) -eq $DEMO_FOLDER_NAME) -and ((Split-Path -Parent $Demo) -eq (Split-Path -Parent $Toolkit))) "sibling independent repository at $Demo"
 
 # RQ-DMO-002
-$toolkitFiles = Get-Tracked $Toolkit | Where-Object { $f = $_; -not (@($plan.baselineExclude) | Where-Object { $f -match $_ }) -and (Test-Path -LiteralPath (Join-Path $Toolkit $f)) }
-$missing = @($toolkitFiles | Where-Object { $demoFiles -notcontains $_ })
-$foreignIds = @(& git -C $Demo grep -nE "(FTR|RQ|ADR|DEC|PLAN|TASK)-($TOOLKIT_TRIGRAMS)-[0-9]{3}" -- process)
-$demoSkill = @($demoFiles | Where-Object { $_ -match $MAINTAINER_PATTERN })     # RQ-DMO-002 as amended: no maintainer skill
-Report 'RQ-DMO-002' (($missing.Count -eq 0) -and ($foreignIds.Count -eq 0) -and ($demoSkill.Count -eq 0)) "toolkit files missing: $($missing.Count); toolkit IDs in process/: $($foreignIds.Count); maintainer skill files: $($demoSkill.Count)"
+$toolkitInHistory = @(Demo-Git @('log', '--all', '--name-only', '--format=') | Where-Object { $_ -match $TOOLKIT_PATTERN } | Sort-Object -Unique)   # RQ-MTA-005
+$foreignIds = @(& git -C $Demo grep -nE "(FTR|RQ|ADR|DEC|PLAN|TASK)-($TOOLKIT_TRIGRAMS)-[0-9]{3}")
+Report 'RQ-DMO-002' (($toolkitInHistory.Count -eq 0) -and ($foreignIds.Count -eq 0)) "toolkit files in the history: $($toolkitInHistory.Count); toolkit IDs in the tree: $($foreignIds.Count)"
 
 # RQ-DMO-003
 $py = @($demoFiles | Where-Object { $_ -match '^service/roombook/.+\.py$' })
@@ -148,7 +147,7 @@ $sessionBranches = @(Demo-Git @('branch', '--list', 'feature/*'))
 Report 'RQ-DMO-006' (($earsOk.Count -eq 0) -and ($tiersPresent.Count -eq 3) -and ($unfilled.Count -eq 0) -and ($alternatives -eq $adrs.Count) -and ($demoFiles -contains 'process/_sessionstate/session.yaml') -and ($logRows -ge $sessionBranches.Count)) "missing EARS types: $($earsOk.Count); tiers present: $($tiersPresent -join ''); M/L tasks unfilled: $($unfilled.Count); metrics rows $logRows for $($sessionBranches.Count) sessions"
 
 # RQ-DMO-007
-$indexRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', '.github/skills/agnos-index/scripts/build-index.ps1' -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
+$indexRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INDEX_SCRIPT) -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
 $dirty = @(Demo-Git @('status', '--porcelain'))
 Report 'RQ-DMO-007' (($indexRun.ExitCode -eq 0) -and ($dirty.Count -eq 0)) "agnos-index exit $($indexRun.ExitCode); working tree changes after the run: $($dirty.Count)"
 

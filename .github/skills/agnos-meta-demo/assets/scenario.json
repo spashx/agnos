@@ -47,20 +47,23 @@
       "role": "ux"
     }
   },
-  "baselineExclude": [
-    "^process/",
-    "^\\.github/skills/agnos-meta-",
-    "^\\.claude/skills/agnos-meta-",
-    "^\\.claude/agents/agnos-meta-",
-    "^README\\.md$"
-  ],
   "steps": [
     {
-      "op": "baseline",
+      "op": "commit",
       "date": "2026-08-24",
       "time": "09:17",
       "by": "omar-arch",
-      "message": "chore: import the AGNOS toolkit"
+      "message": "chore: start the project",
+      "add": [
+        {
+          "from": "project/gitignore.txt",
+          "to": ".gitignore"
+        },
+        {
+          "from": "project/gitattributes.txt",
+          "to": ".gitattributes"
+        }
+      ]
     },
     {
       "op": "commit",

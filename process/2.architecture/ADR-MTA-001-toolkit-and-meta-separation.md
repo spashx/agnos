@@ -28,8 +28,8 @@ skill, which keep running in the workshop and are not delivered. A project gener
 `CONTRIBUTING.md` states this, so the generic instructions and their line budget do not change. Fulfils RQ-MTA-004.
 
 ### DEC-MTA-003: The prefix `agnos-meta-` is the only criterion
-Skills, pointers and sub-agents take the prefix (`agnos-meta-demo`, `agnos-meta-docs-sync`). The report's `MAINTAINER_MARK`, the
-demo's `baselineExclude` entries and `MAINTAINER_PATTERN` read the prefix. Internal names of the generated demo stay: the
+Skills, pointers and sub-agents take the prefix (`agnos-meta-demo`, `agnos-meta-docs-sync`). The report's `MAINTAINER_MARK` and the
+demo's exclusions, removed since by DEC-MTA-006, gave way to it. Internal names of the generated demo stay: the
 `.git/agnos-demo-*` files, the verify folder prefix and the `@agnos-demo.example` addresses. Closed plans and released changelog
 sections keep the old names as history. Fulfils RQ-MTA-001, RQ-MTA-002, RQ-MTA-003.
 
@@ -44,6 +44,13 @@ integration branch of this work. Its requirements come in a later feature.
 The same build gets a `plugin` target, and the copy format stays for agents without plugins. It needs a process skill, `agnos-init`,
 because a plugin's `CLAUDE.md` is not loaded and AGNOS needs its rules in every session; `SKILL.md` paths rewritten to the plugin
 root by the build; and no repository of its own at first. Its requirements come in a later feature.
+
+### DEC-MTA-006: The demo holds the project only
+Owner's decision of 2026-10-31: since projects will install AGNOS as a plugin, the demo keeps its code, `process/`, its README and its
+own `.gitignore` and `.gitattributes`, and no toolkit or public repository file. Its first commit starts the project instead of importing the
+toolkit. The engine and the checks run `agnos-index` and `agnos-trace` from this repository; a release is validated by running them from
+its output on the demo, which adjusts DEC-MTA-004. The stub `agnos-init` will write joins the demo when that skill exists. Until then the demo
+is shown and checked, and a session cannot be run in it. Amends RQ-DMO-002 and RQ-DMO-020. Fulfils RQ-MTA-005.
 
 ## Consequences
 - A third meta skill needs its name only; no list has to change.

@@ -38,22 +38,20 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **And** its top-level directory is itself, not `agnos-lightweight-process`
 - **Dependencies**: None
 
-### RQ-DMO-002: AGNOS toolkit without process data
+### RQ-DMO-002: The project without AGNOS
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The demo repository SHALL contain the AGNOS toolkit of this repository (the instructions
-  file, the four skills with their `.claude` entry points, `CLAUDE.md`, `AGENTS.md` and the getting-started
-  guide) and SHALL NOT contain any artifact of this repository's own `process/` folder, nor its maintainer skills:
-  `agnos-meta-demo`, which generates it, `agnos-meta-docs-sync`, with its sub-agent, and any other skill or sub-agent with the prefix `agnos-meta-` (amended by the owner on 2026-10-24 and 2026-10-31; RQ-MTA-002).
-- **Rationale**: The demo must look like a fresh clone of AGNOS in which a project was started, with no
-  trace of how AGNOS itself was built.
+- **Statement**: The demo repository SHALL NOT contain any file of the AGNOS toolkit or of this repository's public
+  repository layer, in any commit, nor any artifact or ID of this repository's own `process/` folder (amended by the
+  owner on 2026-10-24 and, for the removal of the toolkit, on 2026-10-31; RQ-MTA-005).
+- **Rationale**: The demo must look like a project that receives AGNOS as a plugin, with no trace of how AGNOS itself
+  was built.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo repository at its last commit
-  - **When** the file list is compared with this repository
-  - **Then** every toolkit file is present
-  - **And** no ID with a trigram TRC, IDX, DSY, AGT, FIX or DMO appears under `process/`
-  - **And** no `agnos-meta-` skill or sub-agent is present
+  - **When** the file list of its whole history is read
+  - **Then** no file of the toolkit or of the public repository layer is present
+  - **And** no ID with a trigram TRC, IDX, DSY, AGT, FIX or DMO appears in its tree
 - **Dependencies**: RQ-DMO-001
 
 ### RQ-DMO-003: Source code in two languages
@@ -175,7 +173,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Acceptance Criteria** (Gherkin):
   - **Given** a change made to a toolkit file of this repository
   - **When** `build` then `verify` are run through the skill
-  - **Then** the demo is rebuilt with the changed toolkit file in its first commit
+  - **Then** the demo is rebuilt, and `verify` runs that toolkit's `agnos-index` and `agnos-trace` on it (amended on 2026-10-31; RQ-MTA-005)
   - **And** `verify` reports one pass or fail line per requirement of FTR-DMO-001 and FTR-DMO-002
 - **Dependencies**: RQ-DMO-001, RQ-DMO-002
 
