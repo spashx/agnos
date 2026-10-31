@@ -20,14 +20,14 @@ Running them needs Python 3.10 or later. `python -m unittest discover -s .github
 Chrome, Chromium; `AGNOS_PERF_CENTER_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
 (`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_PERF_CENTER_PERF=1` adds the measure on a
 generated tree of 20,000 functions and 100,000 calls (about a minute), and the measures of the history (`test_history_perf.py`,
-2,000 commits) and of the delivery (`test_delivery_perf.py`, 1,000 tasks delivered; RQ-TRC-078).
+2,000 commits) and of the delivery (`test_delivery_perf.py`, 1,000 tasks delivered). <!-- RQ-TRC-078 -->
 
-## Libraries (FTR-TRC-005; ADR-TRC-010: DEC-TRC-040, DEC-TRC-041)
+## Libraries <!-- FTR-TRC-005; ADR-TRC-010: DEC-TRC-040, DEC-TRC-041 -->
 
 The page loads Cytoscape.js (the Graph view) and Apache ECharts (the library charts) from `cdnjs.cloudflare.com`, at the
-versions recorded in `assets/libraries.json` with their integrity hash (RQ-TRC-080, RQ-TRC-082); nothing is copied into
+versions recorded in `assets/libraries.json` with their integrity hash <!-- RQ-TRC-080, RQ-TRC-082 -->; nothing is copied into
 the skill or the page. The page needs the network once; the browser's cache usually serves the libraries afterwards.
-Without them, the views that need them say so and the others work (RQ-TRC-081). To change a version: change its
+Without them, the views that need them say so and the others work <!-- RQ-TRC-081 -->. To change a version: change its
 version, URL and `integrity` together in `libraries.json` (the hash the cdnjs API publishes,
 `https://api.cdnjs.com/libraries/<name>/<version>?fields=sri`), then run the tests, which need the network: without
 cdnjs, the page tests are skipped.

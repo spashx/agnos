@@ -23,7 +23,7 @@ Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-index/`) an
 2. Check the exit code:
    - `0`: done. The single output line gives the entry and document counts, then the
      time the run took (`agnos-index: <n> entries, <n> documents, <index> <updated|unchanged> in <s.mmm> s`);
-     the duration is never written into the index (RQ-IDX-018).
+     the duration is never written into the index <!-- RQ-IDX-018 -->.
    - `2`: duplicate IDs, listed on the error stream. The index is written; report the duplicates
      to the user (MANDATORY UNIQUE IDENTIFIERS).
    - `1`: error, nothing written. Apply the Error Recovery Protocol.

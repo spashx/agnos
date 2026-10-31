@@ -91,7 +91,7 @@ def collect(repo):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="What changed since each entry-point document was last changed (FTR-DOC-001)")
+    parser = argparse.ArgumentParser(description="What changed since each entry-point document was last changed")  # FTR-DOC-001
     parser.add_argument("--repo", default=".", help="repository root (default: the current folder)")
     args = parser.parse_args(argv)
     try:

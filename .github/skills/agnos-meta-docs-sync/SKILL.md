@@ -23,7 +23,7 @@ sub-agent `.claude/agents/agnos-meta-docs-sync.md`, which runs it on the Haiku m
 
    It prints JSON: `head`; `targets`, one per document, with `lastCommit` (the commit that last changed it, or null) and
    `commits` (the non-merge commits since, each with `sha`, `subject`, `files` and `moreFiles`); `skills`, with `name`,
-   `path`, `description` and `maintainer`, true when the name starts with `agnos-meta-` (RQ-MTA-002). Commits that touch only the generated index and the session files are already
+   `path`, `description` and `maintainer`, true when the name starts with `agnos-meta-` <!-- RQ-MTA-002 -->. Commits that touch only the generated index and the session files are already
    left out. Exit code 1: the folder is not a git repository, stop and report.
 2. For each document, in the order below, read the document, read the commits listed for it (open a commit's changed file
    when its subject is not enough to know what changed: `git show <sha> -- <file>`), and apply the rules below.
@@ -46,7 +46,7 @@ sub-agent `.claude/agents/agnos-meta-docs-sync.md`, which runs it on the Haiku m
 - One bullet per user-visible change, from the commit subjects since the file's last change: `feat` is Added, `fix` is
   Fixed, a `refactor` or `docs` that changes what a user sees is Changed, a removal is Removed. Skip `chore`, tests-only
   and index-only commits. Several commits of one task are one bullet. End a bullet with the artifact IDs of the commit
-  subject in parentheses, for example `(TASK-TRC-046, RQ-TRC-058)`.
+  subject in an HTML comment, for example `<!-- TASK-TRC-046, RQ-TRC-058 -->`, never as plain text.
 - If `## [Unreleased]` already exists, add only what it does not hold yet (compare the artifact IDs). Never edit, reorder
   or delete a released section.
 

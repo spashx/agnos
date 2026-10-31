@@ -9,14 +9,14 @@ argument-hint: "build [--verify] | verify"
 
 Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-demo/`) and Claude Code
 (`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo holds no AGNOS
-file but the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` (RQ-MTA-005, RQ-INI-008), and this repository's CLAUDE.md and AGENTS.md do not list it.
+file but the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` <!-- RQ-MTA-005, RQ-INI-008 -->, and this repository's CLAUDE.md and AGENTS.md do not list it.
 
 The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
 simulated: seven fictitious people (`linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`, and the
 UX designer `rob-ux`), five sessions on `feature/<TRI>` branches (BKG, NTF, CLI, then DSN, a design system made with
-`agnos-design-system`, and WEB, the booking interface built on its tokens; DEC-DMO-007), 2026-08-24 to 2026-10-23,
+`agnos-design-system`, and WEB, the booking interface built on its tokens <!-- DEC-DMO-007 -->), 2026-08-24 to 2026-10-23,
 working days and hours only.
-Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001.
+<!-- Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001. -->
 
 ## Layout
 
@@ -24,10 +24,10 @@ Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001.
 |---|---|
 | `scripts/replay.ps1` | The engine: replays a scenario into a new git repository |
 | `scripts/build.ps1` | Runs the engine on this skill's scenario and content, records the build |
-| `scripts/verify.ps1` | One PASS/FAIL line per requirement RQ-DMO-001 to RQ-DMO-021 |
+| `scripts/verify.ps1` | One PASS/FAIL line per requirement <!-- RQ-DMO-001 to RQ-DMO-021 --> |
 | `assets/scenario.json` | Cast, calendar, and the ordered commits (date, time, identity, files) |
 | `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar, and `project/` for its git files, named so they do not apply here |
-| `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion (RQ-MTA-001, RQ-MTA-002) |
+| `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion <!-- RQ-MTA-001, RQ-MTA-002 --> |
 | `references/code-contract.md` | The contract given to the sub-agents that generate the code |
 
 ## Sub-commands
@@ -40,7 +40,7 @@ Run from the repository root with `session.platform = windows` (PowerShell 5.1; 
 powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/build.ps1 [-Verify]
 ```
 
-1. Creates the repository, which holds the project and the block of `agnos-init`, whose relative path requires the demo to stay beside this repository (RQ-MTA-005, RQ-INI-008).
+1. Creates the repository, which holds the project and the block of `agnos-init`, whose relative path requires the demo to stay beside this repository <!-- RQ-MTA-005, RQ-INI-008 -->.
 2. Replays `assets/scenario.json` with `assets/content/`, committing with the identity and dates of each
    step through environment variables only: no git configuration is changed, no remote is added, nothing
    is pushed. The index of each step comes from this working tree's `agnos-index`.

@@ -7,7 +7,7 @@
 Read this file to explain a finding or a figure. The format of the data is in `data-format.md`. `#<ID>` in the page's URL selects
 an element, `#box:<qualified name>` or `#box:(global)` a scope.
 
-## Rules behind the numbers (DEC-TRC-003, DEC-TRC-004)
+## Rules behind the numbers <!-- DEC-TRC-003, DEC-TRC-004 -->
 
 - A link is an ID written in an element's own lines (its line range without the ranges of the elements it contains), or
   in a source line. `<A> to <B>`, `<A>–<B>`, `<A>..<B>` of one type and trigram count as every defined ID between them.
@@ -20,7 +20,7 @@ an element, `#box:<qualified name>` or `#box:(global)` a scope.
 - An ID quoted in prose as an example (a test fixture's IDs in a task's Verification field, an instructions file's
   sample IDs) is a citation like any other: it shows as `undefined`. Write such examples without the ID grammar.
 
-## Quality scoring (ADR-TRC-008: DEC-TRC-032, DEC-TRC-033; RQ-TRC-058, RQ-TRC-059, RQ-TRC-064)
+## Quality scoring <!-- ADR-TRC-008: DEC-TRC-032, DEC-TRC-033; RQ-TRC-058, RQ-TRC-059, RQ-TRC-064 -->
 
 Each rule is a **check**. Its **score** is 10 × the share of its **population** that is not a finding, to one decimal
 (half up); a check with an empty population has no score and weighs nothing. The **overall score** is the average of
@@ -41,7 +41,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 | Source files traced (`files-traced`) | medium | scanned files | `untraced-files` |
 | Functions traced (`functions-traced`) | informational | functions (with `--call-graph`) | functions citing no ID |
 
-## Call graph (DEC-TRC-013 to DEC-TRC-018)
+## Call graph <!-- DEC-TRC-013 to DEC-TRC-018 -->
 
 - A function is a definition with a body; its key is `fn:<file>:<first line>`. It cites the IDs of its lines and of the
   comment block just above it. Coverage and the findings stay file-based: the call graph changes none of them.
@@ -53,15 +53,15 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
-- Delivered, each with the grammar the tree-sitter project publishes (RQ-TRC-050, DEC-TRC-025): C (`.c`), C++ (`.h`
+- Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs
   `.pyi` are not read) and Rust (`.rs`). A definition is a function or method with a body: in JavaScript also a function
   or arrow given to a name, an object key or a member (`exports.f = function`); a Rust trait's default method; not an
   interface or abstract method. `new`, macros (`println!`) and calls outside any function are not calls.
-- What differs between languages is settled in their query files (DEC-TRC-026): Java's `package a.b;` and C#'s
+- What differs between languages is settled in their query files <!-- DEC-TRC-026 -->: Java's `package a.b;` and C#'s
   `namespace A.B;` stand before the classes, so the file's root node is captured as that namespace's scope; Python's
   decorators and Rust's attributes are captured as `@comment`, so the comment block above them reaches the definition.
-- Boxes come from the entry's `scopes` map (DEC-TRC-019): each scope node type its query captures as `@scope`, with
+- Boxes come from the entry's `scopes` map <!-- DEC-TRC-019 -->: each scope node type its query captures as `@scope`, with
   the box kind it stands for, `namespace` or `class`. C++ maps `namespace_definition` to `namespace` and
   `class_specifier`, `struct_specifier`, `union_specifier` to `class`; C has no scope (`{}`), so its functions are in
   `(global)`. C# and Java: namespaces (the package) and classes, structs, interfaces, enums, records; Rust: inline
@@ -73,7 +73,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   lambdas make no box.
 
 
-## History (FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004, DEC-HST-010)
+## History <!-- FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004, DEC-HST-010 -->
 
 - `scripts/history.py` is loaded only with `--history`; it runs the `git` command, nothing else beyond the standard
   library. Without `--history`, git is not run and the data file is unchanged.
@@ -91,7 +91,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 - The period: `--history-since` is given to git, and the author date is then checked against the same cutoff;
   `--history-depth` is git's `--max-count`. A shallow clone is read as far as it goes and marked `shallow`.
 
-## Delivery (FTR-TRC-004; ADR-TRC-009: DEC-TRC-036 to DEC-TRC-038)
+## Delivery <!-- FTR-TRC-004; ADR-TRC-009: DEC-TRC-036 to DEC-TRC-038 -->
 
 - A task's **delivery** is the first commit of the history read that turns its `- **Status**:` line to `Done`,
   found in the same log as the history (no other git command). Its date is the commit's author date (the author's own

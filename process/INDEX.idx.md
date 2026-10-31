@@ -504,7 +504,7 @@ TASK-MTA-003|41-51|Done|The demo without the toolkit
 @process/3.plan/PLAN-MTA-002-release-dry-run.md
 PLAN-MTA-002|1-86||The Release Rehearsal
 TASK-MTA-004|16-27|Done|The specification accepted
-TASK-MTA-009|28-39|Not Started|The workshop's citations moved into comments
+TASK-MTA-009|28-39|Done|The workshop's citations moved into comments
 TASK-MTA-005|40-51|Not Started|Select the delivered files from a commit
 TASK-MTA-006|52-63|Not Started|Remove the defined IDs and check the output
 TASK-MTA-007|64-75|Not Started|Prove the output on the demo

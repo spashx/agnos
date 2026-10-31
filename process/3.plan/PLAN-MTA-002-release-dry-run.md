@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-009: The workshop's citations moved into comments
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Move the IDs shown in Markdown outside `process/` and in scripts' help texts into comments, and make `agnos-meta-docs-sync` ask for the comment form. The IDs stay searchable.
 - **Requirement refs**: RQ-MTA-014
 - **ADR refs**: None
 - **Acceptance Criteria**: Given the repository, Then each criterion of RQ-MTA-014 holds in a Gherkin-named test that failed before the change.
 - **Dependencies**: TASK-MTA-004
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: `test_citations.py`: 4 tests failed before the change, the 5th failed on comments nested by the first pass of the move, then repaired; `agnos-meta-demo/tests` 12 OK; `agnos-meta-docs-sync` 14, `agnos-meta-qa` 32, `agnos-init` 15 OK; `agnos-perf-center` 364 run, OK, 3 skipped; demo `verify -SkipRebuild` 23 passed, 0 failed; no line of `CHANGELOG.md`'s released section changed.
+- **Assumptions**: the tests live with `agnos-meta-demo`'s, beside those of RQ-MTA-001; the demo's own content under `assets/` and test files are out of the check; a sentence citing IDs inline was reworded where a comment alone would have broken it.
 
 ### TASK-MTA-005: Select the delivered files from a commit
 - **Tier**: L

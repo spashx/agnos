@@ -623,7 +623,7 @@ def write_outputs(path, data, title):
 # ---- command line ------------------------------------------------------------------------------------------------
 # RQ-TRC-001
 def parse_args(argv):
-    parser = argparse.ArgumentParser(prog="perf_center.py", description="AGNOS performance center (FTR-TRC-001)")
+    parser = argparse.ArgumentParser(prog="perf_center.py", description="AGNOS performance center")  # FTR-TRC-001
     parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
     parser.add_argument("--sources", required=True, action=KEY_APPEND, help="source folder to scan (repeatable)")
     parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
@@ -635,9 +635,9 @@ def parse_args(argv):
     parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
                                                "makes the output reproducible")
     parser.add_argument("--call-graph", action=STORE_TRUE,
-                        help="add the functions and calls of the sources, parsed with tree-sitter (FTR-TRC-002)")
+                        help="add the functions and calls of the sources, parsed with tree-sitter")  # FTR-TRC-002
     parser.add_argument("--history", action=STORE_TRUE,
-                        help="add who worked on each element and on the code, read from git (FTR-HST-001)")
+                        help="add who worked on each element and on the code, read from git")  # FTR-HST-001
     parser.add_argument("--history-since", help="with --history: only the commits authored since this date or duration "
                                                 "(a form git reads: 6.months, 2.weeks, 2026-01-01)")
     parser.add_argument("--history-depth", help="with --history: only the N most recent commits")

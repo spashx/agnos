@@ -75,5 +75,5 @@ another rule, leaves the finding open. Prefer a correction: an exception is a de
 
 ## Rules
 
-The rule set and its reasons are in DEC-QLT-006. `assets/ruff.toml` and `assets/eslint.config.mjs` hold it; `COMPLEXITY_MAX` in `scripts/qa.py`
+The rule set and its reasons are in the process's decisions. <!-- DEC-QLT-006 --> `assets/ruff.toml` and `assets/eslint.config.mjs` hold it; `COMPLEXITY_MAX` in `scripts/qa.py`
 holds the complexity limit. Change a version or a rule by editing the assets, then run `setup`.

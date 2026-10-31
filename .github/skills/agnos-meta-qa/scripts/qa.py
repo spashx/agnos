@@ -363,7 +363,7 @@ def check(root, every, paths, out):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(prog="qa.py", description="AGNOS code quality report (FTR-QLT-001)")
+    parser = argparse.ArgumentParser(prog="qa.py", description="AGNOS code quality report")  # FTR-QLT-001
     parser.add_argument("--root", default=str(REPOSITORY), help="repository to analyse (default: this one)")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("setup", help="install the pinned analysers into " + TOOLS_DIR)
