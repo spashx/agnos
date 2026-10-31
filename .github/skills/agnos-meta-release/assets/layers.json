@@ -1,0 +1,19 @@
+{
+  "_comment": "FTR-MTA-002, ADR-MTA-002 (DEC-MTA-008): the layer of each tracked path, as regular expressions on its repository path. Meta is read first; a skill or sub-agent is also Meta by its prefix alone, so no skill is named here. A file matching nothing stops the build.",
+  "meta": [
+    "^process/",
+    "(^|/)tests?/",
+    "^\\.claude/settings\\.json$"
+  ],
+  "delivered": [
+    "^\\.github/instructions/",
+    "^\\.github/skills/",
+    "^\\.claude/skills/",
+    "^\\.claude/agents/",
+    "^\\.github/(ISSUE_TEMPLATE|PULL_REQUEST_TEMPLATE)\\.md$",
+    "^(CLAUDE|AGENTS|README|CHANGELOG|LICENSE|SECURITY|CODE_OF_CONDUCT|CONTRIBUTING)\\.md$",
+    "^GETTING_STARTED\\.MD$",
+    "^agnos-overview\\.png$",
+    "^\\.git(ignore|attributes)$"
+  ]
+}

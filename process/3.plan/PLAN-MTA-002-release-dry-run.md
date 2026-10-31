@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-005: Select the delivered files from a commit
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the skill's script, `assets/layers.json`, the arguments and refusals, and the copy of the delivered files from HEAD; tests first.
 - **Requirement refs**: RQ-MTA-006, RQ-MTA-007, RQ-MTA-008
 - **ADR refs**: ADR-MTA-002 (DEC-MTA-007, DEC-MTA-008, DEC-MTA-011)
 - **Acceptance Criteria**: Given a test repository and this one, Then each criterion of RQ-MTA-006, RQ-MTA-007 and RQ-MTA-008 holds in Gherkin-named tests.
 - **Dependencies**: TASK-MTA-009
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: `test_select.py`: 11 OK, 10 failing against a stub before the code, the 11th added with its case. This repository at `7699553`: 58 delivered, 265 left out, every tracked file with a layer, exit 0, `git status` unchanged but for this task's files. No `--dry-run`: exit 1.
+- **Assumptions**: the output holds each blob's committed bytes, so with its line endings as stored; the executable bit is kept; a folder that is no repository exits 1; the tests inject the proof instead of a command-line option, so that no flag can skip it.
 
 ### TASK-MTA-006: Remove the defined IDs and check the output
 - **Tier**: L
