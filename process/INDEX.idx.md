@@ -364,6 +364,7 @@ ADR-TRC-012|1-55|Accepted — approved by the owner on 2026-10-31; from the owne
 DEC-TRC-050|15-20||A contract of at most 50 lines
 DEC-TRC-051|21-26||Three references, read on demand
 DEC-TRC-052|27-32||A Help dialog written in the page's template
+@process/3.plan/CHECKPOINT-MTA-INI-2026-10-31.md
 @process/3.plan/PLAN-AGT-001-agent-entry-points.md
 PLAN-AGT-001|1-30||Agent entry points
 TASK-AGT-001|14-30|Done|AGENTS.md and CLAUDE.md skill alignment
