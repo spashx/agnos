@@ -120,7 +120,10 @@ class DeliveryBlockTest(DeliveryTestCase):
         days = {names[int(i)]: d for i, d in data["delivery"]["activeDays"].items()}
         self.assertEqual({"Carol": ["2026-10-01"], "Alice": ["2026-10-02", "2026-10-03", "2026-10-04"],
                           "Claude Opus 5.5": ["2026-10-02"], "Bob": ["2026-10-05"]}, days)
-        self.assertEqual(json.loads(history.DELIVERY_PATH.read_text(encoding="utf-8")), data["delivery"]["settings"])
+        settings = json.loads(history.DELIVERY_PATH.read_text(encoding="utf-8"))
+        settings.pop(history.SETTINGS_COMMENT_KEY)
+        self.assertEqual(settings, data["delivery"]["settings"])
+        self.assertNotIn(history.SETTINGS_COMMENT_KEY, data["delivery"]["settings"])    # RQ-MTA-011: a comment is no setting
 
     def test_RQ_TRC_069_given_no_history_option_then_the_data_file_has_no_delivery(self):
         self.build_repository()

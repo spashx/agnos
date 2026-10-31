@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-MTA-007: Prove the output on the demo
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the parse of each delivered script and the comparison of what the workshop's and the output's skills write on the demo; tests first.
 - **Requirement refs**: RQ-MTA-011
 - **ADR refs**: ADR-MTA-002 (DEC-MTA-010)
 - **Acceptance Criteria**: Given the demo, Then each criterion of RQ-MTA-011 holds in Gherkin-named tests; Given this repository, When the rehearsal runs, Then it exits 0.
 - **Dependencies**: TASK-MTA-006
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: The proof first named one real difference: `agnos-perf-center` copied `delivery.json`'s `_comment`, with its IDs, into its data. By the owner's choice the generator no longer does; `test_delivery.py` amended to expect it, failing first; `agnos-perf-center/tests` OK, 3 skipped. A first run also showed the page of one run read as a source by the next, and a relative `--demo` failing, both fixed. Unit tests of the proof: 9 OK. Rehearsal on a throwaway clone holding this task's changes: 58 files, 1,097 IDs removed, `noIdLeft` and `sameBehaviour` true, exit 0, demo unchanged. The test on this repository reads HEAD, so it is re-run after this commit.
+- **Assumptions**: the proof works in a temporary folder and clone, removed afterwards, which RQ-MTA-006's output rule does not count as a repository change; a language whose parser is absent is said on the error stream and not checked; `--call-graph` and `--history` are both used, to exercise the query files and the history reader.
 
 ### TASK-MTA-008: The skill packaged and said
 - **Tier**: M

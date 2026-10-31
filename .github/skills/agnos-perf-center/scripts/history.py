@@ -798,6 +798,7 @@ def ranges_to_track(top, documents, files, functions):
 # FTR-TRC-004: RQ-TRC-068, RQ-TRC-069, RQ-TRC-071; ADR-TRC-009: DEC-TRC-036, DEC-TRC-037 (TASK-TRC-057)
 DELIVERY_PATH = Path(__file__).resolve().parent.parent / "assets" / "delivery.json"
 KEY_DELIVERY = "delivery"
+SETTINGS_COMMENT_KEY = "_comment"
 DONE = "Done"
 FIX_TYPE = "fix"
 REASON_CREATED_DONE = "created-done"
@@ -811,7 +812,10 @@ ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]
 
 
 def load_delivery_settings(path=DELIVERY_PATH):
-    return json.loads(Path(path).read_text(encoding=ENCODING))
+    """The settings the data file carries: the file's own comment is not one of them (RQ-MTA-011)."""
+    settings = json.loads(Path(path).read_text(encoding=ENCODING))
+    settings.pop(SETTINGS_COMMENT_KEY, None)
+    return settings
 
 
 def commit_type(subject):

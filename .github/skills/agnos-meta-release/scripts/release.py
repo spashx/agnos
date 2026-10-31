@@ -2,16 +2,20 @@
 """agnos-meta-release: a release rehearsed in a folder, without publishing anything.
 
 Implements FTR-MTA-002 after ADR-MTA-002 (DEC-MTA-007): it selects the delivered files of a commit (RQ-MTA-007, RQ-MTA-008),
-removes the workshop's IDs from them (RQ-MTA-009), checks the result (RQ-MTA-010) and writes only its output and report
-(RQ-MTA-006, RQ-MTA-012). Python >= 3.9, standard library only. Procedure: ../SKILL.md.
+removes the workshop's IDs from them (RQ-MTA-009), checks the result (RQ-MTA-010), proves it behaves as the workshop does
+(RQ-MTA-011) and writes only its output and report (RQ-MTA-006, RQ-MTA-012), the proof working on a temporary clone of the demo.
+Python >= 3.10, standard library only. Procedure: ../SKILL.md.
 """
 import argparse
+import ast
 import json
 import os
 import re
+import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -51,6 +55,27 @@ COMMENT_LABEL_RE = re.compile(r"[\w /-]+:")
 ONLY_PUNCTUATION_RE = re.compile(rf"^[\s{MARK}.,;:]*$")
 CITED_PATH_RE = re.compile(r"(^|/)tests?/")      # a project has its own process/ and settings, not AGNOS's tests
 TEST_FILE_PREFIX = "test"
+
+# RQ-MTA-011 / DEC-MTA-010
+DEMO_FOLDER_NAME = "agnos-lightweight-process.demo"
+FIXED_TIME = "2000-01-01T00:00:00Z"
+PERF_PAGE = "process/PERF-CENTER.html"
+PERF_RESULTS = ("process/PERF-CENTER.json", "process/PERF-CENTER.data.js")
+INIT_RESULTS = ("CLAUDE.md", "AGENTS.md")
+PLACEHOLDER = b"<toolkit>"
+INDEX_SCRIPT = ".github/skills/agnos-index/scripts/build-index"
+INIT_SCRIPT = ".github/skills/agnos-init/scripts/init"
+PERF_SCRIPT = ".github/skills/agnos-perf-center/scripts/perf_center.py"
+PARSE_MESSAGE_LENGTH = 200
+IS_WINDOWS = os.name == "nt"
+POWERSHELL = "powershell"
+BASH = "bash"
+NODE = "node"
+PS_PARSE = ("$e=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($args[0],[ref]$null,[ref]$e);"
+            "if($e.Count){$e[0].Message;exit 1}")
+TOOL_PARSERS = {".js": (NODE, lambda p: [NODE, "--check", p]),
+                ".sh": (BASH, lambda p: [BASH, "-n", p]),
+                ".ps1": (POWERSHELL, lambda p: [POWERSHELL, "-NoProfile", "-Command", f"& {{{PS_PARSE}}} '{p}'"])}
 MARKDOWN_RE = re.compile(r"\.md$", re.I)
 NOT_SCANNED_FOR_CITATIONS_RE = re.compile(r"^process/|/tests?/|/assets/content/")
 
@@ -244,8 +269,136 @@ def workshop_citations(repo, entries, pattern):
     return found
 
 
-def no_proof_yet(repo, output, demo):
-    return []
+# RQ-MTA-011 / DEC-MTA-010
+def tool_works(tool):
+    """Whether a parser can run: Windows may hold a bash that only asks to install a distribution."""
+    if not shutil.which(tool):
+        return False
+    if tool != BASH:
+        return True
+    return subprocess.run([BASH, "-c", "exit 0"], capture_output=True).returncode == 0
+
+
+def parse_error(path, usable):
+    """Why this file does not parse, or None; a file of no known language, or whose parser is absent, gives None."""
+    readers = {".py": ast.parse, ".json": json.loads}
+    if path.suffix in readers:
+        try:
+            readers[path.suffix](path.read_text(encoding=ENCODING))
+        except (SyntaxError, ValueError) as error:
+            return str(error)
+    elif usable.get(path.suffix):
+        done = subprocess.run(TOOL_PARSERS[path.suffix][1](str(path)), capture_output=True, text=True, errors="replace")
+        if done.returncode:
+            return (done.stdout + done.stderr).strip()[:PARSE_MESSAGE_LENGTH]
+    return None
+
+
+def parse_problems(folder):
+    """The delivered scripts that no longer parse. A language whose parser is absent is said, and not checked."""
+    usable = {suffix: tool_works(parser[0]) for suffix, parser in TOOL_PARSERS.items()}
+    for suffix, works in usable.items():
+        if not works and any(folder.rglob(f"*{suffix}")):
+            print(f"agnos-meta-release: {TOOL_PARSERS[suffix][0]} is absent, {suffix} files are not parsed", file=sys.stderr)
+    problems = []
+    for path in sorted(p for p in folder.rglob("*") if p.is_file()):
+        error = parse_error(path, usable)
+        if error:
+            problems.append(f"{path.relative_to(folder).as_posix()} no longer parses: {error}")
+    return problems
+
+
+def without_path(data, toolkit):
+    """A result with the toolkit's path taken out, as agnos-init writes it as given."""
+    return data.replace(str(toolkit).encode(ENCODING), PLACEHOLDER)
+
+
+def compare_runs(baseline, output, workspace, runners):
+    """Runs each skill from the workshop's files and from the output, and names the results that differ."""
+    problems = []
+    for label, runner in runners:
+        expected = runner(baseline, workspace)
+        obtained = runner(output, workspace)
+        for name in sorted(set(expected) | set(obtained)):
+            if expected.get(name) != obtained.get(name):
+                problems.append(f"{label}: {name} differs from the workshop's")
+    return problems
+
+
+def script_command(toolkit, script, windows_args, posix_args):
+    if IS_WINDOWS:
+        return [POWERSHELL, "-NoProfile", "-File", str(Path(toolkit) / f"{script}.ps1"), *windows_args]
+    return [BASH, str(Path(toolkit) / f"{script}.sh"), *posix_args]
+
+
+def run_tool(command, folder):
+    """A failure is a result, compared like any other."""
+    done = subprocess.run(command, cwd=folder, capture_output=True, text=True, errors="replace")
+    return f"exit {done.returncode}".encode(ENCODING)
+
+
+def run_index(toolkit, workspace):
+    clone = workspace / "demo"
+    code = run_tool(script_command(toolkit, INDEX_SCRIPT, [], []), clone)
+    return {"exit": code, INDEX_PATH: (clone / INDEX_PATH).read_bytes()}
+
+
+def run_perf_center(toolkit, workspace):
+    clone = workspace / "demo"
+    script = str(Path(toolkit) / PERF_SCRIPT)
+    code = run_tool([sys.executable, script, "--process", "process", "--sources", ".", "--call-graph", "--history",
+                     "--generated-at", FIXED_TIME, "--out", PERF_PAGE], clone)
+    results = {"exit": code}
+    for name in PERF_RESULTS:
+        path = clone / name
+        results[name] = path.read_bytes() if path.exists() else None
+        path.unlink(missing_ok=True)
+    (clone / PERF_PAGE).unlink(missing_ok=True)     # left there, the next run would scan it as a source
+    return results
+
+
+def run_init(toolkit, workspace):
+    target = Path(tempfile.mkdtemp(dir=workspace))
+    code = run_tool(script_command(toolkit, INIT_SCRIPT, ["-Target", str(target), "-Toolkit", str(toolkit)],
+                                   ["--target", str(target), "--toolkit", str(toolkit)]), target)
+    results = {"exit": code}
+    for name in INIT_RESULTS:
+        path = target / name
+        results[name] = without_path(path.read_bytes(), toolkit) if path.exists() else None
+    return results
+
+
+RUNNERS = (("agnos-index", run_index), ("agnos-perf-center", run_perf_center), ("agnos-init", run_init))
+
+
+def write_baseline(repo, folder):
+    """The delivered files as committed, IDs included: what the output is compared with, whatever the working tree holds."""
+    rules = load_rules()
+    for path, _ in tracked_files(repo):
+        if layer_of(path, rules) == LAYER_DELIVERED:
+            target = folder / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(git(repo, "show", f"HEAD:{path}"))
+
+
+def demo_folder(repo, demo):
+    """The demo, as an absolute path since the proof clones it from a temporary folder."""
+    return Path(demo).resolve() if demo else Path(repo).parent / DEMO_FOLDER_NAME
+
+
+def prove(repo, output, demo):
+    """Parses the output, then compares what its skills write with the workshop's, on a clone so that the demo stays."""
+    demo_path = demo_folder(repo, demo)
+    if not demo_path.is_dir():
+        return [f"no demo at {demo_path}: build it with agnos-meta-demo"]
+    problems = parse_problems(output)
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as holder:
+        workspace = Path(holder)
+        baseline = workspace / "baseline"
+        write_baseline(repo, baseline)
+        git(workspace, "clone", "--quiet", str(demo_path), "demo")
+        problems += compare_runs(baseline, output, workspace, RUNNERS)
+    return problems
 
 
 def rehearse(repo, output, demo, proof):
@@ -263,10 +416,12 @@ def rehearse(repo, output, demo, proof):
         return fail(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
     output.mkdir(parents=True, exist_ok=True)
     findings = write_delivered(repo, output, delivered, pattern, left_out)
-    problems = check_output(output, pattern, rules) + proof(repo, output, demo)
+    left = check_output(output, pattern, rules)
+    unproved = proof(repo, output, demo)
+    problems = left + unproved
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
-              "problems": problems}
+              "checks": {"noIdLeft": not left, "sameBehaviour": not unproved}, "problems": problems}
     Path(f"{output}{REPORT_SUFFIX}").write_text(json.dumps(report, indent=2) + "\n", encoding=ENCODING, newline="\n")
     for problem in problems:
         fail(problem)
@@ -282,7 +437,7 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
-def main(argv=None, proof=no_proof_yet):
+def main(argv=None, proof=prove):
     args = parse_args(argv)
     if not args.dry_run:    # RQ-MTA-006 / DEC-MTA-011
         return fail("only the rehearsal exists: call it with --dry-run; publishing is not available")
