@@ -26,7 +26,8 @@ a release is written. Fulfils RQ-MTA-001.
 **Public repository**: `LICENSE.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, the GitHub templates.
 **Meta**: `process/` with its generated index and session files, the `agnos-meta-*` skills and sub-agents, and the tests of every
 skill, which keep running in the workshop and are not delivered. A project generates its own `process/INDEX.idx.md`.
-`CONTRIBUTING.md` states this, so the generic instructions and their line budget do not change. Fulfils RQ-MTA-004.
+`CONTRIBUTING.md` states this, so the generic instructions and their line budget do not change. Fulfils RQ-MTA-004. Adjusted on 2026-10-31
+by DEC-MTA-008: it places the files left out here.
 
 ### DEC-MTA-003: The prefix `agnos-meta-` is the only criterion
 Skills, pointers and sub-agents take the prefix (`agnos-meta-demo`, `agnos-meta-docs-sync`). The report's `MAINTAINER_MARK` and the
@@ -39,7 +40,8 @@ A future skill, `agnos-meta-release`, selects the delivered layers, removes the 
 examples alone, fails on any defined ID left, and takes a target from the start (`copy` first). Each release then lands on `main`
 as a snapshot, with no merge from the workshop, and the demo's acceptance checks validate it. `dev`'s hand-cleaning commits are not
 merged into the workshop. **Everything stays local until the owner lifts this**: no push, and `feature/TRC` remains the
-integration branch of this work. Its requirements come in a later feature.
+integration branch of this work. Its requirements come in a later feature. Adjusted on 2026-10-31 by DEC-MTA-009 to DEC-MTA-011: what is
+removed follows the index's trigrams, a release proves itself by equivalence on the demo, and only the rehearsal exists for now.
 
 ### DEC-MTA-005: A plugin is a further target, after the first clean release
 The same build gets a `plugin` target, and the copy format stays for agents without plugins. It needs the process skill `agnos-init`,
@@ -53,6 +55,7 @@ own `.gitignore` and `.gitattributes`, and no toolkit or public repository file.
 toolkit. The engine and the checks run `agnos-index` and `agnos-perf-center` from this repository; a release is validated by running them from
 its output on the demo, which adjusts DEC-MTA-004. Amends RQ-DMO-002 and RQ-DMO-020. Fulfils RQ-MTA-005. Amended on 2026-10-31 by DEC-INI-005:
 the demo also holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`, so a session can be run in it, with the toolkit beside it.
+Adjusted on 2026-10-31 by DEC-MTA-010: a release compares what its skills write on the demo, instead of running the demo's checks from its output.
 
 ## Consequences
 - A third meta skill needs its name only; no list has to change.
