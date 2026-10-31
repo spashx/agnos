@@ -42,12 +42,14 @@ as a snapshot, with no merge from the workshop, and the demo's acceptance checks
 merged into the workshop. **Everything stays local until the owner lifts this**: no push, and `feature/TRC` remains the
 integration branch of this work. Its requirements come in a later feature. Adjusted on 2026-10-31 by DEC-MTA-009 to DEC-MTA-011: what is
 removed follows the index's trigrams, a release proves itself by equivalence on the demo, and only the rehearsal exists for now.
+Amended on 2026-11-01 by DEC-PLG-001: the target is a marketplace, with no `copy` target.
 
 ### DEC-MTA-005: A plugin is a further target, after the first clean release
 The same build gets a `plugin` target, and the copy format stays for agents without plugins. It needs the process skill `agnos-init`,
 because a plugin's `CLAUDE.md` is not loaded and AGNOS needs its rules in every session; `SKILL.md` paths rewritten to the plugin
 root by the build; and no repository of its own at first. Its requirements come in a later feature. Amended on 2026-10-31 by
-DEC-INI-005: `agnos-init` comes first and needs no plugin, which will only supply the toolkit's path.
+DEC-INI-005: `agnos-init` comes first and needs no plugin, which will only supply the toolkit's path. Replaced on 2026-11-01 by DEC-PLG-001
+to DEC-PLG-004: no copy format, the process is a generated skill, the block holds no path, and the build rewrites no `SKILL.md` path.
 
 ### DEC-MTA-006: The demo holds the project only
 Owner's decision of 2026-10-31: since projects will install AGNOS as a plugin, the demo keeps its code, `process/`, its README and its

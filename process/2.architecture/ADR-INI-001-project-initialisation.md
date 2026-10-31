@@ -24,15 +24,17 @@ Writes happen only on a change. Fulfils RQ-INI-002, RQ-INI-003, RQ-INI-004.
 `assets/templates/CLAUDE.block.md` imports the instructions with `@`, and `AGENTS.block.md` tells the agent what to read, since
 `AGENTS.md` has no standard import. Only `{{TOOLKIT}}` is replaced. Templates hold no ID, because they are delivered as they are:
 their traceability is in the scripts and `SKILL.md`. Fulfils RQ-INI-006. Its import is replaced by DEC-INI-007 (amended on 2026-10-31).
+Amended on 2026-11-01 by DEC-PLG-003: both templates name the skill `agnos-process`, and `{{TOOLKIT}}` is removed.
 
 ### DEC-INI-004: The toolkit path is an input, written as given
 The path is mandatory, relative to the target, and written with `/`; the script does not compute one. A relative path works in each
 clone with the same layout, and keeps the demo's commit IDs stable. Fulfils RQ-INI-001, RQ-INI-006, RQ-INI-008.
+Replaced on 2026-11-01 by DEC-PLG-003: there is no toolkit input.
 
 ### DEC-INI-005: The plugin comes after, and only supplies the path
 This adjusts DEC-MTA-005: `agnos-init` comes first and needs no plugin. The plugin target will give it the path of its installed
 files, which remains to be designed. This also adjusts DEC-MTA-006: the demo holds the two files with the block, and can run a session.
-Fulfils RQ-INI-008.
+Fulfils RQ-INI-008. Its path is replaced on 2026-11-01 by DEC-PLG-003: an installed plugin's folder changes with each version.
 
 ### DEC-INI-006: The call is stated in three places
 For a human, `README.md` and `GETTING_STARTED.MD`. For an agent with the instructions loaded, START SESSION. For every case, the error
