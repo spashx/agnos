@@ -1,0 +1,9 @@
+{
+  "name": "agnos-meta-qa-analysers",
+  "private": true,
+  "description": "The JavaScript analysers of agnos-meta-qa, at exact versions (RQ-QLT-006, DEC-QLT-005).",
+  "dependencies": {
+    "eslint": "10.14.0",
+    "eslint-plugin-sonarjs": "4.2.2"
+  }
+}

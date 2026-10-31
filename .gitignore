@@ -488,3 +488,6 @@ $RECYCLE.BIN/
 process/TRACEABILITY.html
 process/TRACEABILITY.json
 process/TRACEABILITY.data.js
+
+# RQ-QLT-006 / DEC-QLT-005: agnos-meta-qa's analysers and report
+.agnos-qa/

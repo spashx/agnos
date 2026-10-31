@@ -1,0 +1,11 @@
+# agnos-meta-qa: the Python rules (RQ-QLT-002, DEC-QLT-006); the reason for each choice is in that decision.
+target-version = "py39"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "B", "SIM", "PL", "RET", "UP"]
+ignore = ["PLR0911", "PLR0912", "PLR0915", "SIM905"]
+
+[lint.pylint]
+max-args = 7
+max-positional-args = 7

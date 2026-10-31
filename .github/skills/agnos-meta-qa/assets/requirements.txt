@@ -1,0 +1,2 @@
+ruff==0.17.3
+complexipy==8.3.0
