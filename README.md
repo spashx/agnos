@@ -50,8 +50,8 @@ Commit the result and start a new agent session. Your own content stays as it is
 
 ## How a Session Runs
 
-1. **Load the instructions** — Copilot loads the instructions file automatically; Claude Code loads
-   `CLAUDE.md`, which imports it.
+1. **Load the instructions** — Copilot loads the instructions file automatically; in this repository Claude Code
+   imports it through `CLAUDE.md`, and in an initialised project the `agnos-init` block orders the agent to read it first.
 2. **Resolve the session state** — the agent detects the platform, asks whether unit tests are
    required, and writes `process/_sessionstate/session.yaml`.
 3. **Index and scan** — `agnos-index` rebuilds the index; the agent reviews open requirements,

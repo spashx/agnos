@@ -23,7 +23,7 @@ Writes happen only on a change. Fulfils RQ-INI-002, RQ-INI-003, RQ-INI-004.
 ### DEC-INI-003: One template per entry-point file
 `assets/templates/CLAUDE.block.md` imports the instructions with `@`, and `AGENTS.block.md` tells the agent what to read, since
 `AGENTS.md` has no standard import. Only `{{TOOLKIT}}` is replaced. Templates hold no ID, because they are delivered as they are:
-their traceability is in the scripts and `SKILL.md`. Fulfils RQ-INI-006.
+their traceability is in the scripts and `SKILL.md`. Fulfils RQ-INI-006. Its import is replaced by DEC-INI-007 (amended on 2026-10-31).
 
 ### DEC-INI-004: The toolkit path is an input, written as given
 The path is mandatory, relative to the target, and written with `/`; the script does not compute one. A relative path works in each
@@ -38,7 +38,12 @@ Fulfils RQ-INI-008.
 For a human, `README.md` and `GETTING_STARTED.MD`. For an agent with the instructions loaded, START SESSION. For every case, the error
 of `agnos-index`, which is a script and so holds whatever the agent read. Fulfils RQ-INI-007.
 
+### DEC-INI-007: An order to read, no external import
+Both templates order the agent, before any other action, to read the instructions file and run START SESSION. Claude Code loads an external `@` import only after an approval, and when it is not loaded the session gets no error. On 2026-10-31 a session in the demo started with the `@` line and not the file's content; the owner recalls no dialog, which is unconfirmed, and the terminal was not tested. An order stays visible whatever happens to an import. Amends DEC-INI-003. Fulfils RQ-INI-010.
+
 ## Consequences
+- The rules reach the agent through its first read, not at load: the order still has to be followed, and a session test checks it.
+- The plugin target (DEC-INI-005) keeps this order, since its files also lie outside the project. Its installed path may differ per machine and version, while the block is committed: that remains to be designed with it.
 - A developer keeps their files, and an update of AGNOS is one more call changing the block only.
 - Two scripts must stay byte-equivalent, so one test suite runs both on the same cases.
 - The block's path holds only for clones with the same relative layout; another layout calls `agnos-init` with its own path, which shows in the diff.

@@ -81,9 +81,18 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
   the project's root. It SHALL hold no artifact ID of AGNOS's own development.
 - **Rationale**: the project holds no skill, so nothing else tells the agent where they are; a relative path keeps a committed block valid for each clone.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the toolkit path `..\agnos`, When `agnos-init` runs, Then `CLAUDE.md` imports
-  `@../agnos/.github/instructions/agnos-sw-eng.instructions.md`, And `AGENTS.md` names that file to read, And neither holds an artifact ID.
+- **Acceptance Criteria**: Given the toolkit path `..\agnos`, When `agnos-init` runs, Then `CLAUDE.md` and `AGENTS.md` each name
+  `../agnos/.github/instructions/agnos-sw-eng.instructions.md` to read, And neither holds an artifact ID. (amended on 2026-10-31; RQ-INI-010)
 - **Dependencies**: RQ-INI-002
+
+### RQ-INI-010: Reading the instructions is an order, in every entry point
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: Each entry-point block SHALL order the agent, before any other action, to read the instructions file in full and to run its START SESSION ACTION, and SHALL NOT rely on an `@` import.
+- **Rationale**: a session in the demo received the `@` line without the file's content and without any order to read it; it followed the process only because the agent chose to read the file.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the toolkit path `../agnos`, When `agnos-init` runs, Then both blocks hold the same order naming that path, And no line of a block starts with `@`.
+- **Dependencies**: RQ-INI-006
 
 ### RQ-INI-007: The call is stated where it is needed
 - **Category**: Functional

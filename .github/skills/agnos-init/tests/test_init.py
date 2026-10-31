@@ -136,10 +136,20 @@ class ResultTest(InitCase):
     def test_RQ_INI_006_given_a_windows_toolkit_path_when_run_then_the_block_gives_it_with_slashes(self):
         for _, project, result in self.each_script(toolkit=TOOLKIT_ARG_WINDOWS):
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertIn(f"@{TOOLKIT_ARG}/{INSTRUCTIONS}".encode(), (project / "CLAUDE.md").read_bytes())
-            agents = (project / "AGENTS.md").read_bytes()
-            self.assertIn(f"{TOOLKIT_ARG}/{INSTRUCTIONS}".encode(), agents)
-            self.assertIn(f"{TOOLKIT_ARG}/.github/skills/".encode(), agents)
+            for name in ENTRY_FILES:
+                data = (project / name).read_bytes()
+                self.assertIn(f"{TOOLKIT_ARG}/{INSTRUCTIONS}".encode(), data, name)
+                self.assertIn(f"{TOOLKIT_ARG}/.github/skills/".encode(), data, name)
+
+    def test_RQ_INI_010_given_both_blocks_then_each_orders_the_read_and_none_relies_on_an_import(self):
+        order = (f"Before any other action, read in full `{TOOLKIT_ARG}/{INSTRUCTIONS}`, "
+                 "then run its START SESSION ACTION.").encode()
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            for name in ENTRY_FILES:
+                data = (project / name).read_bytes()
+                self.assertIn(order, data, name)
+                self.assertFalse(any(line.startswith(b"@") for line in data.splitlines()), name)
 
     def test_RQ_INI_006_given_the_written_blocks_then_they_hold_no_artifact_id_and_no_placeholder(self):
         for _, project, _result in self.each_script():

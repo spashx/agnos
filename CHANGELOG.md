@@ -79,6 +79,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- `agnos-init`: the `CLAUDE.md` block orders the agent to read the instructions first, as the `AGENTS.md` block does, instead
+  of an `@` import that may not load. Initialised projects call `agnos-init` again to update (ADR-INI-001, TASK-INI-004,
+  RQ-INI-010)
 - The skill `agnos-trace` is now `agnos-perf-center`, since it monitors the process's execution on a project. Its script is
   `perf_center.py`, its outputs `PERF-CENTER.*`, its page title "Performance center". Projects must update their ignore rules,
   and a reader's saved page preferences reset once. Earlier entries keep the former name (ADR-TRC-013, TASK-TRC-089,
