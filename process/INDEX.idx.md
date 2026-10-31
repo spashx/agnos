@@ -535,7 +535,7 @@ TASK-MTA-008|76-86|Done|The skill packaged and said
 @process/3.plan/PLAN-PLG-001-marketplace.md
 PLAN-PLG-001|1-98||AGNOS Marketplace
 TASK-PLG-001|16-27|Done|Feature, decisions and plan
-TASK-PLG-002|28-39|Not Started|Skills name their files from their own folder
+TASK-PLG-002|28-39|Done|Skills name their files from their own folder
 TASK-PLG-003|40-51|Not Started|Delivered scripts on Linux
 TASK-PLG-004|52-63|Not Started|The block with no path
 TASK-PLG-005|64-75|Not Started|The marketplace target

@@ -7,18 +7,17 @@ argument-hint: "(no arguments)"
 <!-- RQ-IDX-010, RQ-IDX-011, RQ-IDX-013, RQ-IDX-018 / ADR-IDX-001 (DEC-IDX-001, DEC-IDX-003, DEC-IDX-004) -->
 # AGNOS Index
 
-Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-index/`) and Claude Code
-(`.claude/skills/agnos-index/`, which points here).
+`<skill-folder>` is the folder holding this file. <!-- RQ-PLG-005 -->
 
 ## Procedure
 
-1. From the repository root, run the script matching `session.platform` (read
+1. From the project's root, run the script matching `session.platform` (read
    `process/_sessionstate/session.yaml` first if not already in context):
 
    | `session.platform` | Command |
    |---|---|
-   | `windows` | `powershell -NoProfile -File .github/skills/agnos-index/scripts/build-index.ps1` |
-   | `linux` / `macos` | `bash .github/skills/agnos-index/scripts/build-index.sh` |
+   | `windows` | `powershell -NoProfile -File <skill-folder>/scripts/build-index.ps1` |
+   | `linux` / `macos` | `bash <skill-folder>/scripts/build-index.sh` |
 
 2. Check the exit code:
    - `0`: done. The single output line gives the entry and document counts, then the

@@ -2,7 +2,7 @@
 # agnos-index generator (bash + POSIX awk): builds process/INDEX.idx.md.
 # Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016, RQ-IDX-018 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
 # Output must stay byte-identical to build-index.ps1. No gawk extension, no regex interval {n}.
-# Usage (from the repository root): bash .github/skills/agnos-index/scripts/build-index.sh
+# Usage (from the project's root): bash <this skill's folder>/scripts/build-index.sh
 # Exit codes: 0 ok, 1 error (nothing written), 2 duplicate IDs (index written).
 set -u
 export LC_ALL=C

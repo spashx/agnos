@@ -7,9 +7,8 @@ argument-hint: "start-session <TRI> | commit-task <TASK-ID> [<ADR-ID>] <descript
 # AGNOS Git Workflow
 
 Deterministic git operations for the AGNOS process. All artifact IDs are validated before any
-git command is executed. This is the canonical procedure, shared by GitHub Copilot
-(`.github/skills/agnos-git-workflow/`) and Claude Code (`.claude/skills/agnos-git-workflow/`,
-which points here). 
+git command is executed. <!-- RQ-PLG-005 --> `<skill-folder>` is the folder holding this file;
+run every command from the project's root.
 
 ## Script Selection
 
@@ -18,8 +17,8 @@ Every validation step below runs a `<validate-ids>` script. Select it from `sess
 
 | `session.platform` | Command |
 |---|---|
-| `windows` | `powershell -NoProfile -File .github/skills/agnos-git-workflow/scripts/validate-ids.ps1 -Type <T> -Value <V>` |
-| `linux` / `macos` | `bash .github/skills/agnos-git-workflow/scripts/validate-ids.sh -Type <T> -Value <V>` |
+| `windows` | `powershell -NoProfile -File <skill-folder>/scripts/validate-ids.ps1 -Type <T> -Value <V>` |
+| `linux` / `macos` | `bash <skill-folder>/scripts/validate-ids.sh -Type <T> -Value <V>` |
 
 Use `powershell` (Windows PowerShell 5.1), never `pwsh` — PowerShell 7 is not guaranteed to be
 installed.

@@ -6,14 +6,14 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 
 # AGNOS Performance Center
 
-<!-- RQ-TRC-017, RQ-TRC-098, DEC-TRC-050. Shared by GitHub Copilot and Claude Code (`.claude/skills/agnos-perf-center/` points here). -->
+<!-- RQ-TRC-017, RQ-TRC-098, DEC-TRC-050, RQ-PLG-005 -->
 
 Needs Python 3.9 or later, standard library only. It knows only the AGNOS ID grammar and index format, so it works on any AGNOS
-project. Run it; do not read the scripts.
+project. Run it; do not read the scripts. `<skill-folder>` is the folder holding this file.
 
 1. Invoke the `agnos-index` skill first: the matrix reads `INDEX.idx.md`, never the documents' headings.
-2. From the repository root (`python` on `windows`, `python3` on `linux` / `macos`):
-   `python .github/skills/agnos-perf-center/scripts/perf_center.py --process process --sources <source folder>`
+2. From the project's root (`python` on `windows`, `python3` on `linux` / `macos`):
+   `python <skill-folder>/scripts/perf_center.py --process process --sources <source folder>`
 
 | Parameter | Meaning |
 |---|---|
@@ -22,7 +22,7 @@ project. Run it; do not read the scripts.
 | `--out <file>` | Default `<process>/PERF-CENTER.html` |
 | `--ext .x`, `--exclude <pattern>` | Repeatable; replace the scanned extensions, the excluded names (`fnmatch`) |
 | `--title <t>`, `--generated-at <t>` | The page's title; a fixed timestamp makes the page byte-identical |
-| `--call-graph` | Adds functions and calls. Needs once `pip install -r .github/skills/agnos-perf-center/requirements-callgraph.txt`; without it the page is written without them |
+| `--call-graph` | Adds functions and calls. Needs once `pip install -r <skill-folder>/requirements-callgraph.txt`; without it the page is written without them |
 | `--history` | Adds who changed what and the deliveries, from git |
 | `--history-since <date or duration>`, `--history-depth <n>` | Limit the history read (`6.months`, `2026-01-01`); only with `--history` |
 

@@ -1,7 +1,7 @@
 # agnos-index generator (Windows PowerShell 5.1): builds process/INDEX.idx.md.
 # Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016, RQ-IDX-018 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
 # Output must stay byte-identical to build-index.sh. Keep this file ASCII-only (PowerShell 5.1).
-# Usage (from the repository root): powershell -NoProfile -File .github/skills/agnos-index/scripts/build-index.ps1
+# Usage (from the project's root): powershell -NoProfile -File <this skill's folder>/scripts/build-index.ps1
 # Exit codes: 0 ok, 1 error (nothing written), 2 duplicate IDs (index written).
 $ErrorActionPreference = 'Stop'
 $Stopwatch = [Diagnostics.Stopwatch]::StartNew()   # RQ-IDX-018

@@ -75,8 +75,10 @@ NODE = "node"
 PS_PARSE = ("$e=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($args[0],[ref]$null,[ref]$e);"
             "if($e.Count){$e[0].Message;exit 1}")
 TOOL_PARSERS = {".js": (NODE, lambda p: [NODE, "--check", p]),
-                ".sh": (BASH, lambda p: [BASH, "-n", p]),
+                ".sh": (BASH, lambda p: [BASH, "-n"]),
                 ".ps1": (POWERSHELL, lambda p: [POWERSHELL, "-NoProfile", "-Command", f"& {{{PS_PARSE}}} '{p}'"])}
+# Windows may resolve bash to WSL's, which cannot read a Windows path: it gets the text instead.
+PARSED_FROM_STDIN = {".sh"}
 MARKDOWN_RE = re.compile(r"\.md$", re.I)
 NOT_SCANNED_FOR_CITATIONS_RE = re.compile(r"^process/|/tests?/|/assets/content/")
 
@@ -289,9 +291,10 @@ def parse_error(path, usable):
         except (SyntaxError, ValueError) as error:
             return str(error)
     elif usable.get(path.suffix):
-        done = subprocess.run(TOOL_PARSERS[path.suffix][1](str(path)), capture_output=True, text=True, errors="replace")
+        data = path.read_bytes() if path.suffix in PARSED_FROM_STDIN else None
+        done = subprocess.run(TOOL_PARSERS[path.suffix][1](str(path)), input=data, capture_output=True)
         if done.returncode:
-            return (done.stdout + done.stderr).strip()[:PARSE_MESSAGE_LENGTH]
+            return (done.stdout + done.stderr).decode(ENCODING, errors="replace").strip()[:PARSE_MESSAGE_LENGTH]
     return None
 
 

@@ -15,7 +15,7 @@
 
 ## Tests
 
-Running them needs Python 3.10 or later. `python -m unittest discover -s .github/skills/agnos-perf-center/tests -v` from the repository root: a synthetic process in
+Running them needs Python 3.10 or later. `python -m unittest discover -s <this skill's folder>/tests -v`: a synthetic process in
 `tests/fixtures/repo` plants one element of every finding. The page tests run in a headless Chromium-family browser (Edge,
 Chrome, Chromium; `AGNOS_PERF_CENTER_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
 (`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_PERF_CENTER_PERF=1` adds the measure on a

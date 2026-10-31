@@ -7,9 +7,6 @@ argument-hint: "(no arguments)"
 <!-- RQ-DSY-001 / ADR-DSY-001 (DEC-DSY-001) -->
 # AGNOS Design System
 
-Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-design-system/`) and Claude
-Code (`.claude/skills/agnos-design-system/`, which points here).
-
 ## Template
 
 `assets/design-system-template.md` (in this skill folder): framework-agnostic, written to be followed

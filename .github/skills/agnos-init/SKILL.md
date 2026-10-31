@@ -7,9 +7,8 @@ argument-hint: "<project folder> <toolkit path as seen from the project>"
 <!-- RQ-INI-001 to RQ-INI-006, RQ-INI-009 / ADR-INI-001 (DEC-INI-001 to DEC-INI-004) -->
 # AGNOS Init
 
-Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-init/`) and Claude Code
-(`.claude/skills/agnos-init/`, which points here). A script does all the work, so that the same call
-always gives the same files: do not write or edit the block yourself.
+A script does all the work, so that the same call always gives the same files: do not write or edit
+the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PLG-005 -->
 
 ## Procedure
 
@@ -20,8 +19,8 @@ always gives the same files: do not write or edit the block yourself.
 
    | Platform | Command |
    |---|---|
-   | Windows | `powershell -NoProfile -File <toolkit>/.github/skills/agnos-init/scripts/init.ps1 -Target <project> -Toolkit <path>` |
-   | Linux / macOS | `bash <toolkit>/.github/skills/agnos-init/scripts/init.sh --target <project> --toolkit <path>` |
+   | Windows | `powershell -NoProfile -File <skill-folder>/scripts/init.ps1 -Target <project> -Toolkit <path>` |
+   | Linux / macOS | `bash <skill-folder>/scripts/init.sh --target <project> --toolkit <path>` |
 
    Use `powershell` (Windows PowerShell 5.1), never `pwsh`: PowerShell 7 is not guaranteed to be installed.
 
@@ -50,4 +49,3 @@ To update a project after AGNOS changes, call it again.
 |---|---|
 | `scripts/init.ps1`, `scripts/init.sh` | The two versions, giving the same bytes |
 | `assets/templates/` | One block per entry-point file; `{{TOOLKIT}}` is the only placeholder |
-| `tests/test_init.py` | Runs both versions on each case: `python -m unittest discover -s .github/skills/agnos-init/tests -v` |

@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-002: Skills name their files from their own folder
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rewrite the delivered `SKILL.md` files and the tests that read them, with no `.github/skills/` path and no plugin variable.
 - **Requirement refs**: RQ-PLG-005
 - **ADR refs**: ADR-PLG-001
 - **Acceptance Criteria**: Given the delivered `SKILL.md` files, Then none holds `.github/skills/` or `CLAUDE_`; Given a project and a skill's script called from the project's root, Then its output lands in the project; Given the full suite, Then it passes.
 - **Dependencies**: TASK-PLG-001
 - **Assignee**: AI
-- **Verification**: Not run yet.
-- **Assumptions**: None
+- **Verification**: `test_skill_paths.py`: 2 wording tests failing before the rewrite, 4 OK after, the index and the perf center copied away write in the project only. Suites: meta-release 46, init 16, meta-demo 12, docs-sync 16, perf-center 364 OK (3 skipped), `test-build-index.ps1` all passed. Found and fixed on the way: with WSL running, `bash` on Windows is WSL's, which could not read the path given by `parse_error` in `release.py`; it now gets the bytes on its input (one first fix sent CRLF in text mode, seen in the test's output).
+- **Assumptions**: agnos-init's own scripts and templates stay in `LEFT_TO_THE_BLOCK_TASK` until TASK-PLG-004.
 
 ### TASK-PLG-003: Delivered scripts on Linux
 - **Tier**: M

@@ -1,0 +1,106 @@
+"""Tests that delivered skills name their files from their own folder (RQ-PLG-005, TASK-PLG-002; ADR-PLG-001: DEC-PLG-004).
+
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
+"""
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[4]
+SKILLS = ROOT / ".github" / "skills"
+META_PREFIX = "agnos-meta-"
+TESTS_FOLDER = "tests"
+CACHE_FOLDER = "__pycache__"
+SKILL_FILE = "SKILL.md"
+PLACEHOLDER = "<skill-folder>"
+WORKSHOP_PATH_RE = re.compile(r"\.github/|\.claude/|CLAUDE_")
+COMMAND_RE = re.compile(r"scripts/\S+\.(?:ps1|sh|py)")
+TEXT_SUFFIXES = {".md", ".ps1", ".sh", ".py", ".json", ".txt"}
+# What agnos-init reads of the toolkit goes with its block, TASK-PLG-004.
+LEFT_TO_THE_BLOCK_TASK = {"agnos-init/assets/templates/AGENTS.block.md", "agnos-init/assets/templates/CLAUDE.block.md",
+                          "agnos-init/scripts/init.ps1", "agnos-init/scripts/init.sh"}
+GIT_BASH = Path(r"C:\Program Files\Git\bin\bash.exe")
+INDEX_FILE = "process/INDEX.idx.md"
+PERF_PAGE = "process/PERF-CENTER.html"
+
+
+def delivered_skills():
+    return [path for path in SKILLS.iterdir() if path.is_dir() and not path.name.startswith(META_PREFIX)]
+
+
+def delivered_files():
+    for skill in delivered_skills():
+        for path in skill.rglob("*"):
+            parts = path.relative_to(skill).parts
+            if path.is_file() and path.suffix in TEXT_SUFFIXES and TESTS_FOLDER not in parts and CACHE_FOLDER not in parts:
+                yield path
+
+
+def bash():
+    return str(GIT_BASH) if GIT_BASH.exists() else "bash"
+
+
+class WordingTest(unittest.TestCase):
+    """RQ-PLG-005."""
+
+    def test_RQ_PLG_005_given_the_delivered_files_when_searched_then_none_holds_a_workshop_path(self):
+        found = []
+        for path in delivered_files():
+            name = path.relative_to(SKILLS).as_posix()
+            if name not in LEFT_TO_THE_BLOCK_TASK and WORKSHOP_PATH_RE.search(path.read_text(encoding="utf-8")):
+                found.append(name)
+        self.assertEqual([], found)
+
+    def test_RQ_PLG_005_given_a_skill_that_runs_a_script_then_it_says_what_its_folder_is(self):
+        for skill in delivered_skills():
+            text = (skill / SKILL_FILE).read_text(encoding="utf-8")
+            if COMMAND_RE.search(text):
+                self.assertIn(f"`{PLACEHOLDER}` is the folder holding this file", text, skill.name)
+
+
+class AnywhereTest(unittest.TestCase):
+    """RQ-PLG-005: a skill copied away from the repository, as in an installed plugin, works on the project it is run from."""
+
+    def setUp(self):
+        self.base = Path(tempfile.mkdtemp(prefix="agnos-skill-paths-"))
+        self.addCleanup(shutil.rmtree, self.base, ignore_errors=True)
+        self.project = self.base / "project"
+        (self.project / "process" / "1.requirements").mkdir(parents=True)
+        (self.project / "src").mkdir()
+        (self.project / "process" / "1.requirements" / "FTR-ABC-001-x.md").write_text("# FTR-ABC-001: X\n", encoding="utf-8")
+
+    def installed(self, name):
+        target = self.base / "plugin" / "skills" / name
+        shutil.copytree(SKILLS / name, target, ignore=shutil.ignore_patterns(TESTS_FOLDER, CACHE_FOLDER))
+        return target
+
+    def run_here(self, *command):
+        result = subprocess.run(command, cwd=self.project, capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def assert_only_in_project(self, name):
+        self.assertTrue((self.project / name).is_file())
+        self.assertFalse((self.base / "plugin" / name).exists())
+
+    def test_RQ_PLG_005_given_an_installed_index_skill_when_run_from_a_project_then_the_index_lands_in_the_project(self):
+        script = self.installed("agnos-index") / "scripts"
+        if os.name == "nt":
+            self.run_here("powershell", "-NoProfile", "-File", str(script / "build-index.ps1"))
+        else:
+            self.run_here(bash(), (script / "build-index.sh").as_posix())
+        self.assert_only_in_project(INDEX_FILE)
+
+    def test_RQ_PLG_005_given_an_installed_perf_center_when_run_from_a_project_then_the_page_lands_in_the_project(self):
+        (self.project / "process" / "INDEX.idx.md").write_text("", encoding="utf-8")
+        script = self.installed("agnos-perf-center") / "scripts" / "perf_center.py"
+        self.run_here(sys.executable, str(script), "--process", "process", "--sources", "src")
+        self.assert_only_in_project(PERF_PAGE)
+
+
+if __name__ == "__main__":
+    unittest.main()
