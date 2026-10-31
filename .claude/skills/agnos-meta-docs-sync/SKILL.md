@@ -12,6 +12,6 @@ follow the full procedure (the report script, the rules for each of the four doc
 
 `.github/skills/agnos-meta-docs-sync/SKILL.md`
 
-The sub-agent `agnos-meta-docs-sync` (`.claude/agents/agnos-meta-docs-sync.md`, Haiku model) runs it for you.
+The sub-agent `agnos-meta-docs-sync` (defined in `.github/agents/agnos-meta-docs-sync.agent.md`, Haiku model) runs it for you.
 
 Do not duplicate that procedure here; if it and this file ever disagree, the `.github` version is authoritative.

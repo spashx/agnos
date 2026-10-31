@@ -55,13 +55,14 @@ release number.
 ### RQ-DOC-003: A cheap sub-agent that edits and never commits
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The repository SHALL provide a Claude Code sub-agent on the Haiku model that follows the skill, reads the
-  report, edits only the four documents, and ends with a summary of what it changed in each and what it left; it SHALL
-  have no tool to commit, push or write another file.
-- **Rationale**: the work is mechanical and frequent, so it runs on the cheapest model; the maintainer keeps the commit.
+- **Statement**: The repository SHALL provide a sub-agent, defined once in `.github/agents/` (amended on 2026-10-31, TASK-DOC-004) with a
+  pointer for Claude Code on the Haiku model, that follows the skill, reads the report, edits only the four documents, and ends with a
+  summary of what it changed in each and what it left; it SHALL have no tool to commit, push or write another file.
+- **Rationale**: the work is mechanical and frequent, so it runs on the cheapest model; the maintainer keeps the commit. Claude Code has no documented path to `.github/agents/`, hence its pointer.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the agent's definition, When it is read, Then its model is haiku, its tools are limited
-  to reading, searching, editing and read-only git, and its prompt sends it to the skill; Given the skill, Then it is
+- **Acceptance Criteria**: Given the Claude Code pointer, When it is read, Then its model is haiku, its tools are limited
+  to reading, searching, editing and shell for read-only git, it names the definition, and it holds none of its procedure; Given the definition,
+  Then its prompt sends it to the skill, And its name and description are the pointer's; Given the skill, Then it is
   discoverable under `.claude/skills/` and its canonical procedure stands under `.github/skills/`.
 - **Dependencies**: RQ-DOC-001, RQ-DOC-002
 

@@ -10,8 +10,9 @@ argument-hint: "(no arguments)"
 
 A maintainer skill, like `agnos-meta-demo`: it keeps the entry-point documents true to the repository. It is not a process
 skill, so `AGENTS.md` and `CLAUDE.md` do not list it. Canonical procedure, shared by GitHub Copilot
-(`.github/skills/agnos-meta-docs-sync/`) and Claude Code (`.claude/skills/agnos-meta-docs-sync/`, which points here, and the
-sub-agent `.claude/agents/agnos-meta-docs-sync.md`, which runs it on the Haiku model).
+(`.github/skills/agnos-meta-docs-sync/`) and Claude Code (`.claude/skills/agnos-meta-docs-sync/`, which points here). The
+sub-agent that runs it is defined in `.github/agents/agnos-meta-docs-sync.agent.md`; `.claude/agents/agnos-meta-docs-sync.md`
+points to it for Claude Code, on the Haiku model.
 
 ## Procedure
 

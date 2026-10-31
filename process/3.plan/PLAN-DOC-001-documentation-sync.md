@@ -58,3 +58,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S). After the run `git status` showed only CHANGELOG.md and GETTING_STARTED.MD modified; AGENTS.md and CLAUDE.md needed nothing.
 - **Assumptions**: None
+
+### TASK-DOC-004: The sub-agent defined once, in .github
+- **Tier**: M
+- **Status**: Done
+- **Description**: Move the sub-agent's definition to `.github/agents/`, read by GitHub Copilot, and leave in `.claude/agents/` a pointer with what Claude Code requires.
+- **Requirement refs**: RQ-DOC-003, RQ-MTA-008
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the test suite, Then the criteria of RQ-DOC-003 as amended hold; Given the release rehearsal, Then neither file is delivered and it exits 0; Given a new Claude Code session, Then the agent is offered and runs on Haiku.
+- **Dependencies**: TASK-DOC-002
+- **Assignee**: AI
+- **Verification**: `agnos-meta-docs-sync/tests` 16 OK, `agnos-meta-demo/tests` 12 OK, `agnos-meta-release/tests` 42 OK, 5 of these failing before the change. Rehearsal on a throwaway clone of these files: 62 files delivered, both agent files left out, both checks true, exit 0. The new session is the owner's check, not run yet.
+- **Assumptions**: the agent stays undelivered, as approved by the owner; the definition leaves out `model`, since Copilot's values were not verified, and the pointer sets Haiku; the Copilot tool aliases come from its documentation, not yet run.

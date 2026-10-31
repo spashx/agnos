@@ -170,6 +170,11 @@ class LayersTest(RehearsalCase):
         for path in (".github/skills/agnos-meta-new/x.py", ".claude/skills/agnos-meta-new/SKILL.md", ".claude/agents/agnos-meta-new.md"):
             self.assertEqual(release.LAYER_META, release.layer_of(path, rules), path)
 
+    def test_RQ_MTA_008_given_an_agent_in_github_then_its_prefix_decides_its_layer(self):
+        rules = release.load_rules()
+        self.assertEqual(release.LAYER_META, release.layer_of(".github/agents/agnos-meta-new.agent.md", rules))
+        self.assertEqual(release.LAYER_DELIVERED, release.layer_of(".github/agents/agnos-new.agent.md", rules))
+
     def test_RQ_MTA_008_given_this_repository_then_every_tracked_file_has_a_layer_and_the_delivered_ones_are_right(self):
         rules = release.load_rules()
         layers = {path: release.layer_of(path, rules) for path, _ in release.tracked_files(ROOT)}

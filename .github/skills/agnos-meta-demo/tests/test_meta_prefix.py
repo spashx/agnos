@@ -44,6 +44,7 @@ class NamesTest(unittest.TestCase):
             for folder in (GITHUB_SKILLS, CLAUDE_SKILLS):
                 self.assertEqual(name, name_in(folder / name / SKILL_FILE))
         self.assertEqual(META_AGENT.removesuffix(".md"), name_in(AGENTS / META_AGENT))
+        self.assertEqual(META_AGENT.removesuffix(".md"), name_in(ROOT / ".github" / "agents" / META_AGENT.replace(".md", ".agent.md")))
 
     def test_RQ_MTA_001_given_the_repository_then_no_location_keeps_an_old_name(self):
         for name in OLD_NAMES:
