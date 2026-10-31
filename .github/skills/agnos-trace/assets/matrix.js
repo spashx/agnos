@@ -2346,6 +2346,9 @@
   const ID_HISTORY_GROUPING = "history-grouping";
   const ID_HISTORY_ANGLE = "history-angle";
   const ID_HISTORY_OVERVIEW = "history-overview";
+  const HANDLE_START = "start";         // RQ-HST-027: the handles of the overview window, by the end they move
+  const HANDLE_END = "end";
+  const HANDLE_NAME = { [HANDLE_START]: "First day in view", [HANDLE_END]: "Last day in view" };
   const CLASS_LEGEND_ITEM = "history-legend-item";
   const CLASS_COUNT = "history-count";
   const ATTR_VIEWBOX = "viewBox";
@@ -2762,6 +2765,18 @@
   const fitHistory = () => setSpan(hist.full[0], hist.full[1] - hist.full[0]);
   const panBy = (fraction) => setSpan(hist.span[0] + fraction * spanWidth(), spanWidth());
 
+  // RQ-HST-027: one end of the period moved to t, the other staying, within the whole history and the narrowest period.
+  function moveSpanEnd(end, t) {
+    const [full0, full1] = hist.full;
+    const [start, stop] = hist.span;
+    if (end === HANDLE_START) {
+      const from = Math.min(Math.max(t, full0), stop - MIN_SPAN_MS);
+      setSpan(from, stop - from);
+    } else {
+      setSpan(start, Math.min(t, full1) - start);
+    }
+  }
+
   // ---- the time axis ----
   function floorTo(unit, t) {
     const d = new Date(t);
@@ -2816,11 +2831,34 @@
       const ticks = HISTORY.commits.map((c, i) => svgEl(VALUE_LINE, { class: "history-tick", x1: at(commitTime[i]),
         x2: at(commitTime[i]), y1: height * TICK_FROM, y2: height * TICK_TO, stroke: `var(--c-history-${c.kind})` }));
       const inset = cssNumber(CSS_HAIRLINE);
-      clear(svg).append(svgEl(SVG_RECT, { class: "history-window", y: inset, height: height - 2 * inset }), ...ticks);
+      clear(svg).append(svgEl(SVG_RECT, { class: "history-window", y: inset, height: height - 2 * inset }), ...ticks,
+        overviewHandle(HANDLE_START, height), overviewHandle(HANDLE_END, height));
     }
     const window = svg.firstElementChild;                  // under the ticks, which stay visible
     window.setAttribute("x", String(at(hist.span[0])));
     window.setAttribute(VALUE_WIDTH, String(Math.max(1, at(hist.span[1]) - at(hist.span[0]))));
+    // RQ-HST-027, RQ-HST-029: above the ticks, centred on their end, whole inside the strip, named with their date.
+    const handleWidth = cssNumber("--c-history-handle-width");
+    for (const [i, end] of [HANDLE_START, HANDLE_END].entries()) {
+      const handle = svg.querySelector(`[data-end="${end}"]`);
+      handle.setAttribute("transform", `translate(${Math.min(Math.max(at(hist.span[i]) - handleWidth / 2, 0), width - handleWidth)} 0)`);
+      handle.setAttribute(VALUE_ARIA_LABEL, handleText(end));
+    }
+  }
+
+  const handleText = (end) => `${HANDLE_NAME[end]}: ${dayOf(hist.span[end === HANDLE_START ? 0 : 1])}`;
+
+  function overviewHandle(end, height) {
+    // A rounded grip with two lines, as the slider of the Delivery chart: nothing like the strip's thin ticks.
+    const handleWidth = cssNumber("--c-history-handle-width");
+    const inset = cssNumber(CSS_HAIRLINE);
+    const gap = cssNumber("--c-history-handle-grip-gap");
+    const grip = (x) => svgEl(VALUE_LINE, { class: "history-handle-grip", x1: x, x2: x, y1: height * TICK_FROM, y2: height * TICK_TO });
+    const handle = svgEl("g", { class: "history-handle", "data-end": end, role: "slider", tabindex: "0" });
+    handle.append(svgEl(SVG_RECT, { class: "history-handle-body", x: inset, y: inset, width: handleWidth - 2 * inset,
+      height: height - 2 * inset, rx: cssNumber("--c-history-handle-radius") }),
+    grip(handleWidth / 2 - gap), grip(handleWidth / 2 + gap));
+    return richTip(handle, () => linesTip([handleText(end), "Drag it, or use the left and right arrow keys"]), CSS_TIP_DELAY);
   }
 
   // ---- the activity band (RQ-HST-008): commits per day, week or month of the period in view ----
@@ -3358,14 +3396,31 @@
       const box = overview.getBoundingClientRect();
       return hist.full[0] + ((event.clientX - box.left) / box.width) * (hist.full[1] - hist.full[0]);
     };
-    let sliding = false;
+    // RQ-HST-027, RQ-HST-028: a handle moves its end; the window moves by the distance dragged; elsewhere it centres there.
+    let sliding = null;
+    const slide = (event) => {
+      const t = overviewTime(event);
+      if (sliding.end) moveSpanEnd(sliding.end, t);
+      else setSpan(t - sliding.offset, spanWidth());
+    };
     overview.addEventListener(EVENT_POINTERDOWN, (event) => {
-      sliding = true;
+      const t = overviewTime(event);
+      const inside = t >= hist.span[0] && t <= hist.span[1];
+      sliding = { end: event.target.closest("[data-end]")?.dataset.end, offset: inside ? t - hist.span[0] : spanWidth() / 2 };
+      if (!sliding.end) slide(event);
       overview.setPointerCapture(event.pointerId);
-      setSpan(overviewTime(event) - spanWidth() / 2, spanWidth());
     });
-    overview.addEventListener(EVENT_POINTERMOVE, (event) => { if (sliding) setSpan(overviewTime(event) - spanWidth() / 2, spanWidth()); });
-    for (const type of [EVENT_POINTERUP, EVENT_POINTERCANCEL]) overview.addEventListener(type, () => { sliding = false; });
+    overview.addEventListener(EVENT_POINTERMOVE, (event) => { if (sliding) slide(event); });
+    for (const type of [EVENT_POINTERUP, EVENT_POINTERCANCEL]) overview.addEventListener(type, () => { sliding = null; });
+    // RQ-HST-029: on a handle, the arrows move its end only, and never reach the timeline's own keys.
+    overview.addEventListener(EVENT_KEYDOWN, (event) => {
+      const { end } = event.target.dataset;
+      if (!end || (event.key !== KEY_ARROWLEFT && event.key !== KEY_ARROWRIGHT)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const step = (event.key === KEY_ARROWLEFT ? -PAN_FRACTION : PAN_FRACTION) * spanWidth();
+      moveSpanEnd(end, hist.span[end === HANDLE_START ? 0 : 1] + step);
+    });
     plot.addEventListener(EVENT_KEYDOWN, (event) => {
       const centre = (hist.span[0] + hist.span[1]) / 2;
       const keys = { "+": () => zoomAround(centre, zoomStep()), "=": () => zoomAround(centre, zoomStep()),
@@ -4023,12 +4078,12 @@
       data: [area(PERIOD_KEYS[0], periodColour(PERIOD_KEYS[0])), area(PERIOD_KEYS[1], periodColour(PERIOD_KEYS[1]))] };
     return {
       legend: { data: TIERS.map(tierLabel), top: 0 },                  // RQ-TRC-096: the tags are the marks' legend
-      grid: { containLabel: true, left: 0, right: 0, top: legendRoom(), bottom: legendGap() },
+      grid: { containLabel: true, left: 0, right: 0, top: legendGap(), bottom: legendRoom() },   // RQ-TRC-097: room for the slider
       tooltip: { trigger: TRIGGER_AXIS, formatter: ([first]) => bucketTip(buckets[first.dataIndex]) },
       xAxis: { type: AXIS_CATEGORY, data: buckets.map((b) => b.bucket) },
       yAxis: [{ type: AXIS_VALUE, name: "points" },
         { type: AXIS_VALUE, name: "count", minInterval: 1, splitLine: { show: false }, show: OVERLAYS.some(overlayShown) }],
-      dataZoom: [{ type: "inside", ...dlv.zoom }, { type: "slider", height: cssSize("--s-space-lg"), bottom: 0, ...dlv.zoom }],
+      dataZoom: [{ type: "inside", ...dlv.zoom }, { type: "slider", height: cssSize("--s-space-lg"), bottom: cssSize("--s-space-sm"), ...dlv.zoom }],
       series: [...series, ...OVERLAYS.filter(overlayShown).map((overlay) => overlaySeries(overlay, buckets, theme))],
     };
   }

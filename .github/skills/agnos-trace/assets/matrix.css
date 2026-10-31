@@ -985,6 +985,11 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .history-overview { cursor: grab; }
 .history-overview .history-tick { stroke-width: var(--s-stroke-hairline); }
 .history-window { fill: var(--c-history-window); stroke: var(--c-history-window-border); stroke-width: var(--s-stroke-hairline); }
+/* RQ-HST-027, RQ-HST-029, DEC-HST-012: the handles of the window */
+.history-handle { cursor: ew-resize; outline: none; }
+.history-handle-body { fill: var(--c-history-handle); stroke: var(--c-history-handle-border); stroke-width: var(--s-stroke-hairline); }
+.history-handle-grip { stroke: var(--c-history-handle-border); stroke-width: var(--s-stroke-hairline); }
+.history-handle:hover .history-handle-body, .history-handle:focus-visible .history-handle-body { stroke-width: var(--c-focus-ring); }
 .history-frame { position: relative; }
 /* RQ-HST-020: the labels column's edge, like the page's panel splitters */
 .history-split {

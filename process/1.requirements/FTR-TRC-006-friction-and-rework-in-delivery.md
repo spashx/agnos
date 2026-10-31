@@ -110,3 +110,14 @@ session's work); weighting the counters; a filter of the friction by tier, commi
 - **Acceptance Criteria**: Given friction peaking at 20 and rework at 3, When Friction is off, Then the axis ends near 3
   and the band is unchanged; Given no log, Then Friction is disabled with a tooltip.
 - **Dependencies**: RQ-TRC-095, RQ-HST-009
+
+### RQ-TRC-097: The zoom slider seen whole
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The chart "Points over time" SHALL show its zoom slider and both its handles entirely inside its card, below
+  the axis labels, without making the card taller; its legend and plot SHALL move up to leave that room. Amends RQ-TRC-083.
+- **Rationale**: a slider cut at the card's edge is hard to see and to grab (owner review of 2026-10-31).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the tab, Then the slider's bottom edge lies inside the chart's box by at least the slider's
+  margin, it does not overlap the axis labels, and the chart's height token is unchanged.
+- **Dependencies**: RQ-TRC-083, RQ-TRC-085

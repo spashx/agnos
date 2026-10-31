@@ -95,7 +95,8 @@ only, so it works on any AGNOS project. It needs Python 3.9 or later, standard l
   changed, by type, with the lines changed in each). The
   figures (commits, humans, agents, share with an agent, period) and an activity band stacked by kind follow the rows
   shown. The wheel over the marks zooms, a drag pans, `+` `-` `0` and the arrows do the same; the overview strip at
-  the bottom moves the period. The selectors stand together on the toolbar: angle, code grouping, kind (all, humans,
+  the bottom moves the period, and the handle at each end of its window, dragged or with the left and right arrows,
+  changes that end (FTR-HST-003). The selectors stand together on the toolbar: angle, code grouping, kind (all, humans,
   agents). Filters: identities (one or more), a text on the rows (ID, title, path, function; the first field of its
   line, as wide as the sidebar's search), the element types; "Rows without changes" shows the rows a filter empties. The labels column
   is resized by its edge (drag, arrows, double click to reset; remembered in the browser). The sidebar's **History**

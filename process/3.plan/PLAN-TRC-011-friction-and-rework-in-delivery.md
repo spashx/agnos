@@ -71,6 +71,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: RQ-TRC-095, 096 tests OK within the full suite. `AGNOS_TRACE_PERF=1`: P95 66-77 ms against the former 50 ms limit, 64-73 ms on the previous commit; owner set the limit to 100 ms on 2026-10-31 (RQ-TRC-078, RQ-TRC-088); the fixture of the speed test holds no friction row. Visual check left to the owner.
 - **Assumptions**: the marks reuse the History mark size; a tag keeps the chart's zoom; series order Rework then Friction, as in the tags.
 
+### TASK-TRC-086: The zoom slider seen whole
+- **Tier**: S
+- **Status**: Done
+- **Description**: Move the legend and plot of "Points over time" up and give its slider room inside the card.
+- **Requirement refs**: RQ-TRC-097, RQ-TRC-083
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043), ADR-TRC-002
+- **Acceptance Criteria**: Given the tab, Then the criterion of RQ-TRC-097 holds.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: the plot keeps its height: 16 px gained at the top, given to the slider at the bottom.
+
 ### TASK-TRC-085: Corrections of the owner's review
 - **Tier**: L
 - **Status**: Done

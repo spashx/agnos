@@ -405,6 +405,17 @@ out.last = buckets[buckets.length - 1] + ":" + sumOf(weeks.series.filter((s) => 
         self.assertEqual(("42", "2", "true", "7"), (got["days"], got["areas"], got["zoom"], got["weeks"]))
         self.assertEqual("2026-10-26:1", got["last"])
 
+    def test_RQ_TRC_097_given_the_timeline_then_its_slider_lies_whole_inside_the_chart_below_the_plot(self):
+        got = self.run_script("""
+const option = optionOf("timeline");
+const slider = option.dataZoom.find((z) => z.type === "slider");
+const grid = [].concat(option.grid)[0];
+out.inside = String(slider.bottom >= Number.parseFloat(css("--s-space-sm")));
+out.room = String(grid.bottom >= slider.bottom + slider.height + Number.parseFloat(css("--s-space-sm")));
+out.raised = String(grid.top === Number.parseFloat(css("--s-space-2xl")));
+""", "inside", "room", "raised")
+        self.assertEqual({"inside": "true", "room": "true", "raised": "true"}, got)
+
     def test_RQ_TRC_083_given_the_tiers_chart_then_it_counts_the_tasks_per_tier_for_a_and_b_and_follows_the_filters(self):
         got = self.run_script("""
 const counts = () => optionOf("tiers").series.map((s) => s.name + ":" + s.data.map((d) => d.value ?? d).join(",")).join(" ");

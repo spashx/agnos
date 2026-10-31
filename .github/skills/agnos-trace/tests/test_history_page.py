@@ -848,6 +848,100 @@ out.unnamed = [...new Set(unnamed)].join(",");
         self.assertEqual(("", ""), (got["unreachable"], got["unnamed"]))
 
 
+STRIP = """
+const view = agnosTrace.historyView;
+const strip = document.getElementById("history-overview");
+const handle = (end) => strip.querySelector(`[data-end="${end}"]`);
+const [full0, full1] = view.state.full;
+const timeOf = (share) => full0 + share * (full1 - full0);
+const xOf = (share) => { const box = strip.getBoundingClientRect(); return box.left + share * box.width; };
+const pointer = (type, node, share) => node.dispatchEvent(new PointerEvent(type, { clientX: xOf(share), bubbles: true, pointerId: 1 }));
+const drag = (node, from, to) => { pointer("pointerdown", node, from); pointer("pointermove", strip, to); pointer("pointerup", strip, to); };
+const shareOf = (t) => ((t - full0) / (full1 - full0)).toFixed(3);
+const shares = () => view.span().map(shareOf).join(",");
+const windowOf = (from, to) => view.setSpan(timeOf(from), timeOf(to) - timeOf(from));
+"""
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class OverviewHandlesTest(unittest.TestCase):
+    """TASK-HST-021: RQ-HST-027, RQ-HST-028, RQ-HST-029."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.path = Path(cls.tmp.name) / "page.html"
+        generate(cls.path)
+        add_history(cls.path)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_script(self, script, *names):
+        return found(rendered_dom_after(self.path, OPEN + STRIP + script), *names)
+
+    def test_RQ_HST_027_given_a_handle_dragged_then_only_its_end_moves(self):
+        got = self.run_script("""
+windowOf(0.4, 0.6);
+drag(handle("start"), 0.4, 0.2); out.left = shares();
+drag(handle("end"), 0.6, 0.9); out.right = shares();
+""", "left", "right")
+        self.assertEqual("0.200,0.600", got["left"])
+        self.assertEqual("0.200,0.900", got["right"])
+
+    def test_RQ_HST_027_given_a_handle_dragged_past_the_other_then_the_window_keeps_the_shortest_period(self):
+        got = self.run_script("""
+windowOf(0.4, 0.6);
+const end = view.span()[1];
+drag(handle("start"), 0.4, 0.9);
+out.kept = String(view.span()[1] === end); out.width = String(view.span()[1] - view.span()[0]);
+drag(handle("end"), 0.6, 2); out.far = shareOf(view.span()[1]);
+""", "kept", "width", "far")
+        self.assertEqual(("true", "3600000"), (got["kept"], got["width"]))
+        self.assertEqual("1.000", got["far"])
+
+    def test_RQ_HST_029_given_a_handle_then_it_is_a_grip_wider_than_a_tick_and_a_press_on_its_grip_moves_its_end(self):
+        got = self.run_script("""
+windowOf(0.4, 0.6);
+const body = handle("start").querySelector(".history-handle-body");
+out.grips = String(handle("start").querySelectorAll(".history-handle-grip").length);
+out.wide = String(body.getBoundingClientRect().width > strip.querySelector(".history-tick").getBoundingClientRect().width + 4);
+drag(handle("start").querySelector(".history-handle-grip"), 0.4, 0.2); out.moved = shares();
+""", "grips", "wide", "moved")
+        self.assertEqual(("2", "true", "0.200,0.600"), (got["grips"], got["wide"], got["moved"]))
+
+    def test_RQ_HST_028_given_the_window_dragged_off_centre_then_it_moves_by_the_distance_without_a_jump(self):
+        got = self.run_script("""
+windowOf(0.4, 0.6);
+drag(strip.querySelector(".history-window"), 0.45, 0.55); out.moved = shares();
+""", "moved")
+        self.assertEqual("0.500,0.700", got["moved"])
+
+    def test_RQ_HST_028_given_the_strip_pressed_outside_the_window_then_the_window_is_centred_there(self):
+        got = self.run_script("""
+windowOf(0.1, 0.2);
+pointer("pointerdown", strip, 0.8); pointer("pointerup", strip, 0.8); out.centred = shares();
+""", "centred")
+        self.assertEqual("0.750,0.850", got["centred"])
+
+    def test_RQ_HST_029_given_a_handle_focused_then_the_arrows_move_its_end_only_and_its_name_gives_the_date(self):
+        got = self.run_script("""
+windowOf(0.4, 0.6);
+const start = handle("start");
+out.reach = String(start.tabIndex === 0 && start.getAttribute("role") === "slider");
+const named = start.getAttribute("aria-label");
+const end = view.span()[1], from = view.span()[0];
+start.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+out.moved = String(view.span()[0] > from && view.span()[1] === end);
+out.iso = new Date(view.span()[0]).toISOString().slice(0, 10);
+out.name = start.getAttribute("aria-label"); out.before = named;
+""", "reach", "moved", "iso", "name", "before")
+        self.assertEqual(("true", "true"), (got["reach"], got["moved"]))
+        self.assertIn(got["iso"], got["name"])
+        self.assertIn("First day", got["before"])
+
+
 class WordingTest(unittest.TestCase):
     """TASK-HST-009: RQ-HST-018: no ID of the skill's process in the page's own wording."""
 
