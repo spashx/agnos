@@ -1,4 +1,5 @@
 # ADR-TRC-002: Design System of the Traceability Page
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — required by AGNOS MANDATORY DESIGN SYSTEM before the first UI requirement of FTR-TRC-001. Motivated by
@@ -53,9 +54,9 @@ of the graph algorithm (iterations, padding ratios) are named constants at the t
 ## Diagram
 ```mermaid
 flowchart LR
-    T[tokens.json global → semantic → component] --> GEN[trace_matrix.py resolve + check]
+    T[tokens.json global → semantic → component] --> GEN[perf_center.py resolve + check]
     GEN --> V[":root / dark custom properties"]
     V --> CSS[matrix.css var(--…)]
     V --> JS[matrix.js getComputedStyle → Cytoscape style]
-    CSS & JS --> PAGE[TRACEABILITY.html]
+    CSS & JS --> PAGE[PERF-CENTER.html]
 ```

@@ -1,4 +1,5 @@
 # FTR-HST-001: Contribution History in the Traceability Page
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 The traceability page (FTR-TRC-001) shows what is linked to what, at one moment. It does not show **who** made each
@@ -392,7 +393,7 @@ of FTR-TRC-003.
   drawn in less than 300 ms, and each step of zoom, pan or filter SHALL be redrawn in less than 50 ms.
 - **Metric**: generation time added by `--history`; size added to the data file; drawing time of the tab; P95 of the
   redraw time over 50 zoom, pan and filter steps.
-- **Measurement Method**: the skill's performance test (`AGNOS_TRACE_PERF=1`) on a generated repository, with and
+- **Measurement Method**: the skill's performance test (`AGNOS_PERF_CENTER_PERF=1`) on a generated repository, with and
   without `--history`; times measured in the headless browser.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the generated repository, When the generator runs with and without `--history` and the

@@ -1,4 +1,5 @@
 # ADR-TRC-004: Call-Graph Analysis with Tree-sitter
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — reviewed and accepted by the owner on 2026-10-18, with the defaults proposed for the function key
@@ -22,10 +23,10 @@ with that many more nodes.
 ## Decision
 
 ### DEC-TRC-013: An optional module, imported only on demand
-`scripts/callgraph.py`, imported by `trace_matrix.py` only when `--call-graph` is given (RQ-TRC-026, RQ-TRC-039). It uses
+`scripts/callgraph.py`, imported by `perf_center.py` only when `--call-graph` is given (RQ-TRC-026, RQ-TRC-039). It uses
 py-tree-sitter and one grammar wheel per language (`tree-sitter-c`, `tree-sitter-cpp`, …), all with prebuilt wheels for
 Windows, Linux and macOS, no compiler needed; the supported versions are pinned in `requirements-callgraph.txt`
-(`pip install -r .github/skills/agnos-trace/requirements-callgraph.txt`). The version-specific part of py-tree-sitter's
+(`pip install -r .github/skills/agnos-perf-center/requirements-callgraph.txt`). The version-specific part of py-tree-sitter's
 API (building a language, running a query) sits in one small adapter function. A missing package skips the language with
 a message and the install command, the page is written all the same (RQ-TRC-027). The module parses the files the
 scanner already selected (RQ-TRC-006): no second walk.

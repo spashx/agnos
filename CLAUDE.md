@@ -23,6 +23,6 @@ calling out explicitly:
   discovered at `.claude/skills/agnos-design-system/SKILL.md`, which points to the canonical
   procedure and template under `.github/skills/agnos-design-system/` — read and follow that
   procedure. <!-- RQ-DSY-001 -->
-- **Traceability skill**: use the skill named `agnos-trace`. Under Claude Code it is discovered at
-  `.claude/skills/agnos-trace/SKILL.md`, which points to the canonical procedure at
-  `.github/skills/agnos-trace/SKILL.md` — read and follow that procedure. <!-- RQ-AGT-001 -->
+- **Performance center skill**: use the skill named `agnos-perf-center`. Under Claude Code it is discovered at
+  `.claude/skills/agnos-perf-center/SKILL.md`, which points to the canonical procedure at
+  `.github/skills/agnos-perf-center/SKILL.md` — read and follow that procedure. <!-- RQ-AGT-001 -->

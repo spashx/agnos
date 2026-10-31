@@ -1,4 +1,5 @@
 # ADR-TRC-003: Self-Contained Page and Interactive Graph
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — owner decisions of 2026-10-18: Cytoscape.js, vendored and inlined. Motivated by RQ-TRC-010 to RQ-TRC-016,
@@ -19,10 +20,10 @@ id="trace-data">` whose JSON has every `<` written `<`, so no file content can c
 page script builds the DOM with `createElement`/`textContent` only, never `innerHTML` with data. No `src`, `href` or
 `url()` points outside the file (RQ-TRC-010).
 Amended by the owner on 2026-10-18 (RQ-TRC-010): the data leave the page. The generator writes `<page>.json` (the
-data, the same escaped JSON, for other tools) and `<page>.data.js` (`window.AGNOS_TRACE_DATA = <the same JSON>;`), and the
+data, the same escaped JSON, for other tools) and `<page>.data.js` (`window.AGNOS_PERF_CENTER_DATA = <the same JSON>;`), and the
 template's data block becomes `<script src="<page>.data.js">`, before the page script. A `.js` twin, because a browser
 refuses `fetch` of a sibling file to a page opened from `file://`, while it runs a sibling script. The page script reads
-`window.AGNOS_TRACE_DATA` and, when it is missing, says which file it lacks. The three files are written together and
+`window.AGNOS_PERF_CENTER_DATA` and, when it is missing, says which file it lacks. The three files are written together and
 must travel together; a page mailed alone no longer works.
 Amended by DEC-TRC-040 (ADR-TRC-010, 2026-10-28): the libraries are no longer inlined, but loaded from cdnjs.
 
@@ -50,8 +51,8 @@ filters, gap shortcuts), and four views: **Overview** (counts, coverage, gaps, p
 view and written to the URL fragment; `hashchange` and `popstate` restore it (RQ-TRC-016).
 
 ### DEC-TRC-008: Skill packaging
-`.github/skills/agnos-trace/` holds `SKILL.md` (the canonical procedure), `scripts/trace_matrix.py`, `scripts/vendor/`,
-`assets/` and `tests/` (Python `unittest` on a synthetic fixture process); `.claude/skills/agnos-trace/SKILL.md` points to
+`.github/skills/agnos-perf-center/` holds `SKILL.md` (the canonical procedure), `scripts/perf_center.py`, `scripts/vendor/`,
+`assets/` and `tests/` (Python `unittest` on a synthetic fixture process); `.claude/skills/agnos-perf-center/SKILL.md` points to
 it, as for the other AGNOS skills. The generated page is not committed by the skill; a project that does not want it in
 its working tree ignores the output path. Extended by DEC-TRC-050 and DEC-TRC-051 (2026-10-31): `SKILL.md` holds the contract,
 `references/` the rest.
@@ -80,7 +81,7 @@ implement it in two clicks; a link to one element can be shared.
 ## Diagram
 ```mermaid
 flowchart TB
-    subgraph Page[TRACEABILITY.html]
+    subgraph Page[PERF-CENTER.html]
       D[trace-data JSON] --> S[selection state + URL fragment]
       SB[sidebar: search, filters, gaps] --> S
       S --> OV[Overview]

@@ -1,4 +1,5 @@
 # FTR-TRC-005: Charts from an Online Library
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 The charts of the traceability page are drawn by hand in inline SVG (DEC-TRC-035, DEC-TRC-039). At the owner's review of
@@ -170,7 +171,7 @@ Out of scope: a local copy of the libraries as a fallback; any other chart.
 - **Statement**: With the libraries in the browser's cache, the page SHALL keep the thresholds of RQ-TRC-078 for the
   Delivery tab, and the Quality view SHALL be drawn in less than 300 ms.
 - **Metric**: drawing time of the Delivery tab and of the Quality view; P95 of the redraw time over 50 filter changes.
-- **Measurement Method**: the skill's performance tests (`AGNOS_TRACE_PERF=1`), times measured in the headless browser
+- **Measurement Method**: the skill's performance tests (`AGNOS_PERF_CENTER_PERF=1`), times measured in the headless browser
   after a first load.
 - **Priority**: Should
 - **Acceptance Criteria**: Given 1,000 delivered tasks, Then the tab is drawn in less than 300 ms and the P95 is under

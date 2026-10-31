@@ -1,4 +1,5 @@
 # FTR-AGT-001: Agent entry points
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 Every AI coding agent working on the repository must load the whole AGNOS process. GitHub Copilot
@@ -26,5 +27,5 @@ cross-tool convention read by other agents, and keeps all entry points aligned o
   - **Given** `AGENTS.md` and `CLAUDE.md`
   - **When** they are read
   - **Then** each references `.github/instructions/agnos-sw-eng.instructions.md`
-  - **And** each names the skills `agnos-index`, `agnos-git-workflow`, `agnos-design-system` and `agnos-trace`
+  - **And** each names the skills `agnos-index`, `agnos-git-workflow`, `agnos-design-system` and `agnos-perf-center`
 - **Dependencies**: RQ-DSY-001

@@ -1,9 +1,10 @@
 # FTR-QLT-001: A Code Quality Report Before the Pull Request
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 The maintainer, or an agent told to, asks `agnos-meta-qa` for a report on the code of this repository. Its findings are corrected
 before the commit or the push, rather than in the pull request. The report is written for whoever corrects them: an AI or a tool.
-`agnos-trace`'s code is brought to a report with nothing left open.
+`agnos-perf-center`'s code is brought to a report with nothing left open.
 
 Out of scope: hooks, blocking anything, correcting the code from the skill, a SonarQube Cloud project, the tests' own code.
 
@@ -107,13 +108,13 @@ Out of scope: hooks, blocking anything, correcting the code from the skill, a So
 
 ## Non-Functional Requirements
 
-### RQ-QLT-009: agnos-trace's code has nothing left open
+### RQ-QLT-009: agnos-perf-center's code has nothing left open
 - **Category**: Non-Functional
 - **NFR Type**: Maintainability
 - **EARS Type**: Ubiquitous
-- **Statement**: The report on the scripts and assets of `agnos-trace` SHALL hold no open finding, with no change of behaviour.
-- **Metric**: 0 open findings; the suite of `agnos-trace` as passing as before (356 tests, 3 skipped).
-- **Measurement Method**: `agnos-meta-qa check .github/skills/agnos-trace/scripts .github/skills/agnos-trace/assets`, and the skill's unit tests.
+- **Statement**: The report on the scripts and assets of `agnos-perf-center` SHALL hold no open finding, with no change of behaviour.
+- **Metric**: 0 open findings; the suite of `agnos-perf-center` as passing as before (356 tests, 3 skipped).
+- **Measurement Method**: `agnos-meta-qa check .github/skills/agnos-perf-center/scripts .github/skills/agnos-perf-center/assets`, and the skill's unit tests.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the corrected code, When both run, Then the report's `open` count is 0, And the suite has no failure.
 - **Dependencies**: RQ-QLT-002, RQ-QLT-004
@@ -122,7 +123,7 @@ Out of scope: hooks, blocking anything, correcting the code from the skill, a So
 - **Category**: Non-Functional
 - **NFR Type**: Accessibility
 - **EARS Type**: Ubiquitous
-- **Statement**: Each SonarQube finding of `agnos-trace/assets/matrix.html` SHALL be corrected, or recorded as a justified decision in
+- **Statement**: Each SonarQube finding of `agnos-perf-center/assets/matrix.html` SHALL be corrected, or recorded as a justified decision in
   `PLAN-QLT-001`, with no visual change.
 - **Metric**: 20 findings at the start, each one corrected or recorded.
 - **Measurement Method**: VS Code's diagnostics of the file, and the skill's page tests.

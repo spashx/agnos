@@ -41,7 +41,7 @@ skill.
 | `agnos-index` | [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md) | Regenerate the artifact index — at session start and before every commit |
 | `agnos-git-workflow` | [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md) | `start-session <TRI>` (branch) and `commit-task <TASK> [<ADR>] <description>` (commit) |
 | `agnos-design-system` | [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md) | Create the design system of a UI project, before its first UI requirement |
-| `agnos-trace` | [`.github/skills/agnos-trace/SKILL.md`](.github/skills/agnos-trace/SKILL.md) | Generate the traceability matrix application — at session end or before a release |
+| `agnos-perf-center` | [`.github/skills/agnos-perf-center/SKILL.md`](.github/skills/agnos-perf-center/SKILL.md) | Monitor the process's execution on a project (traceability matrix, quality, history, delivery) — at session end or before a release |
 
 Each skill's scripts exist for Windows PowerShell 5.1 and bash, or are Python; the `SKILL.md` says
 which to run for the session's `platform`. Never reimplement a skill's work by hand.

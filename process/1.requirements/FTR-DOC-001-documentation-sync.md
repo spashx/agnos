@@ -1,4 +1,5 @@
 # FTR-DOC-001: Documentation Sync Sub-Agent
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 The repository's entry-point documents drift from the code: `CHANGELOG.md` lists what changed in releases, `AGENTS.md`
@@ -76,7 +77,7 @@ release number.
   for the same repository, and SHALL declare every repeated literal as a named constant.
 - **Metric**: two runs on one repository give equal output; the script has no repeated literal.
 - **Measurement Method**: a test that runs the script twice on a temporary repository and compares; the literal test of
-  the agnos-trace skill applied to the script.
+  the agnos-perf-center skill applied to the script.
 - **Priority**: Should
 - **Acceptance Criteria**: Given a temporary repository, When the script runs twice, Then the outputs are equal.
 - **Dependencies**: RQ-DOC-001

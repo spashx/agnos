@@ -1,4 +1,5 @@
 # ADR-TRC-012: The Skill as a Contract, References on Demand, a Guide in the Page
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — approved by the owner on 2026-10-31; from the owner's decisions of 2026-10-31, reformulated as FTR-TRC-007 (RQ-TRC-098 to RQ-TRC-102). Extends
@@ -46,7 +47,7 @@ to what a reader needs. Nothing about it enters the data files. Fulfils RQ-TRC-1
 ```mermaid
 flowchart LR
   A[Agent runs the skill] --> S[SKILL.md: contract, 50 lines]
-  S --> G[trace_matrix.py]
+  S --> G[perf_center.py]
   Q[Agent asked to explain or maintain] --> S
   S -->|on demand| R[references: rules, data format, maintaining]
   G --> P[Page]

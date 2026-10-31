@@ -1,4 +1,5 @@
 # ADR-MTA-001: One Repository, Three Layers, a Release Built from the Workshop
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — approved by the owner on 2026-10-31, for FTR-MTA-001 (RQ-MTA-001 to RQ-MTA-004). Amends DEC-DMO-006 (the
@@ -49,7 +50,7 @@ DEC-INI-005: `agnos-init` comes first and needs no plugin, which will only suppl
 ### DEC-MTA-006: The demo holds the project only
 Owner's decision of 2026-10-31: since projects will install AGNOS as a plugin, the demo keeps its code, `process/`, its README and its
 own `.gitignore` and `.gitattributes`, and no toolkit or public repository file. Its first commit starts the project instead of importing the
-toolkit. The engine and the checks run `agnos-index` and `agnos-trace` from this repository; a release is validated by running them from
+toolkit. The engine and the checks run `agnos-index` and `agnos-perf-center` from this repository; a release is validated by running them from
 its output on the demo, which adjusts DEC-MTA-004. Amends RQ-DMO-002 and RQ-DMO-020. Fulfils RQ-MTA-005. Amended on 2026-10-31 by DEC-INI-005:
 the demo also holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`, so a session can be run in it, with the toolkit beside it.
 

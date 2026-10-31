@@ -1,7 +1,8 @@
 # FTR-TRC-007: A Skill Limited to its Contract, a Guide in the Page
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
-`.github/skills/agnos-trace/SKILL.md` has grown to 295 lines, about 7,200 tokens loaded each time the skill runs, six times
+`.github/skills/agnos-perf-center/SKILL.md` has grown to 295 lines, about 7,200 tokens loaded each time the skill runs, six times
 the next largest AGNOS skill. About 69 % of it is needed neither to run the skill nor to report its result: it describes
 the page, the rules and the data format. An agent only has to run the script; the owner decided on 2026-10-31 that the
 skill holds its contract, that what an agent may need when asked moves to files read on demand, and that the reader's

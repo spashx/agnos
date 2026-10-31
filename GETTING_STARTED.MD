@@ -618,11 +618,11 @@ the code and the tests.
 
 ## Stage 8 — Check the traceability
 
-> Illustrates instruction section **MANDATORY TRACEABILITY**, checked by the `agnos-trace` skill.
+> Illustrates instruction section **MANDATORY TRACEABILITY**, checked by the `agnos-perf-center` skill.
 
 `grep` answers one ID at a time. Before closing a session — or before a release — you want the
 whole picture: which requirements are implemented, which are not, and what is linked to nothing.
-The `agnos-trace` skill builds it.
+The `agnos-perf-center` skill builds it.
 
 **You type:**
 
@@ -630,17 +630,17 @@ The `agnos-trace` skill builds it.
 Generate the traceability matrix for src and tests.
 ```
 
-**The agent** invokes the `agnos-trace` skill on the `src` and `tests` folders, then reports its
+**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders, then reports its
 result line as it is:
 
 ```text
-agnos-trace: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
+agnos-perf-center: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
 checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>,
-files-traced <s>; findings 0; process/TRACEABILITY.html written
+files-traced <s>; findings 0; process/PERF-CENTER.html written
 ```
 
-**What you get — `process/TRACEABILITY.html`**, a complete offline application (open it from disk
-in any current browser; keep `TRACEABILITY.data.js` beside it, and `TRACEABILITY.json` holds the
+**What you get — `process/PERF-CENTER.html`**, a complete offline application (open it from disk
+in any current browser; keep `PERF-CENTER.data.js` beside it, and `PERF-CENTER.json` holds the
 same data for any other tool):
 
 | View | What it answers |
@@ -657,7 +657,7 @@ panel lists its callers, its callees and the IDs it cites; the graph's **Impleme
 draws them at the level of the function, the class or the namespace. Supported languages: C, C++,
 C#, Java, JavaScript / Node.js, Python and Rust — not TypeScript, so this guide's example would get
 no functions. The option needs the tree-sitter packages, installed once with
-`pip install -r .github/skills/agnos-trace/requirements-callgraph.txt`; without them the page is
+`pip install -r .github/skills/agnos-perf-center/requirements-callgraph.txt`; without them the page is
 written all the same, without functions.
 
 **Your job here — read the findings, every non-zero one is a defect to fix or to justify:**
@@ -748,7 +748,7 @@ One row per stage. This is the whole human side of a session.
 | 5. Implement | `TASK-EXP-001 approved. Implement it.` | Source with ID comments, named constants |
 | 6. Test | `Run the tests.` | Gherkin-named tests, run under `session.platform` |
 | 7. Commit | *(agent proposes)* `commit-task TASK-EXP-001 ADR-EXP-001 <description>` | `feat(EXP): ADR-EXP-001/TASK-EXP-001 <description>` |
-| 8. Trace | `Generate the traceability matrix for src and tests.` | `TRACEABILITY.html` — coverage, quality score and grade, graph down to functions |
+| 8. Trace | `Generate the traceability matrix for src and tests.` | `PERF-CENTER.html` — coverage, quality score and grade, graph down to functions |
 | 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics |
 
 Corrections at any point are just sentences: *"RQ-EXP-002 should be 20 MB, not 50."* —
@@ -804,4 +804,4 @@ artifact with no requirement ID.
 - **Index skill** — [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md)
 - **Git workflow skill** — [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md)
 - **Design-system skill** — [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md)
-- **Traceability skill** — [`.github/skills/agnos-trace/SKILL.md`](.github/skills/agnos-trace/SKILL.md)
+- **Performance center skill** — [`.github/skills/agnos-perf-center/SKILL.md`](.github/skills/agnos-perf-center/SKILL.md)

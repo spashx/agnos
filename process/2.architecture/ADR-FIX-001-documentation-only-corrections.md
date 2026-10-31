@@ -1,4 +1,5 @@
 # ADR-FIX-001: Documentation-only corrections
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 <!-- Motivated by: RQ-FIX-001, RQ-FIX-002, RQ-FIX-003 (FTR-FIX-001) -->
 
@@ -18,7 +19,7 @@ RQ-TRC-018 and ADR-TRC-002 are inserted at the head of the Dependencies field of
 TASK-DSY-002 is re-tagged Tier M with its Verification filled (RQ-FIX-002).
 
 ### DEC-FIX-002: The page's appearance is frozen
-Only files under `process/` change. Nothing under `.github/skills/agnos-trace/` (tokens, CSS, JS,
+Only files under `process/` change. Nothing under `.github/skills/agnos-perf-center/` (tokens, CSS, JS,
 template) is touched, and the design system of ADR-TRC-002 is not re-instantiated or restyled
 (RQ-FIX-003).
 
@@ -37,6 +38,6 @@ template) is touched, and the design system of ADR-TRC-002 is not re-instantiate
 ```mermaid
 flowchart LR
   UI[UI requirements RQ-TRC-011..049] -->|Dependencies| DS[RQ-TRC-018 / ADR-TRC-002]
-  DS -.->|unchanged| PAGE[.github/skills/agnos-trace page]
+  DS -.->|unchanged| PAGE[.github/skills/agnos-perf-center page]
   T[TASK-DSY-002] -->|re-tiered S to M| PLAN[PLAN-DSY-001]
 ```

@@ -66,4 +66,4 @@ cd client && node --test "tests/*.test.ts"                      # TypeScript tes
 cd client && npm run ui                                       # web interface on http://127.0.0.1:3000 (ROOMBOOK_URL names the service)
 ```
 
-The AGNOS skills `agnos-index` and `agnos-trace` run from an AGNOS installation, on this folder as the project.
+The AGNOS skills `agnos-index` and `agnos-perf-center` run from an AGNOS installation, on this folder as the project.

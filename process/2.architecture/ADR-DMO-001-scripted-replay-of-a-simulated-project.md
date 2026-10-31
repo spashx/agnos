@@ -1,4 +1,5 @@
 # ADR-DMO-001: Scripted replay of a simulated project
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 <!-- Motivated by: RQ-DMO-001 to RQ-DMO-021 (FTR-DMO-001, FTR-DMO-002) -->
 
@@ -59,7 +60,7 @@ Fulfils RQ-DMO-004.
 ### DEC-DMO-005: Acceptance is a script, one check per criterion
 A verification script checks each Gherkin criterion of RQ-DMO-001 to RQ-DMO-019 on the finished demo
 (names, weekdays, holidays, hours, dates, messages, order of cited IDs, `git fsck --strict`, remote list,
-global configuration, `agnos-index` and `agnos-trace` results). A failing check leads to a change of the
+global configuration, `agnos-index` and `agnos-perf-center` results). A failing check leads to a change of the
 scenario or the content and a rebuild, never to a manual edit of the demo history.
 Fulfils RQ-DMO-006, RQ-DMO-008, RQ-DMO-009, RQ-DMO-019 and every criterion above.
 
@@ -123,7 +124,7 @@ flowchart LR
   HAI[Haiku sub-agents<br/>Python and TypeScript code] -->|reviewed| LIB
   GEN -->|env identity and dates<br/>agnos-index at each task| DEMO[(agnos-lightweight-process.demo)]
   DEMO --> VER
-  DEMO --> TR[agnos-index and agnos-trace]
+  DEMO --> TR[agnos-index and agnos-perf-center]
   VER -->|failure| SCN
   AGNOS[AGNOS evolves] -->|new toolkit| GEN
 ```

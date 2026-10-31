@@ -15,7 +15,7 @@ sys.path.insert(0, str(HERE.parent / "scripts"))
 
 import changes_since as cs  # noqa: E402
 
-TRACE_TESTS = HERE.parents[1] / "agnos-trace" / "tests"      # the literal test of the agnos-trace skill
+TRACE_TESTS = HERE.parents[1] / "agnos-perf-center" / "tests"      # the literal test of the agnos-perf-center skill
 sys.path.insert(0, str(TRACE_TESTS))
 
 IDENTITY = {"GIT_AUTHOR_NAME": "tester", "GIT_AUTHOR_EMAIL": "tester@example.invalid",
@@ -118,9 +118,9 @@ class ChangesSinceTest(unittest.TestCase):
 
 
 class ScriptLiteralsTest(unittest.TestCase):
-    """TASK-DOC-001: RQ-DOC-004, with the detector of the agnos-trace skill (RQ-TRC-067)."""
+    """TASK-DOC-001: RQ-DOC-004, with the detector of the agnos-perf-center skill (RQ-TRC-067)."""
 
-    @unittest.skipUnless(TRACE_TESTS.is_dir(), "the agnos-trace skill is not beside this one")
+    @unittest.skipUnless(TRACE_TESTS.is_dir(), "the agnos-perf-center skill is not beside this one")
     def test_RQ_DOC_004_given_the_script_then_no_literal_is_written_more_than_once(self):
         import test_literals as detector
         counter = detector.python_literals(HERE.parent / "scripts" / "changes_since.py")

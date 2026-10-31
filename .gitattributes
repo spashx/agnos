@@ -8,4 +8,4 @@ process/INDEX.idx.md text eol=lf
 .github/skills/agnos-init/assets/templates/* text eol=lf
 
 # RQ-TRC-024 / DEC-TRC-006: the vendored graph library is compared with its recorded SHA-256, so it stays byte-exact
-.github/skills/agnos-trace/scripts/vendor/** -text
+.github/skills/agnos-perf-center/scripts/vendor/** -text

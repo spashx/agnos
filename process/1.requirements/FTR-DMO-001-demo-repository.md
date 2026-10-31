@@ -1,4 +1,5 @@
 # FTR-DMO-001: Demo repository
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 A second repository, `agnos-lightweight-process.demo`, shows the AGNOS process applied to a software
@@ -139,7 +140,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo repository at its last commit
-  - **When** the `agnos-trace` skill is run on its `process/` folder and source folders
+  - **When** the `agnos-perf-center` skill is run on its `process/` folder and source folders
   - **Then** the report lists 0 undefined ID
   - **And** 0 uncovered Must requirement and 0 task without requirement
 - **Dependencies**: RQ-DMO-004, RQ-DMO-005
@@ -149,7 +150,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **EARS Type**: Ubiquitous
 - **Statement**: The README of the demo SHALL state that the history and the identities are simulated, and
   SHALL describe the scenario, the roles and identities, the timeline, how to filter the history by role,
-  and how to run `agnos-index` and `agnos-trace`.
+  and how to run `agnos-index` and `agnos-perf-center`.
 - **Rationale**: A reader must not take the simulated people and dates for real ones, and must be able to
   explore the demo alone.
 - **Priority**: Should
@@ -174,7 +175,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Acceptance Criteria** (Gherkin):
   - **Given** a change made to a toolkit file of this repository
   - **When** `build` then `verify` are run through the skill
-  - **Then** the demo is rebuilt, and `verify` runs that toolkit's `agnos-index` and `agnos-trace` on it (amended on 2026-10-31; RQ-MTA-005)
+  - **Then** the demo is rebuilt, and `verify` runs that toolkit's `agnos-index` and `agnos-perf-center` on it (amended on 2026-10-31; RQ-MTA-005)
   - **And** `verify` reports one pass or fail line per requirement of FTR-DMO-001 and FTR-DMO-002
 - **Dependencies**: RQ-DMO-001, RQ-DMO-002
 

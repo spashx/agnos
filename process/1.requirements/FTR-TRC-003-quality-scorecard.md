@@ -1,4 +1,5 @@
 # FTR-TRC-003: Traceability Quality Scorecard
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 The "Gaps" view of the traceability page (FTR-TRC-001) lists nine breaches of the AGNOS traceability rules, one list
@@ -184,7 +185,7 @@ configuring the checks per project.
 - **Statement**: The scorecard SHALL add less than 5 % to the generator's time and less than 2 % to the page's size on
   the 20,000-function project of RQ-TRC-037, and the Quality view SHALL be drawn in less than 200 ms on it.
 - **Metric**: generator time and page size growth; time to draw the Quality view.
-- **Measurement Method**: the skill's performance test (`AGNOS_TRACE_PERF=1`) before and after, and the page's drawing time
+- **Measurement Method**: the skill's performance test (`AGNOS_PERF_CENTER_PERF=1`) before and after, and the page's drawing time
   measured in the headless browser.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the generated 20,000-function tree, When the generator runs and the Quality view opens,

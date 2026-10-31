@@ -158,7 +158,7 @@ Report 'RQ-DMO-007' (($indexRun.ExitCode -eq 0) -and ($dirty.Count -eq 0)) "agno
 # RQ-DMO-008
 $traceDir = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + 'trace-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $traceDir | Out-Null
-$traceScript = Join-Path $Toolkit '.github/skills/agnos-trace/scripts/trace_matrix.py'
+$traceScript = Join-Path $Toolkit '.github/skills/agnos-perf-center/scripts/perf_center.py'
 $traceOut = (& python $traceScript --process (Join-Path $Demo 'process') --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') | Out-String)
 $traceExit = $LASTEXITCODE
 Remove-Item -LiteralPath $traceDir -Recurse -Force
@@ -166,7 +166,7 @@ Remove-Item -LiteralPath $traceDir -Recurse -Force
 # quality: <grade> <score>/10; checks: covered s, defined s, tasked s, task-rq s, ..."
 $gaps = [regex]::Match($traceOut, 'uncovered (\d+); quality: .*?checks: covered [\d.na/]+, defined ([\d.na/]+), tasked [\d.na/]+, task-rq ([\d.na/]+)')
 $traceOk = ($traceExit -eq 0) -and $gaps.Success -and ($gaps.Groups[1].Value -eq '0') -and ($gaps.Groups[2].Value -eq $FULL_SCORE) -and ($gaps.Groups[3].Value -in $FULL_SCORE, $NO_SCORE)
-Report 'RQ-DMO-008' $traceOk ("agnos-trace: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), IDs defined score $($gaps.Groups[2].Value), tasks with a requirement score $($gaps.Groups[3].Value)" } else { 'no summary (exit ' + $traceExit + ')' }))
+Report 'RQ-DMO-008' $traceOk ("agnos-perf-center: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), IDs defined score $($gaps.Groups[2].Value), tasks with a requirement score $($gaps.Groups[3].Value)" } else { 'no summary (exit ' + $traceExit + ')' }))
 
 # RQ-DMO-009
 $readme = if ($demoFiles -contains 'README.md') { (Demo-Git @('show', 'HEAD:README.md')) } else { @() }

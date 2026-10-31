@@ -79,6 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands (ADR-DMO-001, TASK-DMO-008, TASK-DMO-009)
 
 ### Changed
+- The skill `agnos-trace` is now `agnos-perf-center`, since it monitors the process's execution on a project. Its script is
+  `perf_center.py`, its outputs `PERF-CENTER.*`, its page title "Performance center". Projects must update their ignore rules,
+  and a reader's saved page preferences reset once. Earlier entries keep the former name (ADR-TRC-013, TASK-TRC-089,
+  RQ-TRC-104 to RQ-TRC-106)
 - `agnos-trace` scripts and page script: no open quality finding, with the same data generated (TASK-QLT-002 to
   TASK-QLT-005, RQ-QLT-009)
 - `agnos-trace` page skeleton: a plain `div` for the tabs and `fieldset` for the filter groups (TASK-QLT-006, RQ-QLT-010)

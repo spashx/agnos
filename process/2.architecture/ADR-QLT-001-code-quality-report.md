@@ -1,4 +1,5 @@
 # ADR-QLT-001: A Report on Demand, from Pinned Command-Line Analysers
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — approved by the owner on 2026-10-31, for FTR-QLT-001 (RQ-QLT-001 to RQ-QLT-010).
@@ -19,7 +20,7 @@ so the skill stays invocable by the model, and its description limits it to an e
 
 ### DEC-QLT-002: Three analysers on the command line
 `ruff` for Python rules, `complexipy` for Python's cognitive complexity, ESLint with `eslint-plugin-sonarjs` for JavaScript. A script in
-Python, standard library only, drives them, in the language of `agnos-trace`. Fulfils RQ-QLT-003.
+Python, standard library only, drives them, in the language of `agnos-perf-center`. Fulfils RQ-QLT-003.
 
 ### DEC-QLT-003: One normalised JSON report
 Each analyser's output becomes the same finding fields, sorted by file and line, under a `schemaVersion`. The report goes to
@@ -45,7 +46,7 @@ They cover HTML and the 3 rules ESLint lacks, but depend on the editor and on th
 files and reports them apart; they never enter the JSON. Fulfils RQ-QLT-008, RQ-QLT-010.
 
 ### DEC-QLT-008: Corrections keep the behaviour and `matrix.js` in one file
-A complex function is cut into named helpers beside it, and the suite of `agnos-trace` is the safeguard, running the page in a real browser.
+A complex function is cut into named helpers beside it, and the suite of `agnos-perf-center` is the safeguard, running the page in a real browser.
 A test changes only if a required behaviour changes. Splitting `matrix.js` is a separate architecture decision, not taken here. Fulfils RQ-QLT-009.
 
 ## Consequences

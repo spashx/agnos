@@ -1,4 +1,5 @@
 # ADR-HST-001: Contribution History — Line Tracking over Git, Merged Identities, and a Timeline View
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
 Accepted — approved by the owner on 2026-10-24; owner request of 2026-10-24 (a history of who worked on the requirements and on the code, humans and agents
@@ -21,7 +22,7 @@ data: a person has several names, a hosting service commits merges, agents appea
 ## Decision
 
 ### DEC-HST-001: A history module loaded only with `--history`, reading git through its command line
-A new script, `scripts/history.py`, beside the generator, is loaded by `trace_matrix.py` only when `--history` is given,
+A new script, `scripts/history.py`, beside the generator, is loaded by `perf_center.py` only when `--history` is given,
 as `callgraph.py` is (DEC-TRC-013). It runs the `git` command with `subprocess`, never a git library, and reads its text
 output: the history needs nothing beyond the standard library and git (RQ-HST-015). `--history-since` and
 `--history-depth` are passed to git as `--since` and `--max-count`, so git applies both and the stricter one decides;

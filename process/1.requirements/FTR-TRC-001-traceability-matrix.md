@@ -1,7 +1,8 @@
 # FTR-TRC-001: AGNOS Traceability Matrix
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
-A skill, `agnos-trace`, that reads an AGNOS process folder (the one holding `INDEX.idx.md`) and one or more source
+A skill, `agnos-perf-center`, that reads an AGNOS process folder (the one holding `INDEX.idx.md`) and one or more source
 folders, and writes an offline HTML page, its data beside it (RQ-TRC-010): the complete traceability matrix of the requirements, ADRs, decisions,
 plans and tasks of the process, and of the source files and lines that reference them. The page searches, navigates and
 highlights an element and its linked elements through an interactive graph, and lists the elements that are not linked
@@ -22,11 +23,11 @@ ADR-TRC-003).
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The trace generator SHALL take a process folder holding `INDEX.idx.md`, one or more source folders and an
-  output path (default `<process>/TRACEABILITY.html`), and SHALL write the page at that path.
+  output path (default `<process>/PERF-CENTER.html`), and SHALL write the page at that path.
 - **Rationale**: one command, run from any project, gives the page.
 - **Priority**: Must
-- **Acceptance Criteria**: Given a process folder and a source folder, When `python <skill>/scripts/trace_matrix.py
-  --process process --sources src` runs, Then it exits 0 and the page exists at `process/TRACEABILITY.html`.
+- **Acceptance Criteria**: Given a process folder and a source folder, When `python <skill>/scripts/perf_center.py
+  --process process --sources src` runs, Then it exits 0 and the page exists at `process/PERF-CENTER.html`.
 - **Dependencies**: DEC-TRC-001
 
 ### RQ-TRC-002: Missing or unreadable inputs
@@ -205,7 +206,7 @@ ADR-TRC-003).
   fragment or the browser goes back or forward, the page SHALL select the element it names.
 - **Rationale**: a link to one element can be sent; back undoes a navigation.
 - **Priority**: Should
-- **Acceptance Criteria**: Given `TRACEABILITY.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
+- **Acceptance Criteria**: Given `PERF-CENTER.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012
 
 ### RQ-TRC-017: Skill procedure

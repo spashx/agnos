@@ -1,7 +1,8 @@
 # FTR-TRC-002: Call Graph in the Traceability Matrix
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
-An optional analysis of the `agnos-trace` skill (FTR-TRC-001) that reads the scanned source files with tree-sitter and
+An optional analysis of the `agnos-perf-center` skill (FTR-TRC-001) that reads the scanned source files with tree-sitter and
 adds the application's **call graph** to the matrix: one element per function or method, a link from each function to
 the functions it calls, and a link from a function to the requirement IDs written in it or in the comment just above
 it. Functions are an element type like the others ("Function"): searchable, shown in the detail panel, drawn in the graph

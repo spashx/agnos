@@ -1,4 +1,5 @@
 # FTR-TRC-004: Delivery Tab
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 With `--history` (FTR-HST-001), the traceability page tells who changed what, but not what was **delivered**. The owner
@@ -178,7 +179,7 @@ projects with each other; a score or a grade of delivery.
   ms, and a change of filter or period SHALL be redrawn in less than 100 ms.
 - **Metric**: generation time and data size added by the delivery; drawing time of the tab; P95 of the redraw time over
   50 filter and period changes.
-- **Measurement Method**: the skill's performance test (`AGNOS_TRACE_PERF=1`), times measured in the headless browser.
+- **Measurement Method**: the skill's performance test (`AGNOS_PERF_CENTER_PERF=1`), times measured in the headless browser.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the generated repository, When the performance test runs, Then each measure is under
   its threshold.

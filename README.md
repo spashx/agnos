@@ -24,7 +24,7 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 | **`agnos-index`** | Deterministically regenerates `process/INDEX.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
-| **`agnos-trace`** | Generates a complete offline application to monitor and explore the traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
+| **`agnos-perf-center`** | Generates a complete offline application to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
 **Supported tools:** GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code
 (`CLAUDE.md`, `.claude/skills/`) — one canonical process, two entry points.
@@ -138,6 +138,6 @@ or removed.
 | [GETTING_STARTED.MD](GETTING_STARTED.MD) | Worked example — start here |
 | [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process |
 | [CLAUDE.md](CLAUDE.md) | Claude Code entry point |
-| [.github/skills/](.github/skills/) | Canonical skills: `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-trace` |
+| [.github/skills/](.github/skills/) | Canonical skills: `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center` |
 | [.claude/skills/](.claude/skills/) | Claude Code pointers to the canonical skills |
 | [process/](process/) | This repository's own AGNOS artifacts and index |

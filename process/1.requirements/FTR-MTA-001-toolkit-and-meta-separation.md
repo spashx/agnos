@@ -1,4 +1,5 @@
 # FTR-MTA-001: The Toolkit Apart from its Own Development
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
 This repository holds both the AGNOS toolkit, which projects reuse, and the workshop that develops it with AGNOS itself:
@@ -69,7 +70,7 @@ a later feature, after ADR-MTA-001), and pushing anything to a remote.
 - **Statement**: The demo repository SHALL hold only what a project using AGNOS produces: its code, its `process/` folder, its
   README, its own git configuration files and the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` (amended on 2026-10-31, RQ-INI-008),
   with no other file of the AGNOS toolkit or of the public repository layer; `agnos-meta-demo`
-  SHALL run `agnos-index` and `agnos-trace` from the toolkit of this repository on it.
+  SHALL run `agnos-index` and `agnos-perf-center` from the toolkit of this repository on it.
 - **Rationale**: a project will receive AGNOS as a plugin, so the toolkit will not be in its tree; it also removes from the demo the IDs of AGNOS's own development.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the demo at any commit, When its files are listed, Then none is under `.github/` or `.claude/`, And

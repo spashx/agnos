@@ -56,4 +56,4 @@ cd service && python -m unittest discover -s tests -t .         # Python tests (
 cd client && node --test "tests/*.test.ts"                      # TypeScript tests (Node 22.18 or later)
 ```
 
-The AGNOS skills `agnos-index` and `agnos-trace` run from an AGNOS installation, on this folder as the project.
+The AGNOS skills `agnos-index` and `agnos-perf-center` run from an AGNOS installation, on this folder as the project.

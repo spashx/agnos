@@ -1,14 +1,15 @@
 # FTR-FIX-001: Process consistency fixes
+<!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
-The process artifacts inherited from the project where the agnos-trace feature was first built contain
+The process artifacts inherited from the project where the agnos-perf-center feature was first built contain
 two inconsistencies with the AGNOS instructions: user-interface requirements that do not list the
 design-system artifacts they depend on, and a task whose tier does not match its size. This feature
 corrects them without changing the traceability page itself.
 
 ## Stakeholders
 - **Owner**: AGNOS process maintainer (this repository)
-- **Consumers**: AI agents and reviewers reading the process; the agnos-trace matrix
+- **Consumers**: AI agents and reviewers reading the process; the agnos-perf-center matrix
 
 ---
 
@@ -67,12 +68,12 @@ corrects them without changing the traceability page itself.
 - **EARS Type**: Ubiquitous
 - **Statement**: The corrections of this feature SHALL NOT modify the traceability page's design tokens,
   style sheet, scripts or generated appearance.
-- **Metric**: 0 modified file under `.github/skills/agnos-trace/`.
+- **Metric**: 0 modified file under `.github/skills/agnos-perf-center/`.
 - **Measurement Method**: `git diff --name-only` of the session branch against its base lists no path
-  under `.github/skills/agnos-trace/`.
+  under `.github/skills/agnos-perf-center/`.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the session branch of this feature
   - **When** its changed files are listed
-  - **Then** none lies under `.github/skills/agnos-trace/`
+  - **Then** none lies under `.github/skills/agnos-perf-center/`
 - **Dependencies**: RQ-FIX-001
