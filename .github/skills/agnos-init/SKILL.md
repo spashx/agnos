@@ -40,7 +40,7 @@ always gives the same files: do not write or edit the block yourself.
 | With a damaged block | Stops before any write, naming the file | Exit 1 |
 
 Every byte outside the block is preserved, and the block takes the file's line ending. It also creates
-each folder of `process/` that is absent, with a `.gitkeep`. It changes nothing else in the project.
+each folder of `process/` that is absent, with a `readme.md` saying what it holds. It changes nothing else in the project.
 
 To update a project after AGNOS changes, call it again.
 

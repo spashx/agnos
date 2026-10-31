@@ -61,7 +61,8 @@ DEMO_FOLDER_NAME = "agnos-lightweight-process.demo"
 FIXED_TIME = "2000-01-01T00:00:00Z"
 PERF_PAGE = "process/PERF-CENTER.html"
 PERF_RESULTS = ("process/PERF-CENTER.json", "process/PERF-CENTER.data.js")
-INIT_RESULTS = ("CLAUDE.md", "AGENTS.md")
+INIT_RESULTS = ("CLAUDE.md", "AGENTS.md", "process/1.requirements/readme.md", "process/2.architecture/readme.md",
+                "process/3.plan/readme.md", "process/_sessionstate/readme.md")
 PLACEHOLDER = b"<toolkit>"
 INDEX_SCRIPT = ".github/skills/agnos-index/scripts/build-index"
 INIT_SCRIPT = ".github/skills/agnos-init/scripts/init"

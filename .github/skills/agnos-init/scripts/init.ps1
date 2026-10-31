@@ -24,7 +24,7 @@ $LF = "`n"
 $CRLF = "`r`n"
 $ENTRY_FILES = @('CLAUDE.md', 'AGENTS.md')
 $PROCESS_FOLDERS = @('process/1.requirements', 'process/2.architecture', 'process/3.plan', 'process/_sessionstate')
-$KEEP_FILE = '.gitkeep'
+$README = 'readme.md'
 # DEC-INI-002: one byte is one character, so that encodings and line endings pass through unchanged.
 $BYTES = [System.Text.Encoding]::GetEncoding(28591)
 
@@ -90,7 +90,8 @@ try {
     $path = Join-Path $targetFull $folder
     if (-not (Test-Path -LiteralPath $path)) {
       New-Item -ItemType Directory -Path $path | Out-Null
-      [System.IO.File]::WriteAllBytes((Join-Path $path $KEEP_FILE), [byte[]]@())
+      $template = Join-Path $PSScriptRoot "../assets/templates/$(Split-Path -Leaf $folder).$README"
+      [System.IO.File]::WriteAllBytes((Join-Path $path $README), [System.IO.File]::ReadAllBytes($template))
       Write-Output "$($REPORT_PREFIX)created $folder"
     }
   }

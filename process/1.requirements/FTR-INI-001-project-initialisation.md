@@ -66,11 +66,13 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: `agnos-init` SHALL create, each only when absent, `process/1.requirements/`, `process/2.architecture/`,
-  `process/3.plan/` and `process/_sessionstate/`, with a `.gitkeep` in a folder it creates, and SHALL change nothing else in `process/`.
-- **Rationale**: `agnos-index` needs `process/`, and git keeps no empty folder; once created, the folder belongs to the project.
+  `process/3.plan/` and `process/_sessionstate/`, with a `readme.md` saying what it holds in a folder it creates (amended on 2026-10-31,
+  TASK-INI-005: it replaces a `.gitkeep`), and SHALL change nothing else in `process/`.
+- **Rationale**: `agnos-index` needs `process/`, git keeps no empty folder, and a user needs a minimal guide; once created, the folder belongs to the project.
 - **Priority**: Must
-- **Acceptance Criteria**: Given a new project, When `agnos-init` then `agnos-index` run, Then both exit 0; Given a project with
-  `process/3.plan/PLAN-X.md`, When `agnos-init` runs, Then that folder gets no `.gitkeep`, And that file is unchanged.
+- **Acceptance Criteria**: Given a new project, When `agnos-init` then `agnos-index` run, Then both exit 0, And the index has 0 entries, And each
+  folder holds only its `readme.md`, with no artifact ID, the same bytes from both scripts; Given a project with `process/3.plan/PLAN-X.md`, When
+  `agnos-init` runs, Then that folder gets no `readme.md`, And that file is unchanged; Given a `readme.md` the user changed, When `agnos-init` runs again, Then it stays.
 - **Dependencies**: RQ-INI-001, RQ-IDX-008
 
 ### RQ-INI-006: The block leads the agent to the toolkit

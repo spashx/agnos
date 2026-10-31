@@ -15,7 +15,7 @@ CR=$(printf '\r')
 END_PATTERN="^$END_MARKER$CR?\$"
 ENTRY_FILES='CLAUDE.md AGENTS.md'
 PROCESS_FOLDERS='process/1.requirements process/2.architecture process/3.plan process/_sessionstate'
-KEEP_FILE='.gitkeep'
+README='readme.md'
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
 fail() {
@@ -113,7 +113,7 @@ done
 for folder in $PROCESS_FOLDERS; do    # RQ-INI-005
   path=$target/$folder
   if [ ! -e "$path" ]; then
-    mkdir -p "$path" && : > "$path/$KEEP_FILE" || fail "cannot create $folder"
+    mkdir -p "$path" && cat "$SCRIPT_DIR/../assets/templates/${folder##*/}.$README" > "$path/$README" || fail "cannot create $folder"
     echo "${REPORT_PREFIX}created $folder"
   fi
 done

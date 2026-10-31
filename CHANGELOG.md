@@ -81,6 +81,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands <!-- ADR-DMO-001, TASK-DMO-008, TASK-DMO-009 -->
 
 ### Changed
+- `agnos-init` writes a `readme.md` saying what each `process/` folder it creates holds, instead of a `.gitkeep` <!-- TASK-INI-005, RQ-INI-005 -->
 - The citations of `CHANGELOG.md`, of the skills' documents and of the scripts' help are in comments, as MANDATORY TRACEABILITY asks, and `agnos-meta-docs-sync` writes them so <!-- TASK-MTA-009, RQ-MTA-014 -->
 - `agnos-perf-center` Delivery: the Rework and Friction marks of "Points over time" are amber and red with a dark outline, so they
   stand out inside and outside periods A and B <!-- TASK-TRC-091, RQ-TRC-108 -->

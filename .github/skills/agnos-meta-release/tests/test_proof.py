@@ -81,6 +81,10 @@ class ComparisonTest(Workspace):
 class DemoTest(Workspace):
     """RQ-MTA-011."""
 
+    def test_RQ_MTA_011_given_the_files_agnos_init_writes_then_the_comparison_covers_its_readmes(self):
+        for folder in ("1.requirements", "2.architecture", "3.plan", "_sessionstate"):
+            self.assertIn(f"process/{folder}/readme.md", release.INIT_RESULTS)
+
     def test_RQ_MTA_011_given_no_demo_when_the_proof_runs_then_it_says_to_build_it(self):
         problems = release.prove(ROOT, self.base, str(self.base / "absent"))
         self.assertEqual(1, len(problems))

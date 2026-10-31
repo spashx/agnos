@@ -23,6 +23,7 @@ TOOLKIT_ARG = "../agnos"
 TOOLKIT_ARG_WINDOWS = "..\\agnos"
 ENTRY_FILES = ("CLAUDE.md", "AGENTS.md")
 PROCESS_FOLDERS = ("1.requirements", "2.architecture", "3.plan", "_sessionstate")
+README = "readme.md"
 BEGIN = b"<!-- AGNOS:BEGIN"
 END = b"<!-- AGNOS:END -->"
 BOM = b"\xef\xbb\xbf"
@@ -216,18 +217,33 @@ class DamagedBlockTest(InitCase):
 class ProcessFolderTest(InitCase):
     """RQ-INI-005."""
 
-    def test_RQ_INI_005_given_a_new_project_when_run_then_each_folder_has_a_gitkeep(self):
+    def test_RQ_INI_005_given_a_new_project_when_run_then_each_folder_holds_only_its_readme_with_no_id(self):
         for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
             for folder in PROCESS_FOLDERS:
-                self.assertEqual(b"", (project / "process" / folder / ".gitkeep").read_bytes())
+                self.assertEqual([README], [p.name for p in (project / "process" / folder).iterdir()])
+                data = (project / "process" / folder / README).read_bytes()
+                self.assertEqual((SKILL_DIR / "assets/templates" / f"{folder}.{README}").read_bytes(), data)
+                self.assertTrue(data.startswith(b"# "), folder)
+                self.assertNotIn(b"\r", data, folder)
+                self.assertIsNone(ID_RE.search(data), folder)
 
-    def test_RQ_INI_005_given_a_folder_with_content_when_run_then_it_gets_no_gitkeep_and_its_file_stays(self):
+    def test_RQ_INI_005_given_a_folder_with_content_when_run_then_it_gets_no_readme_and_its_file_stays(self):
         plan = b"# PLAN\n"
         for _, project, result in self.each_script({"process/3.plan/PLAN-X.md": plan}):
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertFalse((project / "process/3.plan/.gitkeep").exists())
+            self.assertFalse((project / "process/3.plan" / README).exists())
             self.assertEqual(plan, (project / "process/3.plan/PLAN-X.md").read_bytes())
+
+    def test_RQ_INI_005_given_a_readme_the_user_changed_when_run_again_then_it_stays(self):
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name)
+                self.assertEqual(0, runner(project, TOOLKIT_ARG).returncode)
+                readme = project / "process/3.plan" / README
+                readme.write_bytes(b"# Mine\n")
+                self.assertEqual(0, runner(project, TOOLKIT_ARG).returncode)
+                self.assertEqual(b"# Mine\n", readme.read_bytes())
 
     def test_RQ_INI_005_given_a_new_project_when_init_then_index_run_then_both_exit_0(self):
         project = self.project("indexed")
@@ -235,6 +251,7 @@ class ProcessFolderTest(InitCase):
         index = ROOT / ".github/skills/agnos-index/scripts/build-index.ps1"
         result = subprocess.run(["powershell", "-NoProfile", "-File", str(index)], cwd=project, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn(": 0 entries, 0 documents", result.stdout)
 
 
 class SkillPracticesTest(unittest.TestCase):
