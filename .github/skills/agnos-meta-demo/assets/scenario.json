@@ -49,11 +49,9 @@
   },
   "baselineExclude": [
     "^process/",
-    "^\\.github/skills/agnos-demo/",
-    "^\\.claude/skills/agnos-demo/",
-    "^\\.github/skills/agnos-docs-sync/",
-    "^\\.claude/skills/agnos-docs-sync/",
-    "^\\.claude/agents/agnos-docs-sync\\.md$",
+    "^\\.github/skills/agnos-meta-",
+    "^\\.claude/skills/agnos-meta-",
+    "^\\.claude/agents/agnos-meta-",
     "^README\\.md$"
   ],
   "steps": [

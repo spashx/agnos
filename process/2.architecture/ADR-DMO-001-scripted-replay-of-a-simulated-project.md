@@ -63,11 +63,11 @@ global configuration, `agnos-index` and `agnos-trace` results). A failing check 
 scenario or the content and a rebuild, never to a manual edit of the demo history.
 Fulfils RQ-DMO-006, RQ-DMO-008, RQ-DMO-009, RQ-DMO-019 and every criterion above.
 
-### DEC-DMO-006: The generator is the maintainer skill `agnos-demo`
+### DEC-DMO-006: The generator is the maintainer skill `agnos-meta-demo`
 The replay engine, the verification script, the scenario and the content library (process documents,
-Python and TypeScript code, README) are packaged as the skill `agnos-demo`, like the other skills: the
-canonical procedure, scripts and assets under `.github/skills/agnos-demo/`, a thin entry point under
-`.claude/skills/agnos-demo/`. It has two sub-commands, `build` and `verify`. It is a maintainer tool, not
+Python and TypeScript code, README) are packaged as the skill `agnos-meta-demo` (renamed by the owner on 2026-10-31; DEC-MTA-003), like the other skills: the
+canonical procedure, scripts and assets under `.github/skills/agnos-meta-demo/`, a thin entry point under
+`.claude/skills/agnos-meta-demo/`. It has two sub-commands, `build` and `verify`. It is a maintainer tool, not
 a process skill: CLAUDE.md and AGENTS.md do not list it, and the toolkit baseline of the demo leaves it
 out. The demo is the standing reference to demonstrate and test AGNOS: after an evolution of AGNOS,
 `build` rebuilds it from the same scenario on the new toolkit and `verify` checks it again; showing a new
@@ -113,7 +113,7 @@ and the amended RQ-DMO-011.
 ## Diagram
 ```mermaid
 flowchart LR
-  subgraph SKILL[Skill agnos-demo]
+  subgraph SKILL[Skill agnos-meta-demo]
     LIB[Content library<br/>process docs, code, README]
     SCN[Scenario<br/>cast, calendar, steps]
     GEN[build: replay engine]

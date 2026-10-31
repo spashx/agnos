@@ -1,6 +1,6 @@
-"""Tests of the report script of the agnos-docs-sync skill (FTR-DOC-001, TASK-DOC-001), on a temporary git repository.
+"""Tests of the report script of the agnos-meta-docs-sync skill (FTR-DOC-001, TASK-DOC-001), on a temporary git repository.
 
-Run from the repository root: python -m unittest discover -s .github/skills/agnos-docs-sync/tests -v
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-docs-sync/tests -v
 """
 import json
 import os
@@ -53,7 +53,7 @@ class ChangesSinceTest(unittest.TestCase):
         commit(self.repo, "chore: index", {"process/INDEX.idx.md": "index\n", "process/_sessionstate/session.yaml": "x: 1\n"})
         self.skill = commit(self.repo, "feat(ABC): add a skill", {
             ".github/skills/one/SKILL.md": SKILL_FRONT.format(name="one", description="A process skill."),
-            ".github/skills/two/SKILL.md": SKILL_FRONT.format(name="two", description="AGNOS maintainer skill. Builds a thing.")})
+            ".github/skills/agnos-meta-two/SKILL.md": SKILL_FRONT.format(name="agnos-meta-two", description="Builds a thing.")})
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -66,7 +66,7 @@ class ChangesSinceTest(unittest.TestCase):
         self.assertEqual(self.second, changelog["lastCommit"])
         self.assertEqual([self.skill], [c["sha"] for c in changelog["commits"]])       # the index-only commit is left out
         self.assertEqual("feat(ABC): add a skill", changelog["commits"][0]["subject"])
-        self.assertEqual([".github/skills/one/SKILL.md", ".github/skills/two/SKILL.md"], changelog["commits"][0]["files"])
+        self.assertEqual([".github/skills/agnos-meta-two/SKILL.md", ".github/skills/one/SKILL.md"], changelog["commits"][0]["files"])
 
     def test_RQ_DOC_001_given_a_document_never_committed_then_its_last_change_is_null_and_every_commit_is_listed(self):
         missing = self.target(cs.collect(self.repo), "CLAUDE.md")
@@ -84,10 +84,22 @@ class ChangesSinceTest(unittest.TestCase):
 
     def test_RQ_DOC_001_given_the_skills_then_each_has_a_name_a_description_and_a_maintainer_flag(self):
         skills = {s["name"]: s for s in cs.collect(self.repo)["skills"]}
-        self.assertEqual({"one", "two"}, set(skills))
-        self.assertEqual((False, True), (skills["one"]["maintainer"], skills["two"]["maintainer"]))
+        self.assertEqual({"one", "agnos-meta-two"}, set(skills))
+        self.assertEqual((False, True), (skills["one"]["maintainer"], skills["agnos-meta-two"]["maintainer"]))
         self.assertEqual("A process skill.", skills["one"]["description"])
         self.assertEqual(".github/skills/one/SKILL.md", skills["one"]["path"])
+
+    def test_RQ_MTA_002_given_a_prefixed_skill_whose_description_does_not_say_maintainer_then_it_is_flagged(self):
+        commit(self.repo, "feat(ABC): a meta skill", {
+            ".github/skills/agnos-meta-other/SKILL.md": SKILL_FRONT.format(name="agnos-meta-other", description="Does a thing.")})
+        skills = {s["name"]: s for s in cs.collect(self.repo)["skills"]}
+        self.assertTrue(skills["agnos-meta-other"]["maintainer"])
+
+    def test_RQ_MTA_002_given_a_skill_without_the_prefix_whose_description_says_maintainer_then_it_is_not_flagged(self):
+        commit(self.repo, "feat(ABC): another skill", {
+            ".github/skills/agnos-other/SKILL.md": SKILL_FRONT.format(name="agnos-other", description="AGNOS maintainer skill. Does a thing.")})
+        skills = {s["name"]: s for s in cs.collect(self.repo)["skills"]}
+        self.assertFalse(skills["agnos-other"]["maintainer"])
 
     def test_RQ_DOC_004_given_two_runs_then_the_output_is_the_same_and_valid_json(self):
         first = subprocess.run([sys.executable, str(HERE.parent / "scripts" / "changes_since.py"), "--repo", str(self.repo)],

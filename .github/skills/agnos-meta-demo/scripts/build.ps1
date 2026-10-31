@@ -34,7 +34,7 @@ if ($LASTEXITCODE -ne 0) { exit 1 }
 $globalUnchanged = ($globalBefore -eq (& git config --global --list | Out-String))
 $record = [pscustomobject]@{ globalConfigUnchanged = $globalUnchanged; head = (& git -C $Demo rev-parse HEAD).Trim() }
 [System.IO.File]::WriteAllText((Join-Path $Demo $BUILD_RECORD), ($record | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
-Write-Output "agnos-demo build: global git configuration unchanged: $globalUnchanged"
+Write-Output "agnos-meta-demo build: global git configuration unchanged: $globalUnchanged"
 
 if ($Verify) {
   $arguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'verify.ps1'), '-Demo', $Demo, '-Toolkit', $toolkit)

@@ -1,5 +1,5 @@
 ---
-name: agnos-demo
+name: agnos-meta-demo
 description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-lightweight-process.demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario. Not part of the toolkit shipped to the demo."
 argument-hint: "build [--verify] | verify"
 ---
@@ -7,8 +7,8 @@ argument-hint: "build [--verify] | verify"
 <!-- RQ-DMO-020, RQ-DMO-021 / ADR-DMO-001 (DEC-DMO-006) -->
 # AGNOS Demo
 
-Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-demo/`) and Claude Code
-(`.claude/skills/agnos-demo/`, which points here). It is a **maintainer tool**: the demo's toolkit
+Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-demo/`) and Claude Code
+(`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo's toolkit
 baseline leaves it out, and CLAUDE.md and AGENTS.md do not list it.
 
 The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
@@ -27,6 +27,7 @@ Requirements: FTR-DMO-001 and FTR-DMO-002; decisions: ADR-DMO-001.
 | `scripts/verify.ps1` | One PASS/FAIL line per requirement RQ-DMO-001 to RQ-DMO-021 |
 | `assets/scenario.json` | Cast, calendar, and the ordered commits (date, time, identity, files) |
 | `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar |
+| `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion (RQ-MTA-001, RQ-MTA-002) |
 | `references/code-contract.md` | The contract given to the sub-agents that generate the code |
 
 ## Sub-commands
@@ -36,10 +37,10 @@ Run from the repository root with `session.platform = windows` (PowerShell 5.1; 
 ### `build [--verify]`
 
 ```
-powershell -NoProfile -File .github/skills/agnos-demo/scripts/build.ps1 [-Verify]
+powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/build.ps1 [-Verify]
 ```
 
-1. Takes the tracked files of this working tree, except `process/`, the `agnos-demo` folders and the
+1. Takes the tracked files of this working tree, except `process/`, the `agnos-meta-*` skills and sub-agents and the
    README, as the toolkit baseline (first commit).
 2. Replays `assets/scenario.json` with `assets/content/`, committing with the identity and dates of each
    step through environment variables only: no git configuration is changed, no remote is added, nothing
@@ -53,7 +54,7 @@ A build on an unchanged working tree always ends on the same HEAD commit ID.
 ### `verify`
 
 ```
-powershell -NoProfile -File .github/skills/agnos-demo/scripts/verify.ps1 [-BaseRef <ref>] [-SkipRebuild]
+powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/verify.ps1 [-BaseRef <ref>] [-SkipRebuild]
 ```
 
 Checks the demo against its 21 requirements and prints `PASS` or `FAIL` for each (exit 1 if any fails).

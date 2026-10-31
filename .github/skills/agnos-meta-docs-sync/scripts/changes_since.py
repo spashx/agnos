@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""agnos-docs-sync report: what changed in the repository since each entry-point document was last changed.
+"""agnos-meta-docs-sync report: what changed in the repository since each entry-point document was last changed.
 
 Implements FTR-DOC-001 (RQ-DOC-001, RQ-DOC-004). Prints JSON: the head commit; for each target document the commit that
 last changed it and the non-merge commits made since, each with its subject and changed files (the commits that touch only
@@ -17,7 +17,7 @@ TARGETS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md", "GETTING_STARTED.MD")
 IGNORED_PREFIXES = ("process/INDEX.idx.md", "process/_sessionstate/")
 SKILLS_DIR = ".github/skills"
 SKILL_FILE = "SKILL.md"
-MAINTAINER_MARK = "AGNOS maintainer skill"
+META_PREFIX = "agnos-meta-"            # RQ-MTA-002, DEC-MTA-003: the only criterion
 COMMIT_MARK = "@@@"
 FIELD_SEPARATOR = "\x1f"
 LOG_FORMAT = f"{COMMIT_MARK}%H{FIELD_SEPARATOR}%s"
@@ -73,9 +73,9 @@ def skills_of(repo):
     for path in sorted(Path(repo, SKILLS_DIR).glob(f"*/{SKILL_FILE}")):
         match = FRONT_MATTER_RE.match(path.read_text(encoding=ENCODING))
         fields = {k: v.strip().strip('"') for k, v in FIELD_RE.findall(match.group(1))} if match else {}
-        description = fields.get(FIELD_DESCRIPTION, "")
-        found.append({FIELD_NAME: fields.get(FIELD_NAME, path.parent.name), "path": path.relative_to(repo).as_posix(),
-                      FIELD_DESCRIPTION: description, "maintainer": description.startswith(MAINTAINER_MARK)})
+        name = fields.get(FIELD_NAME, path.parent.name)
+        found.append({FIELD_NAME: name, "path": path.relative_to(repo).as_posix(),
+                      FIELD_DESCRIPTION: fields.get(FIELD_DESCRIPTION, ""), "maintainer": name.startswith(META_PREFIX)})
     return found
 
 
@@ -97,7 +97,7 @@ def main(argv=None):
     try:
         report = collect(args.repo)
     except ReportError as error:
-        print(f"agnos-docs-sync: {error}", file=sys.stderr)
+        print(f"agnos-meta-docs-sync: {error}", file=sys.stderr)
         return 1
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

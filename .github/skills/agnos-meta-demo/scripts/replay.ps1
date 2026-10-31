@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Replays a scenario into a new git repository: the engine of the agnos-demo skill.
+  Replays a scenario into a new git repository: the engine of the agnos-meta-demo skill.
 .DESCRIPTION
   RQ-DMO-010, RQ-DMO-013, RQ-DMO-018, RQ-DMO-007, RQ-DMO-021 / ADR-DMO-001 (DEC-DMO-002, DEC-DMO-006).
   Creates <Target> as a git repository and replays the ordered steps of the scenario file. Identity and
@@ -24,7 +24,7 @@ $ErrorActionPreference = 'Stop'
 $GIT_EXE = 'git'
 $POWERSHELL_EXE = 'powershell'
 $GENERATED_MARKER = 'agnos-demo-generated'
-$MARKER_TEXT = 'created by the agnos-demo skill (replay.ps1)'
+$MARKER_TEXT = 'created by the agnos-meta-demo skill (replay.ps1)'
 $INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
 $INDEX_PATH = 'process/INDEX.idx.md'
 $PLAN_PATH_PATTERN = '^process/3\.plan/PLAN-.*\.md$'
@@ -264,9 +264,9 @@ try {
   foreach ($step in $plan.steps) { Invoke-Step $step $plan $contentFull $toolkitFull $targetFull $labels }
   $count = (Invoke-Git @('rev-list', '--count', '--all') $targetFull).Trim()
   $head = (Invoke-Git @('rev-parse', '--short', 'HEAD') $targetFull).Trim()
-  Write-Output "agnos-demo replay: $count commits, HEAD $head, $targetFull"
+  Write-Output "agnos-meta-demo replay: $count commits, HEAD $head, $targetFull"
   exit 0
 } catch {
-  [Console]::Error.WriteLine("agnos-demo replay: $($_.Exception.Message)")
+  [Console]::Error.WriteLine("agnos-meta-demo replay: $($_.Exception.Message)")
   exit 1
 }

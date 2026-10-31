@@ -21,8 +21,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
-$SKILL_NAME = 'agnos-demo'
-$MAINTAINER_PATTERN = '(skills/(agnos-demo|agnos-docs-sync)/|agents/agnos-docs-sync\.md$)'   # TASK-DMO-014
+$SKILL_NAME = 'agnos-meta-demo'
+$MAINTAINER_PATTERN = '(skills|agents)/agnos-meta-'   # TASK-DMO-014; RQ-MTA-002, DEC-MTA-003: the prefix alone
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
 $ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
@@ -288,5 +288,5 @@ if ($SkipRebuild) { Report 'RQ-DMO-021' $true 'skipped (-SkipRebuild)' } else {
 }
 
 $failed = @($results | Where-Object { -not $_.Ok })
-Write-Output ('agnos-demo verify: {0} passed, {1} failed' -f ($results.Count - $failed.Count), $failed.Count)
+Write-Output ('agnos-meta-demo verify: {0} passed, {1} failed' -f ($results.Count - $failed.Count), $failed.Count)
 exit $(if ($failed.Count) { 1 } else { 0 })

@@ -1,5 +1,5 @@
 ---
-name: agnos-docs-sync
+name: agnos-meta-docs-sync
 description: "AGNOS maintainer skill. Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and GETTING_STARTED.MD from what changed in the repository since each of them was last changed. USE FOR: before a release, or after a series of tasks, when the entry-point documents may have drifted. Edits the four files only and never commits: the maintainer reviews and commits."
 argument-hint: "(no arguments)"
 ---
@@ -8,22 +8,22 @@ argument-hint: "(no arguments)"
 
 <!-- FTR-DOC-001; RQ-DOC-001 (the report), RQ-DOC-002 (this procedure), RQ-DOC-003 (the sub-agent) -->
 
-A maintainer skill, like `agnos-demo`: it keeps the entry-point documents true to the repository. It is not a process
+A maintainer skill, like `agnos-meta-demo`: it keeps the entry-point documents true to the repository. It is not a process
 skill, so `AGENTS.md` and `CLAUDE.md` do not list it. Canonical procedure, shared by GitHub Copilot
-(`.github/skills/agnos-docs-sync/`) and Claude Code (`.claude/skills/agnos-docs-sync/`, which points here, and the
-sub-agent `.claude/agents/agnos-docs-sync.md`, which runs it on the Haiku model).
+(`.github/skills/agnos-meta-docs-sync/`) and Claude Code (`.claude/skills/agnos-meta-docs-sync/`, which points here, and the
+sub-agent `.claude/agents/agnos-meta-docs-sync.md`, which runs it on the Haiku model).
 
 ## Procedure
 
 1. From the repository root, run the report (`python3` on `linux` / `macos`, `python` on `windows`):
 
    ```
-   python .github/skills/agnos-docs-sync/scripts/changes_since.py
+   python .github/skills/agnos-meta-docs-sync/scripts/changes_since.py
    ```
 
    It prints JSON: `head`; `targets`, one per document, with `lastCommit` (the commit that last changed it, or null) and
    `commits` (the non-merge commits since, each with `sha`, `subject`, `files` and `moreFiles`); `skills`, with `name`,
-   `path`, `description` and `maintainer`. Commits that touch only the generated index and the session files are already
+   `path`, `description` and `maintainer`, true when the name starts with `agnos-meta-` (RQ-MTA-002). Commits that touch only the generated index and the session files are already
    left out. Exit code 1: the folder is not a git repository, stop and report.
 2. For each document, in the order below, read the document, read the commits listed for it (open a commit's changed file
    when its subject is not enough to know what changed: `git show <sha> -- <file>`), and apply the rules below.

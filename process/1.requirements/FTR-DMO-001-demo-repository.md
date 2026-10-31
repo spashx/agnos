@@ -9,7 +9,7 @@ that code, and the traceability between both. The history that makes it look wor
 over two months is specified by FTR-DMO-002.
 
 The demo is the standing reference for demonstrating and testing AGNOS. Its generator is therefore kept in
-this repository as a maintainer skill, `agnos-demo`, so the demo can be rebuilt and checked again whenever
+this repository as a maintainer skill, `agnos-meta-demo`, so the demo can be rebuilt and checked again whenever
 AGNOS evolves.
 
 The source code is an illustration: it follows the AGNOS code rules but is not required to compile or run.
@@ -44,7 +44,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Statement**: The demo repository SHALL contain the AGNOS toolkit of this repository (the instructions
   file, the four skills with their `.claude` entry points, `CLAUDE.md`, `AGENTS.md` and the getting-started
   guide) and SHALL NOT contain any artifact of this repository's own `process/` folder, nor its maintainer skills:
-  `agnos-demo`, which generates it, and `agnos-docs-sync`, with its sub-agent (amended by the owner on 2026-10-24).
+  `agnos-meta-demo`, which generates it, `agnos-meta-docs-sync`, with its sub-agent, and any other skill or sub-agent with the prefix `agnos-meta-` (amended by the owner on 2026-10-24 and 2026-10-31; RQ-MTA-002).
 - **Rationale**: The demo must look like a fresh clone of AGNOS in which a project was started, with no
   trace of how AGNOS itself was built.
 - **Priority**: Must
@@ -53,7 +53,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **When** the file list is compared with this repository
   - **Then** every toolkit file is present
   - **And** no ID with a trigram TRC, IDX, DSY, AGT, FIX or DMO appears under `process/`
-  - **And** no `agnos-demo` skill folder is present
+  - **And** no `agnos-meta-` skill or sub-agent is present
 - **Dependencies**: RQ-DMO-001
 
 ### RQ-DMO-003: Source code in two languages
@@ -161,11 +161,11 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **And** it gives the command that lists the commits of one role
 - **Dependencies**: RQ-DMO-001, RQ-DMO-011
 
-### RQ-DMO-020: The generator is kept as the `agnos-demo` skill
+### RQ-DMO-020: The generator is kept as the `agnos-meta-demo` skill
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: This repository SHALL contain the generator of the demo as a skill named `agnos-demo`,
-  canonical under `.github/skills/agnos-demo/` with an entry point under `.claude/skills/agnos-demo/`, with
+- **Statement**: This repository SHALL contain the generator of the demo as a skill named `agnos-meta-demo` (renamed by the owner on 2026-10-31; RQ-MTA-001),
+  canonical under `.github/skills/agnos-meta-demo/` with an entry point under `.claude/skills/agnos-meta-demo/`, with
   the sub-commands `build` (create or rebuild the demo from its scenario and content, using the toolkit of
   the current checkout of this repository) and `verify` (check the requirements of FTR-DMO-001 and
   FTR-DMO-002 on the demo).
@@ -210,9 +210,9 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Statement**: IF the demo repository is created or rebuilt, THEN the operation SHALL NOT push anything,
   configure a remote, modify the global or system git configuration, or modify `agnos-lightweight-process`;
   the files of this repository changed to deliver the feature are only the `process/` artifacts of DMO and
-  the `agnos-demo` skill folders.
+  the `agnos-meta-demo` skill folders.
 - **Metric**: 0 remote in the demo; global git configuration unchanged; 0 modified file in this repository
-  outside the DMO artifacts and the `agnos-demo` skill folders.
+  outside the DMO artifacts and the `agnos-meta-demo` skill folders.
 - **Measurement Method**: `git remote` in the demo; `git config --global --list` before and after;
   `git status` and `git diff --name-only` in this repository.
 - **Priority**: Must
@@ -221,7 +221,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **When** the demo is created
   - **Then** `git remote` of the demo is empty
   - **And** the global configuration is identical
-  - **And** this repository changed only under `process/` for the DMO artifacts and in the `agnos-demo`
+  - **And** this repository changed only under `process/` for the DMO artifacts and in the `agnos-meta-demo`
     skill folders
 - **Dependencies**: RQ-DMO-001
 
