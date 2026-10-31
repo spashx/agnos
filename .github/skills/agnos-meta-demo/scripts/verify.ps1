@@ -33,7 +33,7 @@ $FIELD_SEPARATOR = [string][char]0x1f
 $ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
 $ID_PATTERN = '\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b'
 $DEFINITION_PATTERN = '^\+#{1,3} ((?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}):'
-$TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO|MTA|INI'
+$TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO|MTA|INI|QLT'
 $TASK_COMMIT_PATTERN = '^(feat|fix|docs|refactor|test|chore|perf|build|ci|style)\([A-Z]{3}\): (ADR-[A-Z]{3}-\d{3}/)?TASK-[A-Z]{3}-\d{3} .+$'
 $MIN_FEATURES = 3; $MIN_REQUIREMENTS = 12; $MIN_ADRS = 3; $MIN_PLANS = 3; $MIN_SOURCES = 4
 $MIN_COMMITS = 50; $MIN_SPAN_DAYS = 56; $MAX_SPAN_DAYS = 64; $MIN_ACTIVE_DAYS = 5; $MAX_ACTIVE_RATIO = 0.8

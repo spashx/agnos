@@ -1,8 +1,8 @@
 """agnos-trace history: who worked on the process elements and on the code, from the repository's git history.
 
 Implements FTR-HST-001 after ADR-HST-001. Loaded by trace_matrix.py only with --history (DEC-HST-001, RQ-HST-015).
-Python >= 3.9, standard library only; git is read through its command line, never through a library. Kept free of quality
-findings (RQ-QLT-009, DEC-QLT-008).
+Python >= 3.9, standard library only; git is read through its command line, never through a library. Kept free of
+quality findings (RQ-QLT-009, DEC-QLT-008).
 """
 import datetime
 import json
