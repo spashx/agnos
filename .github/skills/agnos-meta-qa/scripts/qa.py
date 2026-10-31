@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """agnos-meta-qa: a code quality report on demand, for an AI or a tool to correct from.
 
-Implements FTR-QLT-001 after ADR-QLT-001. `setup` installs the pinned analysers (RQ-QLT-006); `check` runs them and writes
-one normalised JSON report (RQ-QLT-002). It never changes the code (RQ-QLT-007), and findings never fail it (RQ-QLT-005).
+Implements FTR-QLT-001 after ADR-QLT-001. `setup` installs the pinned analysers (RQ-QLT-006); `check` runs them and
+writes one normalised JSON report (RQ-QLT-002). It never changes the code (RQ-QLT-007), and findings never fail it
+(RQ-QLT-005).
 Python >= 3.9, standard library only. Procedure: ../SKILL.md.
 """
 import argparse

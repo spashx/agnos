@@ -467,8 +467,8 @@ TASK-MTA-003|41-51|Done|The demo without the toolkit
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill
-TASK-QLT-002|28-39|Not Started|matrix.js, the simple findings
-TASK-QLT-003|40-51|Not Started|matrix.js, the complex functions
+TASK-QLT-002|28-39|Done|matrix.js, the simple findings
+TASK-QLT-003|40-51|Done|matrix.js, the complex functions
 TASK-QLT-004|52-63|Not Started|Python, the rule findings
 TASK-QLT-005|64-75|Not Started|Python, the complex functions
 TASK-QLT-006|76-87|Not Started|matrix.html, the accessibility findings

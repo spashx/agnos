@@ -135,11 +135,15 @@
   // RQ-TRC-010, DEC-TRC-005 as amended: the data come from <page>.data.js, written beside the page.
   const DATA = window.AGNOS_TRACE_DATA;
   if (!DATA) {
+    showDataMissing();
+    return;
+  }
+
+  function showDataMissing() {
     const missing = document.querySelector('script[src$=".data.js"]')?.getAttribute("src") || "the data script";   // not a library's
     document.body.replaceChildren(Object.assign(document.createElement("p"), { className: "data-missing",
       textContent: `The traceability data are missing: ${missing} must stand beside this page (with its .json twin). `
         + "Generate them again with the agnos-trace skill." }));
-    return;
   }
 
   // ---- libraries (TASK-TRC-064: RQ-TRC-080, RQ-TRC-081; DEC-TRC-040, DEC-TRC-041) -------------------------------
@@ -195,7 +199,7 @@
   function themedOption(option, theme, description) {
     const withAxis = (axis) => ({ ...theme.axis, ...axis });
     const themed = { ...option, animation: false, backgroundColor: "transparent", textStyle: theme.textStyle,
-      tooltip: { ...theme.tooltip, ...(option.tooltip || {}) },
+      tooltip: { ...theme.tooltip, ...option.tooltip },
       aria: { enabled: true, decal: { show: false }, label: { enabled: true, description } } };   // TASK-TRC-070: no pattern
     if (option.legend) themed.legend = { ...theme.legend, ...option.legend };
     for (const key of CHART_AXES) {
@@ -214,6 +218,11 @@
     entry.index = -1;
   }
 
+  function chartStep(key) {
+    if (CHART_NEXT_KEYS.has(key)) return 1;
+    return CHART_PREVIOUS_KEYS.has(key) ? -1 : 0;
+  }
+
   // RQ-TRC-087: Tab reaches the chart, the arrows go from item to item showing its tooltip, Enter does what a click does.
   function chartKeys(entry, event) {
     const items = entry.options.items || [];
@@ -222,7 +231,7 @@
       if (entry.index >= 0) { event.preventDefault(); entry.options.onActivate?.(items[entry.index]); }
       return;
     }
-    const step = CHART_NEXT_KEYS.has(event.key) ? 1 : CHART_PREVIOUS_KEYS.has(event.key) ? -1 : 0;
+    const step = chartStep(event.key);
     if (!step) return;
     event.preventDefault();
     entry.index = (entry.index + step + items.length) % items.length;
@@ -405,18 +414,10 @@
   // ---- model --------------------------------------------------------------------------------------------------
   const nodes = new Map();
   const links = new Map();
-  for (const e of DATA.elements) {
-    nodes.set(e.id, {
-      key: e.id, label: e.id, type: e.kind === KIND_UNDEFINED ? TYPE_UNDEFINED : e.type, elementType: e.type,
-      kind: e.kind, title: e.title, tri: e.tri, status: e.status, doc: e.doc, first: e.first, last: e.last,
-    });
-  }
-  for (const f of DATA.files) {
-    const key = FILE_PREFIX + f.path;
-    nodes.set(key, { key, label: f.path, type: TYPE_FILE, kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
-  }
+  addElements();
+  addFiles();
   const fnKeys = addFunctions();
-  for (const key of nodes.keys()) links.set(key, []);
+  openLinks();
   const addLink = (from, to, kind, lines) => {
     links.get(from).push({ key: to, kind, dir: "out", lines });
     links.get(to).push({ key: from, kind, dir: "in", lines });
@@ -428,6 +429,32 @@
   const nodeOf = (key) => nodes.get(key) || boxes.get(key);
   const byKeyLabel = (a, b) => nodeOf(a).label.localeCompare(nodeOf(b).label, undefined, { numeric: true });
   indexSearch();
+
+  function addElements() {
+    for (const e of DATA.elements) {
+      nodes.set(e.id, {
+        key: e.id, label: e.id, type: e.kind === KIND_UNDEFINED ? TYPE_UNDEFINED : e.type, elementType: e.type,
+        kind: e.kind, title: e.title, tri: e.tri, status: e.status, doc: e.doc, first: e.first, last: e.last,
+      });
+    }
+  }
+
+  function addFiles() {
+    for (const f of DATA.files) {
+      const key = FILE_PREFIX + f.path;
+      nodes.set(key, { key, label: f.path, type: TYPE_FILE, kind: "file", title: "", tri: "", path: f.path, ids: f.ids });
+    }
+  }
+
+  function openLinks() {
+    for (const key of nodes.keys()) links.set(key, []);
+  }
+
+  function countTypes() {
+    const found = Object.fromEntries(NODE_TYPES.map((t) => [t, 0]));
+    for (const n of nodes.values()) found[n.type] += 1;
+    return found;
+  }
 
   function addEdges() {
     for (const [source, target, kind, lines] of DATA.edges) {
@@ -444,8 +471,7 @@
   }
   const typeOrder = (type) => NODE_TYPES.indexOf(type);
   const requirements = DATA.elements.filter((e) => e.kind === VALUE_ELEMENT && e.type === "RQ").map((e) => nodes.get(e.id));
-  const counts = Object.fromEntries(NODE_TYPES.map((t) => [t, 0]));
-  for (const n of nodes.values()) counts[n.type] += 1;
+  const counts = countTypes();
   const trigrams = [...new Set(DATA.elements.filter((e) => e.kind === VALUE_ELEMENT).map((e) => e.tri))]
     .sort((a, b) => a.localeCompare(b));
   const CHECKS = DATA.quality.checks;
@@ -1083,7 +1109,6 @@
       // target, which keeps the target: one selection.
       cy.on("tap", "node.item, node.box", (event) => select(event.target.data(VALUE_BOXKEY) || event.target.id()));
       cy.on(EVENT_MOUSEOVER, VALUE_NODE_ITEM, (event) => {
-        const n = nodeOf(event.target.id());
         event.target.addClass(VALUE_HOVER);
         event.target.connectedEdges().addClass(VALUE_NEAR);
         const at = event.target.renderedPosition();
@@ -1357,8 +1382,8 @@
     const utc = meta.generatedAt.replace("T", " ").replace(/Z$/, " UTC");
     clear($("meta")).append(item("Generated", readable, utc), item("Process", meta.process),
       item("Sources", meta.sources.join(", ")));
-    $("about").append(el("div", { text: `Generated by agnos-trace · libraries from cdnjs: ${(meta.libraries || [])
-      .map((lib) => `${lib.name} ${lib.version} (${lib.licence})`).join(", ")}` }));          // RQ-TRC-082
+    const libraryWords = (meta.libraries || []).map((lib) => `${lib.name} ${lib.version} (${lib.licence})`).join(", ");
+    $("about").append(el("div", { text: `Generated by agnos-trace · libraries from cdnjs: ${libraryWords}` }));   // RQ-TRC-082
     document.title = `Traceability matrix — ${meta.title}`;
   }
 
@@ -1551,12 +1576,6 @@
     const base = elementTip(n);
     const coverage = n.type === "RQ" && DATA.coverage[key] ? `${COVERAGE[DATA.coverage[key]][0]}: ${COVERAGE[DATA.coverage[key]][1]}` : "";
     return { ...base, lines: [...base.lines, coverage, `${linked} links`] };
-  }
-
-  function showSearchTip(item, n) {
-    const row = item.getBoundingClientRect();
-    const side = results.getBoundingClientRect();
-    showRichTip({ left: side.left, right: side.right, top: row.top, bottom: row.top }, elementTip(n));
   }
 
   function scheduleSearchTip(item, key) {
@@ -2015,7 +2034,10 @@
   function checkCard(check) {
     const open = state.openChecks.has(check.key);
     const detailId = `check-detail-${check.key}`;
-    const toggleCheck = () => { if (open) state.openChecks.delete(check.key); else state.openChecks.add(check.key); renderQuality(); };
+    const toggleCheck = () => {
+      if (open) state.openChecks.delete(check.key); else state.openChecks.add(check.key);
+      renderQuality();
+    };
     return el("article", { class: `card check-card${open ? " is-open" : ""}`, id: `check-${check.key}`, "data-check": check.key },
       el("header", { class: "check-head" },
         el("button", { class: "check-toggle", type: "button", "aria-expanded": String(open), "aria-controls": detailId,
@@ -2218,7 +2240,8 @@
   function verdictText(grade, attention) {
     if (!grade) return "Nothing to score";
     const need = attention === 1 ? "check needs" : "checks need";
-    return `${DATA.quality.verdicts[grade]}: ${attention ? `${attention} ${need} attention` : "no check needs attention"}`;
+    const attentionWords = attention ? `${attention} ${need} attention` : "no check needs attention";
+    return `${DATA.quality.verdicts[grade]}: ${attentionWords}`;
   }
 
   // RQ-TRC-060: the report card of the decision maker: grade, score, verdict, grade of each trigram, what to fix first.
@@ -2354,7 +2377,6 @@
   const ATTR_VIEWBOX = "viewBox";
   const ATTR_ARIA_HIDDEN = "aria-hidden";
   const MONTHS_PER_QUARTER = 3;
-  const MONTHS_PER_YEAR = 12;
   const NUMERIC = "numeric";
   const SHORT = "short";
   const TWO_DIGIT = "2-digit";
@@ -2453,7 +2475,7 @@
   const elementKeys = () => DATA.elements.filter((e) => e.kind === VALUE_ELEMENT).map((e) => e.id);
   const elementMarks = (id) => HISTORY.interventions.elements[id] || [];
   const fileMarks = (key) => HISTORY.interventions.files[nodes.get(key).path] || [];
-  const functionMarks = (key) => (HISTORY.interventions.functions || {})[String(fnIndex.get(key))] || [];
+  const functionMarks = (key) => HISTORY.interventions.functions?.[String(fnIndex.get(key))] || [];
 
   function fileRows() {
     const functionsOf = new Map();
@@ -2572,38 +2594,51 @@
   }
 
   function shownRows() {
-    const rows = [];
+    const walk = { rows: [], heading: null, open: [] };   // open: the folders above the current row, outermost first
     const scope = scopeKeys();
-    let heading = null;
-    const open = [];                                       // the folders above the current row, outermost first
     for (const row of hist.baseRows) {
-      if (row.group) {
-        heading = { ...row, count: 0 };
-        rows.push(heading);
-        open.length = 0;
-        continue;
-      }
-      while (open.length && open.at(-1).depth >= row.depth) open.pop();
-      const folded = (row.ancestors || []).some((path) => hist.closed.has(path));
-      if (isFolder(row)) {
-        const folder = { ...row, count: 0, lists: [] };
-        if (!folded) rows.push(folder);
-        open.push(folder);
-        continue;
-      }
-      if (scope && !scope.has(row.key)) continue;
-      if (!rowWanted(row)) continue;
-      const marks = row.marks.filter(([ci]) => hist.kept[ci]);
-      if (!marks.length && filtering() && !hist.showEmpty) continue;
-      if (heading) heading.count += 1;
-      for (const folder of open) {                         // a folder carries the changes of the files below it
-        folder.count += 1;
-        if (row.key.startsWith(FILE_PREFIX)) folder.lists.push(marks);
-      }
-      if (!folded) rows.push({ ...row, marks });
+      if (row.group) startRowGroup(walk, row); else placeRow(walk, row, scope);
     }
-    for (const row of rows) if (isFolder(row)) row.marks = mergeMarks(row.lists);
-    return rows.filter((row) => isEntry(row) || row.count);
+    for (const row of walk.rows) if (isFolder(row)) row.marks = mergeMarks(row.lists);
+    return walk.rows.filter((row) => isEntry(row) || row.count);
+  }
+
+  function startRowGroup(walk, row) {
+    walk.heading = { ...row, count: 0 };
+    walk.rows.push(walk.heading);
+    walk.open.length = 0;
+  }
+
+  function placeRow(walk, row, scope) {
+    const { rows, open } = walk;
+    while (open.length && open.at(-1).depth >= row.depth) open.pop();
+    const folded = (row.ancestors || []).some((path) => hist.closed.has(path));
+    if (isFolder(row)) {
+      const folder = { ...row, count: 0, lists: [] };
+      if (!folded) rows.push(folder);
+      open.push(folder);
+      return;
+    }
+    const marks = wantedMarks(row, scope);
+    if (!marks) return;
+    creditRow(walk, row, marks);
+    if (!folded) rows.push({ ...row, marks });
+  }
+
+  // The marks a row keeps, or null when the scope, the search or the filters leave it out.
+  function wantedMarks(row, scope) {
+    if (scope && !scope.has(row.key)) return null;
+    if (!rowWanted(row)) return null;
+    const marks = row.marks.filter(([ci]) => hist.kept[ci]);
+    return !marks.length && filtering() && !hist.showEmpty ? null : marks;
+  }
+
+  function creditRow(walk, row, marks) {
+    if (walk.heading) walk.heading.count += 1;
+    for (const folder of walk.open) {                      // a folder carries the changes of the files below it
+      folder.count += 1;
+      if (row.key.startsWith(FILE_PREFIX)) folder.lists.push(marks);
+    }
   }
 
   // RQ-HST-021: a row stays when its ID, title, path or function name holds the text, and, with the requirements angle,
@@ -2612,7 +2647,7 @@
     const n = nodes.get(row.key);
     if (hist.angle === ANGLE_REQUIREMENTS && n && !hist.types.has(n.type)) return false;
     if (!hist.text) return true;
-    return [row.key, row.label, row.title, row.name, n?.title, n?.path].some((field) => field && field.toLowerCase().includes(hist.text));
+    return [row.key, row.label, row.title, row.name, n?.title, n?.path].some((field) => field?.toLowerCase().includes(hist.text));
   }
 
   function renderTypeChips() {
@@ -2899,7 +2934,8 @@
         y -= h;
         return svgEl(SVG_RECT, { class: `history-bar-${kind}`, x, y, width: w, height: h });
       });
-      const lines = [`${unit === "day" ? "" : `${unit[0].toUpperCase()}${unit.slice(1)} of `}${DAY_TEXT.format(bucket.t)}: ${total(bucket)} commits`,
+      const period = unit === "day" ? "" : `${unit[0].toUpperCase()}${unit.slice(1)} of `;
+      const lines = [`${period}${DAY_TEXT.format(bucket.t)}: ${total(bucket)} commits`,
         ...BAND_STACK.filter((kind) => bucket.counts[kind]).map((kind) => `${bucket.counts[kind]} ${KIND_LABEL[kind]}`)];
       const bar = svgEl(SVG_GROUP, { class: "history-bar", tabindex: "0", role: "img", [VALUE_ARIA_LABEL]: lines.join(", ") }, ...parts);
       bar.addEventListener(EVENT_MOUSEOVER, () => showTipLines(bar, lines));
@@ -2983,7 +3019,7 @@
     const groups = [];
     for (const item of [...marks].sort(([a], [b]) => commitTime[a] - commitTime[b])) {
       const x = localX(commitTime[item[0]]);
-      const last = groups[groups.length - 1];
+      const last = groups.at(-1);
       if (last && x - last.x < reach) {
         last.x += (x - last.x) / (last.items.length + 1);
         last.items.push(item);
@@ -3196,6 +3232,16 @@
         lines: ["The branch the commit was made on, found from the branch tips and the merges' messages"] })) : null);
   }
 
+  function changedByType(changed) {
+    const byType = new Map();
+    for (const [k, lines] of changed) {
+      const type = nodes.get(k).type;
+      if (!byType.has(type)) byType.set(type, []);
+      byType.get(type).push([k, lines]);
+    }
+    return byType;
+  }
+
   // A commit as the panel shows a selection: its band (kind, hash, subject, date, contributors, badges, actions, tags),
   // then the git graph and what it changed, by type.
   function renderCommitDetail(panel, key) {
@@ -3217,12 +3263,7 @@
       el("div", { class: "detail-actions" },
         el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, text: "Copy hash", title: "Copy this commit's short hash to the clipboard",
           on: { [EVENT_CLICK]: () => copy(hash) } })));
-    const byType = new Map();
-    for (const [k, lines] of changed) {
-      const type = nodes.get(k).type;
-      if (!byType.has(type)) byType.set(type, []);
-      byType.get(type).push([k, lines]);
-    }
+    const byType = changedByType(changed);
     const types = CHANGED_ORDER.filter((type) => byType.has(type));
     const graphSection = gitGraph(key);
     const summary = el("div", { class: "detail-summary" },
@@ -3266,7 +3307,8 @@
       const [top, bottom] = span.get(branch);
       let lane = 0;
       while ((taken[lane] || []).some(([t, u]) => top <= u && t <= bottom)) lane += 1;
-      (taken[lane] ||= []).push([top, bottom]);
+      taken[lane] ||= [];
+      taken[lane].push([top, bottom]);
       gitLanes.set(branch, lane);
     }
     return gitLanes;
@@ -3531,6 +3573,12 @@
       el(TAG_SPAN, { class: CLASS_LEGEND_ITEM, text: "Colour: the identity, neutral for several · number: the commits grouped · wheel over the marks to zoom, drag to pan" }));
   }
 
+  function historyLimitWords(limits) {
+    const since = limits.since ? `, authored since ${limits.since}` : "";
+    const depth = limits.depth ? `, the last ${limits.depth}` : "";
+    return `${limits.commits} commits${since}${depth}`;
+  }
+
   // RQ-HST-001, RQ-HST-012: the limits applied, and a cut history said as such.
   function renderHistoryLimits() {
     const limits = HISTORY.limits;
@@ -3542,7 +3590,7 @@
     $("history-limits").textContent = text;
     richTip($("history-limits"), () => ({ head: "History read", lines: [
       limits.first ? `From ${DAY_TEXT.format(Date.parse(limits.first))} to ${DAY_TEXT.format(Date.parse(limits.last))}` : "",
-      `${limits.commits} commits${limits.since ? `, authored since ${limits.since}` : ""}${limits.depth ? `, the last ${limits.depth}` : ""}`,
+      historyLimitWords(limits),
       limits.shallow ? "Cut: the repository is a shallow clone" : "The whole history the limits allow"] }));
   }
 
@@ -3757,7 +3805,10 @@
   }
 
   // RQ-TRC-093: from what a figure measures, not from its sign; no word without a variation.
-  const verdict = (change, lowerIsBetter) => (change ? ((change > 0) !== Boolean(lowerIsBetter) ? "better" : "worse") : "");
+  const verdict = (change, lowerIsBetter) => {
+    if (!change) return "";
+    return (change > 0) !== Boolean(lowerIsBetter) ? "better" : "worse";
+  };
 
   const deliveryApi = { rows: deliveryRows, bounds: deliveryBounds, presets: presetPeriods, defaults: defaultPeriods, checkDay,
     grains: grainsOf, bucketOf, filter: deliveryFilter, figures: deliveryFigures, variation, perIdentity, pointsOverTime,
@@ -3779,7 +3830,10 @@
   const dlv = { periods: {}, grain: GRAIN_DAY, filter: null, bounds: null, built: false, sort: { key: null, direction: null },
     overlays: { [OVERLAY_FRICTION]: false, [OVERLAY_REWORK]: false }, zoom: null };   // RQ-TRC-096
   const periodInput = (key, side) => $(`delivery-${side}-${key}`);
-  const dataNumber = (value, digits) => (value === null ? "" : digits ? value.toFixed(digits) : String(value));
+  const dataNumber = (value, digits) => {
+    if (value === null) return "";
+    return digits ? value.toFixed(digits) : String(value);
+  };
 
   function showDeliveryMessage(text) {
     const message = $("delivery-message");
@@ -3871,10 +3925,15 @@
     for (const b of $("delivery-grain").querySelectorAll(TAG_BUTTON)) b.setAttribute(VALUE_ARIA_PRESSED, String(b.dataset.grain === dlv.grain));
   }
 
+  function changeArrow(change) {
+    if (change > 0) return ARROW_UP;
+    return change < 0 ? ARROW_DOWN : ARROW_SAME;
+  }
+
   // RQ-TRC-074: a figure for A, for B and the variation from B to A, its arrow and sign written, never its colour alone.
   function changeText(change) {
     if (change === null) return NO_VALUE;
-    const arrow = change > 0 ? ARROW_UP : change < 0 ? ARROW_DOWN : ARROW_SAME;
+    const arrow = changeArrow(change);
     return `${arrow} ${change > 0 ? "+" : ""}${pct(change, 1)} %`;
   }
 
@@ -3885,23 +3944,25 @@
     const [a, b] = values;
     const change = variation(a, b);
     const word = verdict(change, lowerIsBetter);
-    const changeWords = `${changeText(change)}${word ? ` ${word}` : ""}`;
+    const changeWords = word ? `${changeText(change)} ${word}` : changeText(change);
+    const changeClass = word ? `delivery-change is-${word}` : "delivery-change";
     const node = el("div", { class: "kpi", "data-figure": key, "data-a": dataNumber(a, show.digits), "data-b": dataNumber(b, show.digits),
       "data-change": dataNumber(change, FIGURE_DIGITS) },
     el(TAG_SPAN, { class: CLASS_KPI_LABEL, text: label }),
     el(TAG_SPAN, { class: CLASS_KPI_VALUE }, periodBadge(PERIOD_KEYS[0]), show.text(a)),
     el(TAG_SPAN, { class: VALUE_KPI_SUB }, periodBadge(PERIOD_KEYS[1]), ` ${show.text(b)} · `, el(TAG_SPAN, {
-      class: `delivery-change${word ? ` is-${word}` : ""}`, text: changeWords })));
+      class: changeClass, text: changeWords })));
     return richTip(node, () => ({ head: label, lines: [`Period A, ${dlv.periods.a.from} to ${dlv.periods.a.to}: ${show.text(a)}`,
       `Period B, ${dlv.periods.b.from} to ${dlv.periods.b.to}: ${show.text(b)}`, `Variation from B to A: ${changeWords}`,
       lowerIsBetter ? "Less is better, more is worse" : "More is better, less is worse",   // RQ-TRC-093
       ...(moreLines ? moreLines() : [])] }));
   }
 
+  const counterWords = (counters) => FRICTION_COUNTERS.map((name, i) => `${name} ${counters[i]}`).join(", ");
+
   // RQ-TRC-092, RQ-TRC-094: what the friction figure of a period is made of, and the filters it does not follow.
   function frictionLines(friction) {
-    const lines = PERIOD_KEYS.map((key, k) => `${key.toUpperCase()}: ${friction[k].sessions} sessions, ${friction[k].events} events (${
-      FRICTION_COUNTERS.map((name, i) => `${name} ${friction[k].counters[i]}`).join(", ")})`);
+    const lines = PERIOD_KEYS.map((key, k) => `${key.toUpperCase()}: ${friction[k].sessions} sessions, ${friction[k].events} events (${counterWords(friction[k].counters)})`);
     lines.unshift("The events of a period divided by its sessions");
     const ignored = frictionIgnored(dlv.filter);
     return ignored.length ? [...lines,`Not filtered by ${ignored.join(", ")}: the log holds only a session's date, trigram and author`] : lines;
@@ -3988,7 +4049,7 @@
         formatter: ({ data }) => (entryOf(data.period, data.person)?.throughput ?? 0).toFixed(LABEL_DIGITS) },
       data: people.map((person) => {
         const entry = entryOf(key, person);
-        const value = entry && entry.activeDays ? entry.byTier[t] / entry.activeDays : 0;
+        const value = entry?.activeDays ? entry.byTier[t] / entry.activeDays : 0;
         return { value, person, period: key, tier: t };
       }),
     })));
@@ -4033,7 +4094,7 @@
 
   function sessionLine(session) {
     const c = HISTORY.commits[session.commit];
-    return `Friction, ${session.tri}: ${session.total} (${FRICTION_COUNTERS.map((name, i) => `${name} ${session.counters[i]}`).join(", ")}), ${HISTORY.people[c.author].name}, ${c.hash}`;
+    return `Friction, ${session.tri}: ${session.total} (${counterWords(session.counters)}), ${HISTORY.people[c.author].name}, ${c.hash}`;
   }
 
   // RQ-TRC-095: a bucket's points by tier, the tasks reworked and each session, for the marks shown.
@@ -4278,7 +4339,22 @@
       return;
     }
     const n = nodes.get(key);
-    const head = el("div", { class: `detail-head t-${n.type}` },
+    const head = elementHead(n, key);
+    const groups = linksByType(key);
+    const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
+    const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
+      groupTag(t, t, `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
+      : el("span", { class: "badge badge-error", text: "No link" }));
+    const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
+    summary.append(...callSections.map((s) => s.badge));
+    if (CALL_GRAPH && n.type === "RQ" && !groups.has("FN")) summary.append(noFunctionBadge(key));   // RQ-TRC-041
+    panel.append(detailBand(n.type, head, summary),
+      el("div", { class: "detail-body" }, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t)))));
+    applyTagFilter();
+  }
+
+  function elementHead(n, key) {
+    return el("div", { class: `detail-head t-${n.type}` },
       el("div", { class: "detail-kind" }, el("span", { class: `dot t-${n.type}` }), TYPE_NAME[n.type][0]),
       el("h2", { class: "detail-id", text: n.label }),
       n.title ? el("p", { class: "detail-title", text: n.title }) : null,
@@ -4296,17 +4372,6 @@
         HISTORY && n.kind !== KIND_UNDEFINED ? el(TAG_BUTTON, { class: "button", type: TAG_BUTTON, "data-action": HISTORY_VIEW, text: "History",
           title: "Open the History tab on this element: who changed it, and its code, over time",
           on: { [EVENT_CLICK]: () => scopeHistory(key) } }) : null));
-    const groups = linksByType(key);
-    const ordered = [...groups.keys()].sort((a, b) => typeOrder(a) - typeOrder(b));
-    const summary = el("div", { class: "detail-summary" }, ordered.length ? ordered.map((t) =>
-      groupTag(t, t, `${plural(t, groups.get(t).size)} ${groups.get(t).size}`))
-      : el("span", { class: "badge badge-error", text: "No link" }));
-    const callSections = n.type === "FN" ? callGroups(calls.index.get(key)) : [];
-    summary.append(...callSections.map((s) => s.badge));
-    if (CALL_GRAPH && n.type === "RQ" && !groups.has("FN")) summary.append(noFunctionBadge(key));   // RQ-TRC-041
-    panel.append(detailBand(n.type, head, summary),
-      el("div", { class: "detail-body" }, ...callSections.map((s) => s.section), ...ordered.map((t) => linkGroup(t, groups.get(t)))));
-    applyTagFilter();
   }
 
   // RQ-TRC-055, DEC-TRC-030: a tag is a toggle that shows only its group; the pressed tags belong to one selection.
@@ -4649,11 +4714,19 @@
     graph.restyle();
     redrawLibraryCharts();                                    // RQ-TRC-085
   }
-  try { const saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.dataset.theme = saved; } catch (error) { /* no storage */ }
+  function restoreTheme() {
+    try { const saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.dataset.theme = saved; } catch (error) { /* no storage */ }
+  }
+  restoreTheme();
   $("theme-toggle").addEventListener("click", () => applyTheme(effectiveTheme() === "dark" ? "light" : "dark"));
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { graph.restyle(); redrawLibraryCharts(); });
 
   // ---- start --------------------------------------------------------------------------------------------------
+  function openInitialView() {
+    const initial = hashKey();
+    if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
+  }
+
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
     FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv,
     libraryChart, chartTheme, redrawLibraryCharts, radarPointed: () => radarPointed?.key || null };
@@ -4666,8 +4739,7 @@
   setupPanels();
   document.querySelector(`.tab[data-view="${DELIVERY_VIEW}"]`).hidden = !DELIVERY;     // RQ-TRC-074
   setupHelp();
-  const initial = hashKey();
-  if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
+  openInitialView();
   const readyMs = Math.round(performance.now());   // since the navigation started, the page's parsing included
   Object.assign(document.documentElement.dataset, { ready: "true", readyMs: String(readyMs) });   // RQ-TRC-037
   console.info(`agnos-trace: interactive ${readyMs} ms after opening, script ${Math.round(readyMs - STARTED)} ms`);
