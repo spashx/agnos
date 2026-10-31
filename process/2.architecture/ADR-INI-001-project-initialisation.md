@@ -39,10 +39,11 @@ For a human, `README.md` and `GETTING_STARTED.MD`. For an agent with the instruc
 of `agnos-index`, which is a script and so holds whatever the agent read. Fulfils RQ-INI-007.
 
 ### DEC-INI-007: An order to read, no external import
-Both templates order the agent, before any other action, to read the instructions file and run START SESSION. Claude Code loads an external `@` import only after an approval, and when it is not loaded the session gets no error. On 2026-10-31 a session in the demo started with the `@` line and not the file's content; the owner recalls no dialog, which is unconfirmed, and the terminal was not tested. An order stays visible whatever happens to an import. Amends DEC-INI-003. Fulfils RQ-INI-010.
+Both templates order the agent, before any other action, to read the instructions file, and START SESSION runs only when the user asks to start a session, as END SESSION already does when the user closes it. A session in the demo, ordered to run START SESSION on a read-only request, read the file and chose not to run it: a session writes files and creates a branch, which the user decides. Claude Code loads an external `@` import only after an approval, and when it is not loaded the session gets no error. On 2026-10-31 a session in the demo started with the `@` line and not the file's content; the owner recalls no dialog, which is unconfirmed, and the terminal was not tested. An order stays visible whatever happens to an import. Amends DEC-INI-003. Fulfils RQ-INI-010.
 
 ## Consequences
 - The rules reach the agent through its first read, not at load: the order still has to be followed, and a session test checks it.
+- Without a started session, an agent can answer but changes nothing, since every change belongs on the session branch; its answers may rest on an index that was not regenerated.
 - The plugin target (DEC-INI-005) keeps this order, since its files also lie outside the project. Its installed path may differ per machine and version, while the block is committed: that remains to be designed with it.
 - A developer keeps their files, and an update of AGNOS is one more call changing the block only.
 - Two scripts must stay byte-equivalent, so one test suite runs both on the same cases.

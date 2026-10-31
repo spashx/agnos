@@ -142,8 +142,8 @@ class ResultTest(InitCase):
                 self.assertIn(f"{TOOLKIT_ARG}/.github/skills/".encode(), data, name)
 
     def test_RQ_INI_010_given_both_blocks_then_each_orders_the_read_and_none_relies_on_an_import(self):
-        order = (f"Before any other action, read in full `{TOOLKIT_ARG}/{INSTRUCTIONS}`, "
-                 "then run its START SESSION ACTION.").encode()
+        order = (f"Before any other action, read in full `{TOOLKIT_ARG}/{INSTRUCTIONS}`. "
+                 "Run its START SESSION ACTION only when the user asks to start a session.").encode()
         for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
             for name in ENTRY_FILES:

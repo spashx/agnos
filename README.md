@@ -52,8 +52,8 @@ Commit the result and start a new agent session. Your own content stays as it is
 
 1. **Load the instructions** — Copilot loads the instructions file automatically; in this repository Claude Code
    imports it through `CLAUDE.md`, and in an initialised project the `agnos-init` block orders the agent to read it first.
-2. **Resolve the session state** — the agent detects the platform, asks whether unit tests are
-   required, and writes `process/_sessionstate/session.yaml`.
+2. **Resolve the session state** — when you ask to start a session, the agent detects the platform,
+   asks whether unit tests are required, and writes `process/_sessionstate/session.yaml`.
 3. **Index and scan** — `agnos-index` rebuilds the index; the agent reviews open requirements,
    ADRs and plans from it.
 4. **Open the branch** — `agnos-git-workflow start-session <TRI>` creates `feature/<TRI>`. Nothing

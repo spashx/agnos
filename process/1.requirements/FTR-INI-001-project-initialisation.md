@@ -88,10 +88,10 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying the 
 ### RQ-INI-010: Reading the instructions is an order, in every entry point
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: Each entry-point block SHALL order the agent, before any other action, to read the instructions file in full and to run its START SESSION ACTION, and SHALL NOT rely on an `@` import.
-- **Rationale**: a session in the demo received the `@` line without the file's content and without any order to read it; it followed the process only because the agent chose to read the file.
+- **Statement**: Each entry-point block SHALL order the agent, before any other action, to read the instructions file in full, SHALL state that START SESSION ACTION runs only when the user asks to start a session, and SHALL NOT rely on an `@` import.
+- **Rationale**: a session in the demo received the `@` line without the file's content and without any order to read it; it followed the process only because the agent chose to read the file. The user owns starting a session, as they own closing it.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the toolkit path `../agnos`, When `agnos-init` runs, Then both blocks hold the same order naming that path, And no line of a block starts with `@`.
+- **Acceptance Criteria**: Given the toolkit path `../agnos`, When `agnos-init` runs, Then both blocks hold the same order naming that path and the same statement on START SESSION ACTION, And no line of a block starts with `@`. (amended on 2026-10-31)
 - **Dependencies**: RQ-INI-006
 
 ### RQ-INI-007: The call is stated where it is needed

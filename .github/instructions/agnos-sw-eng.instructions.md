@@ -25,7 +25,7 @@ The whole process artifacts are managed into the `process/` folder of the worksp
  
 ## START SESSION ACTION
 
-At the start of every session, run these steps in order before any task:
+When the user asks to start a session, run these steps in order before any task: <!-- RQ-INI-010 -->
 
 1. Read this file fully if it has not been loaded in context yet.
 2. Read any domain- or stack-specific instruction files present in the current project.

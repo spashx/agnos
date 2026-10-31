@@ -291,7 +291,7 @@ DEC-IDX-002|19-23||Headings define artifacts, sections give ranges
 DEC-IDX-003|24-27||Full regeneration by a script, never by hand
 DEC-IDX-004|28-32||Two native scripts with byte-identical output
 @process/2.architecture/ADR-INI-001-project-initialisation.md
-ADR-INI-001|1-73|Accepted — approved by the owner on 2026-10-31, for FTR-INI-001 (RQ-INI-001 to RQ-INI-009). Amends DEC-MTA-005 and DEC-MTA-006 of ADR-MTA-001.|A Scripted Block in the Project's Entry-Point Files
+ADR-INI-001|1-74|Accepted — approved by the owner on 2026-10-31, for FTR-INI-001 (RQ-INI-001 to RQ-INI-009). Amends DEC-MTA-005 and DEC-MTA-006 of ADR-MTA-001.|A Scripted Block in the Project's Entry-Point Files
 DEC-INI-001|14-17||An explicit call, done by a script
 DEC-INI-002|18-22||One delimited block, every other byte preserved
 DEC-INI-003|23-27||One template per entry-point file
@@ -473,7 +473,7 @@ TASK-INI-002|28-39|Done|State where the call is needed
 TASK-INI-003|40-50|Done|The demo as an initialised project
 @process/3.plan/PLAN-INI-002-order-to-read-the-instructions.md
 PLAN-INI-002|1-25||An Order to Read the Instructions
-TASK-INI-004|15-25|In Progress|The CLAUDE.md block orders the agent to read the instructions
+TASK-INI-004|15-25|Done|The CLAUDE.md block orders the agent to read the instructions
 @process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion

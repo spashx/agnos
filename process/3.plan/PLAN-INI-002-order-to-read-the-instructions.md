@@ -1,7 +1,7 @@
 # PLAN-INI-002: An Order to Read the Instructions
 
 ## Overview
-Replace the `@` import of the `CLAUDE.md` block by the order the `AGENTS.md` block already gives, rebuild the demo, and check on a real session that the order is followed. Everything stays local.
+Replace the `@` import of the `CLAUDE.md` block by the order the `AGENTS.md` block already gives, leave starting a session to the user, rebuild the demo, and check on real sessions that this is followed. Everything stays local.
 
 ## References
 - **Requirements**: RQ-INI-010; amended: RQ-INI-006
@@ -14,12 +14,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-004: The CLAUDE.md block orders the agent to read the instructions
 - **Tier**: L
-- **Status**: In Progress
-- **Description**: Change the tests first, then the `CLAUDE.md` template, `README.md` and the changelog, rebuild the demo, and have the owner run a session to check the order is followed.
+- **Status**: Done
+- **Description**: Change the tests first, then both templates, the instructions file, `AGENTS.md`, `README.md` and the changelog, rebuild the demo, and have the owner run sessions to check the order is followed. Scope grown with the owner's approval on 2026-10-31: START SESSION runs only when the user asks.
 - **Requirement refs**: RQ-INI-006, RQ-INI-010
 - **ADR refs**: ADR-INI-001 (DEC-INI-003, DEC-INI-007)
-- **Acceptance Criteria**: Given the test suite, When it runs both scripts, Then the criteria of RQ-INI-006 and RQ-INI-010 hold; Given the demo, When `agnos-meta-demo build -Verify` runs, Then every check passes; Given a new session in the demo, When it starts, Then its first action reads the instructions file.
+- **Acceptance Criteria**: Given the test suite, When it runs both scripts, Then the criteria of RQ-INI-006 and RQ-INI-010 hold; Given the demo, When `agnos-meta-demo build -Verify` runs, Then every check passes; Given a new session in the demo, When it starts, Then its first action reads the instructions file; Given a read-only request, When it is answered, Then the agent has written nothing; Given the request to start a session, When it is received, Then the agent runs START SESSION in full.
 - **Dependencies**: TASK-INI-001
 - **Assignee**: AI
-- **Verification**: `agnos-init/tests`: 15 OK, the new RQ-INI-010 test failing before the template changed, both scripts run. The RQ-INI-006 test no longer expects the `@` import, as amended. `agnos-meta-demo/tests`: 7 OK. `build -Verify`: 23 passed, 0 failed, HEAD d75e079, block read in the demo's `CLAUDE.md`. Session check: pending, to be run by the owner.
+- **Verification**: `agnos-init/tests`: 15 OK, the new RQ-INI-010 test failing before the template changed, both scripts run. The RQ-INI-006 test no longer expects the `@` import, as amended. `agnos-meta-demo/tests`: 7 OK. `build -Verify`: 23 passed, 0 failed, HEAD 17ede12 after START SESSION left to the user, new sentence read in both demo blocks. The `agnos-init` test failed before the templates changed, then 15 OK. Instructions file: 295 non-empty lines, within 400. First session (log e704095a, former block): first action read the instructions, START SESSION not run. Read-only request (log 76ce30d6, final block): first action read the instructions, then only reads, answered. Request to start a session (log f36020f7, final block): first action read the instructions, then platform, unit tests question, `session.yaml`, `agnos-index` exit 0, `validate-ids` exit 0, `feature/CTL` created, conflict check reported. Demo rebuilt after: 23 passed, 0 failed, on `main`. Before commit: `agnos-meta-docs-sync` 14 OK, `agnos-meta-qa` 32 OK, `agnos-index` all checks passed, `agnos-perf-center` 361 run, OK, 3 skipped; a first run of that suite gave 1 error, not captured, while the demo rebuilt and another run went on in a worktree; it did not recur alone.
 - **Assumptions**: the demo's former history is saved in a bundle outside the repositories before the rebuild; the plugin's path stays to design (DEC-INI-005), no change for it now.

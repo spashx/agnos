@@ -16,8 +16,8 @@ That file is the single normative source of the process. This file only tells yo
 and how to map the process to your tool; where they disagree, the instructions file wins. Do not
 rely on a summary, including the README.
 
-Then run its **START SESSION ACTION** before any task, and its **END SESSION ACTION** when the user
-closes the session.
+Run its **START SESSION ACTION** when the user asks to start a session, and its **END SESSION ACTION**
+when the user closes it. <!-- RQ-INI-010 -->
 
 ## 2. Non-negotiable rules (reminder, not a substitute)
 
