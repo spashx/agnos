@@ -5,7 +5,7 @@ Build the marketplace of FTR-PLG-001 locally and prove it by a real install. No 
 and the systems first, then the output, then the install.
 
 ## References
-- **Requirements**: RQ-PLG-001 to RQ-PLG-009
+- **Requirements**: RQ-PLG-001 to RQ-PLG-010
 - **ADRs**: ADR-PLG-001, ADR-MTA-001, ADR-MTA-002, ADR-INI-001
 
 This plan implements the tasks in the format specified below.
@@ -85,6 +85,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `AgentTest` 4 OK, failing before the code. A marketplace built with a test agent, from a clean local clone: Claude Code lists it and its subagent `agnos:agnos-helper` returned `AGENT-MARKER-GENERATED` on Haiku; Copilot CLI, with no read tool, quoted the same from `--agent agnos:agnos-helper`. Found on the way, by the same proof: `init.ps1` failed on an absolute `-Target`, and the release passes one, so the comparison of `agnos-init` had compared two failures. Both fixed, with tests: the target is combined with the current folder, and `compare_runs` names a skill that fails from the workshop's own files.
 - **Assumptions**: Codex receives no agent (DEC-PLG-005). The test agent is not in the repository: AGNOS delivers no agent today.
 
+### TASK-PLG-008: The proof can be run again
+- **Tier**: M
+- **Status**: Done
+- **Description**: The throwaway scripts of the trial and of the install proof become the maintainer skill `agnos-meta-plugin-proof`, asked for by the owner on 2026-11-01.
+- **Requirement refs**: RQ-PLG-010
+- **ADR refs**: ADR-PLG-001
+- **Acceptance Criteria**: Given RQ-PLG-010's criteria, Then they hold; Given a real run on a built marketplace, Then each present tool installs it in an isolated configuration, And the maintainer's configurations do not change.
+- **Dependencies**: TASK-PLG-005
+- **Assignee**: AI
+- **Verification**: `test_plugin_proof.py` 16 OK. Real run with `--with-models --linux` on a marketplace built from `cf28eb8`: exit 0; Claude Code and Copilot CLI each pass install, 6 skills of 6, init, process, index, agent, and Claude Code both validations; `linux-suites` pass (init 17, skill paths 4, perf-center 366 with 237 skipped, index all passed). `plugin list` of both tools equal before and after in the maintainer's configuration; the marketplace has no change.
+- **Assumptions**: the test agent is added to the clean copy from a fixed text, not generated: `AgentTest` covers the generation.
+
 ### TASK-PLG-007: Install proof and user documents
 - **Tier**: M
 - **Status**: In Progress
@@ -94,5 +106,5 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**: Given RQ-PLG-009's criteria, Then they hold in each tool on Windows; Given the README, Then every cell of the table states a result actually observed; Given the release, Then the final report's checks are true.
 - **Dependencies**: TASK-PLG-006, TASK-PLG-003
 - **Assignee**: Human (sessions), AI (the rest)
-- **Verification**: Partial, the sessions are the owner's. Rehearsal from `be7793c`: 49 files, 1,090 IDs removed, both checks true, exit 0. Isolated install from a clean local clone: Claude Code and Copilot CLI list 6 skills, `claude plugin validate --strict` passes on both. Copilot CLI on a new project: `agnos-init`, `agnos-index` ran and wrote there, the block loaded `agnos-process`; its call of `validate-ids.ps1` was denied, with nobody to approve. Claude Code headless: its calls of the scripts were held for approval, so they did not run. Neither `file://`, `http://` from a dumb server nor `git://` could stand for a remote (DEC-PLG-007), so both tools read the folder in place and the per-version folder is not exercised. Not run: Copilot in VS Code, Codex, a tool on Linux, macOS.
+- **Verification**: Partial, the sessions are the owner's. Rehearsal from `be7793c`: 49 files, 1,090 IDs removed, both checks true, exit 0. Isolated install from a clean local clone: Claude Code and Copilot CLI list 6 skills, `claude plugin validate --strict` passes on both. Copilot CLI on a new project: `agnos-init`, `agnos-index` ran and wrote there, the block loaded `agnos-process`; its call of `validate-ids.ps1` was denied, with nobody to approve. Claude Code headless: its calls of the scripts were held for approval at first, then ran in `agnos-meta-plugin-proof` (TASK-PLG-008), which grants it `bash` and `python` too. Neither `file://`, `http://` from a dumb server nor `git://` could stand for a remote (DEC-PLG-007), so both tools read the folder in place and the per-version folder is not exercised. Not run: Copilot in VS Code, Codex, a tool on Linux, macOS.
 - **Assumptions**: a Linux run of a tool needs Claude Code or Copilot installed in WSL by the owner; without it the table states scripts tested, tool not run.

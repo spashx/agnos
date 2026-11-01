@@ -107,3 +107,14 @@ copy format of DEC-MTA-005, abandoned by the owner on 2026-10-31.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a clean clone of the output, When it is added as a marketplace in a configuration with no other plugin, Then the session starts, reads the process, and commits one task.
 - **Dependencies**: RQ-PLG-001 to RQ-PLG-005
+
+### RQ-PLG-010: The proof can be run again
+- **Category**: Non-Functional
+- **NFR Type**: Maintainability
+- **EARS Type**: Event-driven
+- **Statement**: WHEN a maintainer runs the skill `agnos-meta-plugin-proof` on a built marketplace, it SHALL install it from a clean copy in a configuration isolated from the maintainer's, for each tool present, SHALL report per tool what it observed and what it did not, and, only when asked, SHALL put questions to the tools' models and run the delivered suites on Linux.
+- **Metric**: a run changes neither the maintainer's tool configurations nor the marketplace; no model is called without its option.
+- **Measurement Method**: unit tests on the commands and the isolation; a real run.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a marketplace and no option, When the skill runs, Then it installs and lists the plugin in each tool present, calling no model; Given a tool absent, Then it says so and goes on; Given a failed install, Then it exits 1; Given a model that did not do what was asked, Then the report says not observed, without failing.
+- **Dependencies**: RQ-PLG-009, RQ-MTA-002

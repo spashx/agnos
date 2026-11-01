@@ -5,6 +5,7 @@ process/INDEX.idx.md text eol=lf
 
 # RQ-INI-001 / DEC-INI-001: both versions of agnos-init give the same bytes on every checkout
 .github/skills/agnos-init/scripts/*.sh text eol=lf
+.github/skills/agnos-meta-plugin-proof/scripts/*.sh text eol=lf
 .github/skills/agnos-init/assets/templates/* text eol=lf
 
 # RQ-TRC-024 / DEC-TRC-006: the vendored graph library is compared with its recorded SHA-256, so it stays byte-exact

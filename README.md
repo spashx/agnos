@@ -49,7 +49,7 @@ Commit the result and start a new agent session. Your own content stays as it is
 
 | Tool or system | Result |
 |---|---|
-| Claude Code, Windows | Installed from a local folder; skills and an agent found and run; the block loads the process. A full session is not tested yet. |
+| Claude Code, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process; an agent found and run. A full session is not tested yet. |
 | GitHub Copilot CLI, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process on a work question, not on a trivial one; an agent found and run. A full session is not tested yet. |
 | GitHub Copilot in VS Code | Not tested. |
 | OpenAI Codex | Not tested: its catalogue and manifest follow its documentation. |
