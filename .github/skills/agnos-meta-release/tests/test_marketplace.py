@@ -128,6 +128,15 @@ class UserDocumentsTest(MarketplaceCase):
         self.assertIn(links, (self.output / CHANGELOG_FILE).read_text(encoding="utf-8"))
 
 
+class WhatWasTestedTest(unittest.TestCase):
+    """RQ-PLG-008."""
+
+    def test_RQ_PLG_008_given_the_readme_then_it_says_macos_and_codex_are_not_tested(self):
+        text = (HERE.parents[3] / "README.md").read_text(encoding="utf-8")
+        for row in ("| macOS | Not tested", "| OpenAI Codex | Not tested"):
+            self.assertIn(row, text)
+
+
 class AgentTest(MarketplaceCase):
     """RQ-PLG-006, DEC-PLG-005."""
 

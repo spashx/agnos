@@ -87,12 +87,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-007: Install proof and user documents
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Install from a clean clone in Claude Code, Copilot CLI and VS Code, run a session up to its first commit, and write the install commands and the tested / not tested table in `README.md` and `GETTING_STARTED.MD`.
 - **Requirement refs**: RQ-PLG-008, RQ-PLG-009
 - **ADR refs**: ADR-PLG-001
 - **Acceptance Criteria**: Given RQ-PLG-009's criteria, Then they hold in each tool on Windows; Given the README, Then every cell of the table states a result actually observed; Given the release, Then the final report's checks are true.
 - **Dependencies**: TASK-PLG-006, TASK-PLG-003
 - **Assignee**: Human (sessions), AI (the rest)
-- **Verification**: Not run yet.
+- **Verification**: Partial, the sessions are the owner's. Rehearsal from `be7793c`: 49 files, 1,090 IDs removed, both checks true, exit 0. Isolated install from a clean local clone: Claude Code and Copilot CLI list 6 skills, `claude plugin validate --strict` passes on both. Copilot CLI on a new project: `agnos-init`, `agnos-index` ran and wrote there, the block loaded `agnos-process`; its call of `validate-ids.ps1` was denied, with nobody to approve. Claude Code headless: its calls of the scripts were held for approval, so they did not run. Neither `file://`, `http://` from a dumb server nor `git://` could stand for a remote (DEC-PLG-007), so both tools read the folder in place and the per-version folder is not exercised. Not run: Copilot in VS Code, Codex, a tool on Linux, macOS.
 - **Assumptions**: a Linux run of a tool needs Claude Code or Copilot installed in WSL by the owner; without it the table states scripts tested, tool not run.

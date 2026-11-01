@@ -45,6 +45,18 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 
 Commit the result and start a new agent session. Your own content stays as it is: AGNOS only owns the lines between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGNOS changes, call it again.
 
+**What was tested** <!-- RQ-PLG-008 -->
+
+| Tool or system | Result |
+|---|---|
+| Claude Code, Windows | Installed from a local folder; skills and an agent found and run; the block loads the process. A full session is not tested yet. |
+| GitHub Copilot CLI, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process on a work question, not on a trivial one; an agent found and run. A full session is not tested yet. |
+| GitHub Copilot in VS Code | Not tested. |
+| OpenAI Codex | Not tested: its catalogue and manifest follow its documentation. |
+| Linux | Scripts and their tests pass on Ubuntu 24.04, except the tests that need a browser or tree-sitter, not run there. No agent tool was run on it. |
+| macOS | Not tested: it shares the Linux scripts. |
+| Install from a remote Git repository | Not tested. |
+
 ---
 
 ## How a Session Runs
