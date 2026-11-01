@@ -118,3 +118,12 @@ copy format of DEC-MTA-005, abandoned by the owner on 2026-10-31.
 - **Priority**: Should
 - **Acceptance Criteria**: Given a marketplace and no option, When the skill runs, Then it installs and lists the plugin in each tool present, calling no model; Given a tool absent, Then it says so and goes on; Given a failed install, Then it exits 1; Given a model that did not do what was asked, Then the report says not observed, without failing.
 - **Dependencies**: RQ-PLG-009, RQ-MTA-002
+
+### RQ-PLG-011: A skipped test is not a passed test
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF a test run skips tests, THEN the agent SHALL state their number and cause in the task's `Verification` field, and SHALL NOT present the skipped tests as passed.
+- **Rationale**: a faulty CDN probe silently skipped 192 page tests during TASK-PLG-003 while the suite reported success.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the instructions file, Then it holds the rule And it has at most 400 lines; Given the generated skill `agnos-process`, Then it holds the rule.
+- **Dependencies**: None

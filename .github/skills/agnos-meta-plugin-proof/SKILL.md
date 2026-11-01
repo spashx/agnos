@@ -49,7 +49,7 @@ Claude Code named by `AGNOS_CLAUDE` when it is not on the PATH. A tool that is a
 
 ## What it does not prove
 
-Local marketplaces are read in place: the install from a remote repository, with its per-version folder, needs a push (DEC-PLG-007). A full session with its user questions needs a person. Copilot in VS Code, Codex and macOS are not run.
+Local marketplaces are read in place: the install from a remote repository, with its per-version folder, needs a push. <!-- DEC-PLG-007 --> A full session with its user questions needs a person. Copilot in VS Code, Codex and macOS are not run.
 
 Claude Code's questions use `--plugin-dir` with the maintainer's own sign-in, which installs nothing in their configuration.
 

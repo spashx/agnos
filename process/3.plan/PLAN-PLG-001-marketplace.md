@@ -5,7 +5,7 @@ Build the marketplace of FTR-PLG-001 locally and prove it by a real install. No 
 and the systems first, then the output, then the install.
 
 ## References
-- **Requirements**: RQ-PLG-001 to RQ-PLG-010
+- **Requirements**: RQ-PLG-001 to RQ-PLG-011
 - **ADRs**: ADR-PLG-001, ADR-MTA-001, ADR-MTA-002, ADR-INI-001
 
 This plan implements the tasks in the format specified below.
@@ -96,6 +96,18 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `test_plugin_proof.py` 16 OK. Real run with `--with-models --linux` on a marketplace built from `cf28eb8`: exit 0; Claude Code and Copilot CLI each pass install, 6 skills of 6, init, process, index, agent, and Claude Code both validations; `linux-suites` pass (init 17, skill paths 4, perf-center 366 with 237 skipped, index all passed). `plugin list` of both tools equal before and after in the maintainer's configuration; the marketplace has no change.
 - **Assumptions**: the test agent is added to the clean copy from a fixed text, not generated: `AgentTest` covers the generation.
+
+### TASK-PLG-009: A skipped test is not a passed test
+- **Tier**: M
+- **Status**: Done
+- **Description**: Recursive self-improvement, iteration 1/1: the `Verification` field states the tests skipped and why.
+- **Requirement refs**: RQ-PLG-011
+- **ADR refs**: None
+- **Acceptance Criteria**: Given RQ-PLG-011's criteria, Then they hold.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: instructions file 383 lines, unchanged as the rule extends an existing line; `process_skill` output holds the rule; meta-release 63 OK, meta-demo 12 OK, 0 skipped. The demo suite also found a visible ID in `agnos-meta-plugin-proof/SKILL.md`, left by TASK-PLG-008, now in a comment.
+- **Assumptions**: "1" read as theme 1, one iteration.
 
 ### TASK-PLG-007: Install proof and user documents
 - **Tier**: M
