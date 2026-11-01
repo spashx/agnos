@@ -26,9 +26,9 @@ AGNOS is developed with AGNOS, so this tree holds three layers:
 
 | Layer | What it holds | Delivered |
 |---|---|---|
-| **Toolkit** | The instructions file, `CLAUDE.md`, `AGENTS.md`, the process skills, `README.md`, `GETTING_STARTED.MD`, `CHANGELOG.md` | Yes |
-| **Public repository** | `LICENSE.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, this file, the GitHub templates | Yes, at the repository's root |
-| **Meta** | `process/`, the `agnos-meta-*` skills and sub-agents, the tests of every skill | No |
+| **Toolkit** | The instructions file, the process skills, `README.md`, `GETTING_STARTED.MD`, `CHANGELOG.md`, `LICENSE.md` | Yes, in the marketplace |
+| **Public repository** | `SECURITY.md`, `CODE_OF_CONDUCT.md`, this file, the GitHub templates | No: they address this repository's contributors |
+| **Meta** | `process/`, `CLAUDE.md`, `AGENTS.md`, `.claude/`, the `agnos-meta-*` skills and sub-agents, the tests of every skill | No |
 
 A skill or sub-agent that serves only the development of AGNOS takes the prefix `agnos-meta-`. The prefix is the
 only criterion: tools read it, and no list of names is kept.

@@ -24,7 +24,7 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 | **`agnos-index`** | Deterministically regenerates `process/INDEX.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
-| **`agnos-perf-center`** | Generates a complete offline application to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
+| **`agnos-perf-center`** | Generates a complete application, opened from disk, to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
 **Delivered as:** one marketplace holding the plugin `agnos`, for Claude Code, GitHub Copilot and OpenAI Codex.
 **Scripts for:** Windows (PowerShell 5.1), Linux and macOS (bash).
@@ -135,7 +135,7 @@ or removed.
   recoveries, re-tiered tasks, discrepancies caught by verification) and appends them to
   `METRICS_LOG.md`.
 - **Recursive self-improvement** — when a counter is non-zero, the agent proposes improvements to
-  the instructions file, run as numbered iterations under an 800-line budget, one confirmed theme at
+  the instructions file, run as numbered iterations under a 400-line budget, one confirmed theme at
   a time. This mode is only ever started by you.
 - **Context management** — beyond 10 tasks, the agent writes a checkpoint in `process/3.plan/` and
   recommends a new session.

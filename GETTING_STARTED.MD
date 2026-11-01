@@ -6,8 +6,8 @@ the agent produces, and how the pieces stay wired together.
 
 > **Precedence.** This guide illustrates the process; it does not define it.
 > [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md)
-> is normative. Where the two disagree, the instruction file wins. Each stage below names the
-> instruction section it illustrates so you can check it in one hop.
+> holds the process and is normative. Where the two disagree, that file wins. Each stage below names
+> the section of it that the stage illustrates, so you can check it in one hop.
 
 ---
 
@@ -31,9 +31,9 @@ comes back. Most of what follows is short prompts and short reviews.
 1. **AGNOS is added to your project.** Install the plugin, then call the `agnos-init` skill once, from your
    project's root; this step is required (see the README's "Adding AGNOS to a Project"). It completes your `CLAUDE.md` and
    `AGENTS.md` with one delimited block, which tells the agent to load the process skill, and leaves your own content
-   as it is. <!-- RQ-INI-007, RQ-PLG-004 -->
+   as it is. Commit the result and start a new agent session, so that the agent loads the block. <!-- RQ-INI-007, RQ-PLG-004 -->
 2. **`process/` exists** with its four folders (`1.requirements/`, `2.architecture/`, `3.plan/`,
-   `_sessionstate/`). `agnos-init` creates those that are absent.
+   `_sessionstate/`). `agnos-init` creates those that are absent, each with a `readme.md` saying what it holds.
 3. **You have a trigram in mind.** Three uppercase letters naming the functional area you are about
    to work on — `USR` for user management, `EXP` for export, `PAY` for payments. It goes in every
    artifact ID and in the branch name, so pick one you can live with.
@@ -62,7 +62,8 @@ Start a new AGNOS session, trigram EXP.
 
 **The agent then, without further prompting:**
 
-1. Reads the instruction file and any stack-specific instructions in the project.
+1. Loads the process through the `agnos-process` skill, as the block orders, and reads any
+   stack-specific instructions in the project.
 2. **Probes your platform** — runs `$PSVersionTable` (Windows) or `uname -s` (macOS/Linux) and sets
    `platform`. This is a system variable: you are not asked.
 3. **Asks you a question**, using your tool's question UI (`AskUserQuestion` in Claude Code,
@@ -636,12 +637,12 @@ result line as it is:
 ```text
 agnos-perf-center: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
 checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>,
-files-traced <s>; findings 0; process/PERF-CENTER.html written
+files-traced <s>; findings 0; process/PERF-CENTER.html written in <s.mmm> s
 ```
 
-**What you get — `process/PERF-CENTER.html`**, a complete offline application (open it from disk
-in any current browser; keep `PERF-CENTER.data.js` beside it, and `PERF-CENTER.json` holds the
-same data for any other tool):
+**What you get — `process/PERF-CENTER.html`**, a complete application (open it from disk in any
+current browser; it loads its libraries from cdnjs, so it needs the network once; keep
+`PERF-CENTER.data.js` beside it, and `PERF-CENTER.json` holds the same data for any other tool):
 
 | View | What it answers |
 |---|---|
@@ -659,6 +660,11 @@ C#, Java, JavaScript / Node.js, Python and Rust — not TypeScript, so this guid
 no functions. The option needs the tree-sitter packages, installed once with
 `pip install -r requirements-callgraph.txt`, from the folder of the `agnos-perf-center` skill; without them the page is
 written all the same, without functions.
+
+**Who changed what — `--history`.** Add this option and the page reads the project's git log: its
+**History** view shows who, humans and agents, changed each requirement and its code, and its
+**Delivery** view shows what was delivered and when. `--history-since` and `--history-depth` limit
+what is read.
 
 **Your job here — read the findings, every non-zero one is a defect to fix or to justify:**
 
@@ -800,7 +806,8 @@ artifact with no requirement ID.
 
 - **The rules themselves** — [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md) (normative)
 - **Reference sheet** — [`README.md`](README.md): ID schema, tiers, DoD, session variables
-- **Templates** — the file templates in the instruction file's sections 1, 2 and 3
+- **Templates** — the file templates in sections 1, 2 and 3 of that same process file
+- **Init skill** — [`.github/skills/agnos-init/SKILL.md`](.github/skills/agnos-init/SKILL.md)
 - **Index skill** — [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md)
 - **Git workflow skill** — [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md)
 - **Design-system skill** — [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md)

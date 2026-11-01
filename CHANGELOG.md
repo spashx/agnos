@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-meta-plugin-proof` maintainer skill: proves a built marketplace by a real install in isolated Claude Code and GitHub Copilot configurations, on request with questions to their models and the delivered suites on Linux, publishing nothing <!-- ADR-PLG-001, TASK-PLG-008, RQ-PLG-010 -->
+- `agnos-meta-release` writes a marketplace holding the plugin `agnos`, with its generated skill `agnos-process` and its agents, for Claude Code, GitHub Copilot and OpenAI Codex <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-006, RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-006, RQ-PLG-007 -->
 - `agnos-meta-release` maintainer skill: rehearses a release in a folder, from a commit, without AGNOS's own IDs, and proves it behaves as the repository does, publishing nothing <!-- ADR-MTA-002, TASK-MTA-005 to TASK-MTA-008, RQ-MTA-006 to RQ-MTA-013 -->
 - `agnos-index` and `agnos-perf-center` show on their output line the time the run took, never written into the generated files <!-- TASK-IDX-003, TASK-TRC-090, RQ-IDX-018, RQ-TRC-107 -->
 - `agnos-meta-qa` maintainer skill: a code quality report on request, as normalised JSON from pinned analysers, blocking
@@ -16,56 +18,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `agnos-index` skill: the index generators (PowerShell and bash) with shared golden tests
   <!-- ADR-IDX-001, TASK-IDX-001 -->
 - `agnos-index` skill packaged and integrated into the process <!-- ADR-IDX-001, TASK-IDX-002 -->
-- `agnos-trace` skill: the process model, with elements from the index, containment and the
+- `agnos-perf-center` skill: the process model, with elements from the index, containment and the
   references of each element's own lines <!-- ADR-TRC-001, TASK-TRC-001 -->
-- `agnos-trace` skill: the source scanner, with default or given extensions and exclusions
+- `agnos-perf-center` skill: the source scanner, with default or given extensions and exclusions
   <!-- ADR-TRC-001, TASK-TRC-002 -->
-- `agnos-trace` skill: coverage and gaps, with the summary line <!-- ADR-TRC-001, TASK-TRC-003 -->
-- `agnos-trace` skill: offline page assembly, with design tokens in three tiers and Cytoscape.js
+- `agnos-perf-center` skill: coverage and gaps, with the summary line <!-- ADR-TRC-001, TASK-TRC-003 -->
+- `agnos-perf-center` skill: offline page assembly, with design tokens in three tiers and Cytoscape.js
   vendored <!-- ADR-TRC-003, TASK-TRC-004 -->
-- `agnos-trace` page: overview, search, filters, sortable matrix with CSV export, gaps, detail
+- `agnos-perf-center` page: overview, search, filters, sortable matrix with CSV export, gaps, detail
   panel and deep links <!-- ADR-TRC-003, TASK-TRC-005 -->
-- `agnos-trace` page: interactive graph of the selection's links as a traceability flow
+- `agnos-perf-center` page: interactive graph of the selection's links as a traceability flow
   <!-- ADR-TRC-003, TASK-TRC-006 -->
-- `agnos-trace` skill packaged as `SKILL.md`, with its Claude Code pointer <!-- ADR-TRC-003, TASK-TRC-007 -->
-- `agnos-trace` page: resizable panels, with widths remembered <!-- ADR-TRC-003, TASK-TRC-008 -->
-- `agnos-trace` page: the data beside it, as `<page>.json` and `<page>.data.js` <!-- ADR-TRC-003,
+- `agnos-perf-center` skill packaged as `SKILL.md`, with its Claude Code pointer <!-- ADR-TRC-003, TASK-TRC-007 -->
+- `agnos-perf-center` page: resizable panels, with widths remembered <!-- ADR-TRC-003, TASK-TRC-008 -->
+- `agnos-perf-center` page: the data beside it, as `<page>.json` and `<page>.data.js` <!-- ADR-TRC-003,
   TASK-TRC-031, RQ-TRC-010 -->
-- `agnos-trace` call graph: optional module behind `--call-graph`, with the tree-sitter adapter and
+- `agnos-perf-center` call graph: optional module behind `--call-graph`, with the tree-sitter adapter and
   the C and C++ queries <!-- ADR-TRC-004, TASK-TRC-009, TASK-TRC-010 -->
-- `agnos-trace` call graph: call resolution by name, with callers, callees, ambiguous and external
+- `agnos-perf-center` call graph: call resolution by name, with callers, callees, ambiguous and external
   counts <!-- ADR-TRC-004, TASK-TRC-011 -->
-- `agnos-trace` call graph: C#, Java, JavaScript and Node.js, Python and Rust <!-- ADR-TRC-004,
+- `agnos-perf-center` call graph: C#, Java, JavaScript and Node.js, Python and Rust <!-- ADR-TRC-004,
   TASK-TRC-032 to TASK-TRC-036, RQ-TRC-050 -->
-- `agnos-trace` call graph: functions in the trace page, in the graph and in the matrix <!-- ADR-TRC-004,
+- `agnos-perf-center` call graph: functions in the page, in the graph and in the matrix <!-- ADR-TRC-004,
   TASK-TRC-012, TASK-TRC-013, TASK-TRC-015 -->
-- `agnos-trace` graph: namespace and class boxes, enclosing boxes, and the box panel and deep links
+- `agnos-perf-center` graph: namespace and class boxes, enclosing boxes, and the box panel and deep links
   <!-- ADR-TRC-005, TASK-TRC-023 to TASK-TRC-026 -->
-- `agnos-trace` graph: toolbar groups Depth, Display and Implementation detail, and a search result's
+- `agnos-perf-center` graph: toolbar groups Depth, Display and Implementation detail, and a search result's
   tooltip <!-- TASK-TRC-029, TASK-TRC-030, RQ-TRC-048, RQ-TRC-049 -->
-- `agnos-trace` page: scrollbars for the central views <!-- ADR-TRC-003, TASK-TRC-016 -->
-- `agnos-trace` matrix: resizable columns <!-- ADR-TRC-003, TASK-TRC-018 -->
-- `agnos-trace` graph: readable relations with arrows, a drawn legend and explanatory tooltips
+- `agnos-perf-center` page: scrollbars for the central views <!-- ADR-TRC-003, TASK-TRC-016 -->
+- `agnos-perf-center` matrix: resizable columns <!-- ADR-TRC-003, TASK-TRC-018 -->
+- `agnos-perf-center` graph: readable relations with arrows, a drawn legend and explanatory tooltips
   <!-- ADR-TRC-004, TASK-TRC-019 -->
-- `agnos-trace` graph: a colour per relation, finer links and selection frame <!-- ADR-TRC-002, TASK-TRC-020 -->
-- `agnos-trace` matrix: columns from one model, Feature first by default <!-- ADR-TRC-006, TASK-TRC-039,
+- `agnos-perf-center` graph: a colour per relation, finer links and selection frame <!-- ADR-TRC-002, TASK-TRC-020 -->
+- `agnos-perf-center` matrix: columns from one model, Feature first by default <!-- ADR-TRC-006, TASK-TRC-039,
   RQ-TRC-051 -->
-- `agnos-trace` matrix: movable columns, order remembered, Reset columns <!-- ADR-TRC-006, TASK-TRC-040,
+- `agnos-perf-center` matrix: movable columns, order remembered, Reset columns <!-- ADR-TRC-006, TASK-TRC-040,
   RQ-TRC-052 -->
-- `agnos-trace` matrix: feature title under its ID <!-- ADR-TRC-007, TASK-TRC-041, RQ-TRC-053 -->
-- `agnos-trace` detail panel: fixed band, and tags that filter the groups of links <!-- ADR-TRC-007,
+- `agnos-perf-center` matrix: feature title under its ID <!-- ADR-TRC-007, TASK-TRC-041, RQ-TRC-053 -->
+- `agnos-perf-center` detail panel: fixed band, and tags that filter the groups of links <!-- ADR-TRC-007,
   TASK-TRC-042, TASK-TRC-043, RQ-TRC-054, RQ-TRC-055 -->
-- `agnos-trace` graph: finer wheel zoom from a design token <!-- ADR-TRC-007, TASK-TRC-044, RQ-TRC-056 -->
-- `agnos-trace` Quality view: scored checks, overall score and grade, quality data block
+- `agnos-perf-center` graph: finer wheel zoom from a design token <!-- ADR-TRC-007, TASK-TRC-044, RQ-TRC-056 -->
+- `agnos-perf-center` Quality view: scored checks, overall score and grade, quality data block
   <!-- ADR-TRC-008, TASK-TRC-046, RQ-TRC-058, RQ-TRC-059, RQ-TRC-064 -->
-- `agnos-trace` Quality view: check cards compact or detailed, expand and collapse all
+- `agnos-perf-center` Quality view: check cards compact or detailed, expand and collapse all
   <!-- ADR-TRC-008, TASK-TRC-048, RQ-TRC-062 -->
-- `agnos-trace` Quality view: report card, grade palette, grade in tab, sidebar and overview
+- `agnos-perf-center` Quality view: report card, grade palette, grade in tab, sidebar and overview
   <!-- ADR-TRC-008, TASK-TRC-049, RQ-TRC-060, RQ-TRC-064 -->
-- `agnos-trace` Quality view: radar, feature-area bars and coverage shares as SVG with tooltips
+- `agnos-perf-center` Quality view: radar, feature-area bars and coverage shares as SVG with tooltips
   <!-- ADR-TRC-008, TASK-TRC-050, RQ-TRC-061 -->
-- `agnos-trace` Quality view: fits a 1440x900 window <!-- ADR-TRC-008, TASK-TRC-051, RQ-TRC-063, RQ-TRC-066 -->
-- `agnos-trace` Quality view: grade colours follow the green-to-red scale of the Nutri-Score and DPE
+- `agnos-perf-center` Quality view: fits a 1440x900 window <!-- ADR-TRC-008, TASK-TRC-051, RQ-TRC-063, RQ-TRC-066 -->
+- `agnos-perf-center` Quality view: grade colours follow the green-to-red scale of the Nutri-Score and DPE
   labels <!-- ADR-TRC-008, TASK-TRC-053, RQ-TRC-065 -->
 - `agnos-docs-sync` skill: the report of the changes since each entry-point document's last change
   <!-- TASK-DOC-001, RQ-DOC-001, RQ-DOC-004 -->
@@ -81,6 +83,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands <!-- ADR-DMO-001, TASK-DMO-008, TASK-DMO-009 -->
 
 ### Changed
+- `README.md` and `GETTING_STARTED.MD` address plugin users, and the README states what was tested per tool and system <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-007, RQ-PLG-008, RQ-PLG-009 -->
+- `agnos-init` writes a block naming the skill `agnos-process`, with no path, and no longer takes a toolkit input. Initialised projects install the plugin and call `agnos-init` again to update <!-- ADR-PLG-001, TASK-PLG-004, RQ-PLG-004, RQ-INI-006 -->
+- The delivered skills name their files from their own folder, with no `.github/skills/` path <!-- ADR-PLG-001, TASK-PLG-002, RQ-PLG-005 -->
 - The sub-agent of `agnos-meta-docs-sync` is defined once in `.github/agents/`, read by GitHub Copilot, and `.claude/agents/` holds a pointer to it for Claude Code <!-- TASK-DOC-004, RQ-DOC-003 -->
 - `agnos-init` writes a `readme.md` saying what each `process/` folder it creates holds, instead of a `.gitkeep` <!-- TASK-INI-005, RQ-INI-005 -->
 - The citations of `CHANGELOG.md`, of the skills' documents and of the scripts' help are in comments, as MANDATORY TRACEABILITY asks, and `agnos-meta-docs-sync` writes them so <!-- TASK-MTA-009, RQ-MTA-014 -->
@@ -93,11 +98,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   TASK-INI-004, RQ-INI-010 -->
 - The skill `agnos-trace` is now `agnos-perf-center`, since it monitors the process's execution on a project. Its script is
   `perf_center.py`, its outputs `PERF-CENTER.*`, its page title "Performance center". Projects must update their ignore rules,
-  and a reader's saved page preferences reset once. Earlier entries keep the former name <!-- ADR-TRC-013, TASK-TRC-089,
+  and a reader's saved page preferences reset once. <!-- ADR-TRC-013, TASK-TRC-089,
   RQ-TRC-104 to RQ-TRC-106 -->
-- `agnos-trace` scripts and page script: no open quality finding, with the same data generated <!-- TASK-QLT-002 to
+- `agnos-perf-center` scripts and page script: no open quality finding, with the same data generated <!-- TASK-QLT-002 to
   TASK-QLT-005, RQ-QLT-009 -->
-- `agnos-trace` page skeleton: a plain `div` for the tabs and `fieldset` for the filter groups <!-- TASK-QLT-006, RQ-QLT-010 -->
+- `agnos-perf-center` page skeleton: a plain `div` for the tabs and `fieldset` for the filter groups <!-- TASK-QLT-006, RQ-QLT-010 -->
 - `agnos-index`'s error without `process/`, START SESSION, `README.md` and `GETTING_STARTED.MD` say to call `agnos-init`
   <!-- TASK-INI-002, RQ-INI-007, RQ-IDX-008 -->
 - The demo is an initialised project: its first commit holds the `CLAUDE.md` and `AGENTS.md` written by `agnos-init`
@@ -106,24 +111,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   repository <!-- TASK-MTA-003, RQ-MTA-005 -->
 - Maintainer skills renamed `agnos-meta-demo` and `agnos-meta-docs-sync`, with the sub-agent; the prefix `agnos-meta-` is
   the only criterion that marks them <!-- TASK-MTA-001, RQ-MTA-001, RQ-MTA-002 -->
-- `agnos-trace` graph and legend styling: thicker relation samples, triangle arrows on contains links,
+- `agnos-perf-center` graph and legend styling: thicker relation samples, triangle arrows on contains links,
   opaque legend samples, group labels and faint frames <!-- TASK-TRC-021, TASK-TRC-022, TASK-TRC-030 -->
-- `README.md` rewritten and `GETTING_STARTED.MD` aligned with `agnos-index`, `agnos-trace` and
+- `README.md` rewritten and `GETTING_STARTED.MD` aligned with `agnos-index`, `agnos-perf-center` and
   `agnos-design-system` <!-- ADR-DSY-001, TASK-DSY-002, RQ-DSY-001 -->
 - `CLAUDE.md` aligned on the four skills <!-- TASK-AGT-001, RQ-AGT-001 -->
 - Design-system dependencies on UI requirements; one task re-tiered to M <!-- TASK-DSY-002, ADR-FIX-001,
   TASK-FIX-001, RQ-FIX-001 -->
 
 ### Fixed
-- `agnos-trace` matrix: headers of the list columns aligned left with their cells <!-- ADR-TRC-002,
+- `agnos-init` accepts an absolute target on Windows, and `agnos-meta-release` no longer takes two failures for the same behaviour <!-- ADR-PLG-001, TASK-PLG-006, RQ-PLG-006, RQ-MTA-011 -->
+- `agnos-perf-center` writes dates in one form whatever git's version, and the delivered suites run on Linux <!-- ADR-PLG-001, TASK-PLG-003, RQ-PLG-008 -->
+- `agnos-perf-center` matrix: headers of the list columns aligned left with their cells <!-- ADR-TRC-002,
   TASK-TRC-017 -->
-- `agnos-trace` graph: one global box for what stands in no named namespace, instead of one box per
+- `agnos-perf-center` graph: one global box for what stands in no named namespace, instead of one box per
   file <!-- ADR-TRC-005, TASK-TRC-028 -->
-- `agnos-trace` Untraced functions list: long function names end in an ellipsis <!-- TASK-TRC-038, RQ-TRC-035 -->
-- `agnos-trace` graph: relation tooltip delay halved to 1 s <!-- TASK-TRC-045, RQ-TRC-046 -->
+- `agnos-perf-center` Untraced functions list: long function names end in an ellipsis <!-- TASK-TRC-038, RQ-TRC-035 -->
+- `agnos-perf-center` graph: relation tooltip delay halved to 1 s <!-- TASK-TRC-045, RQ-TRC-046 -->
 
 ### Removed
-- `agnos-trace` "gaps" view and wording in the page, data and docs, replaced by the Quality view,
+- `agnos-perf-center` "gaps" view and wording in the page, data and docs, replaced by the Quality view,
   checks and findings <!-- ADR-TRC-008, TASK-TRC-047, RQ-TRC-057 -->
 
 ## [v3.1]
