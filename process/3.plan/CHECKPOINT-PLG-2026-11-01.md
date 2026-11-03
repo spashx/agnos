@@ -1,15 +1,17 @@
 # Checkpoint: Session PLG, on 2026-11-01
 
-Read this first when resuming, on any workstation. <!-- PLAN-PLG-001 / ADR-PLG-001, ADR-MTA-001, ADR-MTA-002, ADR-INI-001 / FTR-PLG-001 -->
+Read this first when resuming, on any workstation. <!-- PLAN-PLG-001, PLAN-PLG-002 / ADR-PLG-001, ADR-PLG-002, ADR-MTA-001, ADR-MTA-002, ADR-INI-001 / FTR-PLG-001, FTR-PLG-002 -->
+
+Updated on 2026-11-03, at the end of the session that delivered PLAN-PLG-002.
 
 ## State
-- **Checked on 2026-11-03**: branch, last commit, ahead count, demo HEAD and open tasks below match the repository and the index; no commit since `1361a8b`. This file itself is still uncommitted.
-- **Branch**: `feature/PLG`, 181 commits ahead of `main`, created from `feature/TRC`. Last task commit: `1361a8b`. It has no upstream.
-- **Standing constraint**: push nothing, CI included, until the owner lifts it. Do not propose an exception. (DEC-MTA-004, DEC-PLG-007)
+- **Branch**: `feature/PLG`, 189 commits ahead of `main` before this file's commit, created from `feature/TRC`. Last task commit: `907e600`. It has no upstream.
+- **Standing constraint**: push nothing, CI included, branch included, until the owner lifts it. Do not propose an exception. (DEC-MTA-004, DEC-PLG-007)
 - **Session variables**: `unit_tests: true`, `platform: windows`. Resolve them again if the workstation's system differs.
-- **Session PLG is closed**: its report is given, its metrics row is in `METRICS_LOG.md`, and its self-improvement iteration 1/1 is committed. A new start needs START SESSION; the branch exists, so `start-session PLG` asks how to proceed: check it out.
+- **Session of 2026-11-03 is closed**: at the owner's request, no friction metrics and no self-improvement follow-up. A new start needs START SESSION; the branch exists, so `start-session PLG` asks how to proceed: keep it.
 - **Open tasks**: one, TASK-PLG-007. Every other indexed task is Done.
-- **Demo**: `agnos-lightweight-process.demo`, beside this repository, HEAD `36f221f`, 23 checks of 23. `agnos-meta-release` needs it for its proof.
+- **Demo**: `agnos-lightweight-process.demo`, beside this repository, HEAD `36f221f`. `agnos-meta-release` needs it for its proof.
+- **Marketplace**: `C:\dev\repos\spashx\agnos-marketplace`, rehearsed from `2afc76e` (the release's delivered layers are unchanged up to `907e600`): `exit=0, 54 files, 1122 IDs removed, 2 lines to read`, no `__pycache__`. Its page: `agnos-marketplace.report.html`, beside it.
 
 ## Goal
 One marketplace holding the plugin `agnos`, usable from GitHub Copilot, Claude Code and possibly OpenAI Codex. Every system is supported, Windows first. Agents are integrated. The release holds no ID of AGNOS's own development. macOS is not a priority and can only be tested through CI.
@@ -26,15 +28,30 @@ One marketplace holding the plugin `agnos`, usable from GitHub Copilot, Claude C
 | TASK-PLG-008 | M | `agnos-meta-plugin-proof` runs the install proof again |
 | TASK-PLG-009 | M | Self-improvement: the `Verification` field states the tests skipped and why |
 
+PLAN-PLG-002, a deterministic release and its report page (FTR-PLG-002, ADR-PLG-002), all Done:
+
+| Task | Tier | Result |
+|---|---|---|
+| TASK-PLG-010 | L | Feature, ADR and plan; RQ-MTA-012 amended by RQ-PLG-014 |
+| TASK-PLG-011 | M | No bytecode from the checks; a file neither delivered nor generated fails the rehearsal |
+| TASK-PLG-012 | M | Two rehearsals in two processes, two hash seeds: byte-identical trees, reports and pages |
+| TASK-PLG-013 | M | Findings printed with file and line; the last line always gives `exit=` |
+| TASK-PLG-014 | L | Manifests checked by script; the release calls no AI tool, `claude plugin validate` stays in the proof |
+| TASK-PLG-015 | M | The page's tokens compiled from the output's perf center, a stylesheet with no raw value |
+| TASK-PLG-016 | M | `<folder>.report.html`: self-contained, data embedded and escaped, drawn as text only |
+| TASK-PLG-017 | M | The skill's procedure updated; the marketplace rehearsed again |
+
 ## Open: TASK-PLG-007, the owner's checks
 Until these are done, the task stays In Progress and RQ-PLG-009 is not fulfilled. Each result updates the "What was tested" table of `README.md`, which states observed results only.
 
-Rebuild the marketplace first: the last one was built from `f0433ef`, in a temporary folder of the former workstation, and lacks the later documents and rule.
+Use the marketplace above, or rehearse again, then prove it:
 
 ```
 python .github/skills/agnos-meta-release/scripts/release.py --dry-run --output <folder>
 python .github/skills/agnos-meta-plugin-proof/scripts/plugin_proof.py --marketplace <folder>
 ```
+
+The proof still needs `claude` on the PATH, or named by `AGNOS_CLAUDE`, for its `validate-*` lines: it is absent from this workstation's PATH.
 
 | # | Check | Expected |
 |---|---|---|
@@ -53,7 +70,9 @@ python .github/skills/agnos-meta-plugin-proof/scripts/plugin_proof.py --marketpl
 
 ## Before a real release
 - Owner's decision to publish, then the checks above.
-- Rerun `agnos-meta-docs-sync`: `[Unreleased]` is current up to `c5ffada`.
+- Rerun `agnos-meta-docs-sync`: `[Unreleased]` is current up to `c5ffada`, so it lacks PLAN-PLG-002.
+- Read the page's rendering (`agnos-marketplace.report.html`, light and dark): no agent has looked at it.
+- The two lines to read are false alarms, as on 2026-11-03; the eleven mentions are in `CHANGELOG.md` and the perf center's `maintaining.md`.
 - `[Unreleased]` holds every change since v3.1, and no version number has been decided: the plugin takes 3.1.0 from the changelog's latest release.
 
 ## Key decisions
@@ -68,7 +87,7 @@ python .github/skills/agnos-meta-plugin-proof/scripts/plugin_proof.py --marketpl
 - Never `--allow-all-tools`: only narrow grants.
 
 ## Last suite results
-On `feature/PLG`, Windows: meta-release 63, meta-demo 12, plugin-proof 16 and docs-sync 16 OK, with no test skipped on those; init 17 OK. Perf-center's last full run, from TASK-PLG-003: 366 run, 3 skipped. It and the index suite were not rerun for the last two commits, which touch documents only.
+On `feature/PLG`, Windows, 2026-11-03: meta-release 92, meta-demo 12 and plugin-proof 16 OK, none skipped. Earlier: docs-sync 16 and init 17 OK. Perf-center's last full run, from TASK-PLG-003: 366 run, 3 skipped; PLAN-PLG-002 did not touch it, and its tokens are compiled by the release's tests.
 
 ## Working preferences held outside this repository
 Claude Code's memory stays on the former workstation, so these are stated here:
@@ -84,7 +103,7 @@ Claude Code's memory stays on the former workstation, so these are stated here:
 - Every AGNOS skill follows the official authoring practices and skill-creator.
 - Idea on hold: an `agnos-awareness` skill, a compact session-start summary and queries from the perf center's JSON.
 
-# Verbatim of the agent's answer that produced this file
+# Verbatim of the agent's answer that produced this file, on 2026-11-01 (its state is superseded by the sections above)
 
 "Le checkpoint est écrit dans [CHECKPOINT-PLG-2026-11-01.md](process/3.plan/CHECKPOINT-PLG-2026-11-01.md), mais **il n'est pas encore commité**. Il reprend aussi mes consignes de travail, car ma mémoire reste sur ce poste.
 
