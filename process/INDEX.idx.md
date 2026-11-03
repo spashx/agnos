@@ -568,7 +568,7 @@ TASK-PLG-011|28-39|Done|The output holds what is declared
 TASK-PLG-012|40-51|Done|Same commit, same output
 TASK-PLG-013|52-63|Done|The console says everything to act on
 TASK-PLG-014|64-75|Done|The manifests checked by script
-TASK-PLG-015|76-87|Not Started|The page's tokens from the perf center
+TASK-PLG-015|76-87|Done|The page's tokens from the perf center
 TASK-PLG-016|88-99|Not Started|The report page
 TASK-PLG-017|100-110|Not Started|The skill said, and a rehearsal
 @process/3.plan/PLAN-QLT-001-code-quality-report.md

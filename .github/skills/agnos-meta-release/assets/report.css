@@ -1,0 +1,45 @@
+/* The release report page (RQ-PLG-016, RQ-PLG-017 / ADR-PLG-002: DEC-PLG-011, DEC-PLG-012). Every visual value is a
+   token of agnos-perf-center (ADR-TRC-002), compiled before this sheet; no raw value here. */
+* { box-sizing: border-box; }
+body {
+  margin: var(--s-space-none);
+  padding: var(--s-space-xl) var(--s-space-lg);
+  background: var(--s-surface);
+  color: var(--s-text);
+  font-family: var(--s-font-sans);
+  font-size: var(--s-text-body);
+  line-height: var(--s-line-normal);
+}
+main { max-width: var(--s-size-help-width); margin: var(--s-space-none) auto; }
+h1 { font-size: var(--s-text-title); font-weight: var(--s-weight-bold); line-height: var(--s-line-tight); margin: var(--s-space-none); }
+h2 {
+  font-size: var(--s-text-heading);
+  font-weight: var(--s-weight-strong);
+  margin: var(--s-space-2xl) var(--s-space-none) var(--s-space-sm);
+}
+.meta { color: var(--s-text-muted); font-size: var(--s-text-small); margin-top: var(--s-space-xs); }
+code, .mono { font-family: var(--s-font-mono); font-size: var(--s-text-small); }
+.verdict {
+  display: inline-block;
+  margin-top: var(--s-space-md);
+  padding: var(--s-space-xs) var(--s-space-md);
+  border-radius: var(--s-radius-pill);
+  font-weight: var(--s-weight-strong);
+}
+.ok { background: var(--s-status-ok-subtle); color: var(--s-status-ok); }
+.warn { background: var(--s-status-warn-subtle); color: var(--s-status-warn); }
+.error { background: var(--s-status-error-subtle); color: var(--s-status-error); }
+.checks { display: flex; flex-wrap: wrap; gap: var(--s-space-sm); list-style: none; padding: var(--s-space-none); margin: var(--s-space-none); }
+.checks li { padding: var(--s-space-xs) var(--s-space-md); border-radius: var(--s-radius-md); }
+table { border-collapse: collapse; width: auto; font-size: var(--s-text-small); }
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s-space-xs) var(--s-space-md);
+  border-bottom: var(--s-stroke-hairline) solid var(--s-border);
+}
+th { color: var(--s-text-muted); font-weight: var(--s-weight-medium); }
+.empty { color: var(--s-text-subtle); font-style: italic; }
+details { margin-top: var(--s-space-sm); }
+summary { cursor: pointer; color: var(--s-text-muted); }
+.count { color: var(--s-text-subtle); font-weight: var(--s-weight-regular); }

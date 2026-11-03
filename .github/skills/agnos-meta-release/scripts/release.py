@@ -24,6 +24,7 @@ LAYERS_PATH = ASSETS / "layers.json"
 MARKETPLACE_PATH = ASSETS / "marketplace.json"
 ATTRIBUTES_PATH = ASSETS / "marketplace.gitattributes.txt"
 AGENT_TABLE_PATH = ASSETS / "agent-frontmatter.json"
+REPORT_CSS_PATH = ASSETS / "report.css"         # RQ-PLG-017 / DEC-PLG-012: only tokens of the perf center
 ENCODING = "utf-8"
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -75,6 +76,7 @@ INSTRUCTIONS = ".github/instructions/agnos-sw-eng.instructions.md"
 PLUGIN_FOLDER = "plugins/agnos"
 PLUGIN_SKILLS = f"{PLUGIN_FOLDER}/skills/"
 PROCESS_SKILL_FILE = f"{PLUGIN_SKILLS}agnos-process/SKILL.md"
+PERF_SCRIPT_FOLDER = f"{PLUGIN_SKILLS}{Path(PERF_SCRIPT).parent.as_posix()}"
 SKILL_FILE = "SKILL.md"
 CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"
 CODEX_CATALOGUE = ".agents/plugins/marketplace.json"
@@ -563,6 +565,18 @@ def manifest_problems(output):
     problems += [f"{name}: {key} differs from {ROOT_MANIFEST}" for name, values in said.items() if reference
                  for key in SAME_EVERYWHERE if values[key] != reference[key]]
     return [problem for problem in problems if problem]
+
+
+# RQ-PLG-017 / DEC-PLG-012: the design system of the commit rehearsed, by its own perf center; -B keeps the output clean.
+TOKENS_PROGRAM = "import sys; sys.path.insert(0, sys.argv[1]); import perf_center as p; print(p.tokens_css(p.load_tokens(p.TOKENS_PATH)))"
+
+
+def page_tokens(output):
+    """The custom properties of the report page, compiled from the output's perf-center tokens."""
+    scripts = output / PERF_SCRIPT_FOLDER
+    done = subprocess.run([sys.executable, "-B", "-c", TOKENS_PROGRAM, str(scripts)], capture_output=True, text=True,
+                          encoding=ENCODING, env={**os.environ, **NO_BYTECODE}, check=True)
+    return done.stdout
 
 
 def write_baseline(repo, folder):

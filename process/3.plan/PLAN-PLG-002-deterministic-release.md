@@ -75,15 +75,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-015: The page's tokens from the perf center
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Compile the output's perf-center tokens into the page's custom properties, and a stylesheet that uses only them.
 - **Requirement refs**: RQ-PLG-017, RQ-TRC-018
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-012), ADR-TRC-002
 - **Acceptance Criteria**: Given RQ-PLG-017's criteria, Then they hold.
 - **Dependencies**: TASK-PLG-011
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_report_tokens.py` written first, 4 of 4 failed, then 4 OK (tokens compile with the dark theme, no `__pycache__` left, every `var()` of `report.css` defined, no digit nor colour outside a `var()`). Full suite 86 OK, 0 skipped.
+- **Assumptions**: the tokens are compiled by the output's `perf_center.py` in a `python -B` subprocess, so that importing it leaves no bytecode; the page's width reuses `size-help-width`, no token being made for one page.
 
 ### TASK-PLG-016: The report page
 - **Tier**: M
