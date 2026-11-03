@@ -1,0 +1,116 @@
+<!doctype html>
+<!-- The release report page (RQ-PLG-016, RQ-PLG-017 / ADR-PLG-002: DEC-PLG-011, DEC-PLG-012): one file, no library, no
+     network; the report is embedded as JSON and drawn as text only. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release report</title>
+<style>
+/*@TOKENS@*/
+/*@CSS@*/
+</style>
+</head>
+<body>
+<main id="page"></main>
+<script type="application/json" id="report">/*@DATA@*/</script>
+<script>
+"use strict";
+const REPORT = JSON.parse(document.getElementById("report").textContent);
+const PAGE = document.getElementById("page");
+const NOTHING = "None.";
+const CHECK_NAMES = { noIdLeft: "No ID left", manifests: "Manifests consistent", sameBehaviour: "Same behaviour as the workshop" };
+const FINDINGS = [
+  { title: "Lines to read", key: "toRead", columns: ["File", "Line", "Text"], fields: ["file", "line", "text"],
+    note: "A removal may have left these reading badly; some are false alarms." },
+  { title: "Mentions", key: "mentions", columns: ["File", "Line", "What"], fields: ["file", "line", "what"],
+    note: "Mentions of a maintainer skill or of a test the release leaves out." },
+  { title: "IDs outside comments", key: "idsOutsideComments", columns: ["File", "Line", "ID"], fields: ["file", "line", "id"],
+    note: "IDs the commit's Markdown shows outside a comment." },
+];
+const LISTS = [{ title: "Delivered", key: "delivered" }, { title: "Left out", key: "leftOut" }];
+
+function element(tag, text, className) {
+  const made = document.createElement(tag);
+  if (text !== undefined) made.textContent = String(text);
+  if (className) made.className = className;
+  return made;
+}
+
+function heading(title, count) {
+  const made = element("h2", title + " ");
+  if (count !== undefined) made.append(element("span", "(" + count + ")", "count"));
+  return made;
+}
+
+function table(columns, rows) {
+  if (!rows.length) return element("p", NOTHING, "empty");
+  const made = element("table");
+  const head = made.createTHead().insertRow();
+  columns.forEach((column) => head.append(element("th", column)));
+  const body = made.createTBody();
+  rows.forEach((row) => {
+    const line = body.insertRow();
+    row.forEach((value, index) => line.append(element("td", value, index === 0 ? "mono" : undefined)));
+  });
+  return made;
+}
+
+function header() {
+  const passed = REPORT.problems.length === 0;
+  PAGE.append(element("h1", "Release report"));
+  PAGE.append(element("p", "Commit " + REPORT.commit, "meta mono"));
+  PAGE.append(element("p", passed ? "Passed: nothing blocks this release" : "Failed: " + REPORT.problems.length + " problems",
+    "verdict " + (passed ? "ok" : "error")));
+}
+
+function checks() {
+  PAGE.append(heading("Checks"));
+  const list = element("ul", undefined, "checks");
+  Object.entries(REPORT.checks).forEach(([name, passed]) => {
+    list.append(element("li", (CHECK_NAMES[name] || name) + (passed ? ": passed" : ": failed"), passed ? "ok" : "error"));
+  });
+  PAGE.append(list);
+}
+
+function problems() {
+  PAGE.append(heading("Problems", REPORT.problems.length));
+  PAGE.append(table(["Problem"], REPORT.problems.map((problem) => [problem])));
+}
+
+function findings() {
+  FINDINGS.forEach((section) => {
+    const rows = REPORT[section.key];
+    PAGE.append(heading(section.title, rows.length));
+    PAGE.append(element("p", section.note, "meta"));
+    PAGE.append(table(section.columns, rows.map((row) => section.fields.map((field) => row[field]))));
+  });
+}
+
+function removed() {
+  const rows = Object.entries(REPORT.removed);
+  const total = rows.reduce((sum, [, count]) => sum + count, 0);
+  PAGE.append(heading("IDs removed per file", total));
+  PAGE.append(table(["File", "IDs removed"], rows));
+}
+
+function lists() {
+  LISTS.forEach((list) => {
+    const files = REPORT[list.key];
+    const folded = element("details");
+    const summary = element("summary");
+    summary.append(heading(list.title, files.length));
+    folded.append(summary, table(["File"], files.map((file) => [file])));
+    PAGE.append(folded);
+  });
+}
+
+header();
+checks();
+problems();
+findings();
+removed();
+lists();
+</script>
+</body>
+</html>

@@ -87,15 +87,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-016: The report page
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The `report.html` template, its embedded data and the sections of RQ-PLG-016, written beside the JSON.
 - **Requirement refs**: RQ-PLG-016, RQ-PLG-017
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-011, DEC-PLG-012), ADR-TRC-002
 - **Acceptance Criteria**: Given RQ-PLG-016's criteria, Then they hold.
 - **Dependencies**: TASK-PLG-015, TASK-PLG-013
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_report_page.py` written first, 6 of 6 failed, then 6 OK (every value embedded, `</script>` kept as data, no network nor `innerHTML`, each section named, tokens before the sheet, page beside the JSON). `node --check` on the page's script: exit 0. `test_determinism.py` now compares the page too. Full suite 92 OK, 0 skipped. Rendering not seen: the owner's check, in TASK-PLG-017.
+- **Assumptions**: an output without the perf center, such as a test repository, gets an unstyled page; tokens that fail to compile are a problem, not a crash, so the last line still comes.
 
 ### TASK-PLG-017: The skill said, and a rehearsal
 - **Tier**: M

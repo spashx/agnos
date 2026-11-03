@@ -25,6 +25,10 @@ MARKETPLACE_PATH = ASSETS / "marketplace.json"
 ATTRIBUTES_PATH = ASSETS / "marketplace.gitattributes.txt"
 AGENT_TABLE_PATH = ASSETS / "agent-frontmatter.json"
 REPORT_CSS_PATH = ASSETS / "report.css"         # RQ-PLG-017 / DEC-PLG-012: only tokens of the perf center
+REPORT_PAGE_PATH = ASSETS / "report.html"       # RQ-PLG-016 / DEC-PLG-011
+PAGE_SUFFIX = ".report.html"
+PAGE_MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|DATA)@\*/")
+JSON_IN_HTML = {"<": "\\u003c", ">": "\\u003e", "&": "\\u0026"}     # no text of the report can close its script element
 ENCODING = "utf-8"
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -579,6 +583,26 @@ def page_tokens(output):
     return done.stdout
 
 
+def report_tokens(output):
+    """The page's tokens, and why they could not be compiled; an output without the perf center gets an unstyled page."""
+    if not (output / PERF_SCRIPT_FOLDER / Path(PERF_SCRIPT).name).is_file():
+        return "", []
+    try:
+        return page_tokens(output), []
+    except subprocess.CalledProcessError as error:
+        return "", [f"report page: the perf center's tokens do not compile: {error.stderr.strip()[-PARSE_MESSAGE_LENGTH:]}"]
+
+
+# RQ-PLG-016 / DEC-PLG-011
+def report_page(report, tokens):
+    """The report as one page: the template's markers replaced in one pass, so that no value is read as a marker."""
+    data = json.dumps(report, ensure_ascii=False)
+    for character, escaped in JSON_IN_HTML.items():
+        data = data.replace(character, escaped)
+    parts = {"TOKENS": tokens, "CSS": REPORT_CSS_PATH.read_text(encoding=ENCODING).strip(), "DATA": data}
+    return PAGE_MARKER_RE.sub(lambda marker: parts[marker.group(1)], REPORT_PAGE_PATH.read_text(encoding=ENCODING))
+
+
 def write_baseline(repo, folder):
     """The delivered files as committed, IDs included: what the output is compared with, whatever the working tree holds."""
     rules = load_rules()
@@ -643,11 +667,13 @@ def rehearse(repo, output, demo, proof):
     left = check_output(output, pattern, rules)
     unsound = manifest_problems(output)
     unproved = proof(repo, output, demo)
-    problems = left + unsound + unproved + stray_files(output, [*placed, *MARKETPLACE_FILES])
+    tokens, unstyled = report_tokens(output)
+    problems = left + unsound + unproved + unstyled + stray_files(output, [*placed, *MARKETPLACE_FILES])
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
               "checks": {"noIdLeft": not left, "manifests": not unsound, "sameBehaviour": not unproved}, "problems": problems}
     Path(f"{output}{REPORT_SUFFIX}").write_text(json.dumps(report, indent=2) + "\n", encoding=ENCODING, newline="\n")
+    Path(f"{output}{PAGE_SUFFIX}").write_text(report_page(report, tokens), encoding=ENCODING, newline="\n")
     return (EXIT_FAILED if problems else EXIT_OK), report
 
 

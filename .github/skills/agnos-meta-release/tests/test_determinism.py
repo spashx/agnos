@@ -24,7 +24,8 @@ SEEDS = ("1", "2")      # two orders of the same sets
 
 
 def report_bytes(output):
-    return Path(f"{output}{release.REPORT_SUFFIX}").read_bytes()
+    """The JSON report and its page (RQ-PLG-016)."""
+    return Path(f"{output}{release.REPORT_SUFFIX}").read_bytes() + Path(f"{output}{release.PAGE_SUFFIX}").read_bytes()
 
 
 def rehearse_in_a_process(repo, output, seed, *extra):
