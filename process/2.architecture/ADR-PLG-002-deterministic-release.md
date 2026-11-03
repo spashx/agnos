@@ -17,8 +17,9 @@ After the checks, the release lists the files on disk and compares them with the
 named in `problems`. Fulfils RQ-PLG-012, RQ-PLG-013.
 
 ### DEC-PLG-009: The console holds the report's verdict
-The script prints `problems`, `toRead`, `mentions` and `idsOutsideComments` as `file:line: text`, then one last line:
-`agnos-meta-release: exit=<n>, <files> files, <ids> IDs removed, <lines> lines to read, <validation>, <output> written in <s> s`. The JSON is
+The script prints `problems`, `toRead`, `mentions` and `idsOutsideComments` as `file:line: text`, all on the standard output so
+that their order holds, then one last line: `agnos-meta-release: exit=<n>, <files> files, <ids> IDs removed, <lines> lines to read,
+<output> written in <s> s`, or `exit=<n>, nothing written in <s> s` after a refusal, which stays on the error stream. The JSON is
 unchanged apart from the new keys, and stays the input of tools. Fulfils RQ-PLG-014; amends the summary line of RQ-MTA-012.
 
 ### DEC-PLG-010: The release checks the manifests by script, the proof by the tools

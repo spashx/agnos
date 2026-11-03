@@ -563,29 +563,34 @@ def prove(repo, output, demo):
     return problems
 
 
+def refused(message):
+    """A refusal before anything is written: no report."""
+    return fail(message), None
+
+
 def rehearse(repo, output, demo, proof):
-    """Classify every file before writing any, so that a refusal delivers nothing."""
+    """Classify every file before writing any, so that a refusal delivers nothing. Returns the exit code and the report, if written."""
     rules = load_rules()
     entries = tracked_files(repo)
     unknown = [path for path, _ in entries if layer_of(path, rules) is None]
     if unknown:
-        return fail(f"no layer in {LAYERS_PATH.name} for: {', '.join(unknown)}")
+        return refused(f"no layer in {LAYERS_PATH.name} for: {', '.join(unknown)}")
     delivered = [entry for entry in entries if layer_of(entry[0], rules) == LAYER_DELIVERED]
     table = json.loads(AGENT_TABLE_PATH.read_text(encoding=ENCODING))
     refusals = [refusal for path, _ in delivered if AGENT_SOURCE_RE.match(path)
                 for refusal in agent_refusals(path, git(repo, "show", f"HEAD:{path}").decode(ENCODING), table)]
     if refusals:
-        return fail("; ".join(refusals))
+        return refused("; ".join(refusals))
     if INSTRUCTIONS not in [path for path, _ in delivered]:
-        return fail(f"no {INSTRUCTIONS} at HEAD: the plugin would hold no process")
+        return refused(f"no {INSTRUCTIONS} at HEAD: the plugin would hold no process")
     version = release_version(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in [path for path, _ in delivered] else None
     if not version:
-        return fail(f"no released version in {CHANGELOG} at HEAD: the plugin would have none")
+        return refused(f"no released version in {CHANGELOG} at HEAD: the plugin would have none")
     left_out = [path for path, _ in entries if layer_of(path, rules) == LAYER_META]
     try:
         pattern = id_pattern(index_trigrams(git(repo, "show", f"HEAD:{INDEX_PATH}").decode(ENCODING)))
     except subprocess.CalledProcessError:
-        return fail(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
+        return refused(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
     output.mkdir(parents=True, exist_ok=True)
     findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
     write_marketplace(output, version)
@@ -596,9 +601,26 @@ def rehearse(repo, output, demo, proof):
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
               "checks": {"noIdLeft": not left, "sameBehaviour": not unproved}, "problems": problems}
     Path(f"{output}{REPORT_SUFFIX}").write_text(json.dumps(report, indent=2) + "\n", encoding=ENCODING, newline="\n")
-    for problem in problems:
-        fail(problem)
-    return EXIT_FAILED if problems else EXIT_OK
+    return (EXIT_FAILED if problems else EXIT_OK), report
+
+
+# RQ-PLG-014 / DEC-PLG-009: one stream, so that what is said keeps its order whatever the terminal does with two.
+PRINTED = (("problems", None), ("toRead", "text"), ("mentions", "what"), ("idsOutsideComments", "id"))
+
+
+def print_findings(report):
+    for key, field in PRINTED:
+        for item in report[key]:
+            print(f"{key}: {item}" if field is None else f"{key}: {item['file']}:{item['line']}: {item[field]}")
+
+
+def last_line(code, output, report, started):
+    took = f"in {time.perf_counter() - started:{DURATION_FORMAT}} s"
+    if report is None:
+        return f"agnos-meta-release: exit={code}, nothing written {took}"
+    files = sum(1 for path in output.rglob("*") if path.is_file())
+    return (f"agnos-meta-release: exit={code}, {files} files, {sum(report['removed'].values())} IDs removed, "
+            f"{len(report['toRead'])} lines to read, {output} written {took}")
 
 
 def parse_args(argv):
@@ -610,24 +632,29 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
-def main(argv=None, proof=prove):
-    args = parse_args(argv)
+def run_rehearsal(args, output, proof):
+    """The exit code and the report, if one was written."""
     if not args.dry_run:    # RQ-MTA-006 / DEC-MTA-011
-        return fail("only the rehearsal exists: call it with --dry-run; publishing is not available")
-    started = time.perf_counter()
+        return refused("only the rehearsal exists: call it with --dry-run; publishing is not available")
     try:
         repo = Path(git(args.repo, "rev-parse", "--show-toplevel").decode(ENCODING).strip()).resolve()
     except subprocess.CalledProcessError:
-        return fail(f"{args.repo} is not a git repository")
-    output = Path(args.output).resolve()
+        return refused(f"{args.repo} is not a git repository")
     refusal = output_refusal(repo, output)
     if refusal:
-        return fail(refusal)
-    code = rehearse(repo, output, args.demo, proof)
-    if code == EXIT_OK:
-        report = json.loads(Path(f"{output}{REPORT_SUFFIX}").read_text(encoding=ENCODING))
-        print(f"agnos-meta-release: {len(report['delivered'])} files, {sum(report['removed'].values())} IDs removed, "
-              f"{len(report['toRead'])} lines to read, {output} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
+        return refused(refusal)
+    return rehearse(repo, output, args.demo, proof)
+
+
+def main(argv=None, proof=prove):
+    args = parse_args(argv)
+    started = time.perf_counter()
+    output = Path(args.output).resolve()
+    code, report = run_rehearsal(args, output, proof)
+    sys.stderr.flush()
+    if report is not None:
+        print_findings(report)
+    print(last_line(code, output, report, started))     # RQ-PLG-014: always the last line
     return code
 
 

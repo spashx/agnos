@@ -360,12 +360,12 @@ DEC-PLG-005|67-72||Agents are generated from `.github/agents`
 DEC-PLG-006|73-77||Tested on Windows and Linux, the rest stated
 DEC-PLG-007|78-82||No push, and an install from a clean local clone
 @process/2.architecture/ADR-PLG-002-deterministic-release.md
-ADR-PLG-002|1-72|Accepted — approved by the owner on 2026-11-03, for FTR-PLG-002 (RQ-PLG-012 to RQ-PLG-017). Amends RQ-MTA-012 on the summary line.|A Deterministic Release and its Report Page
+ADR-PLG-002|1-73|Accepted — approved by the owner on 2026-11-03, for FTR-PLG-002 (RQ-PLG-012 to RQ-PLG-017). Amends RQ-MTA-012 on the summary line.|A Deterministic Release and its Report Page
 DEC-PLG-008|14-18||No cache written, and an inventory of the output
-DEC-PLG-009|19-23||The console holds the report's verdict
-DEC-PLG-010|24-30||The release checks the manifests by script, the proof by the tools
-DEC-PLG-011|31-34||The page is built from a template, its data embedded
-DEC-PLG-012|35-39||The perf center's tokens, read from the commit rehearsed
+DEC-PLG-009|19-24||The console holds the report's verdict
+DEC-PLG-010|25-31||The release checks the manifests by script, the proof by the tools
+DEC-PLG-011|32-35||The page is built from a template, its data embedded
+DEC-PLG-012|36-40||The perf center's tokens, read from the commit rehearsed
 @process/2.architecture/ADR-QLT-001-code-quality-report.md
 ADR-QLT-001|1-79|Accepted — approved by the owner on 2026-10-31, for FTR-QLT-001 (RQ-QLT-001 to RQ-QLT-010).|A Report on Demand, from Pinned Command-Line Analysers
 DEC-QLT-001|17-20||An explicit call that blocks nothing
@@ -566,7 +566,7 @@ PLAN-PLG-002|1-110||A Deterministic Release and its Report Page
 TASK-PLG-010|16-27|Done|Feature, decisions and plan
 TASK-PLG-011|28-39|Done|The output holds what is declared
 TASK-PLG-012|40-51|Done|Same commit, same output
-TASK-PLG-013|52-63|Not Started|The console says everything to act on
+TASK-PLG-013|52-63|Done|The console says everything to act on
 TASK-PLG-014|64-75|Not Started|The manifests checked by script
 TASK-PLG-015|76-87|Not Started|The page's tokens from the perf center
 TASK-PLG-016|88-99|Not Started|The report page

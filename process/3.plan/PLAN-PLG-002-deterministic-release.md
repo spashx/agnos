@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-013: The console says everything to act on
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Print problems, lines to read, mentions and IDs outside comments, and end with the `exit=` line.
 - **Requirement refs**: RQ-PLG-014, RQ-MTA-012
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-009)
 - **Acceptance Criteria**: Given RQ-PLG-014's criteria, Then they hold.
 - **Dependencies**: TASK-PLG-010
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_console.py` written first, 5 of 5 failed, then 5 OK (line to read and mention printed with file and line; last line `exit=0`, `exit=1` after a failure, `exit=1, nothing written` after a refusal). Full suite 73 OK, 0 skipped.
+- **Assumptions**: a rehearsal's problems move to the standard output with its other findings, so their order holds; refusals before writing stay on the error stream. `test_inventory.py` now reads both streams, as this new behaviour requires. The SKILL.md wording is left to TASK-PLG-017.
 
 ### TASK-PLG-014: The manifests checked by script
 - **Tier**: L

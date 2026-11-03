@@ -32,10 +32,10 @@ class InventoryTest(RehearsalCase):
     """RQ-PLG-012."""
 
     def rehearse_with(self, proof):
-        errors = io.StringIO()
-        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(errors):
+        said = io.StringIO()     # RQ-PLG-014: a rehearsal's problems are printed with its other findings
+        with contextlib.redirect_stdout(said), contextlib.redirect_stderr(said):
             code = release.main(["--repo", str(self.repo), "--dry-run", "--output", str(self.output)], proof=proof)
-        return code, errors.getvalue()
+        return code, said.getvalue()
 
     def test_RQ_PLG_012_given_a_rehearsal_then_the_files_on_disk_are_exactly_the_delivered_and_generated_ones(self):
         self.assertEqual(EXIT_OK, self.rehearse()[0])
