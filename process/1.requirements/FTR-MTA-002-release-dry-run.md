@@ -102,6 +102,7 @@ Out of scope: publishing (a commit on `main`, a tag, a push), the `plugin` targe
   if nothing else fails; Given `CONTRIBUTING.md`'s mention of `agnos-meta-qa`, Then it is listed, And the file is delivered; Given an ID
   outside a comment in a Markdown file of the commit, Then it is listed with its file and line, And the exit is 0 if nothing else fails.
 - **Dependencies**: RQ-MTA-009, RQ-MTA-014
+- **Amended by**: RQ-PLG-014 (the summary line gives the exit code, and the console prints what to read)
 
 ### RQ-MTA-013: A maintainer skill like the others
 - **Category**: Functional
