@@ -99,12 +99,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-017: The skill said, and a rehearsal
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Update the skill's procedure (exit code per shell, console, the manifest check, the page) and rehearse into `agnos-marketplace`.
 - **Requirement refs**: RQ-PLG-012 to RQ-PLG-017
 - **ADR refs**: ADR-PLG-002
 - **Acceptance Criteria**: Given the skill, Then it states the new behaviour; Given a rehearsal of the last commit, Then the exit is 0, the output holds no stray file, And the page opens.
 - **Dependencies**: TASK-PLG-012, TASK-PLG-014, TASK-PLG-016
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: SKILL.md states the last line, reading the exit code per shell, the printed findings, the page, the manifest and inventory checks. Rehearsal of `2afc76e` into `C:\dev\repos\spashx\agnos-marketplace`: `exit=0, 54 files, 1122 IDs removed, 2 lines to read`, 0 `__pycache__`, `agnos-marketplace.report.html` written. meta-demo found 3 IDs left visible in the new SKILL.md text, moved into a comment: then 12 OK; meta-release 92 OK, its skill tests 8 OK, 0 skipped. The page opening is the owner's check.
+- **Assumptions**: the earlier output and report in `agnos-marketplace`, from today's rehearsal of `1361a8b`, were removed to rehearse again into the same folder.

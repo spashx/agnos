@@ -570,7 +570,7 @@ TASK-PLG-013|52-63|Done|The console says everything to act on
 TASK-PLG-014|64-75|Done|The manifests checked by script
 TASK-PLG-015|76-87|Done|The page's tokens from the perf center
 TASK-PLG-016|88-99|Done|The report page
-TASK-PLG-017|100-110|Not Started|The skill said, and a rehearsal
+TASK-PLG-017|100-110|Done|The skill said, and a rehearsal
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill

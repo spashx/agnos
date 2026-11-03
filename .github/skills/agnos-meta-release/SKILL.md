@@ -21,12 +21,19 @@ not delivered.
    python .github/skills/agnos-meta-release/scripts/release.py --dry-run --output <folder>
    ```
 
-   `<folder>` must be outside the repository and empty. The report is written beside it, as `<folder>.report.json`. The demo is
-   looked for beside the repository; `--demo <folder>` names another. Without `--dry-run` the script refuses: publishing does not exist yet.
-3. Check the exit code:
-   - `0`: every check passed. The last line gives the files, the IDs removed, the lines to read and the duration.
-   - `1`: nothing is to be published. Each problem is on the error stream and in the report's `problems`. Report them to the maintainer.
-4. Give the maintainer the report's `toRead` and `mentions`. They fail nothing: a person judges them.
+   `<folder>` must be outside the repository and empty. The report is written beside it, as `<folder>.report.json` for tools and
+   `<folder>.report.html` for a person. The demo is looked for beside the repository; `--demo <folder>` names another. Without
+   `--dry-run` the script refuses: publishing does not exist yet.
+3. Read the last line, which always holds the exit code: `agnos-meta-release: exit=<n>, <files> files, <ids> IDs
+   removed, <lines> lines to read, <folder> written in <s> s`, or `exit=<n>, nothing written` after a refusal. A tool that does not show
+   exit codes needs nothing else; to read it anyway, end the command with `; echo "exit=$LASTEXITCODE"` in PowerShell or
+   `; echo "exit=$?"` in bash.
+   - `0`: every check passed.
+   - `1`: nothing is to be published. A refusal before writing is on the error stream; any other problem is printed as
+     `problems: ...` and is in the report's `problems`. Report them to the maintainer.
+4. Give the maintainer the printed lines as they are (`problems:`, `toRead:`, `mentions:`, `idsOutsideComments:`, each with its file
+   and line) and the path of `<folder>.report.html`. Lines to read and mentions fail nothing: a person judges them. Do not open the
+   JSON for them: everything to act on is printed. <!-- RQ-PLG-014, RQ-PLG-016 -->
 
 ## What it writes
 
@@ -49,7 +56,8 @@ What the manifests say comes from `assets/marketplace.json`.
 | Every tracked file has a layer | `assets/layers.json`, and the prefix `agnos-meta-` for skills and sub-agents | Exit 1 before writing anything: add a rule |
 | No ID of the repository is left | Reads the output: contents, binary files and paths | Exit 1, with file and line |
 | The output behaves as the repository | Parses its Python, JSON, JavaScript, PowerShell and bash; compares what `agnos-index`, `agnos-perf-center` and `agnos-init` write | Exit 1, naming the file or the skill |
-| Claude Code accepts the marketplace | `claude plugin validate --strict` on the plugin and the catalogue, with `claude` on the PATH or named by `AGNOS_CLAUDE`; its absence is said on the error stream | Exit 1, with the end of its output |
+| The manifests are consistent | Reads the four manifests and catalogues: required fields, plugin folders that exist, the same name, version and description. No AI tool is called, so the verdict is the same on any machine; each tool's own validation and a real install are `agnos-meta-plugin-proof`'s <!-- RQ-PLG-015 --> | Exit 1, naming the file |
+| The output holds what is declared | Lists the files on disk against the delivered and generated ones; the checks run Python with no bytecode written <!-- RQ-PLG-012 --> | Exit 1, naming the file |
 | The plugin has what it needs | The instructions file and a released version in `CHANGELOG.md` at HEAD | Exit 1 before writing anything |
 
 An ID belongs to the repository when its trigram appears in the commit's `process/INDEX.idx.md`, defined there or not. Examples
@@ -67,7 +75,10 @@ The comparison uses the demo through a temporary clone, so the demo does not cha
 | `toRead` | Lines a removal may have left reading badly; some are false alarms. Correct a real one by rewording it in the repository |
 | `mentions` | Mentions of `agnos-meta-` or of a test the release leaves out |
 | `idsOutsideComments` | IDs the commit's Markdown shows outside a comment, which the traceability rule forbids |
-| `checks`, `problems` | Each check's result, and what failed |
+| `checks`, `problems` | Each check's result (`noIdLeft`, `manifests`, `sameBehaviour`), and what failed |
+
+The same commit gives the same output, report and page, byte for byte. The page embeds the report and takes its look from the perf
+center's design tokens of that commit; it needs no network. <!-- RQ-PLG-013, RQ-PLG-016, RQ-PLG-017 -->
 
 ## Tests
 
