@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-011: The output holds what is declared
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: No bytecode written by the checks, and an inventory of the output against the delivered and generated paths.
 - **Requirement refs**: RQ-PLG-012
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-008)
 - **Acceptance Criteria**: Given RQ-PLG-012's criteria, Then they hold.
 - **Dependencies**: TASK-PLG-010
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_inventory.py` written first, 2 of 3 failed (stray file exit 0, `__pycache__` written), then 3 OK; full meta-release suite 66 OK, 0 skipped, the demo rehearsal included.
+- **Assumptions**: only extra files are named; a missing file is left to the existing checks. The release's own process imports nothing from the output, so only its subprocesses get `PYTHONDONTWRITEBYTECODE`.
 
 ### TASK-PLG-012: Same commit, same output
 - **Tier**: M

@@ -81,7 +81,9 @@ CODEX_CATALOGUE = ".agents/plugins/marketplace.json"
 ROOT_MANIFEST = f"{PLUGIN_FOLDER}/plugin.json"
 CLAUDE_MANIFEST = f"{PLUGIN_FOLDER}/.claude-plugin/plugin.json"
 ATTRIBUTES_FILE = ".gitattributes"
-AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, CODEX_CATALOGUE, ATTRIBUTES_FILE)
+NO_BYTECODE = {"PYTHONDONTWRITEBYTECODE": "1"}     # RQ-PLG-012, DEC-PLG-008: the checks run Python from the output
+AGENT_PLUGINS_SCHEMA ="https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 CHANGELOG = "CHANGELOG.md"
 USER_DOCUMENTS = {"README.md", "GETTING_STARTED.MD"}      # RQ-PLG-008: their links lead into the plugin
 # RQ-PLG-006, DEC-PLG-005: an agent defined once, one file per tool.
@@ -367,17 +369,20 @@ def contents_of(path, text, table):
 
 
 def write_contents(output, contents, data, mode):
+    """Writes the files and returns their places."""
     for place, content in contents.items():
         target = output / place
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data if content is None else content.encode(ENCODING))
         if mode == EXECUTABLE_MODE:
             os.chmod(target, target.stat().st_mode | stat.S_IXUSR)
+    return list(contents)
 
 
 def write_delivered(repo, output, entries, pattern, left_out):
-    """Writes each delivered file without the workshop's IDs, and returns what the report says of them."""
+    """Writes each delivered file without the workshop's IDs, and returns what the report says of them and the places written."""
     findings = {"removed": {}, "toRead": [], "mentions": []}
+    placed = []
     delivered_names = {Path(path).name for path, _ in entries}
     table = json.loads(AGENT_TABLE_PATH.read_text(encoding=ENCODING))
     for path, mode in entries:
@@ -387,14 +392,21 @@ def write_delivered(repo, output, entries, pattern, left_out):
             text = adapted(path, text)
         except UnicodeDecodeError:      # a binary file: RQ-MTA-010 still reads it
             text = None
-        write_contents(output, contents_of(path, text, table), data, mode)
+        placed += write_contents(output, contents_of(path, text, table), data, mode)
         if text is not None:
             if count:
                 findings["removed"][path] = count
             findings["toRead"] += [{"file": path, "line": line, "text": said} for line, said in to_read]
             findings["mentions"] += [{"file": path, "line": line, "what": what}
                                      for line, what in mentions(text, left_out, delivered_names)]
-    return findings
+    return findings, placed
+
+
+# RQ-PLG-012 / DEC-PLG-008
+def stray_files(output, declared):
+    """The files on disk that were neither delivered nor generated."""
+    on_disk = {p.relative_to(output).as_posix() for p in output.rglob("*") if p.is_file()}
+    return [f"{name}: neither delivered nor generated" for name in sorted(on_disk - set(declared))]
 
 
 def workshop_citations(repo, entries, pattern):
@@ -469,7 +481,7 @@ def script_command(toolkit, script, windows_args, posix_args):
 
 def run_tool(command, folder):
     """A failure is a result, compared like any other."""
-    done = subprocess.run(command, cwd=folder, capture_output=True, text=True, errors="replace")
+    done = subprocess.run(command, cwd=folder, capture_output=True, text=True, errors="replace", env={**os.environ, **NO_BYTECODE})
     return f"exit {done.returncode}".encode(ENCODING)
 
 
@@ -575,11 +587,11 @@ def rehearse(repo, output, demo, proof):
     except subprocess.CalledProcessError:
         return fail(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
     output.mkdir(parents=True, exist_ok=True)
-    findings = write_delivered(repo, output, delivered, pattern, left_out)
+    findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
     write_marketplace(output, version)
     left = check_output(output, pattern, rules)
     unproved = proof(repo, output, demo)
-    problems = left + unproved
+    problems = left + unproved + stray_files(output, [*placed, *MARKETPLACE_FILES])
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
               "checks": {"noIdLeft": not left, "sameBehaviour": not unproved}, "problems": problems}

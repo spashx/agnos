@@ -564,7 +564,7 @@ TASK-PLG-007|112-122|In Progress|Install proof and user documents
 @process/3.plan/PLAN-PLG-002-deterministic-release.md
 PLAN-PLG-002|1-110||A Deterministic Release and its Report Page
 TASK-PLG-010|16-27|Done|Feature, decisions and plan
-TASK-PLG-011|28-39|Not Started|The output holds what is declared
+TASK-PLG-011|28-39|Done|The output holds what is declared
 TASK-PLG-012|40-51|Not Started|Same commit, same output
 TASK-PLG-013|52-63|Not Started|The console says everything to act on
 TASK-PLG-014|64-75|Not Started|The manifests checked by script
