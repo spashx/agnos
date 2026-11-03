@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-012: Same commit, same output
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: A test rehearsing HEAD twice and comparing trees and reports; fix any difference it finds.
 - **Requirement refs**: RQ-PLG-013
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-008)
 - **Acceptance Criteria**: Given RQ-PLG-013's criteria, Then they hold.
 - **Dependencies**: TASK-PLG-011
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_determinism.py` rehearses in two processes with `PYTHONHASHSEED` 1 and 2 (shown to order a same set differently): 2 OK, HEAD with the proof on the demo included; no difference found, so no code changed. Full suite 68 OK, 0 skipped.
+- **Assumptions**: identical means file names and bytes; file modes and times are not compared. Another machine, Python version or system is not covered here: it is the proof's and `--linux`'s.
 
 ### TASK-PLG-013: The console says everything to act on
 - **Tier**: M
