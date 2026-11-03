@@ -97,8 +97,14 @@ MODEL_KEY = "model"
 MODELS_KEY = "models"
 LIST_SEPARATOR = ", "
 RELEASE_RE = re.compile(r"^## \[v?(\d+)\.(\d+)(?:\.(\d+))?\]", re.M)
-CLAUDE_TOOL_VARIABLE = "AGNOS_CLAUDE"     # the Claude Code binary, when it is not on the PATH
-CLAUDE_TOOL = "claude"
+PLUGINS_KEY = "plugins"
+PLUGIN_MANIFESTS = ("plugin.json", ".claude-plugin/plugin.json")
+SAME_EVERYWHERE = ("name", "version", "description")
+# (fields of the file, fields of each plugin it declares), as documented and observed in the trial of ADR-PLG-001
+REQUIRED_FIELDS = {ROOT_MANIFEST: ((), SAME_EVERYWHERE), CLAUDE_MANIFEST: ((), SAME_EVERYWHERE),
+                   CLAUDE_CATALOGUE: (("name", "owner.name"), (*SAME_EVERYWHERE, "source")),
+                   CODEX_CATALOGUE: (("name",), (*SAME_EVERYWHERE, "source.path", "policy.installation", "policy.authentication", "category"))}
+CATALOGUE_SOURCES = {CLAUDE_CATALOGUE: "source", CODEX_CATALOGUE: "source.path"}
 FRONT_MATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n\s*", re.S)
 PARSE_MESSAGE_LENGTH = 200
 EXIT_KEY = "exit"
@@ -518,19 +524,45 @@ def run_init(toolkit, workspace):
 RUNNERS = (("agnos-index", run_index), ("agnos-perf-center", run_perf_center), ("agnos-init", run_init))
 
 
-# RQ-PLG-002: the tools' own check of what they will read.
-def claude_validation(output):
-    """What Claude Code refuses in the plugin and the catalogue. Its absence is said, and not checked."""
-    tool = os.environ.get(CLAUDE_TOOL_VARIABLE) or shutil.which(CLAUDE_TOOL)
-    if not tool:
-        print(f"agnos-meta-release: {CLAUDE_TOOL} is absent, the marketplace is not validated", file=sys.stderr)
-        return []
-    problems = []
-    for folder in (output / PLUGIN_FOLDER, output):
-        done = subprocess.run([tool, "plugin", "validate", str(folder), "--strict"], capture_output=True, text=True, errors="replace")
-        if done.returncode:
-            problems.append(f"{CLAUDE_TOOL} plugin validate {folder.name}: {done.stdout.strip()[-PARSE_MESSAGE_LENGTH:]}")
-    return problems
+# RQ-PLG-002, RQ-PLG-015 / DEC-PLG-010: the manifests checked by the release itself, the same on any machine; each tool's own
+# validation and a real install stay in agnos-meta-plugin-proof (RQ-PLG-010).
+def field(data, dotted):
+    """The value at a dotted path of a JSON object, or None."""
+    for key in dotted.split("."):
+        data = data.get(key) if isinstance(data, dict) else None
+    return data
+
+
+def plugin_folder_problem(output, name, source):
+    folder = (output / source).resolve() if isinstance(source, str) else None
+    if folder is None or not folder.is_dir() or not any((folder / manifest).is_file() for manifest in PLUGIN_MANIFESTS):
+        return f"{name}: its plugin source {source} is no plugin folder of the output"
+    return None
+
+
+def manifest_problems(output):
+    """What the four manifests and catalogues lack, name wrongly, or say differently."""
+    problems, said = [], {}
+    for name, required in REQUIRED_FIELDS.items():
+        try:
+            data = json.loads((output / name).read_text(encoding=ENCODING))
+        except (OSError, ValueError) as error:
+            problems.append(f"{name}: not readable as JSON ({error})")
+            continue
+        entries = data.get(PLUGINS_KEY) if name in CATALOGUE_SOURCES else [data]
+        if not isinstance(entries, list) or not entries:
+            problems.append(f"{name}: no plugin declared")
+            continue
+        problems += [f"{name}: no {key}" for key in required[0] if field(data, key) in (None, "")]
+        for entry in entries:
+            problems += [f"{name}: no {key} for a plugin" for key in required[1] if field(entry, key) in (None, "")]
+            if name in CATALOGUE_SOURCES:
+                problems.append(plugin_folder_problem(output, name, field(entry, CATALOGUE_SOURCES[name])))
+            said[name] = {key: entry.get(key) for key in SAME_EVERYWHERE}
+    reference = said.get(ROOT_MANIFEST)
+    problems += [f"{name}: {key} differs from {ROOT_MANIFEST}" for name, values in said.items() if reference
+                 for key in SAME_EVERYWHERE if values[key] != reference[key]]
+    return [problem for problem in problems if problem]
 
 
 def write_baseline(repo, folder):
@@ -553,7 +585,7 @@ def prove(repo, output, demo):
     demo_path = demo_folder(repo, demo)
     if not demo_path.is_dir():
         return [f"no demo at {demo_path}: build it with agnos-meta-demo"]
-    problems = parse_problems(output) + claude_validation(output)
+    problems = parse_problems(output)
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as holder:
         workspace = Path(holder)
         baseline = workspace / "baseline"
@@ -595,11 +627,12 @@ def rehearse(repo, output, demo, proof):
     findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
     write_marketplace(output, version)
     left = check_output(output, pattern, rules)
+    unsound = manifest_problems(output)
     unproved = proof(repo, output, demo)
-    problems = left + unproved + stray_files(output, [*placed, *MARKETPLACE_FILES])
+    problems = left + unsound + unproved + stray_files(output, [*placed, *MARKETPLACE_FILES])
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
-              "checks": {"noIdLeft": not left, "sameBehaviour": not unproved}, "problems": problems}
+              "checks": {"noIdLeft": not left, "manifests": not unsound, "sameBehaviour": not unproved}, "problems": problems}
     Path(f"{output}{REPORT_SUFFIX}").write_text(json.dumps(report, indent=2) + "\n", encoding=ENCODING, newline="\n")
     return (EXIT_FAILED if problems else EXIT_OK), report
 

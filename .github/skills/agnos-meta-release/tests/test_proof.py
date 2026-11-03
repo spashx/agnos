@@ -110,7 +110,7 @@ class DemoTest(Workspace):
         report = json.loads(Path(f"{output}{release.REPORT_SUFFIX}").read_text(encoding="utf-8"))
         self.assertEqual([], report["problems"])
         self.assertEqual(release.EXIT_OK, code)
-        self.assertEqual({"noIdLeft": True, "sameBehaviour": True}, report["checks"])
+        self.assertEqual({"noIdLeft": True, "manifests": True, "sameBehaviour": True}, report["checks"])     # RQ-PLG-015
         self.assertEqual(before, release.git(DEMO, "status", "--porcelain"))
 
 

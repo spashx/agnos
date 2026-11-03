@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-014: The manifests checked by script
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Replace the call of `claude plugin validate` by a script check of the manifests and catalogues, `checks.manifests` in the report.
 - **Requirement refs**: RQ-PLG-015
 - **ADR refs**: ADR-PLG-002 (DEC-PLG-010)
 - **Acceptance Criteria**: Given RQ-PLG-015's criteria, Then they hold; Given `agnos-meta-plugin-proof`'s tests, Then they pass.
 - **Dependencies**: TASK-PLG-013
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `test_manifests.py` written first, 9 of 9 failed, then 9 OK (missing version, missing plugin folder, differing description, no owner, unreadable or missing file each named; `checks.manifests` true; the script holds no `plugin validate` nor `AGNOS_CLAUDE`). meta-release 82 OK, plugin-proof 16 OK, meta-demo 12 OK, 0 skipped.
+- **Assumptions**: the required fields are those the release writes today and the trial of ADR-PLG-001 observed; `DemoTest` now expects the three checks, as this new behaviour requires. The "no claude" criterion is shown by the script calling no AI tool, not by a run without `claude`.
 
 ### TASK-PLG-015: The page's tokens from the perf center
 - **Tier**: M
