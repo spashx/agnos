@@ -31,6 +31,8 @@ OLD_TIME = 946684800
 ID_RE = re.compile(rb"\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b")
 MAX_DESCRIPTION = 1024
 MAX_SKILL_LINES = 500
+PROJECT_RULES = "process/project-rules.md"
+SUCCESS_STEP_RE = re.compile(r"^   - `0`:.*$", re.M)
 
 
 def bash_command():
@@ -161,6 +163,14 @@ class ResultTest(InitCase):
                 self.assertIn(order, data, name)
                 self.assertFalse(any(line.startswith(b"@") for line in data.splitlines()), name)
 
+    def test_RQ_PLG_018_given_both_blocks_then_each_reads_the_project_rules_and_names_them_the_improvement_target(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            for name in ENTRY_FILES:
+                data = (project / name).read_bytes()
+                self.assertIn(f"Read `{PROJECT_RULES}` when it exists".encode(), data, name)
+                self.assertIn(f"`{PROJECT_RULES}` is the improvement target".encode(), data, name)
+
     def test_RQ_INI_006_given_the_written_blocks_then_they_hold_no_artifact_id_and_no_placeholder(self):
         for _, project, _result in self.each_script():
             for name in ENTRY_FILES:
@@ -277,6 +287,12 @@ class SkillPracticesTest(unittest.TestCase):
         self.assertIn("USE FOR", description)
         self.assertLess(len(self.text.splitlines()), MAX_SKILL_LINES)
         self.assertNotIn("disable-model-invocation", self.text)
+
+    def test_RQ_PLG_020_given_the_success_step_then_it_gives_a_new_conversation_then_an_agnos_session_as_two_steps(self):
+        step = SUCCESS_STEP_RE.search(self.text).group()
+        conversation, session = step.index("new conversation"), step.index("AGNOS session")
+        self.assertLess(conversation, session)
+        self.assertNotIn("new session", step)
 
     def test_RQ_INI_009_given_the_repository_then_the_pointer_and_both_lists_name_the_skill(self):
         self.assertEqual(SKILL_NAME, re.search(r"^name:\s*(\S+)\s*$", (ROOT / ".claude/skills" / SKILL_NAME / "SKILL.md").read_text(encoding="utf-8"), re.M).group(1))

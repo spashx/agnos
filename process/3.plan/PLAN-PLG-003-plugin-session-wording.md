@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-020: The block reads the project's rules, and the init's last words in two steps
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the line reading `process/project-rules.md` to both block templates, reword the success step of `agnos-init`'s SKILL.md, and rebuild the demo with the new block.
 - **Requirement refs**: RQ-PLG-018, RQ-PLG-020, RQ-PLG-004
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-013, DEC-PLG-015)
 - **Acceptance Criteria**: Given RQ-PLG-018's block criterion and RQ-PLG-020's criteria, Then they hold, tested first in `agnos-init`'s suite; Given `agnos-meta-demo`'s suite, Then it passes.
 - **Dependencies**: TASK-PLG-018
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: two tests written first in `test_init.py`, both failed (1 failure, 1 error), then the full init suite 19 OK, both scripts, 0 skipped; the existing RQ-PLG-004 test (no path outside the project) still passes. Demo rebuilt: `build.ps1 -Verify` exit 0, 23 passed, 0 failed, demo HEAD `bc688b8`, its `CLAUDE.md` holds the new line. meta-demo suite 12 OK.
+- **Assumptions**: the block names the file twice, once to read it and once as the improvement target, so the process's "the file the AGNOS block names for improvements" has one clear referent.
 
 ### TASK-PLG-021: The getting-started file written by init
 - **Tier**: M
