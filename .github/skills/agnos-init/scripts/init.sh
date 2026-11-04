@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# agnos-init (bash): adds AGNOS to a project, the block of its entry-point files and its process folders.
-# RQ-INI-001 to RQ-INI-006, RQ-PLG-004 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003).
+# agnos-init (bash): adds AGNOS to a project, the block of its entry-point files, its guide and its process folders.
+# RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016).
 # Usage: init.sh --target <project folder>
 # Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
 # written (message on the error stream). init.ps1 gives the same bytes.
@@ -15,6 +15,7 @@ END_PATTERN="^$END_MARKER$CR?\$"
 ENTRY_FILES='CLAUDE.md AGENTS.md'
 PROCESS_FOLDERS='process/1.requirements process/2.architecture process/3.plan process/_sessionstate'
 README='readme.md'
+GUIDE='AGNOS-GETTING-STARTED.md'
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
 fail() {
@@ -97,6 +98,20 @@ for file in $ENTRY_FILES; do
     echo "$REPORT_PREFIX$(cat "$work/$file.action") $file"
   fi
 done
+
+# RQ-PLG-021 / DEC-PLG-016: the guide is AGNOS's own file, rewritten whole from its template.
+guide_template=$SCRIPT_DIR/../assets/templates/$GUIDE
+if [ ! -e "$target/$GUIDE" ]; then
+  guide_action=created
+elif cmp -s "$guide_template" "$target/$GUIDE"; then
+  guide_action=unchanged
+else
+  guide_action=updated
+fi
+if [ "$guide_action" != unchanged ]; then
+  cat "$guide_template" > "$target/$GUIDE" || fail "cannot write $GUIDE"
+fi
+echo "$REPORT_PREFIX$guide_action $GUIDE"
 
 for folder in $PROCESS_FOLDERS; do    # RQ-INI-005
   path=$target/$folder

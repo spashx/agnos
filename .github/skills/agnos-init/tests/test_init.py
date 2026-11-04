@@ -32,6 +32,12 @@ ID_RE = re.compile(rb"\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b")
 MAX_DESCRIPTION = 1024
 MAX_SKILL_LINES = 500
 PROJECT_RULES = "process/project-rules.md"
+GUIDE = "AGNOS-GETTING-STARTED.md"
+GUIDE_TEMPLATE = SKILL_DIR / "assets/templates" / GUIDE
+GUIDE_EXAMPLE_TRIGRAM = b"EXP"
+GUIDE_STEPS = ("new conversation", "AGNOS session", "Write the requirement", "approved", "commit-task",
+               "End of session", "agnos-perf-center")
+ID_TRIGRAM_RE = re.compile(rb"\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-([A-Z]{3})-\d{3}\b")
 SUCCESS_STEP_RE = re.compile(r"^   - `0`:.*$", re.M)
 
 
@@ -272,6 +278,38 @@ class ProcessFolderTest(InitCase):
         result = subprocess.run(command, cwd=project, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn(": 0 entries, 0 documents", result.stdout)
+
+
+class GuideTest(InitCase):
+    """RQ-PLG-021, RQ-PLG-022, DEC-PLG-016, DEC-PLG-017."""
+
+    def test_RQ_PLG_021_given_a_new_project_when_either_script_runs_then_the_guide_is_created_from_its_template(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(GUIDE_TEMPLATE.read_bytes(), (project / GUIDE).read_bytes())
+            self.assertIn(f"created {GUIDE}", result.stdout)
+
+    def test_RQ_PLG_021_given_a_guide_with_other_content_when_run_then_it_is_rewritten_and_reported_updated(self):
+        for _, project, result in self.each_script({GUIDE: b"# edited by hand\n"}):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(GUIDE_TEMPLATE.read_bytes(), (project / GUIDE).read_bytes())
+            self.assertIn(f"updated {GUIDE}", result.stdout)
+
+    def test_RQ_PLG_021_given_the_same_guide_when_run_again_then_it_is_reported_unchanged(self):
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name)
+                self.assertEqual(0, runner(project).returncode)
+                self.assertIn(f"unchanged {GUIDE}", runner(project).stdout)
+
+    def test_RQ_PLG_021_given_the_template_then_it_names_each_step_and_no_path_outside_the_project(self):
+        data = GUIDE_TEMPLATE.read_bytes()
+        for step in GUIDE_STEPS:
+            self.assertIn(step.encode(), data, step)
+        self.assertIsNone(ANY_PATH_RE.search(data))
+
+    def test_RQ_PLG_022_given_the_template_then_its_only_ids_are_the_guides_example(self):
+        self.assertEqual({GUIDE_EXAMPLE_TRIGRAM}, set(ID_TRIGRAM_RE.findall(GUIDE_TEMPLATE.read_bytes())))
 
 
 class SkillPracticesTest(unittest.TestCase):

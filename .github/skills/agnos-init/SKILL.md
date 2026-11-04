@@ -4,7 +4,7 @@ description: "AGNOS process initialisation skill. Adds AGNOS to a project by com
 argument-hint: "<project folder>"
 ---
 
-<!-- RQ-INI-001 to RQ-INI-006, RQ-INI-009, RQ-PLG-004, RQ-PLG-018, RQ-PLG-020 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-013, DEC-PLG-015) -->
+<!-- RQ-INI-001 to RQ-INI-006, RQ-INI-009, RQ-PLG-004, RQ-PLG-018, RQ-PLG-020, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-013, DEC-PLG-015, DEC-PLG-016) -->
 # AGNOS Init
 
 A script does all the work, so that the same call always gives the same files: do not write or edit
@@ -23,7 +23,7 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
    Use `powershell` (Windows PowerShell 5.1), never `pwsh`: PowerShell 7 is not guaranteed to be installed.
 
 3. Check the exit code:
-   - `0`: done. Report each line to the user, then give them two separate steps: first, close this conversation and open a new conversation in the tool, so that it reads the block; then, in that new conversation, ask the agent to start an AGNOS session. <!-- RQ-PLG-020 / DEC-PLG-015 -->
+   - `0`: done. Report each line to the user, then give them two separate steps: first, close this conversation and open a new conversation in the tool, so that it reads the block; then, in that new conversation, ask the agent to start an AGNOS session. Name `AGNOS-GETTING-STARTED.md` as the guide to read meanwhile. <!-- RQ-PLG-020, RQ-PLG-021 / DEC-PLG-015, DEC-PLG-016 -->
    - `1`: error, nothing written. Report the message. For a damaged block, the user repairs its lines: do not guess its limits.
 
 ## What it does
@@ -37,7 +37,9 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
 | With a damaged block | Stops before any write, naming the file | Exit 1 |
 
 Every byte outside the block is preserved, and the block takes the file's line ending. It also creates
-each folder of `process/` that is absent, with a `readme.md` saying what it holds. It changes nothing else in the project.
+each folder of `process/` that is absent, with a `readme.md` saying what it holds, and writes `AGNOS-GETTING-STARTED.md`, the
+user's guide, at the project's root: that file is AGNOS's, rewritten whole from its template and reported `created`, `updated` or
+`unchanged`. <!-- RQ-PLG-021 / DEC-PLG-016 --> It changes nothing else in the project.
 
 To update a project after AGNOS changes, call it again.
 
@@ -46,4 +48,4 @@ To update a project after AGNOS changes, call it again.
 | Path | Role |
 |---|---|
 | `scripts/init.ps1`, `scripts/init.sh` | The two versions, giving the same bytes |
-| `assets/templates/` | One block per entry-point file, written as it is, and one `readme.md` per process folder |
+| `assets/templates/` | One block per entry-point file, written as it is, one `readme.md` per process folder, and the guide `AGNOS-GETTING-STARTED.md` |

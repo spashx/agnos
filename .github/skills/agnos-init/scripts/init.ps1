@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-  Adds AGNOS to a project: the block of its entry-point files and its process folders.
+  Adds AGNOS to a project: the block of its entry-point files, its guide and its process folders.
 .DESCRIPTION
-  RQ-INI-001 to RQ-INI-006, RQ-PLG-004 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003).
+  RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016).
   Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
   written (message on the error stream). init.sh gives the same bytes.
 .PARAMETER Target   Folder of the project.
@@ -21,6 +21,7 @@ $CRLF = "`r`n"
 $ENTRY_FILES = @('CLAUDE.md', 'AGENTS.md')
 $PROCESS_FOLDERS = @('process/1.requirements', 'process/2.architecture', 'process/3.plan', 'process/_sessionstate')
 $README = 'readme.md'
+$GUIDE = 'AGNOS-GETTING-STARTED.md'
 # DEC-INI-002: one byte is one character, so that encodings and line endings pass through unchanged.
 $BYTES = [System.Text.Encoding]::GetEncoding(28591)
 
@@ -77,6 +78,18 @@ try {
       Write-Output "$REPORT_PREFIX$($plan.Action) $($plan.File)"
     }
   }
+  # RQ-PLG-021 / DEC-PLG-016: the guide is AGNOS's own file, rewritten whole from its template.
+  $guidePath = Join-Path $targetFull $GUIDE
+  $guideBytes = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "../assets/templates/$GUIDE"))
+  if (-not (Test-Path -LiteralPath $guidePath)) {
+    $guideAction = 'created'
+  } elseif ($BYTES.GetString([System.IO.File]::ReadAllBytes($guidePath)) -ceq $BYTES.GetString($guideBytes)) {
+    $guideAction = 'unchanged'
+  } else {
+    $guideAction = 'updated'
+  }
+  if ($guideAction -ne 'unchanged') { [System.IO.File]::WriteAllBytes($guidePath, $guideBytes) }
+  Write-Output "$REPORT_PREFIX$guideAction $GUIDE"
   foreach ($folder in $PROCESS_FOLDERS) {                     # RQ-INI-005
     $path = Join-Path $targetFull $folder
     if (-not (Test-Path -LiteralPath $path)) {

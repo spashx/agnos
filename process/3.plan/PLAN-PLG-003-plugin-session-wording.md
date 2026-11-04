@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-021: The getting-started file written by init
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Reword `GETTING_STARTED.MD` for a plugin user into the template `AGNOS-GETTING-STARTED.md`, and make both init scripts write and report it; the init's skill points to it.
 - **Requirement refs**: RQ-PLG-021, RQ-PLG-020, RQ-PLG-022
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-016, DEC-PLG-017)
 - **Acceptance Criteria**: Given RQ-PLG-021's criteria, Then they hold, tested first in `agnos-init`'s suite on both scripts; Given the template, Then it names no file of this repository a plugin user lacks; Given `agnos-meta-demo`'s suite, Then it passes.
 - **Dependencies**: TASK-PLG-020
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `GuideTest` written first, 5 of 5 failed; then 1 failure left, an example import `../orders/...` caught as a path outside the project, the example's import changed to `./orderRepository`, the test unchanged; then the init suite 24 OK, both scripts, 0 skipped (created, updated, unchanged, the seven steps named, no path, only `EXP` IDs). Demo rebuilt: verify 23 passed, 0 failed, HEAD `0c281c5`, `AGNOS-GETTING-STARTED.md` at its root. meta-demo suite 12 OK.
+- **Assumptions**: the guide keeps the former worked example (`EXP`) and adds what `agnos-init` wrote, the two steps before a session, `process/project-rules.md`, and the `.gitignore` left to the user; links to `.github/` became skill names; the file's first line is a comment saying it is AGNOS's.
 
 ### TASK-PLG-022: The guide leaves the root
 - **Tier**: L
