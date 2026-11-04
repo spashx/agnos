@@ -5,7 +5,7 @@ Correct the three findings of the owner's Claude Code session of 2026-11-04 (FTR
 and rehearse the release again for the Copilot checks of TASK-PLG-007. No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-018 to RQ-PLG-022, RQ-PLG-004, RQ-DOC-001, RQ-DOC-002, RQ-INI-007 (amended), RQ-PLG-008, RQ-PLG-009
+- **Requirements**: RQ-PLG-018 to RQ-PLG-023, RQ-PLG-004, RQ-DOC-001, RQ-DOC-002, RQ-INI-007 (amended), RQ-PLG-008, RQ-PLG-009
 - **ADRs**: ADR-PLG-003, ADR-PLG-001, ADR-PLG-002
 
 This plan implements the tasks in the format specified below.
@@ -85,6 +85,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: README's Claude Code row states the session of 2026-11-04, on a marketplace built before the guide. `agnos-meta-docs-sync` on Haiku: `git status` shows only `CHANGELOG.md` changed by it (with the README row of this task); `git diff` read: 10 bullets under `[Unreleased]`, each with the IDs of a real commit (TASK-PLG-009, TASK-PLG-011, TASK-PLG-013 to 016, TASK-PLG-019 to 022), no released section touched. meta-demo 12 OK, `test_marketplace.py` OK, 0 skipped.
 - **Assumptions**: older `[Unreleased]` bullets naming `GETTING_STARTED.MD` stay: they record what was true when written. This run of docs-sync on Haiku is the owner's check 5 of TASK-PLG-007 seen from this side only: the owner's own run in a Claude Code session remains theirs.
 
+### TASK-PLG-025: The README as a landing page
+- **Tier**: M
+- **Status**: In Progress
+- **Description**: Reduce `README.md` to what AGNOS is, its skills and getting started; move what was tested into a delivered `COMPATIBILITY.md`, the artifacts table into the guide and the repository map into `CONTRIBUTING.md`.
+- **Requirement refs**: RQ-PLG-023, RQ-PLG-008, RQ-INI-007
+- **ADR refs**: ADR-PLG-003 (DEC-PLG-018)
+- **Acceptance Criteria**: Given RQ-PLG-023's criteria, Then they hold, tested first; Given the suites of `agnos-meta-release` and `agnos-init`, Then they pass.
+- **Dependencies**: TASK-PLG-023
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
 ### TASK-PLG-024: The release rehearsed again, and proved
 - **Tier**: M
 - **Status**: Not Started
@@ -92,7 +104,7 @@ This plan implements the tasks in the format specified below.
 - **Requirement refs**: RQ-PLG-007, RQ-PLG-010, RQ-PLG-012 to RQ-PLG-017
 - **ADR refs**: ADR-PLG-002, ADR-PLG-001
 - **Acceptance Criteria**: Given a rehearsal of the last commit, Then the exit is 0 and the lines to read are judged; Given the proof, Then every line it runs passes, And the lines it skips are stated with why.
-- **Dependencies**: TASK-PLG-023
+- **Dependencies**: TASK-PLG-025
 - **Assignee**: AI
 - **Verification**:
 - **Assumptions**:

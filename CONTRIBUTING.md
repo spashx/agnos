@@ -26,12 +26,24 @@ AGNOS is developed with AGNOS, so this tree holds three layers:
 
 | Layer | What it holds | Delivered |
 |---|---|---|
-| **Toolkit** | The instructions file, the process skills (the user's guide among `agnos-init`'s templates), `README.md`, `CHANGELOG.md`, `LICENSE.md` | Yes, in the marketplace |
+| **Toolkit** | The instructions file, the process skills (the user's guide among `agnos-init`'s templates), `README.md`, `COMPATIBILITY.md`, `CHANGELOG.md`, `LICENSE.md` | Yes, in the marketplace |
 | **Public repository** | `SECURITY.md`, `CODE_OF_CONDUCT.md`, this file, the GitHub templates | No: they address this repository's contributors |
 | **Meta** | `process/`, `CLAUDE.md`, `AGENTS.md`, `.claude/`, the `agnos-meta-*` skills and sub-agents, the tests of every skill | No |
 
 A skill or sub-agent that serves only the development of AGNOS takes the prefix `agnos-meta-`. The prefix is the
 only criterion: tools read it, and no list of names is kept.
+
+## Repository Map
+
+<!-- RQ-PLG-023 / DEC-PLG-018 -->
+
+| Path | Content |
+|---|---|
+| [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process, delivered as the skill `agnos-process` |
+| [.github/skills/](.github/skills/) | The skills: `agnos-init`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center`, and the `agnos-meta-*` maintainer skills |
+| [.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | The user's guide, a worked session, written into each project by `agnos-init` |
+| [README.md](README.md), [COMPATIBILITY.md](COMPATIBILITY.md), [CHANGELOG.md](CHANGELOG.md) | The plugin user's landing page, what was tested, what each release holds |
+| [process/](process/) | AGNOS's own requirements, decisions and plans: AGNOS is developed with AGNOS |
 
 ## Before you open a pull request
 

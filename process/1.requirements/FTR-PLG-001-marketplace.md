@@ -97,6 +97,7 @@ copy format of DEC-MTA-005, abandoned by the owner on 2026-10-31.
 - **Priority**: Must
 - **Acceptance Criteria**: Given Windows and WSL, When the delivered suites run, Then they pass on both; Given the README, Then it says macOS and Codex are not tested.
 - **Dependencies**: RQ-PLG-001
+- **Amended by**: RQ-PLG-023 — what was tested is stated in the marketplace's `COMPATIBILITY.md`, which the README names, not in the README.
 
 ### RQ-PLG-009: A real install proves the marketplace
 - **Category**: Non-Functional

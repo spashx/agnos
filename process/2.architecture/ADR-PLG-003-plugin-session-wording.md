@@ -1,7 +1,7 @@
 # ADR-PLG-003: The Process Speaks to a Plugin User
 
 ## Status
-Accepted — approved by the owner on 2026-11-04, for FTR-PLG-003 (RQ-PLG-018 to RQ-PLG-022). Amends RQ-PLG-004 and DEC-PLG-003 on the block's paths, and RQ-DOC-001, RQ-DOC-002, RQ-INI-007 on the guide's location.
+Accepted — approved by the owner on 2026-11-04, for FTR-PLG-003 (RQ-PLG-018 to RQ-PLG-022); DEC-PLG-018 for RQ-PLG-023, the same day. Amends RQ-PLG-004 and DEC-PLG-003 on the block's paths, and RQ-DOC-001, RQ-DOC-002, RQ-INI-007 on the guide's location.
 
 ## Context
 FTR-PLG-003 (RQ-PLG-018 to RQ-PLG-022) comes from the owner's Claude Code session of 2026-11-04 on a new repository with the plugin
@@ -42,6 +42,14 @@ keeps four documents, the fourth being the template, under the rules RQ-DOC-002 
 `CONTRIBUTING.md` and the issue template follow. Process documents that cite `GETTING_STARTED.MD` are history and stay. Fulfils
 RQ-PLG-022; amends RQ-DOC-001, RQ-DOC-002 and RQ-INI-007 on the guide's location.
 
+### DEC-PLG-018: One reader per document
+Added on 2026-11-04, after the owner's review of the README. `README.md` addresses the plugin user only: what AGNOS is, its skills,
+getting started in three steps ending on the guide, and one sentence naming `COMPATIBILITY.md`. That new root file, delivered by a
+release layer rule, holds the table of what was tested per tool and system, and is the only place stating it: the changelog says what
+each release holds, and the guide, copied into projects, would let it age there. How a session runs and the concepts are the guide's,
+which gains the table of artifacts and the identifier format, the only part it lacked; the repository map moves to `CONTRIBUTING.md`,
+read by contributors and not delivered. Fulfils RQ-PLG-023; amends RQ-PLG-008 on where what was tested is stated.
+
 ## Consequences
 - Easier: a plugin user's improvements survive updates, stay theirs, and stay apart from what they write in `CLAUDE.md` and `AGENTS.md`.
 - Harder: every project's block changes once; `agnos-init` called again updates it, and the demo is rebuilt.
@@ -63,6 +71,12 @@ RQ-PLG-022; amends RQ-DOC-001, RQ-DOC-002 and RQ-INI-007 on the guide's location
 - **The guide removed, a short page of steps only**: the worked example is lost. Rejected by the owner on 2026-11-04.
 - **A short page pointing to the guide in the plugin's folder**: two documents, one of them out of the user's repository. Rejected.
 - **The written file named `GETTING_STARTED.MD`**: `agnos-init` would overwrite a guide of the developer's own. Rejected for the prefix.
+- **A README in three titled parts, use, understand, contribute**: keeps everything, but still three readers on one page and the
+  concepts written twice. Rejected by the owner on 2026-11-04.
+- **What was tested under each release of `CHANGELOG.md`, or in the guide**: the changelog only says what a release holds, and the
+  guide ages in each project. Rejected by the owner on 2026-11-04 for `COMPATIBILITY.md`.
+- **The concepts in a document of their own**: a third user document beside the README and the guide. Rejected by the owner on
+  2026-11-04.
 - **The getting-started steps in the block**: loaded into every conversation, for steps read once. Rejected.
 - **The file written once, then left to the developer**: an update of the plugin could never correct it. Rejected.
 - **The init scripts print the next steps**: changes two scripts and their byte-tested output for a sentence the agent restates anyway.

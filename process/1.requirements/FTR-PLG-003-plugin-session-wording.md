@@ -9,7 +9,8 @@ Source: the owner's full Claude Code session of 2026-11-04 on a new repository, 
 - the process named itself `agnos-sw-eng.instructions.md`, a file the project does not have;
 - `agnos-init` ended with "start a new session", which reads as an AGNOS session while it means a new conversation of the tool;
 - the owner needed the agent to tell them the steps of a first session: nothing in the project said what AGNOS lets them do;
-- the user's guide, `GETTING_STARTED.MD`, sat at the root of this repository, where it reads as a guide to developing the process.
+- the user's guide, `GETTING_STARTED.MD`, sat at the root of this repository, where it reads as a guide to developing the process;
+- the README mixed the plugin user's steps, the process's concepts and this repository's map.
 
 Out of scope, by the owner's decision of 2026-11-04: what `commit-task` stages, the project's `.gitignore`, and commits made outside a
 task (`METRICS_LOG.md`, the output of `agnos-init`, which runs outside an AGNOS session).
@@ -66,3 +67,12 @@ task (`METRICS_LOG.md`, the output of `agnos-init`, which runs outside an AGNOS 
 - **Priority**: Should
 - **Acceptance Criteria**: Given HEAD, Then no `GETTING_STARTED.MD` is at the root, And the template walks the steps of RQ-PLG-021 with a worked example; Given a rehearsal, Then the marketplace holds no `GETTING_STARTED.MD` at its root and no link to it, And the template inside the `agnos-init` skill; Given `agnos-meta-docs-sync`, Then its fourth document is the template; Given the suites of `agnos-meta-docs-sync`, `agnos-meta-release` and `agnos-meta-demo`, Then they pass.
 - **Dependencies**: RQ-PLG-021, RQ-DOC-001, RQ-DOC-002, RQ-INI-007
+
+### RQ-PLG-023: The README is a landing page for a plugin user
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: `README.md` SHALL hold, in this order, what AGNOS is, what it provides and how to get started (install the plugin, call `agnos-init`, open a new conversation and ask for an AGNOS session, read `AGNOS-GETTING-STARTED.md`), and SHALL name `COMPATIBILITY.md`; it SHALL NOT hold what was tested, how a session runs, the process's concepts or the map of this repository. What was tested, per tool and system, SHALL be stated in `COMPATIBILITY.md` at the root, delivered in the marketplace, and nowhere else; how a session runs and the concepts are the guide's; the map is `CONTRIBUTING.md`'s. Amends RQ-PLG-008 on where what was tested is stated.
+- **Rationale**: on 2026-11-04 the owner found the README mixing the plugin user's steps, the process's concepts, a state that changes with each check, and this repository's map. The changelog only says what each release holds, and the guide is copied into projects, so neither carries what was tested.
+- **Priority**: Should
+- **Acceptance Criteria**: Given `README.md`, Then its second-level headings are, in order, "What AGNOS Provides", "Getting Started" and "License", And it names `COMPATIBILITY.md`, And it holds no "What was tested", "How a Session Runs", "Core Concepts", "Continuous Improvement" or "Repository Map"; Given `COMPATIBILITY.md`, Then it says macOS and Codex are not tested; Given a rehearsal, Then the marketplace holds `COMPATIBILITY.md`; Given `CONTRIBUTING.md`, Then it holds the repository map; Given the guide, Then it holds the table of artifacts and the identifier format `<TYPE>-<TRI>-<NNN>`.
+- **Dependencies**: RQ-PLG-008, RQ-PLG-022, RQ-INI-007

@@ -12,7 +12,7 @@
     "^\\.github/instructions/",
     "^\\.github/agents/",
     "^\\.github/skills/",
-    "^(README|CHANGELOG|LICENSE)\\.md$",
+    "^(README|CHANGELOG|LICENSE|COMPATIBILITY)\\.md$",
     "^agnos-overview\\.png$",
     "^\\.gitignore$"
   ]

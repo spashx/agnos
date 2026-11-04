@@ -3,6 +3,7 @@
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
 """
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -24,6 +25,10 @@ WORKSHOP_ROOTS = (".github/", ".claude/", "CLAUDE.md", "AGENTS.md", "CONTRIBUTIN
 SAME_IN_MANIFESTS = ("name", "version", "description")
 GUIDE = "AGNOS-GETTING-STARTED.md"          # RQ-PLG-022
 FORMER_GUIDE = "GETTING_STARTED.MD"
+ROOT = HERE.parents[3]
+COMPATIBILITY = "COMPATIBILITY.md"           # RQ-PLG-023
+README_SECTIONS = ["What AGNOS Provides", "Getting Started", "License"]
+MOVED_SECTIONS = ("What was tested", "How a Session Runs", "Core Concepts", "Continuous Improvement", "Repository Map")
 
 
 class MarketplaceCase(RehearsalCase):
@@ -135,12 +140,39 @@ class UserDocumentsTest(MarketplaceCase):
 
 
 class WhatWasTestedTest(unittest.TestCase):
-    """RQ-PLG-008."""
+    """RQ-PLG-008, amended by RQ-PLG-023: what was tested is stated in COMPATIBILITY.md."""
 
-    def test_RQ_PLG_008_given_the_readme_then_it_says_macos_and_codex_are_not_tested(self):
-        text = (HERE.parents[3] / "README.md").read_text(encoding="utf-8")
+    def test_RQ_PLG_008_given_compatibility_then_it_says_macos_and_codex_are_not_tested(self):
+        text = (ROOT / COMPATIBILITY).read_text(encoding="utf-8")
         for row in ("| macOS | Not tested", "| OpenAI Codex | Not tested"):
             self.assertIn(row, text)
+
+
+class ReadmeTest(unittest.TestCase):
+    """RQ-PLG-023, DEC-PLG-018: one reader per document."""
+
+    def setUp(self):
+        self.text = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    def test_RQ_PLG_023_given_the_readme_then_its_sections_are_provides_getting_started_and_license_in_order(self):
+        self.assertEqual(README_SECTIONS, re.findall(r"^## (.+?)\s*$", self.text, re.M))
+
+    def test_RQ_PLG_023_given_the_readme_then_it_names_compatibility_and_holds_none_of_the_moved_sections(self):
+        self.assertIn(COMPATIBILITY, self.text)
+        for moved in MOVED_SECTIONS:
+            self.assertNotIn(moved.lower(), self.text.lower(), moved)
+
+    def test_RQ_PLG_023_given_contributing_then_it_holds_the_repository_map(self):
+        self.assertIn("## Repository Map", (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"))
+
+
+
+class CompatibilityDeliveredTest(MarketplaceCase):
+    """RQ-PLG-023."""
+
+    def test_RQ_PLG_023_given_a_commit_with_compatibility_when_it_runs_then_the_marketplace_holds_it(self):
+        self.commit({COMPATIBILITY: "| macOS | Not tested |\n"})
+        self.assertIn(COMPATIBILITY, self.built())
 
 
 class AgentTest(MarketplaceCase):

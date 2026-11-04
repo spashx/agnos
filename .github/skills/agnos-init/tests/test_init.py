@@ -308,6 +308,12 @@ class GuideTest(InitCase):
             self.assertIn(step.encode(), data, step)
         self.assertIsNone(ANY_PATH_RE.search(data))
 
+    def test_RQ_PLG_023_given_the_template_then_it_holds_the_artifacts_and_the_identifier_format(self):
+        data = GUIDE_TEMPLATE.read_bytes()
+        self.assertIn(b"`<TYPE>-<TRI>-<NNN>`", data)
+        for folder in PROCESS_FOLDERS:
+            self.assertIn(f"`process/{folder}/`".encode(), data, folder)
+
     def test_RQ_PLG_022_given_the_template_then_its_only_ids_are_the_guides_example(self):
         self.assertEqual({GUIDE_EXAMPLE_TRIGRAM}, set(ID_TRIGRAM_RE.findall(GUIDE_TEMPLATE.read_bytes())))
 

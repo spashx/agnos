@@ -38,6 +38,20 @@ Calling the `agnos-init` skill wrote these files, and left everything else in th
 Commit them when you are ready: AGNOS does not commit them for you, and its sessions never commit on your default
 branch.
 
+## The artifacts
+
+Everything the agent writes for the process lives under `process/`, and every artifact has an identifier:
+
+| Phase | Location | Artifacts | Format |
+|---|---|---|---|
+| Requirements | `process/1.requirements/` | `FTR-*` features, `RQ-*` requirements | EARS statements, Gherkin acceptance criteria |
+| Architecture | `process/2.architecture/` | `ADR-*` records, `DEC-*` decisions | Context, Decision, Consequences, Alternatives, Mermaid diagram |
+| Planning | `process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks | Tier, Gherkin criteria, Verification, Assumptions |
+| Session state | `process/_sessionstate/` | `session.yaml`, `METRICS_LOG.md` | Version-controlled |
+
+Every identifier follows `<TYPE>-<TRI>-<NNN>`, where `<TRI>` is a three-letter uppercase trigram for the functional area.
+Identifiers appear, as comments, in every related document, source file, test name and commit message.
+
 ## Two steps before the first session
 
 1. **Open a new conversation in your tool** (Claude Code, GitHub Copilot…). The tool reads `CLAUDE.md` or
