@@ -588,7 +588,7 @@ TASK-PLG-017|100-110|Done|The skill said, and a rehearsal
 @process/3.plan/PLAN-PLG-003-plugin-session-wording.md
 PLAN-PLG-003|1-98||The Process Speaks to a Plugin User, and a New Release
 TASK-PLG-018|16-27|Done|Feature, decisions and plan
-TASK-PLG-019|28-39|Not Started|The improvement target, and "this file"
+TASK-PLG-019|28-39|Done|The improvement target, and "this file"
 TASK-PLG-020|40-51|Not Started|The block reads the project's rules, and the init's last words in two steps
 TASK-PLG-021|52-63|Not Started|The getting-started file written by init
 TASK-PLG-022|64-75|Not Started|The guide leaves the root

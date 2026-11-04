@@ -67,8 +67,8 @@ When the user asks to start a session, run these steps in order before any task:
    to `process/_sessionstate/METRICS_LOG.md`, creating it with its header row first if absent.
 
 3) **IF** step 1's metrics table has at least one non-zero counter, **propose a recursive
-   self-improvement follow-up**: ask the user for the maximum lines to add to this
-   file, present 1-3 candidate themes each citing the counter(s) that motivate it, and state the
+   self-improvement follow-up**: ask the user for the maximum lines to add to the
+   improvement target (see [RECURSIVE SELF-IMPROVEMENT SESSIONS](#recursive-self-improvement-sessions)), present 1-3 candidate themes each citing the counter(s) that motivate it, and state the
    resulting number of iterations. Do NOT start implementing until the user confirms.
 
 
@@ -91,7 +91,7 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
 - Always put traceability references into **commments** format , never as plain text.
 
 ### MANDATORY INSTRUCTIONS-FILE LINE BUDGET
-- This file (`agnos-sw-eng.instructions.md`) SHALL NOT exceed 400 lines.
+- This file SHALL NOT exceed 400 lines. <!-- RQ-PLG-019 / DEC-PLG-014 -->
 - Any task that edits this file SHALL report its post-edit line count in the task's `Verification` field before being marked Done.
 
 ### MANDATORY DESIGN SYSTEM (UI PROJECTS)
@@ -118,8 +118,10 @@ Long sessions risk filling the AI's context window, causing lost context and deg
 
 ## RECURSIVE SELF-IMPROVEMENT SESSIONS
 
-WHILE a session explicitly runs numbered iterations to improve this instructions file itself, apply
-these on top of the normal process:
+WHILE a session explicitly runs numbered iterations to improve the process, apply these on top of the
+normal process. The rules go into the **improvement target**: the file the project's AGNOS block (in
+`CLAUDE.md` or `AGENTS.md`) names for improvements, created if absent; this file otherwise. NEVER edit a
+file of an installed plugin. <!-- RQ-PLG-018 / DEC-PLG-013 -->
 
 1. **Tag every commit.** See the `agnos-git-workflow` skill's `commit-task` procedure for the exact
    commit-message format, including the `Iteration: k/N` trailer it appends during this kind of session.

@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-019: The improvement target, and "this file"
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Define the improvement target in the RECURSIVE SELF-IMPROVEMENT section, refer to it from END SESSION step 3, and drop the file name from the line budget.
 - **Requirement refs**: RQ-PLG-018, RQ-PLG-019
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-013, DEC-PLG-014)
 - **Acceptance Criteria**: Given RQ-PLG-018's and RQ-PLG-019's criteria, Then they hold, tested on the skill `process_skill` generates; Given the instructions file, Then its line count is at most 400 and is reported.
 - **Dependencies**: TASK-PLG-018
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_process_text.py` written first, 3 of 3 failed, then 3 OK (target named by the AGNOS block in RECURSIVE SELF-IMPROVEMENT, END SESSION refers to it, no `agnos-sw-eng.instructions.md` in the delivered skill); one failure on the way came from a line break inside "improvement target", fixed by rewrapping the text, the test unchanged. Instructions file: 385 lines. meta-release 95 OK, meta-demo 12 OK, 0 skipped.
+- **Assumptions**: the line budget stays on this file only; in a plugin project the lines the user allows bound the addition. "NEVER edit a file of an installed plugin" added as the rule's explicit guard.
 
 ### TASK-PLG-020: The block reads the project's rules, and the init's last words in two steps
 - **Tier**: M
