@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-022: The guide leaves the root
 - **Tier**: L
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Remove `GETTING_STARTED.MD`; `agnos-meta-docs-sync` keeps the template as its fourth document; the release stops delivering the guide; links in `README.md`, `CONTRIBUTING.md` and the issue template follow.
 - **Requirement refs**: RQ-PLG-022, RQ-DOC-001, RQ-DOC-002, RQ-INI-007
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-017)
 - **Acceptance Criteria**: Given RQ-PLG-022's criteria, Then they hold, the docs-sync and release ones tested first in their suites.
 - **Dependencies**: TASK-PLG-021
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: new tests written first: docs-sync 4 failures, release 2 failures; then docs-sync 18 OK, meta-demo 12 OK. Before the commit, three release tests reading HEAD failed (every tracked file has a layer, the proof on the demo, the determinism of HEAD), HEAD still holding the guide; after commit `35e8ba7`, meta-release 97 OK, 0 skipped. No `GETTING_STARTED` left outside `process/`.
+- **Assumptions**: the README's installation paragraph also lost its "start a new agent session", for RQ-PLG-020's two steps; `AGENTS.md` was edited here rather than by docs-sync, its row naming a file that no longer existed. The demo's check of toolkit paths keeps `GETTING_STARTED.MD`: it still forbids that file in the demo.
 
 ### TASK-PLG-023: The entry-point documents brought up to date
 - **Tier**: M
