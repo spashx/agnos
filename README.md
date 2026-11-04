@@ -11,7 +11,8 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 
 > This README is an overview for human readers and is not normative. The AI agent executes the
 > process from [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md).
-> New to AGNOS? Start with **[GETTING_STARTED.MD](GETTING_STARTED.MD)**, a complete worked session.
+> New to AGNOS? Read **`AGNOS-GETTING-STARTED.md`**, a complete worked session, which `agnos-init` writes into your
+> project; its source is [the skill's template](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md). <!-- RQ-PLG-022 -->
 
 ---
 
@@ -43,7 +44,8 @@ architecture decisions, its tasks and its Git commits, down to the functions tha
 
 **2. Ask your agent to call the `agnos-init` skill once**, from your project's root. This step is required: until it runs, an agent in your project does not know about AGNOS.
 
-Commit the result and start a new agent session. Your own content stays as it is: AGNOS only owns the lines between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGNOS changes, call it again.
+It also writes `AGNOS-GETTING-STARTED.md`, the user's guide. Then open a new conversation in your tool, so that it reads the
+block, and in it ask the agent to start an AGNOS session. <!-- RQ-PLG-020, RQ-PLG-021 --> Your own content stays as it is: AGNOS only owns the lines between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGNOS changes, call it again.
 
 **What was tested** <!-- RQ-PLG-008 -->
 
@@ -146,6 +148,6 @@ or removed.
 
 | Path | Content |
 |---|---|
-| [GETTING_STARTED.MD](GETTING_STARTED.MD) | Worked example — start here |
+| [.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | Worked example, written into each project by `agnos-init` — start here |
 | [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process |
 | [.github/skills/](.github/skills/) | The skills: `agnos-init`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center` |

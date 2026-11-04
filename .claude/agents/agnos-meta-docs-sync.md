@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-docs-sync
-description: Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and GETTING_STARTED.MD from what changed in the repository since each was last changed. Use before a release or after a series of tasks. Edits those four files only and never commits.
+description: Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and the user's guide AGNOS-GETTING-STARTED.md, agnos-init's template, from what changed in the repository since each was last changed. Use before a release or after a series of tasks. Edits those four files only and never commits.
 tools: Read, Grep, Glob, Edit, Bash
 model: haiku
 ---

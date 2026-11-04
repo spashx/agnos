@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-docs-sync
-description: "AGNOS maintainer skill. Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and GETTING_STARTED.MD from what changed in the repository since each of them was last changed. USE FOR: before a release, or after a series of tasks, when the entry-point documents may have drifted. Edits the four files only and never commits: the maintainer reviews and commits."
+description: "AGNOS maintainer skill. Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and the user's guide AGNOS-GETTING-STARTED.md, agnos-init's template, from what changed in the repository since each of them was last changed. USE FOR: before a release, or after a series of tasks, when the entry-point documents may have drifted. Edits the four files only and never commits: the maintainer reviews and commits."
 argument-hint: "(no arguments)"
 ---
 

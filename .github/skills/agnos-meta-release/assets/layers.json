@@ -13,7 +13,6 @@
     "^\\.github/agents/",
     "^\\.github/skills/",
     "^(README|CHANGELOG|LICENSE)\\.md$",
-    "^GETTING_STARTED\\.MD$",
     "^agnos-overview\\.png$",
     "^\\.gitignore$"
   ]

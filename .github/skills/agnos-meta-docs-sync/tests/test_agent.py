@@ -13,7 +13,8 @@ SKILL = SKILL_DIR / "SKILL.md"
 POINTER = ROOT / ".claude" / "skills" / "agnos-meta-docs-sync" / "SKILL.md"
 AGENT = ROOT / ".github" / "agents" / "agnos-meta-docs-sync.agent.md"
 POINTER_AGENT = ROOT / ".claude" / "agents" / "agnos-meta-docs-sync.md"
-DOCUMENTS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md", "GETTING_STARTED.MD")
+DOCUMENTS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md", ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md")   # RQ-PLG-022
+FORMER_GUIDE = "GETTING_STARTED.MD"
 EDIT_TOOLS = {"Read", "Grep", "Glob", "Edit", "Bash"}
 COPILOT_TOOLS = {"read", "search", "edit", "execute"}
 FRONT_RE = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
@@ -39,6 +40,10 @@ class SkillTest(unittest.TestCase):
         for rule in ("Keep a Changelog", "Unreleased", "maintainer", "changes_since.py", "never commit"):
             self.assertIn(rule.lower(), body.lower(), rule)
         self.assertRegex(body, r"(?i)no statement without|never state what no commit")
+
+    def test_RQ_PLG_022_given_the_skill_the_agent_and_the_pointers_then_none_names_the_former_guide(self):
+        for path in (SKILL, POINTER, AGENT, POINTER_AGENT):
+            self.assertNotIn(FORMER_GUIDE, path.read_text(encoding="utf-8"), path.name)
 
     def test_RQ_DOC_003_given_the_claude_code_pointer_then_it_names_the_same_skill_and_the_canonical_file(self):
         fields, body = front_matter(POINTER)

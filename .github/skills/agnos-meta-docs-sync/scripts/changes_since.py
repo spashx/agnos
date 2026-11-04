@@ -13,7 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-TARGETS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md", "GETTING_STARTED.MD")
+TARGETS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md",
+           ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md")   # RQ-PLG-022 / DEC-PLG-017: the user's guide
 IGNORED_PREFIXES = ("process/INDEX.idx.md", "process/_sessionstate/")
 SKILLS_DIR = ".github/skills"
 SKILL_FILE = "SKILL.md"

@@ -21,6 +21,7 @@ sys.path.insert(0, str(TRACE_TESTS))
 IDENTITY = {"GIT_AUTHOR_NAME": "tester", "GIT_AUTHOR_EMAIL": "tester@example.invalid",
             "GIT_COMMITTER_NAME": "tester", "GIT_COMMITTER_EMAIL": "tester@example.invalid"}
 SKILL_FRONT = '---\nname: {name}\ndescription: "{description}"\n---\n\n# {name}\n'
+GUIDE_TEMPLATE = ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md"     # RQ-PLG-022
 
 
 def git(repo, *args):
@@ -60,6 +61,10 @@ class ChangesSinceTest(unittest.TestCase):
 
     def target(self, report, name):
         return next(t for t in report["targets"] if t["file"] == name)
+
+    def test_RQ_PLG_022_given_the_report_then_its_fourth_document_is_the_guide_template_of_agnos_init(self):
+        files = [t["file"] for t in cs.collect(self.repo)["targets"]]
+        self.assertEqual(["CHANGELOG.md", "AGENTS.md", "CLAUDE.md", GUIDE_TEMPLATE], files)
 
     def test_RQ_DOC_001_given_a_changelog_changed_before_two_commits_then_only_the_commit_with_real_changes_is_listed(self):
         changelog = self.target(cs.collect(self.repo), "CHANGELOG.md")

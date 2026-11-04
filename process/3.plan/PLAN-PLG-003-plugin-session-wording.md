@@ -63,7 +63,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-022: The guide leaves the root
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Remove `GETTING_STARTED.MD`; `agnos-meta-docs-sync` keeps the template as its fourth document; the release stops delivering the guide; links in `README.md`, `CONTRIBUTING.md` and the issue template follow.
 - **Requirement refs**: RQ-PLG-022, RQ-DOC-001, RQ-DOC-002, RQ-INI-007
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-017)

@@ -91,7 +91,7 @@ MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, CODEX_CAT
 NO_BYTECODE = {"PYTHONDONTWRITEBYTECODE": "1"}     # RQ-PLG-012, DEC-PLG-008: the checks run Python from the output
 AGENT_PLUGINS_SCHEMA ="https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 CHANGELOG = "CHANGELOG.md"
-USER_DOCUMENTS = {"README.md", "GETTING_STARTED.MD"}      # RQ-PLG-008: their links lead into the plugin
+USER_DOCUMENTS = {"README.md"}      # RQ-PLG-008: its links lead into the plugin; RQ-PLG-022: the guide is agnos-init's template
 # RQ-PLG-006, DEC-PLG-005: an agent defined once, one file per tool.
 AGENT_SOURCE_RE = re.compile(r"^\.github/agents/(.+)\.agent\.md$")
 AGENT_HEADER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n(.*)\Z", re.S)

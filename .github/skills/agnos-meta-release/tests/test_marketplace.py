@@ -22,6 +22,8 @@ ATTRIBUTES = ".gitattributes"
 AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 WORKSHOP_ROOTS = (".github/", ".claude/", "CLAUDE.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md")
 SAME_IN_MANIFESTS = ("name", "version", "description")
+GUIDE = "AGNOS-GETTING-STARTED.md"          # RQ-PLG-022
+FORMER_GUIDE = "GETTING_STARTED.MD"
 
 
 class MarketplaceCase(RehearsalCase):
@@ -116,16 +118,20 @@ class ProcessSkillTest(MarketplaceCase):
 
 
 class UserDocumentsTest(MarketplaceCase):
-    """RQ-PLG-008: the README and the guide point to where the files are in the marketplace."""
+    """RQ-PLG-008: the README points to where the files are in the marketplace; RQ-PLG-022: the guide is the init's template."""
 
     def test_RQ_PLG_008_given_a_document_with_workshop_links_when_it_runs_then_they_lead_into_the_plugin(self):
         links = "[a](.github/instructions/agnos-sw-eng.instructions.md) [b](.github/skills/agnos-index/SKILL.md)\n"
-        self.commit({"README.md": links, "GETTING_STARTED.MD": links, CHANGELOG_FILE: f"## [v1.2]\n{links}"})
+        self.commit({"README.md": links, CHANGELOG_FILE: f"## [v1.2]\n{links}"})
         self.built()
         expected = f"[a]({PROCESS_SKILL}) [b]({SKILLS}/agnos-index/SKILL.md)\n"
-        for name in ("README.md", "GETTING_STARTED.MD"):
-            self.assertEqual(expected, (self.output / name).read_text(encoding="utf-8"), name)
+        self.assertEqual(expected, (self.output / "README.md").read_text(encoding="utf-8"))
         self.assertIn(links, (self.output / CHANGELOG_FILE).read_text(encoding="utf-8"))
+
+    def test_RQ_PLG_022_given_the_readme_then_it_sends_the_user_to_the_guide_agnos_init_writes(self):
+        text = (HERE.parents[3] / "README.md").read_text(encoding="utf-8")
+        self.assertIn(GUIDE, text)
+        self.assertNotIn(FORMER_GUIDE, text)
 
 
 class WhatWasTestedTest(unittest.TestCase):

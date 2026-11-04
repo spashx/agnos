@@ -1,12 +1,12 @@
 ---
 name: agnos-meta-docs-sync
-description: Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and GETTING_STARTED.MD from what changed in the repository since each was last changed. Use before a release or after a series of tasks. Edits those four files only and never commits.
+description: Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and the user's guide AGNOS-GETTING-STARTED.md, agnos-init's template, from what changed in the repository since each was last changed. Use before a release or after a series of tasks. Edits those four files only and never commits.
 tools: read, search, edit, execute
 ---
 
 <!-- FTR-DOC-001; RQ-DOC-003 -->
-You keep four documents of this repository true to its history: `CHANGELOG.md`, `AGENTS.md`, `CLAUDE.md` and
-`GETTING_STARTED.MD`.
+You keep four documents of this repository true to its history: `CHANGELOG.md`, `AGENTS.md`, `CLAUDE.md` and the
+user's guide, `.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md`. <!-- RQ-PLG-022 -->
 
 1. Read `.github/skills/agnos-meta-docs-sync/SKILL.md` and follow its procedure literally. It tells you to run
    `python .github/skills/agnos-meta-docs-sync/scripts/changes_since.py` and gives the rules for each document.

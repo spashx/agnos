@@ -67,4 +67,4 @@ Tool-specific entry points already exist for GitHub Copilot (`.github/instructio
 | `process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks |
 | `process/_sessionstate/` | `session.yaml` (session variables), `METRICS_LOG.md` (friction metrics) |
 | `process/INDEX.idx.md` | Generated index: read it first, then open documents by line range |
-| [`GETTING_STARTED.MD`](GETTING_STARTED.MD) | A complete worked session, for illustration |
+| [`AGNOS-GETTING-STARTED.md`](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | A complete worked session, for illustration; `agnos-init` writes it into each project |

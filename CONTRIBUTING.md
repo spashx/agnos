@@ -3,7 +3,7 @@
 Thanks for taking the time to contribute. This repository defines the **AGNOS Software
 Engineering Process** — the instructions, skills, and templates that an AI coding agent (GitHub
 Copilot or Claude Code) follows. Read
-[README.md](README.md) and [GETTING_STARTED.MD](GETTING_STARTED.MD) first if you haven't already;
+[README.md](README.md) and the user's guide, [AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md), first if you haven't already;
 they explain what the process does before you change how it does it.
 
 By participating, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
@@ -13,7 +13,7 @@ By participating, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md
 - **Process changes** — edits to
   [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md),
   the `agnos-git-workflow` skill, or the requirement/ADR/plan templates.
-- **Documentation** — `README.md`, `GETTING_STARTED.MD`, this file, or comments inside the
+- **Documentation** — `README.md`, the user's guide `AGNOS-GETTING-STARTED.md` (a template of `agnos-init`), this file, or comments inside the
   templates.
 - **Tooling** — the `validate-ids` scripts (`.github/skills/agnos-git-workflow/scripts/`), kept
   exit-code-equivalent between the PowerShell and bash versions.
@@ -26,7 +26,7 @@ AGNOS is developed with AGNOS, so this tree holds three layers:
 
 | Layer | What it holds | Delivered |
 |---|---|---|
-| **Toolkit** | The instructions file, the process skills, `README.md`, `GETTING_STARTED.MD`, `CHANGELOG.md`, `LICENSE.md` | Yes, in the marketplace |
+| **Toolkit** | The instructions file, the process skills (the user's guide among `agnos-init`'s templates), `README.md`, `CHANGELOG.md`, `LICENSE.md` | Yes, in the marketplace |
 | **Public repository** | `SECURITY.md`, `CODE_OF_CONDUCT.md`, this file, the GitHub templates | No: they address this repository's contributors |
 | **Meta** | `process/`, `CLAUDE.md`, `AGENTS.md`, `.claude/`, the `agnos-meta-*` skills and sub-agents, the tests of every skill | No |
 

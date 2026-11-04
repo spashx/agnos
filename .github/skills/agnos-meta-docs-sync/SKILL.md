@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-docs-sync
-description: "AGNOS maintainer skill. Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and GETTING_STARTED.MD from what changed in the repository since each of them was last changed. USE FOR: before a release, or after a series of tasks, when the entry-point documents may have drifted. Edits the four files only and never commits: the maintainer reviews and commits."
+description: "AGNOS maintainer skill. Updates CHANGELOG.md, AGENTS.md, CLAUDE.md and the user's guide AGNOS-GETTING-STARTED.md, agnos-init's template, from what changed in the repository since each of them was last changed. USE FOR: before a release, or after a series of tasks, when the entry-point documents may have drifted. Edits the four files only and never commits: the maintainer reviews and commits."
 argument-hint: "(no arguments)"
 ---
 
@@ -61,9 +61,11 @@ points to it for Claude Code, on the Haiku model.
   entry point under `.claude/skills/`, its canonical procedure under `.github/skills/`); add, remove or correct the bullet
   the same way. Keep the `@` import and the HTML comments that cite requirement IDs.
 
-## `GETTING_STARTED.MD`
+## `.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md`
 
-- It is a worked example. Change only a passage that describes a behaviour the commits changed: a skill's name or
+<!-- RQ-PLG-022 / DEC-PLG-017 -->
+- The user's guide, which `agnos-init` writes into each project. It is a worked example, addressed to a user of the plugin: it
+  names skills, never a path of this repository. Change only a passage that describes a behaviour the commits changed: a skill's name or
   commands, a session variable, the commit message format, the end-of-session steps. Find the passage with a search for
   the changed name or command, correct that passage, and leave the rest, including the example project.
 - If no commit changed such a behaviour, leave the file as it is and say so.

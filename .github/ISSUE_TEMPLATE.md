@@ -12,7 +12,7 @@ assignees: ""
 - [ ] Bug — something in the process/skill/scripts doesn't work as documented
 - [ ] Feature request — a new capability for the process
 - [ ] Process improvement — an existing rule is unclear, conflicting, or produces friction
-- [ ] Documentation — README / GETTING_STARTED / templates are wrong or missing something
+- [ ] Documentation — README / the user's guide (AGNOS-GETTING-STARTED.md) / templates are wrong or missing something
 
 ## Description
 

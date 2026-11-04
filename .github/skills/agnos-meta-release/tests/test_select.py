@@ -34,7 +34,7 @@ PROCESS_FILE = "process/INDEX.idx.md"
 SETTINGS = ".claude/settings.json"
 UNKNOWN_FILE = "stray.txt"
 PUBLIC_FILES = ("LICENSE.md", ".gitignore")
-TOOLKIT_FILES = ("README.md", "GETTING_STARTED.MD", "CHANGELOG.md", "agnos-overview.png",
+TOOLKIT_FILES = ("README.md", ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md", "CHANGELOG.md", "agnos-overview.png",
                  ".github/instructions/agnos-sw-eng.instructions.md", ".github/skills/agnos-init/SKILL.md")
 WORKSHOP_FILES = ("CLAUDE.md", "AGENTS.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".github/ISSUE_TEMPLATE.md",
                   ".github/PULL_REQUEST_TEMPLATE.md", ".gitattributes", ".claude/skills/agnos-init/SKILL.md")
@@ -180,6 +180,9 @@ class LayersTest(RehearsalCase):
         rules = release.load_rules()
         self.assertEqual(release.LAYER_META, release.layer_of(".github/agents/agnos-meta-new.agent.md", rules))
         self.assertEqual(release.LAYER_DELIVERED, release.layer_of(".github/agents/agnos-new.agent.md", rules))
+
+    def test_RQ_PLG_022_given_a_guide_at_the_root_then_it_has_no_layer_so_the_release_refuses_it(self):
+        self.assertIsNone(release.layer_of("GETTING_STARTED.MD", release.load_rules()))
 
     def test_RQ_MTA_008_given_this_repository_then_every_tracked_file_has_a_layer_and_the_delivered_ones_are_right(self):
         rules = release.load_rules()
