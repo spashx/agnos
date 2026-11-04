@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-init` writes `AGNOS-GETTING-STARTED.md` at the project's root, the user's guide for a plugin user, and reports it created, updated or unchanged <!-- ADR-PLG-003, TASK-PLG-021, RQ-PLG-021, RQ-PLG-022 -->
+- `agnos-meta-release` writes `<folder>.report.html` beside its JSON report: one self-contained page, its data embedded and escaped, drawn as text only, its styles from the perf center's design tokens <!-- ADR-PLG-002, TASK-PLG-015, TASK-PLG-016, RQ-PLG-016, RQ-PLG-017 -->
+- `agnos-meta-release` checks the four manifests and catalogues by script, with no AI tool: required fields, plugin folders, the same name, version and description everywhere <!-- ADR-PLG-002, TASK-PLG-014, RQ-PLG-015 -->
+- `agnos-meta-release` console: the problems, the lines to read, the mentions and the IDs outside comments, each with its file and line, and a last line giving `exit=` whatever the outcome <!-- ADR-PLG-002, TASK-PLG-013, RQ-PLG-014 -->
 - `agnos-meta-plugin-proof` maintainer skill: proves a built marketplace by a real install in isolated Claude Code and GitHub Copilot configurations, on request with questions to their models and the delivered suites on Linux, publishing nothing <!-- ADR-PLG-001, TASK-PLG-008, RQ-PLG-010 -->
 - `agnos-meta-release` writes a marketplace holding the plugin `agnos`, with its generated skill `agnos-process` and its agents, for Claude Code, GitHub Copilot and OpenAI Codex <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-006, RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-006, RQ-PLG-007 -->
 - `agnos-meta-release` maintainer skill: rehearses a release in a folder, from a commit, without AGNOS's own IDs, and proves it behaves as the repository does, publishing nothing <!-- ADR-MTA-002, TASK-MTA-005 to TASK-MTA-008, RQ-MTA-006 to RQ-MTA-013 -->
@@ -83,6 +87,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands <!-- ADR-DMO-001, TASK-DMO-008, TASK-DMO-009 -->
 
 ### Changed
+- `agnos-init`'s success step gives two steps: open a new conversation, so that it reads the block, then ask it for an AGNOS session; the step names `AGNOS-GETTING-STARTED.md` as the guide to read meanwhile <!-- ADR-PLG-003, TASK-PLG-020, TASK-PLG-021, RQ-PLG-020, RQ-PLG-021 -->
+- The `agnos-init` block tells the agent to read `process/project-rules.md` when it exists, and names it the improvement target. Initialised projects call `agnos-init` again to update <!-- ADR-PLG-003, TASK-PLG-020, RQ-PLG-018 -->
+- The process's self-improvement goes into the improvement target, the file the project's AGNOS block names (created if absent), and into the instructions file otherwise, never into a file of an installed plugin <!-- ADR-PLG-003, TASK-PLG-019, RQ-PLG-018, RQ-PLG-019 -->
+- A test run's `Verification` field states how many tests were skipped and why: a skipped test is not a passed test <!-- TASK-PLG-009, RQ-PLG-011 -->
 - `README.md` and `GETTING_STARTED.MD` address plugin users, and the README states what was tested per tool and system <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-007, RQ-PLG-008, RQ-PLG-009 -->
 - `agnos-init` writes a block naming the skill `agnos-process`, with no path, and no longer takes a toolkit input. Initialised projects install the plugin and call `agnos-init` again to update <!-- ADR-PLG-001, TASK-PLG-004, RQ-PLG-004, RQ-INI-006 -->
 - The delivered skills name their files from their own folder, with no `.github/skills/` path <!-- ADR-PLG-001, TASK-PLG-002, RQ-PLG-005 -->
@@ -120,6 +128,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   TASK-FIX-001, RQ-FIX-001 -->
 
 ### Fixed
+- `agnos-meta-release` output holds what is declared: no bytecode written by its checks, and a stray file fails the rehearsal <!-- ADR-PLG-002, TASK-PLG-011, RQ-PLG-012 -->
 - `agnos-init` accepts an absolute target on Windows, and `agnos-meta-release` no longer takes two failures for the same behaviour <!-- ADR-PLG-001, TASK-PLG-006, RQ-PLG-006, RQ-MTA-011 -->
 - `agnos-perf-center` writes dates in one form whatever git's version, and the delivered suites run on Linux <!-- ADR-PLG-001, TASK-PLG-003, RQ-PLG-008 -->
 - `agnos-perf-center` matrix: headers of the list columns aligned left with their cells <!-- ADR-TRC-002,
@@ -130,6 +139,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `agnos-perf-center` graph: relation tooltip delay halved to 1 s <!-- TASK-TRC-045, RQ-TRC-046 -->
 
 ### Removed
+- `GETTING_STARTED.MD` leaves the repository root and the release: the user's guide is `AGNOS-GETTING-STARTED.md`, which `agnos-init` writes into each project, and README, CONTRIBUTING and the issue template link to it <!-- ADR-PLG-003, TASK-PLG-022, RQ-PLG-022 -->
 - `agnos-perf-center` "gaps" view and wording in the page, data and docs, replaced by the Quality view,
   checks and findings <!-- ADR-TRC-008, TASK-TRC-047, RQ-TRC-057 -->
 

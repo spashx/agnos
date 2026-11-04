@@ -51,7 +51,7 @@ block, and in it ask the agent to start an AGNOS session. <!-- RQ-PLG-020, RQ-PL
 
 | Tool or system | Result |
 |---|---|
-| Claude Code, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process; an agent found and run. A full session is not tested yet. |
+| Claude Code, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process; an agent found and run. A full session on a new repository ran as the process says, with a marketplace built before `AGNOS-GETTING-STARTED.md`: START SESSION with its question, the index and the branch, a requirement and a plan, the task approved, test first, `commit-task`, the end of the session, and `agnos-perf-center`. <!-- RQ-PLG-009, TASK-PLG-007 --> |
 | GitHub Copilot CLI, Windows | Installed from a local folder; `agnos-init` and `agnos-index` run; the block loads the process on a work question, not on a trivial one; an agent found and run. A full session is not tested yet. |
 | GitHub Copilot in VS Code | Not tested. |
 | OpenAI Codex | Not tested: its catalogue and manifest follow its documentation. |

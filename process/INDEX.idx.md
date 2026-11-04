@@ -592,7 +592,7 @@ TASK-PLG-019|28-39|Done|The improvement target, and "this file"
 TASK-PLG-020|40-51|Done|The block reads the project's rules, and the init's last words in two steps
 TASK-PLG-021|52-63|Done|The getting-started file written by init
 TASK-PLG-022|64-75|Done|The guide leaves the root
-TASK-PLG-023|76-87|Not Started|The entry-point documents brought up to date
+TASK-PLG-023|76-87|Done|The entry-point documents brought up to date
 TASK-PLG-024|88-98|Not Started|The release rehearsed again, and proved
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

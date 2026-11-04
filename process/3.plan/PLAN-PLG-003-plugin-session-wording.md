@@ -75,15 +75,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-023: The entry-point documents brought up to date
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Record the Claude Code full session in the README's "What was tested" table, then run `agnos-meta-docs-sync` and review what it changes.
 - **Requirement refs**: RQ-PLG-008, RQ-PLG-009
 - **ADR refs**: ADR-PLG-001 (DEC-PLG-006)
 - **Acceptance Criteria**: Given the README, Then the Claude Code row states the full session observed on 2026-11-04 and only that; Given `CHANGELOG.md`, Then `[Unreleased]` holds PLAN-PLG-002 and PLAN-PLG-003 changes; Given `agnos-meta-demo`'s suite, Then it passes.
 - **Dependencies**: TASK-PLG-019, TASK-PLG-022
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: README's Claude Code row states the session of 2026-11-04, on a marketplace built before the guide. `agnos-meta-docs-sync` on Haiku: `git status` shows only `CHANGELOG.md` changed by it (with the README row of this task); `git diff` read: 10 bullets under `[Unreleased]`, each with the IDs of a real commit (TASK-PLG-009, TASK-PLG-011, TASK-PLG-013 to 016, TASK-PLG-019 to 022), no released section touched. meta-demo 12 OK, `test_marketplace.py` OK, 0 skipped.
+- **Assumptions**: older `[Unreleased]` bullets naming `GETTING_STARTED.MD` stay: they record what was true when written. This run of docs-sync on Haiku is the owner's check 5 of TASK-PLG-007 seen from this side only: the owner's own run in a Claude Code session remains theirs.
 
 ### TASK-PLG-024: The release rehearsed again, and proved
 - **Tier**: M
