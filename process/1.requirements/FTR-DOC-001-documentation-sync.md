@@ -37,6 +37,7 @@ release number.
   and the other commit only, with its files; Given a document that was never committed, Then its last change is null and
   every commit is listed.
 - **Dependencies**: None
+- **Amended by**: RQ-PLG-022 — the fourth document is `agnos-init`'s template `AGNOS-GETTING-STARTED.md`, in place of `GETTING_STARTED.MD`.
 
 ### RQ-DOC-002: Rules for each document
 - **Category**: Functional
@@ -51,6 +52,7 @@ release number.
 - **Acceptance Criteria**: Given the skill's procedure, When it is read, Then it names the four documents, the changelog
   format, the maintainer-skill exclusion and the ban on unsupported statements.
 - **Dependencies**: RQ-DOC-001
+- **Amended by**: RQ-PLG-022 — the rules given to `GETTING_STARTED.MD` apply to `agnos-init`'s template `AGNOS-GETTING-STARTED.md`.
 
 ### RQ-DOC-003: A cheap sub-agent that edits and never commits
 - **Category**: Functional

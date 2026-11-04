@@ -54,6 +54,7 @@ copy format of DEC-MTA-005, abandoned by the owner on 2026-10-31.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a project, When `agnos-init` runs, Then both blocks name `agnos-process`, And neither holds a path; Given a project with an earlier block, When it runs again, Then the block is replaced and every other byte is preserved.
 - **Dependencies**: RQ-INI-002, RQ-INI-003, RQ-INI-006
+- **Amended by**: RQ-PLG-018 — the block may name a path inside the project, `process/project-rules.md`; it holds no path outside it.
 
 ### RQ-PLG-005: Scripts found from the skill's own folder
 - **Category**: Functional

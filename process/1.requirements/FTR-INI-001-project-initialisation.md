@@ -105,6 +105,7 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying AGNO
   `agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project`; Given
   the instructions file, Then START SESSION says to stop and ask for `agnos-init` in that case, And it stays within 400 lines.
 - **Dependencies**: RQ-IDX-008, RQ-INI-001
+- **Amended by**: RQ-PLG-022 — the guide is `agnos-init`'s template `AGNOS-GETTING-STARTED.md`, no longer `GETTING_STARTED.MD`.
 
 ### RQ-INI-008: The demo is an initialised project
 - **Category**: Functional
