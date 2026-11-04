@@ -87,15 +87,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-025: The README as a landing page
 - **Tier**: M
-- **Status**: In Progress
-- **Description**: Reduce `README.md` to what AGNOS is, its skills and getting started; move what was tested into a delivered `COMPATIBILITY.md`, the artifacts table into the guide and the repository map into `CONTRIBUTING.md`.
+- **Status**: Done
+- **Description**: Reduce `README.md` to what AGNOS is, its skills, its requirements per platform and getting started; move what was tested into a delivered `COMPATIBILITY.md`, the artifacts table into the guide and the repository map into `CONTRIBUTING.md`.
 - **Requirement refs**: RQ-PLG-023, RQ-PLG-008, RQ-INI-007
 - **ADR refs**: ADR-PLG-003 (DEC-PLG-018)
 - **Acceptance Criteria**: Given RQ-PLG-023's criteria, Then they hold, tested first; Given the suites of `agnos-meta-release` and `agnos-init`, Then they pass.
 - **Dependencies**: TASK-PLG-023
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: tests written first, twice: the landing page (5 marketplace failures, 1 guide failure), then, at the owner's request, the Requirements section and no word of what was tested (2 failures, 1 error); then `test_marketplace.py` OK. After commit `4d73dbc`: meta-release 101 OK, init OK, 0 skipped, the layer test passing once `COMPATIBILITY.md` was at HEAD. Demo rebuilt: 23 passed, HEAD `4347a66`. meta-demo 12 OK.
+- **Assumptions**: the requirements were read from the skills: Python 3.9+ only for `agnos-perf-center` (its SKILL.md and scripts), PowerShell 5.1 or bash for the others, tree-sitter never fetched, the page's libraries from cdnjs. Scope grown at the owner's request during the task: the Requirements section and the removal of the last "tested" sentence.
 
 ### TASK-PLG-024: The release rehearsed again, and proved
 - **Tier**: M

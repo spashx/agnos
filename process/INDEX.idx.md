@@ -375,13 +375,13 @@ DEC-PLG-010|25-31||The release checks the manifests by script, the proof by the 
 DEC-PLG-011|32-35||The page is built from a template, its data embedded
 DEC-PLG-012|36-40||The perf center's tokens, read from the commit rehearsed
 @process/2.architecture/ADR-PLG-003-plugin-session-wording.md
-ADR-PLG-003|1-95|Accepted — approved by the owner on 2026-11-04, for FTR-PLG-003 (RQ-PLG-018 to RQ-PLG-022); DEC-PLG-018 for RQ-PLG-023, the same day. Amends RQ-PLG-004 and DEC-PLG-003 on the block's paths, and RQ-DOC-001, RQ-DOC-002, RQ-INI-007 on the guide's location.|The Process Speaks to a Plugin User
+ADR-PLG-003|1-97|Accepted — approved by the owner on 2026-11-04, for FTR-PLG-003 (RQ-PLG-018 to RQ-PLG-022); DEC-PLG-018 for RQ-PLG-023, the same day. Amends RQ-PLG-004 and DEC-PLG-003 on the block's paths, and RQ-DOC-001, RQ-DOC-002, RQ-INI-007 on the guide's location.|The Process Speaks to a Plugin User
 DEC-PLG-013|15-24||The block declares the improvement target
 DEC-PLG-014|25-27||The process says "this file"
 DEC-PLG-015|28-31||The init's last words in two steps, in its skill
 DEC-PLG-016|32-37||A getting-started file owned by AGNOS, from a template
 DEC-PLG-017|38-44||The former guide becomes the template, and docs-sync follows it
-DEC-PLG-018|45-52||One reader per document
+DEC-PLG-018|45-54||One reader per document
 @process/2.architecture/ADR-QLT-001-code-quality-report.md
 ADR-QLT-001|1-79|Accepted — approved by the owner on 2026-10-31, for FTR-QLT-001 (RQ-QLT-001 to RQ-QLT-010).|A Report on Demand, from Pinned Command-Line Analysers
 DEC-QLT-001|17-20||An explicit call that blocks nothing
@@ -595,7 +595,7 @@ TASK-PLG-020|40-51|Done|The block reads the project's rules, and the init's last
 TASK-PLG-021|52-63|Done|The getting-started file written by init
 TASK-PLG-022|64-75|Done|The guide leaves the root
 TASK-PLG-023|76-87|Done|The entry-point documents brought up to date
-TASK-PLG-025|88-99|In Progress|The README as a landing page
+TASK-PLG-025|88-99|Done|The README as a landing page
 TASK-PLG-024|100-110|Not Started|The release rehearsed again, and proved
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

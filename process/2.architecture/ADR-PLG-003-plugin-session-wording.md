@@ -44,7 +44,9 @@ RQ-PLG-022; amends RQ-DOC-001, RQ-DOC-002 and RQ-INI-007 on the guide's location
 
 ### DEC-PLG-018: One reader per document
 Added on 2026-11-04, after the owner's review of the README. `README.md` addresses the plugin user only: what AGNOS is, its skills,
-getting started in three steps ending on the guide, and one sentence naming `COMPATIBILITY.md`. That new root file, delivered by a
+its requirements per platform, read from the skills themselves (Python only for `agnos-perf-center`, the call graph's packages
+installed by the user, never fetched), getting started in three steps ending on the guide, and a reference to `COMPATIBILITY.md`
+that states nothing of what was tested. That new root file, delivered by a
 release layer rule, holds the table of what was tested per tool and system, and is the only place stating it: the changelog says what
 each release holds, and the guide, copied into projects, would let it age there. How a session runs and the concepts are the guide's,
 which gains the table of artifacts and the identifier format, the only part it lacked; the repository map moves to `CONTRIBUTING.md`,

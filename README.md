@@ -28,8 +28,28 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
 | **`agnos-perf-center`** | Generates a complete application, opened from disk, to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
-**Delivered as:** one marketplace holding the plugin `agnos`, for Claude Code, GitHub Copilot and OpenAI Codex. Tested on Windows
-with Claude Code and GitHub Copilot CLI: see [COMPATIBILITY.md](COMPATIBILITY.md) for each tool and system. <!-- RQ-PLG-008 -->
+**Delivered as:** one marketplace holding the plugin `agnos`, for Claude Code, GitHub Copilot and OpenAI Codex.
+
+---
+
+## Requirements
+
+<!-- RQ-PLG-023 / DEC-PLG-018: read from the skills, each states its own needs -->
+
+| Need | Windows | Linux, macOS | Used by |
+|---|---|---|---|
+| An AI coding tool | Claude Code, GitHub Copilot (CLI or VS Code) or OpenAI Codex | The same | Every skill |
+| git | Git for Windows | git | `agnos-git-workflow`; `agnos-perf-center --history` |
+| A shell for the scripts | Windows PowerShell 5.1, built into Windows; PowerShell 7 is not needed | bash, with the usual `grep`, `awk`, `od` and `cmp` | `agnos-init`, `agnos-index`, `agnos-git-workflow` |
+| Python 3.9 or later, standard library only | `python` | `python3` | `agnos-perf-center` only |
+| A current browser, and the network once | The page loads its libraries from cdnjs the first time it opens | The same | The page of `agnos-perf-center` |
+
+**Optional — the call graph.** `agnos-perf-center --call-graph` also needs the tree-sitter packages listed in the skill's
+`requirements-callgraph.txt`. They are not fetched automatically: install them once with
+`pip install -r requirements-callgraph.txt` from the skill's folder, or let the agent do it with your approval. They are
+prebuilt wheels, so no compiler is needed. Without them, the page is written all the same, without functions.
+
+The tools and systems AGNOS was checked on are listed in [COMPATIBILITY.md](COMPATIBILITY.md). <!-- RQ-PLG-008 -->
 
 ---
 

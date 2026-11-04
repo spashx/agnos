@@ -27,7 +27,8 @@ GUIDE = "AGNOS-GETTING-STARTED.md"          # RQ-PLG-022
 FORMER_GUIDE = "GETTING_STARTED.MD"
 ROOT = HERE.parents[3]
 COMPATIBILITY = "COMPATIBILITY.md"           # RQ-PLG-023
-README_SECTIONS = ["What AGNOS Provides", "Getting Started", "License"]
+README_SECTIONS = ["What AGNOS Provides", "Requirements", "Getting Started", "License"]
+REQUIREMENTS_NAMED = ("git", "PowerShell 5.1", "bash", "Python 3.9", "requirements-callgraph.txt", "not fetched")
 MOVED_SECTIONS = ("What was tested", "How a Session Runs", "Core Concepts", "Continuous Improvement", "Repository Map")
 
 
@@ -157,8 +158,14 @@ class ReadmeTest(unittest.TestCase):
     def test_RQ_PLG_023_given_the_readme_then_its_sections_are_provides_getting_started_and_license_in_order(self):
         self.assertEqual(README_SECTIONS, re.findall(r"^## (.+?)\s*$", self.text, re.M))
 
-    def test_RQ_PLG_023_given_the_readme_then_it_names_compatibility_and_holds_none_of_the_moved_sections(self):
+    def test_RQ_PLG_023_given_the_readme_then_its_requirements_name_each_platform_need_and_what_the_user_installs(self):
+        requirements = self.text.split("## Requirements", 1)[1].split("\n## ", 1)[0]
+        for need in REQUIREMENTS_NAMED:
+            self.assertIn(need, requirements, need)
+
+    def test_RQ_PLG_023_given_the_readme_then_it_names_compatibility_and_says_nothing_of_what_was_tested(self):
         self.assertIn(COMPATIBILITY, self.text)
+        self.assertNotIn("tested", self.text.lower())
         for moved in MOVED_SECTIONS:
             self.assertNotIn(moved.lower(), self.text.lower(), moved)
 
