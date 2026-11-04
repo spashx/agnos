@@ -596,7 +596,7 @@ TASK-PLG-021|52-63|Done|The getting-started file written by init
 TASK-PLG-022|64-75|Done|The guide leaves the root
 TASK-PLG-023|76-87|Done|The entry-point documents brought up to date
 TASK-PLG-025|88-99|Done|The README as a landing page
-TASK-PLG-024|100-110|Not Started|The release rehearsed again, and proved
+TASK-PLG-024|100-110|Done|The release rehearsed again, and proved
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill

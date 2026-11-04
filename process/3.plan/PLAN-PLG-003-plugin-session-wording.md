@@ -99,12 +99,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-024: The release rehearsed again, and proved
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rehearse HEAD into `C:\dev\repos\spashx\agnos-marketplace`, then run `agnos-meta-plugin-proof` on it.
 - **Requirement refs**: RQ-PLG-007, RQ-PLG-010, RQ-PLG-012 to RQ-PLG-017
 - **ADR refs**: ADR-PLG-002, ADR-PLG-001
 - **Acceptance Criteria**: Given a rehearsal of the last commit, Then the exit is 0 and the lines to read are judged; Given the proof, Then every line it runs passes, And the lines it skips are stated with why.
 - **Dependencies**: TASK-PLG-025
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: rehearsal of `25869d8`: `exit=0, 55 files, 1195 IDs removed, 2 lines to read`; both read in the output and judged false alarms (a sentence whole once its comment left, a docstring); 15 mentions, all in `CHANGELOG.md` and the perf center's `maintaining.md`; `COMPATIBILITY.md` and the guide template present, no `GETTING_STARTED.MD`, no `__pycache__`. Proof with `AGNOS_CLAUDE` naming the VS Code extension's `claude.exe` 2.1.318: exit 0, 8 lines pass: claude validate-plugin, validate-catalogue, marketplace-add, install, skills 6 of 6; copilot marketplace-add, install, skills 6 of 6. Not run: `--with-models` (costs credits, not asked) and `--linux`.
+- **Assumptions**: the earlier output and its two reports were removed with the owner's approval of 2026-11-04. The proof's working folder `C:\pp` could not be removed by the agent: the owner's to delete.
