@@ -75,12 +75,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-031: The release rehearsed again with the new rule
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rehearse HEAD into an empty scratchpad folder, prove it, then empty `C:\dev\repos\spashx\agnos-marketplace` and regenerate it, compared file by file with the proved copy.
 - **Requirement refs**: RQ-PLG-007, RQ-PLG-010, RQ-PLG-026
 - **ADR refs**: ADR-PLG-002, ADR-PLG-004
 - **Acceptance Criteria**: Given a rehearsal of the last commit, Then the exit is 0 and the lines to read are judged; Given the proof, Then every line passes; Given the marketplace, Then its files equal the proved copy's.
 - **Dependencies**: TASK-PLG-030
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Rehearsal of `b8445e9`: `exit=0, 55 files, 1201 IDs removed, 2 lines to read`, the same two false alarms as TASK-PLG-029. Proof with `AGNOS_CLAUDE`: exit 0, 8 lines pass. `agnos-marketplace` emptied and regenerated: 55 files, identical by SHA256 to the proved copy. Its `agnos-process/SKILL.md` holds "those of test functions included" (line 89) and the DoD item for functions (line 280).
+- **Assumptions**: None.
