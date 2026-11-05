@@ -18,6 +18,8 @@ and sizes are tokens (ADR-TRC-002).
 ## Decision
 
 ### DEC-TRC-032: Checks are data; the generator scores them
+Amended by DEC-PLG-019 (2026-11-05): *functions traced* has the risk level medium, no longer informational.
+
 A data file of the skill, `assets/scoring.json`, declares the checks (key, title, rule in words, population, risk
 level), the weights of the risk levels (critical 10, high 7.5, medium 5, low 2.5, informational 0), the grade
 thresholds (A 9, B 7.5, C 6, D 4, else E) and the "needs attention" threshold (a score below 7.5). The nine checks are

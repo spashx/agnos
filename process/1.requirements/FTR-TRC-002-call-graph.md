@@ -140,6 +140,8 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Dependencies**: RQ-TRC-009, RQ-TRC-015
 - **Amendment**: Amended by TASK-TRC-076 (owner review of 2026-10-29): the counts are shown under the graph's frame,
   only while the implementation is drawn (RQ-TRC-048), and no longer in the overview.
+- **Amended by**: RQ-PLG-024 (owner review of 2026-11-05) — "Functions traced" is a medium-risk check that weighs in the score
+  and counts in the findings total.
 
 ### RQ-TRC-041: Functions in the matrix, the graph toolbar and every requirement's panel
 - **Category**: Functional

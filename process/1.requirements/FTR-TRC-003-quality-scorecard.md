@@ -72,6 +72,7 @@ configuring the checks per project.
   weighted average of the scored checks by hand; Given the thresholds A 9, B 7.5, C 6, D 4, Then 9.0 is A, 8.9 is B and
   3.9 is E; Given two trigrams, Then each has its own score and grade.
 - **Dependencies**: RQ-TRC-058, RQ-TRC-018
+- **Amended by**: RQ-PLG-024 (owner review of 2026-11-05) — "functions traced" has the risk level medium, no longer informational.
 
 ### RQ-TRC-060: A report card for the decision maker
 - **Category**: Functional
