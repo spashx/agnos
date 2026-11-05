@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-030: A test's ID in its doc comment, not in its name
 - **Tier**: L
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Write RQ-PLG-026 and DEC-PLG-021, then replace "and test case names" in MANDATORY TRACEABILITY by "those of test functions included", tested on the skill the release generates.
 - **Requirement refs**: RQ-PLG-026
 - **ADR refs**: ADR-PLG-004 (DEC-PLG-021)
 - **Acceptance Criteria**: Given RQ-PLG-026's criteria, Then they hold, tested first; Given the instructions file, Then its line count is reported; Given the index, Then it has no duplicate.
 - **Dependencies**: TASK-PLG-028
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: DEC-PLG-021 approved by the owner on 2026-11-05. `TestTraceabilityTest` written first: 2 failures ("those of test functions included" not found; "test case names" found), then OK. agnos-meta-release 106 OK (before and after commit `dd2eb22`), agnos-meta-demo 12 OK, agnos-init 25 OK, 0 skipped. Instructions file: 386 lines. `agnos-index` exit 0, 650 entries, no duplicate.
+- **Assumptions**: None.
 
 ### TASK-PLG-031: The release rehearsed again with the new rule
 - **Tier**: M

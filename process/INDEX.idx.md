@@ -613,7 +613,7 @@ TASK-PLG-026|16-27|Done|Feature, decisions and plan
 TASK-PLG-027|28-39|Done|"Functions traced" weighs medium
 TASK-PLG-028|40-51|Done|The DoD line for functions
 TASK-PLG-029|52-63|Done|The release rehearsed again, and proved
-TASK-PLG-030|64-75|In Progress|A test's ID in its doc comment, not in its name
+TASK-PLG-030|64-75|Done|A test's ID in its doc comment, not in its name
 TASK-PLG-031|76-86|Not Started|The release rehearsed again with the new rule
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
