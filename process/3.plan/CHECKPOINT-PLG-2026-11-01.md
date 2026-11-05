@@ -1,17 +1,18 @@
 # Checkpoint: Session PLG, on 2026-11-01
 
-Read this first when resuming, on any workstation. <!-- PLAN-PLG-001, PLAN-PLG-002 / ADR-PLG-001, ADR-PLG-002, ADR-MTA-001, ADR-MTA-002, ADR-INI-001 / FTR-PLG-001, FTR-PLG-002 -->
+Read this first when resuming, on any workstation. <!-- PLAN-PLG-001, PLAN-PLG-002, PLAN-PLG-003, PLAN-PLG-004 / ADR-PLG-001 to ADR-PLG-004, ADR-MTA-001, ADR-MTA-002, ADR-INI-001 / FTR-PLG-001 to FTR-PLG-004 -->
 
-Updated on 2026-11-03, at the end of the session that delivered PLAN-PLG-002.
+Updated on 2026-11-05, in the session started on 2026-11-04 (PLAN-PLG-003 delivered, PLAN-PLG-004 begun), at its task-count checkpoint.
 
 ## State
-- **Branch**: `feature/PLG`, 189 commits ahead of `main` before this file's commit, created from `feature/TRC`. Last task commit: `907e600`. It has no upstream.
+- **Branch**: `feature/PLG`, 202 commits ahead of `main` before this file's commit. Last task commit: `73fdc61` (TASK-PLG-026). It has no upstream.
 - **Standing constraint**: push nothing, CI included, branch included, until the owner lifts it. Do not propose an exception. (DEC-MTA-004, DEC-PLG-007)
 - **Session variables**: `unit_tests: true`, `platform: windows`. Resolve them again if the workstation's system differs.
-- **Session of 2026-11-03 is closed**: at the owner's request, no friction metrics and no self-improvement follow-up. A new start needs START SESSION; the branch exists, so `start-session PLG` asks how to proceed: keep it.
-- **Open tasks**: one, TASK-PLG-007. Every other indexed task is Done.
-- **Demo**: `agnos-lightweight-process.demo`, beside this repository, HEAD `36f221f`. `agnos-meta-release` needs it for its proof.
-- **Marketplace**: `C:\dev\repos\spashx\agnos-marketplace`, rehearsed from `2afc76e` (the release's delivered layers are unchanged up to `907e600`): `exit=0, 54 files, 1122 IDs removed, 2 lines to read`, no `__pycache__`. Its page: `agnos-marketplace.report.html`, beside it.
+- **Session of 2026-11-04 is open**: ten tasks done, so this checkpoint; the owner chose to continue PLAN-PLG-004 in a new session. Its START SESSION keeps `feature/PLG`.
+- **Open tasks**: TASK-PLG-027, TASK-PLG-028, TASK-PLG-029 (PLAN-PLG-004, approved by the owner on 2026-11-05), and TASK-PLG-007, the owner's checks.
+- **Demo**: `agnos-lightweight-process.demo`, beside this repository, HEAD `4347a66`, rebuilt with the new block and guide. `agnos-meta-release` needs it for its proof.
+- **Marketplace**: `C:\dev\repos\spashx\agnos-marketplace`, rehearsed from `25869d8`: `exit=0, 55 files, 1195 IDs removed, 2 lines to read`, both false alarms; proved by `plugin_proof.py`, 8 lines pass, with `AGNOS_CLAUDE` naming the VS Code extension's `claude.exe`. Its `COMPATIBILITY.md` lacks the VS Code row of `cc16965`: TASK-PLG-029 rehearses again.
+- **Trial repositories**: `agnos-trial` (Claude Code, 2026-11-04) and `agnos-trial-copilot` (Copilot in VS Code, 2026-11-05), beside this one. The plugin was uninstalled from Claude Code; the marketplace stays registered. `C:\pp`, the proof's working folder, is the owner's to delete.
 
 ## Goal
 One marketplace holding the plugin `agnos`, usable from GitHub Copilot, Claude Code and possibly OpenAI Codex. Every system is supported, Windows first. Agents are integrated. The release holds no ID of AGNOS's own development. macOS is not a priority and can only be tested through CI.
@@ -41,8 +42,29 @@ PLAN-PLG-002, a deterministic release and its report page (FTR-PLG-002, ADR-PLG-
 | TASK-PLG-016 | M | `<folder>.report.html`: self-contained, data embedded and escaped, drawn as text only |
 | TASK-PLG-017 | M | The skill's procedure updated; the marketplace rehearsed again |
 
+PLAN-PLG-003, the process speaks to a plugin user (FTR-PLG-003, ADR-PLG-003), all Done:
+
+| Task | Tier | Result |
+|---|---|---|
+| TASK-PLG-018 | L | Feature, ADR and plan; RQ-PLG-004, RQ-DOC-001, RQ-DOC-002, RQ-INI-007 amended |
+| TASK-PLG-019 | M | Self-improvement goes into the improvement target, the file the AGNOS block names; "this file" without its name |
+| TASK-PLG-020 | M | The block reads `process/project-rules.md` and names it the target; init's last words in two steps |
+| TASK-PLG-021 | M | `agnos-init` writes `AGNOS-GETTING-STARTED.md`, the former guide reworded for a plugin user |
+| TASK-PLG-022 | L | `GETTING_STARTED.MD` leaves the root; docs-sync keeps the template as its fourth document |
+| TASK-PLG-023 | M | The Claude Code session recorded; `[Unreleased]` holds PLAN-PLG-002 and PLAN-PLG-003 |
+| TASK-PLG-025 | M | README a landing page with its Requirements; `COMPATIBILITY.md` delivered; repository map in `CONTRIBUTING.md` |
+| TASK-PLG-024 | M | Rehearsal of `25869d8` and its proof |
+
+PLAN-PLG-004, function traceability (FTR-PLG-004, ADR-PLG-004): TASK-PLG-026 (L) Done; next, in order:
+
+| Task | Tier | To do |
+|---|---|---|
+| TASK-PLG-027 | M | `functions-traced` risk medium in `scoring.json`; `matrix.js` line ~1467 reads the risk from the data instead of "informational"; `references/rules.md`; tests expecting informational in `test_callgraph.py` (lines ~278, ~383) and `test_scorecard.py`; `scorecard.py` line ~176 already filters by risk |
+| TASK-PLG-028 | M | The DoD line of RQ-PLG-025 in the instructions file (385 lines now), tested on `release.process_skill` as `test_process_text.py` does |
+| TASK-PLG-029 | M | Demo rebuilt if needed, rehearsal and proof, perf center rerun on `agnos-trial-copilot`: its score must fall below 10 |
+
 ## Open: TASK-PLG-007, the owner's checks
-Until these are done, the task stays In Progress and RQ-PLG-009 is not fulfilled. Each result updates the "What was tested" table of `README.md`, which states observed results only.
+Until these are done, the task stays In Progress and RQ-PLG-009 is not fulfilled. Each result updates `COMPATIBILITY.md`, which states observed results only. Done: Claude Code full session (2026-11-04), Copilot in VS Code full session (2026-11-05, with three departures: chosen files staged instead of `git add .`, functions citing no ID, no failing test shown first; model "Auto", unknown).
 
 Use the marketplace above, or rehearse again, then prove it:
 
@@ -51,14 +73,12 @@ python .github/skills/agnos-meta-release/scripts/release.py --dry-run --output <
 python .github/skills/agnos-meta-plugin-proof/scripts/plugin_proof.py --marketplace <folder>
 ```
 
-The proof still needs `claude` on the PATH, or named by `AGNOS_CLAUDE`, for its `validate-*` lines: it is absent from this workstation's PATH.
+`claude` is not on this workstation's PATH: name `C:\Users\Linux\.vscode\extensions\anthropic.claude-code-<version>-win32-x64\resources\native-binary\claude.exe` in `AGNOS_CLAUDE` for the proof's `validate-*` lines.
 
 | # | Check | Expected |
 |---|---|---|
-| 1 | Full session in Claude Code, on a new project, up to a first commit | Install, `agnos-init`, new session, START SESSION with its question, index, branch, one task, `commit-task` |
-| 2 | The same in GitHub Copilot CLI | The same; notably that `validate-ids` runs once approved, which the proof never observed |
-| 3 | GitHub Copilot in VS Code | Never run: install, skills found, block loaded |
-| 4 | `agnos-meta-docs-sync` on Haiku in a Claude Code session | The sub-agent runs its procedure and edits the four documents only |
+| 1 | A full session in GitHub Copilot CLI | The same as in VS Code; `validate-ids` was seen running in VS Code, not yet in the CLI |
+| 2 | `agnos-meta-docs-sync` on Haiku in a session of the owner's | The sub-agent runs its procedure and edits the four documents only; seen from the agent's side on 2026-11-04 |
 
 ## Not possible yet
 | Item | Why |
@@ -70,13 +90,15 @@ The proof still needs `claude` on the PATH, or named by `AGNOS_CLAUDE`, for its 
 
 ## Before a real release
 - Owner's decision to publish, then the checks above.
-- Rerun `agnos-meta-docs-sync`: `[Unreleased]` is current up to `c5ffada`, so it lacks PLAN-PLG-002.
-- Read the page's rendering (`agnos-marketplace.report.html`, light and dark): no agent has looked at it.
-- The two lines to read are false alarms, as on 2026-11-03; the eleven mentions are in `CHANGELOG.md` and the perf center's `maintaining.md`.
+- Rerun `agnos-meta-docs-sync` after PLAN-PLG-004: `[Unreleased]` is current up to TASK-PLG-022.
+- The page's rendering was checked by the owner on 2026-11-04.
+- The two lines to read are false alarms, as on 2026-11-03; the mentions are in `CHANGELOG.md` and the perf center's `maintaining.md`.
 - `[Unreleased]` holds every change since v3.1, and no version number has been decided: the plugin takes 3.1.0 from the changelog's latest release.
 
 ## Key decisions
 - DEC-PLG-001: one marketplace, one plugin, built by the release. DEC-PLG-002: the process is a generated skill. DEC-PLG-003: the block names the skill. DEC-PLG-004: skills name their files from their folder. DEC-PLG-005: agents generated from `.github/agents`; Codex receives none. DEC-PLG-006: tested on Windows and Linux, the rest stated. DEC-PLG-007: no push, install from a clean local clone.
+- DEC-PLG-013: the AGNOS block names `process/project-rules.md` as the improvement target. DEC-PLG-016, DEC-PLG-017: the user's guide is `agnos-init`'s template. DEC-PLG-018: one reader per document (README, `COMPATIBILITY.md`, guide, `CONTRIBUTING.md`). DEC-PLG-019, DEC-PLG-020: functions traced weighs medium; the DoD names functions.
+- Owner's decisions of 2026-11-04 left as they are: `commit-task` keeps `git add .`; the project's `.gitignore` is the user's; commits outside a task (metrics log, init output) need no procedure.
 - The copy format is abandoned; the plugin is the only way in.
 
 ## Facts from the trials
@@ -85,15 +107,19 @@ The proof still needs `claude` on the PATH, or named by `AGNOS_CLAUDE`, for its 
 - Copilot's block fires on work questions, not on trivial ones.
 - `claude` may not be on the PATH: name its binary in the variable `AGNOS_CLAUDE`.
 - Never `--allow-all-tools`: only narrow grants.
+- Copilot reads a local marketplace's plugin in place: regenerating `agnos-marketplace` changes the installed plugin, removing it breaks it.
+- Copilot in VS Code sees a plugin installed from Copilot CLI: they share the configuration.
+- The perf center reads a function's IDs in its lines, docstring included, and in the comment block just above it.
 
 ## Last suite results
-On `feature/PLG`, Windows, 2026-11-03: meta-release 92, meta-demo 12 and plugin-proof 16 OK, none skipped. Earlier: docs-sync 16 and init 17 OK. Perf-center's last full run, from TASK-PLG-003: 366 run, 3 skipped; PLAN-PLG-002 did not touch it, and its tokens are compiled by the release's tests.
+On `feature/PLG`, Windows, 2026-11-04 and 05: meta-release 101, init 25, docs-sync 18, meta-demo 12 OK, none skipped; demo verify 23 passed. Earlier: plugin-proof 16 OK. Perf-center's last full run, from TASK-PLG-003: 366 run, 3 skipped; PLAN-PLG-002 did not touch it, and its tokens are compiled by the release's tests.
 
 ## Working preferences held outside this repository
 Claude Code's memory stays on the former workstation, so these are stated here:
 - The owner writes in French; answer in French. Process documents stay in English.
 - Use `rtk` on CLI calls, subagent prompts included.
 - Builds run in a background Haiku subagent, never waited on; delegated full suites run on a scratchpad copy.
+- In these sessions, each `commit-task` runs in a Sonnet subagent at medium effort, PowerShell only, exit codes from `$LASTEXITCODE`.
 - Targeted tests while iterating, the full suite once before each commit. `agnos-meta-demo`'s suite counts: skipping it let a visible ID into `f0433ef`.
 - Read the cited source before relaying a subagent's finding as fact.
 - Session-specific lessons never go into the generic process instructions.
