@@ -51,12 +51,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-029: The release rehearsed again, and proved
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rebuild the demo if its checks require it, rehearse HEAD into `C:\dev\repos\spashx\agnos-marketplace`, run `agnos-meta-plugin-proof`, and run the perf center again on `agnos-trial-copilot` to show the new score.
 - **Requirement refs**: RQ-PLG-007, RQ-PLG-010, RQ-PLG-024
 - **ADR refs**: ADR-PLG-002, ADR-PLG-004
 - **Acceptance Criteria**: Given a rehearsal of the last commit, Then the exit is 0 and the lines to read are judged; Given the proof, Then every line it runs passes; Given `agnos-trial-copilot`, Then its score is below 10 with 3 untraced functions.
 - **Dependencies**: TASK-PLG-027, TASK-PLG-028
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Demo not rebuilt: agnos-meta-demo suite 12 OK, 0 skipped. Rehearsal of `f543199`: `exit=0, 55 files, 1199 IDs removed, 2 lines to read`, both false alarms (no ID: START SESSION's intro, a docstring of `perf_center.py`). Proof with `AGNOS_CLAUDE` (claude-code 2.1.318): exit 0, 8 lines pass. `agnos-marketplace` emptied with the owner's approval and regenerated: its 55 files identical by SHA256 to the proved copy. `agnos-trial-copilot` with `--call-graph`: `quality: B 8.7/10` (was A 10/10), `functions-traced 0.0` medium, 7 of its 9 findings. Discrepancy: 7 untraced functions, not 3 as the criterion said: the 3 functions of the code and the 4 tests, named `test_RQ_SLG_001_...`, an underscore form the perf center does not read as an ID.
+- **Assumptions**: the proof ran on the scratchpad copy, then the marketplace was compared to it file by file instead of being proved again.
