@@ -62,6 +62,27 @@ class DefinitionOfDoneTest(unittest.TestCase):
         self.assertLessEqual(len(lines), self.LINE_BUDGET)
 
 
+class TestTraceabilityTest(unittest.TestCase):
+    """RQ-PLG-026, DEC-PLG-021 (TASK-PLG-030)."""
+
+    TRACEABILITY = "### MANDATORY TRACEABILITY"
+    NEXT_SUBSECTION_RE = re.compile(r"\n###? ")
+    TEST_DOC_COMMENTS = "class/function doc comments, those of test functions included"
+    TEST_NAMES = "test case names"
+
+    def traceability(self):
+        text = delivered_process()
+        start = text.index(self.TRACEABILITY) + len(self.TRACEABILITY)
+        following = self.NEXT_SUBSECTION_RE.search(text, start)
+        return text[start:following.start()]
+
+    def test_RQ_PLG_026_given_the_delivered_process_then_a_test_cites_its_id_in_its_doc_comment(self):
+        self.assertIn(self.TEST_DOC_COMMENTS, self.traceability())
+
+    def test_RQ_PLG_026_given_the_delivered_process_then_no_id_is_asked_in_a_test_name(self):
+        self.assertNotIn(self.TEST_NAMES, self.traceability())
+
+
 class OwnNameTest(unittest.TestCase):
     """RQ-PLG-019, DEC-PLG-014."""
 

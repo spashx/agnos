@@ -5,7 +5,7 @@ Make "Functions traced" weigh in the perf center's score and name functions in t
 the release again for the next owner's checks. No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-024, RQ-PLG-025, RQ-TRC-035 and RQ-TRC-059 (amended)
+- **Requirements**: RQ-PLG-024, RQ-PLG-025, RQ-PLG-026, RQ-TRC-035 and RQ-TRC-059 (amended)
 - **ADRs**: ADR-PLG-004, ADR-TRC-008
 
 This plan implements the tasks in the format specified below.
@@ -60,3 +60,27 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: Demo not rebuilt: agnos-meta-demo suite 12 OK, 0 skipped. Rehearsal of `f543199`: `exit=0, 55 files, 1199 IDs removed, 2 lines to read`, both false alarms (no ID: START SESSION's intro, a docstring of `perf_center.py`). Proof with `AGNOS_CLAUDE` (claude-code 2.1.318): exit 0, 8 lines pass. `agnos-marketplace` emptied with the owner's approval and regenerated: its 55 files identical by SHA256 to the proved copy. `agnos-trial-copilot` with `--call-graph`: `quality: B 8.7/10` (was A 10/10), `functions-traced 0.0` medium, 7 of its 9 findings. Discrepancy: 7 untraced functions, not 3 as the criterion said: the 3 functions of the code and the 4 tests, named `test_RQ_SLG_001_...`, an underscore form the perf center does not read as an ID.
 - **Assumptions**: the proof ran on the scratchpad copy, then the marketplace was compared to it file by file instead of being proved again.
+
+### TASK-PLG-030: A test's ID in its doc comment, not in its name
+- **Tier**: L
+- **Status**: In Progress
+- **Description**: Write RQ-PLG-026 and DEC-PLG-021, then replace "and test case names" in MANDATORY TRACEABILITY by "those of test functions included", tested on the skill the release generates.
+- **Requirement refs**: RQ-PLG-026
+- **ADR refs**: ADR-PLG-004 (DEC-PLG-021)
+- **Acceptance Criteria**: Given RQ-PLG-026's criteria, Then they hold, tested first; Given the instructions file, Then its line count is reported; Given the index, Then it has no duplicate.
+- **Dependencies**: TASK-PLG-028
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-PLG-031: The release rehearsed again with the new rule
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Rehearse HEAD into an empty scratchpad folder, prove it, then empty `C:\dev\repos\spashx\agnos-marketplace` and regenerate it, compared file by file with the proved copy.
+- **Requirement refs**: RQ-PLG-007, RQ-PLG-010, RQ-PLG-026
+- **ADR refs**: ADR-PLG-002, ADR-PLG-004
+- **Acceptance Criteria**: Given a rehearsal of the last commit, Then the exit is 0 and the lines to read are judged; Given the proof, Then every line passes; Given the marketplace, Then its files equal the proved copy's.
+- **Dependencies**: TASK-PLG-030
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:

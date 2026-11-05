@@ -85,7 +85,7 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
   
 ### MANDATORY TRACEABILITY
 - EACH ARTIFACT SHALL reference all related artifacts by their unique identifier.
-- Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, and test case names.
+- Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
 - The user SHALL be able to grep any requirement ID and find all related code and documentation.
 - An artifact with no traceable requirement ID is considered incomplete and SHALL NOT be delivered.
 - Always put traceability references into **commments** format , never as plain text.

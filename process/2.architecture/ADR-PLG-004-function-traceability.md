@@ -2,6 +2,7 @@
 
 ## Status
 Accepted — approved by the owner on 2026-11-05, for FTR-PLG-004 (RQ-PLG-024, RQ-PLG-025). Amends DEC-TRC-032 on the risk of "Functions traced", and RQ-TRC-035, RQ-TRC-059.
+DEC-PLG-021 (RQ-PLG-026) approved by the owner on 2026-11-05.
 
 ## Context
 FTR-PLG-004 (RQ-PLG-024, RQ-PLG-025) comes from the owner's session of 2026-11-05 in Copilot in VS Code. The process requires
@@ -22,6 +23,13 @@ RQ-PLG-024; amends DEC-TRC-032, RQ-TRC-035 and RQ-TRC-059 on that check.
 The DoD matrix gains, for S, M and L, "Every new function, method and class cites its requirement ID in its doc comment or in the
 comment just above it", the two places the perf center reads. Fulfils RQ-PLG-025.
 
+### DEC-PLG-021: A test's ID goes in its doc comment, its name stays Gherkin
+In MANDATORY TRACEABILITY, the list of places where requirement IDs appear ends with "class/function doc comments, those
+of test functions included" instead of "class/function doc comments, and test case names". The rule "Always put traceability
+references into comments" then holds without exception, a test is traced as any function, and its name follows the Gherkin
+naming of the Testing section, as in the demo (`test_given_..._when_..._then_...`). The perf center is not changed. Fulfils
+RQ-PLG-026.
+
 ## Consequences
 - Easier: the grade tells the truth about functions; an agent checking the DoD sees the rule as an item to tick.
 - Harder: projects analysed with `--call-graph` see their score drop until their functions cite IDs.
@@ -33,6 +41,8 @@ comment just above it", the two places the perf center reads. Fulfils RQ-PLG-025
   chosen by the owner on 2026-11-05.
 - **A new rule in the code section only**: the rule exists there already; the checklist is what an agent ticks. Rejected.
 - **Choosing the model**: outside the plugin's reach; a test with a chosen model was not asked. Rejected for now.
+- **The perf center reads `RQ_SLG_001` in a function's name** (DEC-PLG-021): would bless IDs as plain text in names, against
+  "always in comments". Rejected by the owner on 2026-11-05.
 
 ## Diagram
 ```mermaid
