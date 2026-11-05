@@ -29,8 +29,8 @@
     {"key": "files-traced", "label": "Files", "title": "Source files traced", "risk": "medium", "population": "files",
      "findings": "untraced-files", "items": "file",
      "rule": "Every scanned source file cites at least one ID."},
-    {"key": "functions-traced", "label": "Functions", "title": "Functions traced", "risk": "informational", "population": "functions",
+    {"key": "functions-traced", "label": "Functions", "title": "Functions traced", "risk": "medium", "population": "functions",
      "findings": "untraced-functions", "items": "function",
-     "rule": "Every function cites an ID in its lines or in the comment just above it. Informational: it counts for nothing in the overall score."}
+     "rule": "Every function cites an ID in its lines or in the comment just above it."}
   ]
 }

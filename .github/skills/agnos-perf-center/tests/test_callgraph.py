@@ -21,6 +21,7 @@ sys.path.insert(0, str(HERE))
 
 import callgraph as cg  # noqa: E402
 import perf_center as tm  # noqa: E402
+import scorecard as sc  # noqa: E402
 from test_perf_center import (BROWSER, FIXTURE, PROCESS, SKILL, SOURCES, comparable, data_block,  # noqa: E402
                                generate, output_bytes, rendered_dom, rendered_dom_after, run_main)
 
@@ -249,7 +250,7 @@ class PageDataTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
-        cls.page, _ = call_graph_page(Path(cls.tmp.name) / "page.html")
+        cls.page, cls.summary = call_graph_page(Path(cls.tmp.name) / "page.html")
         cls.data = json.loads(data_block(cls.page))
 
     @classmethod
@@ -275,7 +276,8 @@ class PageDataTest(unittest.TestCase):
         added = output_bytes(self.page) - output_bytes(without)
         self.assertLessEqual(added, 120 * counts["functions"] + 16 * counts["calls"])
 
-    def test_RQ_TRC_035_given_the_call_graph_when_embedded_then_untraced_functions_are_an_informational_check(self):
+    def test_RQ_PLG_024_given_the_call_graph_when_embedded_then_untraced_functions_are_a_medium_check(self):
+        """RQ-TRC-035 amended by RQ-PLG-024 (DEC-PLG-019): the untraced functions weigh as the untraced files."""
         graph = self.data["callGraph"]
         check = next(c for c in self.data["quality"]["checks"] if c["key"] == "functions-traced")
         names = [graph["functions"][i][3] for i in check["findings"]]
@@ -284,7 +286,17 @@ class PageDataTest(unittest.TestCase):
         self.assertIn("untraced", names)
         self.assertNotIn("covered", names)                      # its docstring cites an ID
         self.assertNotIn("net::Port::send", names)
-        self.assertEqual(("informational", "function"), (check["risk"], check["items"]))
+        self.assertEqual(("medium", "function"), (check["risk"], check["items"]))
+
+    def test_RQ_PLG_024_given_untraced_functions_when_scored_then_they_lower_the_score_and_count_in_the_findings(self):
+        quality = self.data["quality"]
+        check = next(c for c in quality["checks"] if c["key"] == "functions-traced")
+        others = [c for c in quality["checks"] if c["key"] != "functions-traced"]
+        without = sc.weighted_score([(c["risk"], c["score"]) for c in others], sc.load_scoring())
+        self.assertLess(check["score"], 10.0)
+        self.assertLess(quality["score"], without)              # the check pulls the overall score down
+        total = sum(len(c["findings"]) for c in quality["checks"])
+        self.assertIn(f"findings {total};", self.summary)       # the functions' findings are in the total
 
 
 def scope_of(graph, qualified):
@@ -397,6 +409,9 @@ out.cgagain = String(card.hidden);
         self.assertEqual(("false", "true", "true", "true"), (found["cgoverview"], found["cgoff"], found["cgon"], found["cgagain"]))
         for part in ("Call graph", "8 call links", "Ambiguous calls", "External calls", "Untraced functions"):
             self.assertIn(part, found["cgtext"])
+        risk = next(c["risk"] for c in data["quality"]["checks"] if c["key"] == "functions-traced")
+        self.assertIn(f"citing no ID · {risk}", found["cgtext"])   # RQ-PLG-024: the risk read from the data
+        self.assertNotIn("informational", found["cgtext"])
         self.assertIn(f'<span class="tab-count" id="quality-count">{total}</span>', dom)
 
 

@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-027: "Functions traced" weighs medium
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Set the check's risk to medium in `scoring.json`, let the page read the risk from the data, update `rules.md`, and the perf center's tests that expected informational.
 - **Requirement refs**: RQ-PLG-024, RQ-TRC-035, RQ-TRC-059
 - **ADR refs**: ADR-PLG-004 (DEC-PLG-019), ADR-TRC-008 (DEC-TRC-032)
 - **Acceptance Criteria**: Given RQ-PLG-024's criteria, Then they hold, tested first; Given the perf center's full suite, Then it passes, the skipped tests stated with why.
 - **Dependencies**: TASK-PLG-026
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: 3 tests written first, failing (`informational` != `medium`; score 6.5 not below 6.5; page hint), then OK. Fixture with call graph: `functions-traced 3.6`, risk medium, `quality: C 6.3/10`, `findings 26` in the summary, functions' findings included. Without call graph the check stays absent (`test_RQ_TRC_058_given_no_call_graph...` OK). The page's hint reads `citing no ID · ${risk}` from the data. Full suite: 367 tests OK, 3 skipped (the measurements gated by `AGNOS_PERF_CENTER_PERF`). No "informational" left about functions outside `process/`.
+- **Assumptions**: the generic `informational` level and its filters stay in `scoring.json`, `scorecard.py` and `matrix.js`: no check uses it now, but removing it was not asked. My own new test first expected `findings: N`; the summary writes `findings N;`, the test was corrected to the real format.
 
 ### TASK-PLG-028: The DoD line for functions
 - **Tier**: M

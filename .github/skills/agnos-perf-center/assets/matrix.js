@@ -1449,9 +1449,10 @@
     graph.refresh();
   }
 
-  // RQ-TRC-035: the call graph's counts; the untraced functions are an informational check, not counted among the findings.
+  // RQ-TRC-035: the call graph's counts; RQ-PLG-024 / DEC-PLG-019: the untraced functions' risk is read from the data.
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
+    const functionsCheck = CHECKS.find((check) => check.key === FUNCTIONS_CHECK);
     const item = (label, value, hint, onClick) => richTip(el(onClick ? TAG_BUTTON : "div",
       { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, on: onClick ? { click: onClick } : null },
       el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
@@ -1464,7 +1465,7 @@
         item("Call links", c.calls, "one per caller and callee"),
         item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
         item("External calls", c.external, "a name defined in no scanned file"),
-        item("Untraced functions", CHECKS.find((c) => c.key === FUNCTIONS_CHECK).findings.length, "citing no ID · informational", () => openCheck(FUNCTIONS_CHECK))));
+        item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK))));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------

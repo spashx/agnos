@@ -39,7 +39,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 | Containers not empty (`filled`) | medium | features, ADRs, plans | `empty` |
 | Elements connected (`connected`) | medium | defined elements | `isolated` |
 | Source files traced (`files-traced`) | medium | scanned files | `untraced-files` |
-| Functions traced (`functions-traced`) | informational | functions (with `--call-graph`) | functions citing no ID |
+| Functions traced (`functions-traced`) | medium | functions (with `--call-graph`; no score without it) | functions citing no ID |
 
 ## Call graph <!-- DEC-TRC-013 to DEC-TRC-018 -->
 
