@@ -43,6 +43,25 @@ class ImprovementTargetTest(unittest.TestCase):
         self.assertIn(TARGET, section(delivered_process(), END_SESSION))
 
 
+class DefinitionOfDoneTest(unittest.TestCase):
+    """RQ-PLG-025, DEC-PLG-020 (TASK-PLG-028)."""
+
+    FUNCTIONS_ITEM = ("Every new function, method and class cites its requirement ID in its doc comment or in the "
+                      "comment just above it")
+    DOD = "### DEFINITION OF DONE"
+    EVERY_TIER = re.compile(r"\|\s*✓\s*\|\s*✓\s*\|\s*✓\s*\|\s*$")
+    LINE_BUDGET = 400
+
+    def test_RQ_PLG_025_given_the_delivered_process_then_the_dod_names_functions_for_every_tier(self):
+        rows = [line for line in section(delivered_process(), self.DOD).splitlines() if self.FUNCTIONS_ITEM in line]
+        self.assertEqual(1, len(rows))
+        self.assertRegex(rows[0], self.EVERY_TIER)
+
+    def test_RQ_PLG_025_given_the_instructions_file_then_it_stays_within_its_line_budget(self):
+        lines = (ROOT / release.INSTRUCTIONS).read_text(encoding=release.ENCODING).splitlines()
+        self.assertLessEqual(len(lines), self.LINE_BUDGET)
+
+
 class OwnNameTest(unittest.TestCase):
     """RQ-PLG-019, DEC-PLG-014."""
 

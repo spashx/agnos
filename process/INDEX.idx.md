@@ -609,7 +609,7 @@ TASK-PLG-024|100-110|Done|The release rehearsed again, and proved
 PLAN-PLG-004|1-62||Function Traceability Counts, and is Asked for Plainly
 TASK-PLG-026|16-27|Done|Feature, decisions and plan
 TASK-PLG-027|28-39|Done|"Functions traced" weighs medium
-TASK-PLG-028|40-51|Not Started|The DoD line for functions
+TASK-PLG-028|40-51|Done|The DoD line for functions
 TASK-PLG-029|52-62|Not Started|The release rehearsed again, and proved
 @process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

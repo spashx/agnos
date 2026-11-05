@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-028: The DoD line for functions
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the DoD item of RQ-PLG-025 to the instructions file, tested on the skill the release generates.
 - **Requirement refs**: RQ-PLG-025
 - **ADR refs**: ADR-PLG-004 (DEC-PLG-020)
 - **Acceptance Criteria**: Given RQ-PLG-025's criteria, Then they hold, tested first; Given the instructions file, Then its line count is reported.
 - **Dependencies**: TASK-PLG-026
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `DefinitionOfDoneTest` written first: 1 != 0 rows, then OK on `release.process_skill`'s output, the row ✓ for S, M and L. agnos-meta-release suite: 104 tests OK, 0 skipped. Instructions file: 386 lines (budget 400).
+- **Assumptions**: the example DoD table of `AGNOS-GETTING-STARTED.md` is left to `agnos-meta-docs-sync`, planned after PLAN-PLG-004.
 
 ### TASK-PLG-029: The release rehearsed again, and proved
 - **Tier**: M

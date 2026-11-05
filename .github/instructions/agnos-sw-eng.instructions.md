@@ -276,6 +276,7 @@ The DoD items that apply depend on the task tier. Use the matrix below:
 | DoD Item | S | M | L |
 |----------|:-:|:-:|:-:|
 | Every new artifact references a requirement ID | ✓ | ✓ | ✓ |
+| Every new function, method and class cites its requirement ID in its doc comment or in the comment just above it <!-- RQ-PLG-025 / DEC-PLG-020 --> | ✓ | ✓ | ✓ |
 | No string or numeric literal is duplicated inline — all are named constants |✓ | ✓ | ✓ |
 | No failing test was modified to force it to pass | ✓ | ✓ | ✓ |
 | UI change consumes design-system tokens — no raw visual literal in code | ✓ | ✓ | ✓ |
