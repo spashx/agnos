@@ -83,3 +83,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `test_brand.py` lockup tests (5 new) failed first (5 errors, tokens and elements absent), then the full suite: 398 run, OK, 3 skipped (367 of the baseline plus the 31 of `test_brand.py`, the 3 skipped unchanged). Checked in a headless browser: "AGNOS" and "Efficiency by traceability" read as written; the name right of the 96px mark, the tagline below and aligned, the pair centred on the mark, all above the sentence; 30px/700/0.12em/1.1 and 13px/500/0.02em/1.3 within 0.05px; colours equal to the text and muted-text tokens in both themes; `test_perf_center.py -k RQ_TRC_018`: no raw visual value; the data hash of RQ-TRC-026 unchanged. Screenshots in both themes.
 - **Assumptions**: The mark in the lockup is decorative (`aria-hidden`), the name beside it naming it; the design's greys are replaced by the semantic text and muted-text tokens (a few points of lightness, recorded in DEC-TRC-059 and the token file); the lockup keeps the sentence and the link buttons below it; the name is written "AGNOS" in the template, not made capital by style; the lockup stands as one block above the sentence with one spacing token under it.
+
+### TASK-TRC-098: The application badge reads "AGNOS", the test and the spec follow
+- **Tier**: S
+- **Status**: Done
+- **Description**: Align the test of the Licenses topic and RQ-TRC-112 with the owner's change of 2026-11-06 (commit `dea40b9`), which made the label of the application's badge "AGNOS" in place of "License"; state the full range of requirements in ADR-TRC-014's status.
+- **Requirement refs**: RQ-TRC-112, RQ-TRC-111
+- **ADR refs**: ADR-TRC-014 (DEC-TRC-058)
+- **Acceptance Criteria**: Given the Licenses topic, When the badges are read, Then the application's reads "AGNOS" and "AGPL-3.0" and the tests of the topic pass.
+- **Dependencies**: TASK-TRC-095
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The Status line of ADR-TRC-014 is corrected to "RQ-TRC-109 to RQ-TRC-116" in the same task, being a slip of TASK-TRC-097; the closed record of TASK-TRC-095, which names the former label, stays as history.

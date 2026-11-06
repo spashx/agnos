@@ -229,7 +229,7 @@ class FootInBrowserTest(unittest.TestCase):
 
 
 # RQ-TRC-111, RQ-TRC-112, DEC-TRC-058: the Licenses topic and its badges
-APP_BADGE = "License=AGPL-3.0"
+APP_BADGE = "AGNOS=AGPL-3.0"       # the label is the application's name (owner, 2026-11-06, RQ-TRC-112)
 LICENCE_URL = "https://github.com/spashx/agnos-lightweight-process/blob/main/LICENSE.md"
 UNCLASSIFIED_LICENCE = "BSD-3-Clause"
 READ_LICENCES = """

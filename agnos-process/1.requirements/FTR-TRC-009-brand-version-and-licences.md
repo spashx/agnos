@@ -54,7 +54,7 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 ### RQ-TRC-112: Licences drawn as coloured badges
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The Licenses topic SHALL draw each licence as a two-part badge in the manner of the GitHub README badges: a grey label holding the name (for a library, its name and version; for the application, "License") and, against it, a value holding the licence, filled with a brand colour that depends on the licence; the badge SHALL be drawn by the page itself and request nothing from any site.
+- **Statement**: The Licenses topic SHALL draw each licence as a two-part badge in the manner of the GitHub README badges: a grey label holding the name (for a library, its name and version; for the application, "AGNOS") and, against it, a value holding the licence, filled with a brand colour that depends on the licence; the badge SHALL be drawn by the page itself and request nothing from any site.
 - **Rationale**: a coloured badge is read at a glance and is what readers know from repositories (owner request of 2026-11-06, with a sample); drawing it locally keeps RQ-TRC-080's promise that the page requests nothing else.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the Licenses topic, When a badge is inspected, Then it has a label part and a value part side by side, the label grey and the value filled with one of the brand blue, green, yellow or light tokens; Given two libraries of different licences, Then their values have different fills; Given the page's requests, Then none goes to a badge service.
