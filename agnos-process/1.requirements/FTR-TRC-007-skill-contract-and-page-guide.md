@@ -1,5 +1,6 @@
 # FTR-TRC-007: A Skill Limited to its Contract, a Guide in the Page
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
+<!-- Amended on 2026-11-06: RQ-TRC-103's About topic no longer links to the licence, which moved to the Licenses topic (RQ-TRC-111, DEC-TRC-058); its text and the labels of its links follow RQ-TRC-113. -->
 
 ## Overview
 `.github/skills/agnos-perf-center/SKILL.md` has grown to 295 lines, about 7,200 tokens loaded each time the skill runs, six times
@@ -77,11 +78,11 @@ instructions file.
 ### RQ-TRC-103: About the author
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The Help dialog SHALL hold an About topic, linking to the GitHub and LinkedIn profiles of spashx and to the
-  repository's licence, each opening in a new tab; the page SHALL request nothing from them until a link is followed.
+- **Statement**: The Help dialog SHALL hold an About topic, linking to the GitHub and LinkedIn profiles of spashx, each
+  opening in a new tab; the page SHALL request nothing from them until a link is followed.
 - **Rationale**: a reader of a generated page should find who made the tool (owner request of 2026-10-31).
 - **Priority**: Could
-- **Acceptance Criteria**: Given the Help dialog, When About is chosen, Then the three links show, each opening in a new tab.
+- **Acceptance Criteria**: Given the Help dialog, When About is chosen, Then the two links show, each opening in a new tab.
 - **Dependencies**: RQ-TRC-101, RQ-TRC-080
 
 ## Non-Functional Requirements

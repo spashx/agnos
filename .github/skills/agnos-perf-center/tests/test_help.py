@@ -67,13 +67,13 @@ out.pressed = dialog.querySelector('#help-list [aria-current="true"]').dataset.t
         got = self.run_script("""
 out.topics = listed();
 """, "topics", path=self.plain)
-        self.assertEqual("overview,matrix,graph,quality,common,about", got["topics"])
+        self.assertEqual("overview,matrix,graph,quality,common,licenses,about", got["topics"])   # RQ-TRC-111: Licenses before About
 
     def test_RQ_TRC_101_given_a_page_with_history_then_the_list_follows_the_tabs(self):
         got = self.run_script("""
 out.topics = listed();
 """, "topics")
-        self.assertEqual("overview,matrix,graph,history,delivery,quality,common,about", got["topics"])
+        self.assertEqual("overview,matrix,graph,history,delivery,quality,common,licenses,about", got["topics"])   # RQ-TRC-111
 
     def test_RQ_TRC_103_given_the_about_topic_then_it_links_to_the_author_s_profiles_in_a_new_tab(self):
         got = self.run_script("""
@@ -85,8 +85,8 @@ out.safe = String(anchors.every((a) => a.target === "_blank" && a.rel.includes("
   && a.querySelector("svg").getBoundingClientRect().width > 0 && a.textContent.trim()));
 out.guides = shownGuides();
 """, "hrefs", "safe", "guides")
-        self.assertEqual("https://github.com/spashx https://www.linkedin.com/in/64493197 "
-                         "https://github.com/spashx/agnos-lightweight-process/blob/main/LICENSE.md", got["hrefs"])
+        # RQ-TRC-111: the licence moved to the Licenses topic (FTR-TRC-009); About keeps the author's two profiles
+        self.assertEqual("https://github.com/spashx https://www.linkedin.com/in/64493197", got["hrefs"])
         self.assertEqual(("true", "about"), (got["safe"], got["guides"]))
 
     def test_RQ_TRC_101_given_the_dialog_closed_then_the_focus_returns_to_the_control(self):

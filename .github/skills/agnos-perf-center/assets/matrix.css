@@ -77,17 +77,23 @@ button, input, select { font: inherit; color: inherit; }
 
 .brand { display: flex; align-items: center; gap: var(--s-space-md); min-width: var(--s-space-none); }
 
+/* RQ-TRC-114, DEC-TRC-056: the brand mark, one symbol of the sprite, in the header and, larger, in About */
 .brand-mark {
-  width: var(--c-control-height);
-  height: var(--c-control-height);
-  padding: var(--s-space-xs);
-  border-radius: var(--s-radius-md);
-  background: var(--s-accent);
-  fill: var(--s-text-on-accent);
-  stroke: var(--s-text-on-accent);
-  stroke-width: var(--s-stroke-focus);
+  width: var(--c-brand-mark-size);
+  height: var(--c-brand-mark-size);
   flex: none;
 }
+.brand-mark-large { display: block; width: var(--c-brand-mark-size-large); height: var(--c-brand-mark-size-large); }
+/* RQ-TRC-116, DEC-TRC-059: the lockup of the About topic, the name and the tagline centred to the right of the large mark */
+.about-brand { display: flex; align-items: center; gap: var(--s-space-lg); margin-bottom: var(--s-space-md); }
+.about-brand-text { display: flex; flex-direction: column; gap: var(--s-space-hair); }
+.about-wordmark { color: var(--s-text); font-size: var(--s-text-wordmark); font-weight: var(--s-weight-bold); line-height: var(--s-line-display); letter-spacing: var(--s-tracking-wordmark); }
+.about-tagline { color: var(--s-text-muted); font-size: var(--s-text-small); font-weight: var(--s-weight-medium); line-height: var(--s-line-snug); letter-spacing: var(--s-tracking-tagline); }
+.mark-tile { fill: var(--c-brand-mark-tile); }
+.mark-bar-light { fill: var(--c-brand-mark-bar-light); }
+.mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }
+.mark-bar-green { fill: var(--c-brand-mark-bar-green); }
+.mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
 
 .brand-text { display: flex; flex-direction: column; min-width: var(--s-space-none); }
 
@@ -1128,7 +1134,19 @@ button.tag[aria-pressed="true"] { background: var(--s-accent-subtle); color: var
 .about-link:hover { color: var(--s-accent); border-color: var(--s-accent); }
 .about-icon { width: var(--c-control-height); height: var(--c-control-height); flex: none; fill: currentColor; }
 .about-text { display: flex; align-items: center; gap: var(--s-space-xs); }
-.about-badge { padding: var(--s-space-hair) var(--s-space-sm); color: var(--s-accent); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); background: var(--s-accent-subtle); border: var(--s-stroke-hairline) solid var(--s-accent-border); border-radius: var(--c-chip-radius); }
+/* RQ-TRC-112, DEC-TRC-058: a licence as a two-part badge, a grey label and a value filled with the brand tone of the licence;
+   apart from the status pills of .badge, which keep their own style */
+.licence-list { display: flex; flex-wrap: wrap; gap: var(--s-space-md); }
+.licence-badge { display: inline-flex; height: var(--c-badge-height); overflow: hidden; border-radius: var(--c-badge-radius); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); line-height: var(--c-badge-height); text-decoration: none; }
+.licence-badge-label, .licence-badge-value { padding: var(--s-space-none) var(--s-space-sm); white-space: nowrap; }
+.licence-badge-label { color: var(--c-badge-label-ink); background: var(--c-badge-label-bg); }
+.licence-badge-value { color: var(--c-badge-ink); }
+.licence-badge-value[data-tone="green"] { background: var(--c-badge-tone-green); }
+.licence-badge-value[data-tone="blue"] { background: var(--c-badge-tone-blue); }
+.licence-badge-value[data-tone="yellow"] { background: var(--c-badge-tone-yellow); }
+.licence-badge-value[data-tone="light"] { background: var(--c-badge-tone-light); }
+.licence-badge-link:hover .licence-badge-value { text-decoration: underline; }
+.licence-badge-link:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-stroke-focus); }
 .help-body h3 { margin-top: var(--s-space-none); font-size: var(--s-text-heading); }
 .help-body h4 { margin-bottom: var(--s-space-xs); font-size: var(--s-text-small); font-weight: var(--s-weight-strong); }
 .delivery-kpis { grid-template-columns: repeat(var(--figures), minmax(0, 1fr)); }

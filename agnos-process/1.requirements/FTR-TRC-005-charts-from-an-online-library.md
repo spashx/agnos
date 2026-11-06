@@ -1,5 +1,6 @@
 # FTR-TRC-005: Charts from an Online Library
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
+<!-- Amended on 2026-11-06: RQ-TRC-082's notice of the libraries, their versions and licences stands in the Help dialog's Licenses topic, no longer in the foot of the page (RQ-TRC-109, RQ-TRC-111, RQ-TRC-112, DEC-TRC-058). -->
 
 ## Overview
 The charts of the traceability page are drawn by hand in inline SVG (DEC-TRC-035, DEC-TRC-039). At the owner's review of
