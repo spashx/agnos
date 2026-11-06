@@ -1386,6 +1386,20 @@
     document.title = `Performance center — ${meta.title}`;
   }
 
+  // ---- licences (TASK-TRC-095: RQ-TRC-111, RQ-TRC-112; DEC-TRC-058) -------------------------------------------------
+  // The brand tone of a licence's badge; a licence nobody classified takes the light tone. The application's own badge is
+  // written in the template, the libraries' come from the library record of the data.
+  const LICENCE_TONE = { "AGPL-3.0": "green", MIT: "blue", "Apache-2.0": "yellow" };
+  const TONE_DEFAULT = "light";
+  const CLASS_BADGE_VALUE = "licence-badge-value";
+
+  function renderLicences() {
+    const list = $("licence-list");
+    list.append(...(DATA.meta.libraries || []).map((lib) => el(TAG_SPAN, { class: "licence-badge" },
+      el(TAG_SPAN, { class: "licence-badge-label", text: `${lib.name} ${lib.version}` }), el(TAG_SPAN, { class: CLASS_BADGE_VALUE, text: lib.licence }))));
+    for (const value of list.querySelectorAll(`.${CLASS_BADGE_VALUE}`)) value.dataset.tone = LICENCE_TONE[value.textContent] || TONE_DEFAULT;
+  }
+
   // ---- overview -----------------------------------------------------------------------------------------------
   function coverageCounts(list) {
     const c = { covered: 0, indirect: 0, uncovered: 0 };
@@ -4730,8 +4744,9 @@
 
   window.agnosTrace = { nodes, links, calls, csvText, EDGE_LOOK, state, select, showView, graph, el, $, clear, isVisible, TYPE_NAME, NODE_TYPES,
     FILE_PREFIX, renderQuality, historyView, delivery: DELIVERY ? deliveryApi : null, deliveryCsv,
-    libraryChart, chartTheme, redrawLibraryCharts, radarPointed: () => radarPointed?.key || null };
+    libraryChart, chartTheme, redrawLibraryCharts, radarPointed: () => radarPointed?.key || null, licenceTones: LICENCE_TONE };
   renderHeader();
+  renderLicences();
   renderFilters();
   renderOverview();
   renderMatrix();

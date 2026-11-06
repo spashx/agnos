@@ -32,6 +32,15 @@ version, URL and `integrity` together in `libraries.json` (the hash the cdnjs AP
 `https://api.cdnjs.com/libraries/<name>/<version>?fields=sri`), then run the tests, which need the network: without
 cdnjs, the page tests are skipped.
 
+## Brand, version and licences <!-- FTR-TRC-009; ADR-TRC-014: DEC-TRC-056 to DEC-TRC-058 -->
+
+The brand mark is one symbol of the template (`brand-mark`), coloured by the `brand-*` tokens <!-- RQ-TRC-114 -->. The foot of
+the left panel shows `v.<major>.<minor>`, read at each generation from `agnos-init/assets/templates/VERSION`, a file of the
+sibling skill; absent or not one SemVer line, it shows the title alone <!-- RQ-TRC-109, RQ-TRC-110 -->. The Help dialog's Licenses
+topic draws the application's licence and each library of `libraries.json` as badges <!-- RQ-TRC-111, RQ-TRC-112 -->: the tone of
+a licence is its entry in `LICENCE_TONE` of `matrix.js` (any other licence takes the light tone), and a test fails when a
+library's licence has none, so classify a new licence when adding a library.
+
 ## Design system
 
 Every colour, size and duration of the page is a token of `assets/tokens.json` (global → semantic → component); the CSS

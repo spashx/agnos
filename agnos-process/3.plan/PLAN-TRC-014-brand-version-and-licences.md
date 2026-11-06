@@ -50,15 +50,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-095: The Licenses topic and its badges
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the Licenses topic between "Search and details" and "About": the application's licence and the link to its text, written in the template, and the libraries of `meta.libraries` listed by the script, each licence a two-part badge from the component tokens, its tone (green, blue, yellow or light) from a table keyed by licence; remove the licence link from About; write the topic's guide text; align RQ-TRC-082 and RQ-TRC-103 with a dated comment; note the tone table in `references/maintaining.md`.
 - **Requirement refs**: RQ-TRC-111, RQ-TRC-112, RQ-TRC-115
 - **ADR refs**: ADR-TRC-014 (DEC-TRC-058), ADR-TRC-012
 - **Acceptance Criteria**: Given a page with and without history, When the Help topics are listed, Then Licenses stands after "Search and details" and before "About"; When Licenses is chosen, Then the application's licence and each library of the record show as a badge with a label and a value, the values of two different licences filled differently; When About is chosen, Then no licence link shows; Given a licence of the record absent from the tone table, Then a test fails naming it; Given the page's requests, Then none goes to a badge service.
 - **Dependencies**: TASK-TRC-092, TASK-TRC-093
 - **Assignee**: AI
-- **Verification**: (at closure)
-- **Assumptions**: (at closure)
+- **Verification**: New tests failed first (`test_brand.py`: 6 errors and 1 failure; `test_help.py`: 3 failures; a duplicate token found by a new test), then the full suite: 392 run, OK, 3 skipped (the 3 skipped as in the baseline of 367). After the documentation edits: `test_skill_contract.py` 4 OK, `test_skill_name.py` 5 OK, `test_literals.py` 2 OK, `test_help.py` 8 OK; `test_brand.py`: 26 run, 25 OK, the 1 failure being the test of TASK-TRC-096 written ahead. Headless screenshots in both themes: the topic stands between "Search and details" and "About", the badges are coloured, the status pills of `.badge` are unchanged.
+- **Assumptions**: The application's badge is written in the template with the value "AGPL-3.0" (SPDX, as the libraries) and the label "License"; the libraries follow in the record's order; classes are `licence-badge-*` because `.badge` already styles the status pills (a first attempt under that name was caught by the side-by-side test and renamed); the existing `badge-radius` token is reused and a duplicate of it removed; the guide text is in English like the others.
 
 ### TASK-TRC-096: The About topic says "app" and shows the addresses
 - **Tier**: S

@@ -280,17 +280,17 @@ RQ-TRC-077|156-170||The table of delivered tasks
 RQ-TRC-078|173-188||The delivery stays fast
 RQ-TRC-079|189-204||A readable delivery view
 @agnos-process/1.requirements/FTR-TRC-005-charts-from-an-online-library.md
-FTR-TRC-005|1-180||Charts from an Online Library
-RQ-TRC-080|25-37||Libraries from an online CDN
-RQ-TRC-081|38-50||Without the network
-RQ-TRC-082|51-63||Library record
-RQ-TRC-083|64-85||Readable Delivery charts
-RQ-TRC-084|86-98||Readable checks radar
-RQ-TRC-085|99-111||Library charts in the design system
-RQ-TRC-086|112-131||Overlapping History marks merged
-RQ-TRC-089|132-147||A "together" mark a circle holding a diamond
-RQ-TRC-087|150-166||Accessible library charts
-RQ-TRC-088|167-180||Speed with the libraries
+FTR-TRC-005|1-181||Charts from an Online Library
+RQ-TRC-080|26-38||Libraries from an online CDN
+RQ-TRC-081|39-51||Without the network
+RQ-TRC-082|52-64||Library record
+RQ-TRC-083|65-86||Readable Delivery charts
+RQ-TRC-084|87-99||Readable checks radar
+RQ-TRC-085|100-112||Library charts in the design system
+RQ-TRC-086|113-132||Overlapping History marks merged
+RQ-TRC-089|133-148||A "together" mark a circle holding a diamond
+RQ-TRC-087|151-167||Accessible library charts
+RQ-TRC-088|168-181||Speed with the libraries
 @agnos-process/1.requirements/FTR-TRC-006-friction-and-rework-in-delivery.md
 FTR-TRC-006|1-132||Friction and Rework in the Delivery Tab
 RQ-TRC-090|22-36||The friction log read from git
@@ -303,13 +303,13 @@ RQ-TRC-108|102-110||The marks stand out from every background
 RQ-TRC-096|111-122||Tags of the overlays
 RQ-TRC-097|123-132||The zoom slider seen whole
 @agnos-process/1.requirements/FTR-TRC-007-skill-contract-and-page-guide.md
-FTR-TRC-007|1-99||A Skill Limited to its Contract, a Guide in the Page
-RQ-TRC-098|23-35||The skill holds its contract
-RQ-TRC-099|36-49||The rest read on demand
-RQ-TRC-100|50-60||The data format is a contract
-RQ-TRC-101|61-76||The guide in the page
-RQ-TRC-103|77-86||About the author
-RQ-TRC-102|89-99||The skill stays small
+FTR-TRC-007|1-100||A Skill Limited to its Contract, a Guide in the Page
+RQ-TRC-098|24-36||The skill holds its contract
+RQ-TRC-099|37-50||The rest read on demand
+RQ-TRC-100|51-61||The data format is a contract
+RQ-TRC-101|62-77||The guide in the page
+RQ-TRC-103|78-87||About the author
+RQ-TRC-102|90-100||The skill stays small
 @agnos-process/1.requirements/FTR-TRC-008-perf-center-name.md
 FTR-TRC-008|1-50||The Skill Named after its Role, agnos-perf-center
 RQ-TRC-104|16-24||The skill's name and description
@@ -810,5 +810,5 @@ PLAN-TRC-014|1-73||Brand, Version and Licences in the Page
 TASK-TRC-092|15-26|Done|Brand and badge tokens
 TASK-TRC-093|27-38|Done|The brand mark in the header and, larger, in About
 TASK-TRC-094|39-50|Done|The foot names the application and its version
-TASK-TRC-095|51-62|Not Started|The Licenses topic and its badges
+TASK-TRC-095|51-62|Done|The Licenses topic and its badges
 TASK-TRC-096|63-73|Not Started|The About topic says "app" and shows the addresses

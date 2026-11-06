@@ -3,6 +3,7 @@ DEC-TRC-058).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-perf-center/tests -v
 """
+import json
 import re
 import sys
 import tempfile
@@ -52,6 +53,13 @@ class BrandTokensTest(unittest.TestCase):
                 self.assertGreaterEqual(contrast(resolve(tokens, tone, theme), ink), CONTRAST_MIN, f"{theme} {tone}")
             self.assertGreaterEqual(contrast(resolve(tokens, "badge-label-bg", theme), resolve(tokens, "badge-label-ink", theme)),
                                     CONTRAST_MIN, f"{theme} label")
+
+    def test_RQ_TRC_018_given_the_token_file_then_no_token_is_declared_twice_in_a_tier(self):
+        def refuse_duplicates(pairs):
+            names = [name for name, _ in pairs]
+            self.assertEqual([], sorted({n for n in names if names.count(n) > 1}), "declared twice in one object")
+            return dict(pairs)
+        json.loads(tm.TOKENS_PATH.read_text(encoding="utf-8"), object_pairs_hook=refuse_duplicates)
 
     def test_RQ_TRC_114_given_the_mark_sizes_then_the_about_mark_is_at_least_three_times_the_header_mark(self):
         tokens = tm.load_tokens(tm.TOKENS_PATH)
@@ -218,6 +226,120 @@ class FootInBrowserTest(unittest.TestCase):
             page = generate_with_version(tmp, "h", "3.1.0\n")
             got = found(rendered_dom_after(page.path, READ_FOOT), "foot")
         self.assertEqual({"foot": f"{APP_TITLE} v.3.1"}, got)
+
+
+# RQ-TRC-111, RQ-TRC-112, DEC-TRC-058: the Licenses topic and its badges
+APP_BADGE = "License=AGPL-3.0"
+LICENCE_URL = "https://github.com/spashx/agnos-lightweight-process/blob/main/LICENSE.md"
+UNCLASSIFIED_LICENCE = "BSD-3-Clause"
+READ_LICENCES = """
+const out = document.documentElement.dataset;
+document.getElementById("help-button").click();
+document.querySelector('#help-list button[data-topic="licenses"]').click();
+const list = document.getElementById("licence-list");
+const badges = [...list.querySelectorAll(".licence-badge")];
+const part = (badge, name) => badge.querySelector(`.licence-badge-${name}`);
+out.badges = badges.map((b) => `${part(b, "label").textContent}=${part(b, "value").textContent}`).join(";");
+out.shown = [...document.querySelectorAll("#help-dialog [data-help]")].filter((s) => !s.hidden).map((s) => s.dataset.help).join(",");
+out.sideBySide = String(badges.every((b) => {
+  const label = part(b, "label").getBoundingClientRect(), value = part(b, "value").getBoundingClientRect();
+  return label.width > 0 && value.width > 0 && Math.abs(label.right - value.left) < 1 && Math.abs(label.top - value.top) < 1;
+}));
+out.labelFill = getComputedStyle(part(badges[0], "label")).backgroundColor;
+out.labelInk = getComputedStyle(part(badges[0], "label")).color;
+out.valueFills = badges.map((b) => getComputedStyle(part(b, "value")).backgroundColor).join("|");
+out.valueInk = getComputedStyle(part(badges[0], "value")).color;
+const link = list.querySelector("a.licence-badge");
+out.link = `${link.href} ${link.target} ${link.rel}`;
+out.linkCount = String(list.querySelectorAll("a").length);
+out.tones = Object.keys(agnosTrace.licenceTones).join(",");
+"""
+READ_ABOUT = """
+const out = document.documentElement.dataset;
+document.getElementById("help-button").click();
+document.querySelector('#help-list button[data-topic="about"]').click();
+const about = document.querySelector('[data-help="about"]');
+out.aboutLinks = [...about.querySelectorAll("a")].map((a) => a.href).join(" ");
+out.aboutText = about.textContent.replace(/\\s+/g, " ");
+"""
+LICENCE_NAMES = ("badges", "shown", "side-by-side", "label-fill", "label-ink", "value-fills", "value-ink", "link", "link-count", "tones")
+
+
+def library_badges(libraries):
+    """What the Licenses topic shows of a library record: `<name> <version>=<licence>`, after the application's badge."""
+    return ";".join([APP_BADGE] + [f"{lib['name']} {lib['version']}={lib['licence']}" for lib in libraries])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class LicencesTopicTest(unittest.TestCase):
+    """TASK-TRC-095: RQ-TRC-111, RQ-TRC-112, RQ-TRC-115 (DEC-TRC-058), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.page, _ = generate(Path(cls.tmp.name) / "page.html")
+        cls.tokens = tm.load_tokens(tm.TOKENS_PATH)
+        cls.libraries = json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))["libraries"]
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def licences(self, page=None):
+        return found(rendered_dom_after((page or self.page).path, READ_LICENCES), *LICENCE_NAMES)
+
+    def fill(self, component):
+        return rgb(resolve(self.tokens, component, "light"))
+
+    def test_RQ_TRC_111_given_the_licenses_topic_then_it_shows_alone_with_the_application_and_each_library_of_the_record(self):
+        got = self.licences()
+        self.assertEqual("licenses", got["shown"])
+        self.assertEqual(library_badges(self.libraries), got["badges"])
+
+    def test_RQ_TRC_112_given_a_badge_then_its_label_and_value_stand_side_by_side_the_label_grey_and_the_ink_from_the_tokens(self):
+        got = self.licences()
+        self.assertEqual("true", got["side-by-side"])
+        self.assertEqual((self.fill("badge-label-bg"), self.fill("badge-label-ink"), self.fill("badge-ink")),
+                         (got["label-fill"], got["label-ink"], got["value-ink"]))
+
+    def test_RQ_TRC_112_given_licences_of_different_kinds_then_their_values_are_filled_with_different_brand_tones(self):
+        got = self.licences()
+        tones = [self.fill(f"badge-tone-{tone}") for tone in ("green", "blue", "yellow")]     # AGPL-3.0, MIT, Apache-2.0
+        self.assertEqual("|".join(tones), got["value-fills"])
+        self.assertEqual(3, len(set(tones)))
+
+    def test_RQ_TRC_111_given_the_application_badge_then_it_opens_the_licence_text_in_a_new_tab_and_is_the_only_link(self):
+        got = self.licences()
+        self.assertEqual(f"{LICENCE_URL} _blank noopener noreferrer", got["link"])
+        self.assertEqual("1", got["link-count"])
+
+    def test_RQ_TRC_112_given_the_library_record_then_every_licence_of_it_has_a_tone_chosen_for_it(self):
+        listed = self.licences()["tones"].split(",")
+        for library in self.libraries:
+            self.assertIn(library["licence"], listed, f"{library['name']}: classify its licence in LICENCE_TONE")
+
+    def test_RQ_TRC_111_given_a_version_changed_in_the_record_only_then_the_topic_shows_it_and_an_unclassified_licence_takes_the_light_tone(self):
+        record = json.loads(tm.LIBRARIES_PATH.read_text(encoding="utf-8"))
+        record["libraries"][0]["version"] = "9.9.9"
+        record["libraries"][1]["licence"] = UNCLASSIFIED_LICENCE
+        changed = Path(self.tmp.name) / "libraries.json"
+        changed.write_text(json.dumps(record), encoding="utf-8")
+        with mock.patch.object(tm, "LIBRARIES_PATH", changed):
+            page, _ = generate(Path(self.tmp.name) / "changed.html")
+        got = self.licences(page)
+        self.assertEqual(library_badges(record["libraries"]), got["badges"])
+        self.assertTrue(got["value-fills"].endswith(self.fill("badge-tone-light")), got["value-fills"])
+
+    def test_RQ_TRC_111_given_the_about_topic_then_it_no_longer_shows_the_licence_nor_its_link(self):
+        got = found(rendered_dom_after(self.page.path, READ_ABOUT), "about-links", "about-text")
+        self.assertNotIn("LICENSE", got["about-links"])
+        self.assertEqual(2, len(got["about-links"].split()))
+        self.assertNotIn("Licence", got["about-text"])
+        self.assertNotIn("AGPL", got["about-text"])
+
+    def test_RQ_TRC_112_given_the_page_then_nothing_in_it_draws_a_badge_from_a_service(self):
+        self.assertNotIn("shields.io", self.page)
+        self.assertNotIn("<img", self.page)
 
 
 if __name__ == "__main__":
