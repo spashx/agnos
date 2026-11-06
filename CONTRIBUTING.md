@@ -39,7 +39,7 @@ only criterion: tools read it, and no list of names is kept.
 
 | Path | Content |
 |---|---|
-| [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process, delivered as the skill `agnos-process` |
+| [.github/instructions/agnos-sw-eng.instructions.md](.github/instructions/agnos-sw-eng.instructions.md) | The normative process, delivered as the skill `agnos-instructions` |
 | [.github/skills/](.github/skills/) | The skills: `agnos-init`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-perf-center`, and the `agnos-meta-*` maintainer skills |
 | [.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | The user's guide, a worked session, written into each project by `agnos-init` |
 | [README.md](README.md), [COMPATIBILITY.md](COMPATIBILITY.md), [CHANGELOG.md](CHANGELOG.md) | The plugin user's landing page, what was tested, what each release holds |

@@ -87,15 +87,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-044: The instructions file and the entry points cite the layout's paths
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Bring the instructions file, the AGNOS block, `AGENTS.md`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, the templates and the guide in line with the layout and the skill's new name.
 - **Requirement refs**: RQ-PLG-035, RQ-PLG-037
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-028, DEC-PLG-030)
 - **Acceptance Criteria**: Given `layout.py --check`, Then it reports nothing; Given the instructions file, Then its line count is reported.
 - **Dependencies**: TASK-PLG-043
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `layout.py --check`: 0 findings; no `agnos-process` skill named in the entry points, the instructions file or the SKILL.md files; instructions file: 386 lines.
+- **Assumptions**: The block and the guide took the new name in TASK-PLG-043; the folder's paths in the prose, still declared while the layout says `process`, change with the rename (TASK-PLG-045), where `--check` names each one.
 
 ### TASK-PLG-045: The rename
 - **Tier**: L
