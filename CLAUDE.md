@@ -1,5 +1,8 @@
 # AGNOS Process — Claude Code Entry Point
 
+<!-- RQ-AGT-002: AGENTS.md's own "Non-negotiable rules" and generic tool mapping load here too, so the
+     approval gate and the other reminders are not carried by the instructions import alone. -->
+@AGENTS.md
 @.github/instructions/agnos-sw-eng.instructions.md
 
 ## Tool Mapping (Claude Code)

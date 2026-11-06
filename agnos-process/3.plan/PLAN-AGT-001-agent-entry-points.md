@@ -28,3 +28,25 @@ Implements FTR-AGT-001: `AGENTS.md` and the alignment of `CLAUDE.md` on the four
   `agnos-sw-eng.instructions.md`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`,
   `agnos-trace`: 10/10 True. `.claude/skills/agnos-trace/SKILL.md` exists.
 - **Assumptions**: No unit test: documentation only, nothing executable. No ADR: Tier M.
+
+### TASK-AGT-002: CLAUDE.md imports AGENTS.md's own reminders
+- **Tier**: S
+- **Status**: Done
+- **Description**: `CLAUDE.md` gains an `@AGENTS.md` import (Claude Code's own native cross-tool-sharing
+  mechanism) ahead of its existing `@.github/instructions/agnos-sw-eng.instructions.md` import, so
+  AGENTS.md's "Non-negotiable rules" and generic tool mapping — including the explicit approval-gate
+  restatement — load into every Claude Code session without duplicating that text in CLAUDE.md itself.
+- **Requirement refs**: RQ-AGT-002
+- **ADR refs**: None
+- **Acceptance Criteria** (Gherkin):
+  - **Given** `CLAUDE.md`
+  - **When** it is read
+  - **Then** its first import is `@AGENTS.md`, ahead of the existing instructions-file import
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: `CLAUDE.md` reread after the edit: `@AGENTS.md` present as the first `@` line, followed
+  by `@.github/instructions/agnos-sw-eng.instructions.md`, unchanged. No unit test: documentation-only,
+  nothing executable (Tier S).
+- **Assumptions**: Chosen over copying AGENTS.md's "Non-negotiable rules" text into CLAUDE.md verbatim
+  (the alternative the owner was offered), per the owner's explicit choice of the import mechanism over
+  duplication.

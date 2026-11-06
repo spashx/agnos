@@ -29,3 +29,18 @@ cross-tool convention read by other agents, and keeps all entry points aligned o
   - **Then** each references `.github/instructions/agnos-sw-eng.instructions.md`
   - **And** each names the skills `agnos-index`, `agnos-git-workflow`, `agnos-design-system` and `agnos-perf-center`
 - **Dependencies**: RQ-DSY-001
+
+### RQ-AGT-002: Every entry point restates the approval gate explicitly
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: Each agent entry point SHALL restate, in its own text (not only by reference to the imported
+  instructions file), that every task is tiered, presented to the user, and started only after explicit approval.
+- **Rationale**: an entry point's own wording is what an agent attends to most directly; a rule stated once, deep in
+  the imported file, is easier to lose under a "keep going" default than one restated locally.
+- **Priority**: Should
+- **Acceptance Criteria** (Gherkin):
+  - **Given** `CLAUDE.md`
+  - **When** it is read
+  - **Then** it carries `AGENTS.md`'s own restatement of the approval gate, loaded through `CLAUDE.md`'s own
+    mechanism rather than copied as a second source of the same text
+- **Dependencies**: RQ-AGT-001
