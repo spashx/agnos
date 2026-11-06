@@ -3,26 +3,50 @@
 # Usage: powershell -NoProfile -File .github/skills/agnos-index/tests/test-build-index.ps1
 $ErrorActionPreference = 'Stop'
 
+# RQ-PLG-036 / DEC-PLG-027: the folder and the index's name come from the skill's layout copy; the fixtures and expected
+# files are written for a folder named $FixtureFolder, which each scenario renames to the layout's.
 $Here = $PSScriptRoot
-$Script = Join-Path $Here '..\scripts\build-index.ps1'
-$IndexRel = 'process\INDEX.idx.md'
+$Scripts = Join-Path $Here '..\scripts'
+$Script = Join-Path $Scripts 'build-index.ps1'
+. (Join-Path $Scripts 'agnos-layout.ps1')
+$FixtureFolder = 'process'
+$OtherFolder = 'other-folder'
+$OtherIndex = 'other.idx.md'
 $OutFile = '.out'
 $ErrFile = '.err'
+$ExpectedFile = '.expected'
 $OldTime = [datetime]'2000-01-01'
 $ReportPrefix = 'agnos-index: '
-$ExpectedNominalReport = 'agnos-index: 13 entries, 6 documents, process/INDEX.idx.md'
-$ExpectedDuplicateReport = 'agnos-index: 3 entries, 1 documents, process/INDEX.idx.md updated'
-$ExpectedDuplicateError = 'agnos-index: DUPLICATE RQ-DUP-001 process/1.requirements/FTR-DUP-001.md:5 (first: process/1.requirements/FTR-DUP-001.md:3)'
-$ExpectedMissingError = "agnos-index: 'process' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
 $DurationSuffixRx = ' in \d+\.\d{3} s$'   # RQ-IDX-018
 $script:Failures = 0
+
+# The expected strings and paths for a folder and an index name (RQ-PLG-036).
+function Set-Layout([string]$Folder, [string]$Index) {
+    $script:Folder = $Folder
+    $script:IndexRel = "$Folder/$Index"
+    $script:ExpectedNominalReport = "agnos-index: 13 entries, 6 documents, $($script:IndexRel)"
+    $script:ExpectedDuplicateReport = "agnos-index: 3 entries, 1 documents, $($script:IndexRel) updated"
+    $script:ExpectedDuplicateError = "agnos-index: DUPLICATE RQ-DUP-001 $Folder/1.requirements/FTR-DUP-001.md:5 (first: $Folder/1.requirements/FTR-DUP-001.md:3)"
+    $script:ExpectedMissingError = "agnos-index: '$Folder' folder not found - run from the repository root, or call agnos-init to add AGNOS to this project"
+}
+
+# An expected index with its document paths under the current folder, bytes otherwise unchanged (RQ-PLG-036).
+function Get-Expected([string]$Dir, [string]$Name) {
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    $text = [IO.File]::ReadAllText((Join-Path $Here "expected\$Name.idx.md"), $utf8)
+    $path = Join-Path $Dir $ExpectedFile
+    [IO.File]::WriteAllText($path, ($text -creplace "(?m)^@$FixtureFolder/", "@$($script:Folder)/"), $utf8)
+    $path
+}
 
 function New-Scenario([string]$Fixture) {
     $dir = Join-Path ([IO.Path]::GetTempPath()) ('agnos-index-' + [guid]::NewGuid())
     New-Item -ItemType Directory -Path $dir | Out-Null
-    if ($Fixture) { Copy-Item -Recurse -LiteralPath (Join-Path $Here "fixtures\$Fixture\process") -Destination $dir }
+    if ($Fixture) { Copy-Item -Recurse -LiteralPath (Join-Path $Here "fixtures\$Fixture\$FixtureFolder") -Destination (Join-Path $dir $script:Folder) }
     $dir
 }
+
+Set-Layout $AGNOS_FOLDER $AGNOS_INDEX
 
 function Invoke-Generator([string]$Dir) {
     $p = Start-Process -FilePath 'powershell' -ArgumentList "-NoProfile -File `"$Script`"" -WorkingDirectory $Dir `
@@ -50,7 +74,7 @@ $index = Join-Path $dir $IndexRel
 $r = Invoke-Generator $dir
 Assert-That 'Given nominal documents When indexing Then the exit code is 0 [RQ-IDX-009]' ($r.Code -eq 0)
 Assert-That 'Given nominal documents When indexing Then the index equals the expected bytes [RQ-IDX-001..006, RQ-IDX-015]' `
-    (Test-SameBytes $index (Join-Path $Here 'expected\nominal.idx.md'))
+    (Test-SameBytes $index (Get-Expected $dir 'nominal'))
 Assert-That 'Given nominal documents When indexing Then the report says updated [RQ-IDX-009]' ($r.Report -ceq "$ExpectedNominalReport updated")
 Assert-That 'Given nominal documents When indexing Then the single report line ends with the duration [RQ-IDX-018]' `
     (($r.Out -cmatch $DurationSuffixRx) -and ($r.Out -notmatch "`n"))
@@ -69,7 +93,7 @@ $r = Invoke-Generator $dir
 Assert-That 'Given a duplicate ID When indexing Then the exit code is 2 [RQ-IDX-007]' ($r.Code -eq 2)
 Assert-That 'Given a duplicate ID When indexing Then the duplicate is reported [RQ-IDX-007]' ($r.Err -ceq $ExpectedDuplicateError)
 Assert-That 'Given a duplicate ID When indexing Then the index is still written [RQ-IDX-007, RQ-IDX-015]' `
-    (Test-SameBytes (Join-Path $dir $IndexRel) (Join-Path $Here 'expected\duplicate.idx.md'))
+    (Test-SameBytes (Join-Path $dir $IndexRel) (Get-Expected $dir 'duplicate'))
 Assert-That 'Given a duplicate ID When indexing Then the report line is printed [RQ-IDX-009]' ($r.Report -ceq $ExpectedDuplicateReport)
 Remove-Item -Recurse -Force -LiteralPath $dir
 
@@ -79,8 +103,24 @@ $r = Invoke-Generator $dir
 Assert-That 'Given no process folder When indexing Then the exit code is 1 [RQ-IDX-008]' ($r.Code -eq 1)
 Assert-That 'Given no process folder When indexing Then the error is reported [RQ-IDX-008]' ($r.Err -ceq $ExpectedMissingError)
 Assert-That 'Given no process folder When indexing Then nothing is written [RQ-IDX-008]' `
-    (-not (Test-Path -LiteralPath (Join-Path $dir 'process')) -and -not $r.Out.StartsWith($ReportPrefix))
+    (-not (Test-Path -LiteralPath (Join-Path $dir $Folder)) -and -not $r.Out.StartsWith($ReportPrefix))
 Remove-Item -Recurse -Force -LiteralPath $dir
+
+# Scenario: a layout naming another folder and index (RQ-PLG-036, TASK-PLG-040)
+$skill = Join-Path ([IO.Path]::GetTempPath()) ('agnos-index-skill-' + [guid]::NewGuid())
+New-Item -ItemType Directory -Path (Join-Path $skill 'scripts') | Out-Null
+Copy-Item -LiteralPath $Script -Destination (Join-Path $skill 'scripts')
+$layoutText = [IO.File]::ReadAllText((Join-Path $Scripts 'agnos-layout.ps1')) `
+    -creplace '(?m)^\$AGNOS_FOLDER = .*$', "`$AGNOS_FOLDER = '$OtherFolder'" -creplace '(?m)^\$AGNOS_INDEX = .*$', "`$AGNOS_INDEX = '$OtherIndex'"
+[IO.File]::WriteAllText((Join-Path $skill 'scripts\agnos-layout.ps1'), $layoutText)
+$Script = Join-Path $skill 'scripts\build-index.ps1'
+Set-Layout $OtherFolder $OtherIndex
+$dir = New-Scenario 'nominal'
+$r = Invoke-Generator $dir
+Assert-That 'Given a layout naming another folder When indexing Then its index holds the same entries under that folder [RQ-PLG-036]' `
+    (($r.Code -eq 0) -and (Test-SameBytes (Join-Path $dir $IndexRel) (Get-Expected $dir 'nominal')))
+Assert-That 'Given a layout naming another folder When indexing Then the report names its index [RQ-PLG-036]' ($r.Report -ceq "$ExpectedNominalReport updated")
+Remove-Item -Recurse -Force -LiteralPath $dir, $skill
 
 if ($script:Failures -gt 0) { "$($script:Failures) check(s) failed"; exit 1 }
 'All checks passed'

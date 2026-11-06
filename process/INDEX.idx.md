@@ -656,7 +656,7 @@ TASK-PLG-036|77-87|Not Started|The preparation run on this repository
 PLAN-PLG-006|1-134||The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 TASK-PLG-038|16-27|Done|Feature, decisions and plan
 TASK-PLG-039|28-39|Done|The layout and its generator
-TASK-PLG-040|40-51|Not Started|`agnos-index` reads the layout
+TASK-PLG-040|40-51|Done|`agnos-index` reads the layout
 TASK-PLG-041|52-63|Not Started|`agnos-init` reads the layout and migrates `process/`
 TASK-PLG-042|64-75|Not Started|The perf center and the other delivered skills read the layout
 TASK-PLG-043|76-87|Not Started|The release reads the layout, checks it, and renames the generated skill

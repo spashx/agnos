@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
-# agnos-index generator (bash + POSIX awk): builds process/INDEX.idx.md.
+# agnos-index generator (bash + POSIX awk): builds the process folder's index.
 # Implements RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016, RQ-IDX-018 (ADR-IDX-001: DEC-IDX-001 to DEC-IDX-004).
+# RQ-PLG-036 / DEC-PLG-027: the folder, its subfolders and the index's name come from the generated agnos-layout.sh.
 # Output must stay byte-identical to build-index.ps1. No gawk extension, no regex interval {n}.
 # Usage (from the project's root): bash <this skill's folder>/scripts/build-index.sh
 # Exit codes: 0 ok, 1 error (nothing written), 2 duplicate IDs (index written).
 set -u
 export LC_ALL=C
 
-PROCESS_DIR="process"
-INDEX_FILE="$PROCESS_DIR/INDEX.idx.md"
-SCAN_DIRS="1.requirements 2.architecture 3.plan"
+. "$(dirname "$0")/agnos-layout.sh"
+PROCESS_DIR="$AGNOS_FOLDER"
+INDEX_FILE="$PROCESS_DIR/$AGNOS_INDEX"
+SESSION_FOLDER="${AGNOS_SESSION_STATE%%/*}"
+SCAN_DIRS=""
+for d in $AGNOS_SUBFOLDERS; do
+  [ "$d" = "$SESSION_FOLDER" ] || SCAN_DIRS="$SCAN_DIRS $d"
+done
 NANOS_PER_MILLI=1000000
 NANOS_PER_SECOND=1000000000
 MILLIS_PER_SECOND=1000

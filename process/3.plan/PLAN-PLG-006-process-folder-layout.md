@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-040: `agnos-index` reads the layout
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Generate the index's copies; `build-index.ps1` and `build-index.sh` take the folder, subfolders and index name from them.
 - **Requirement refs**: RQ-PLG-036
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-027), ADR-IDX-001
 - **Acceptance Criteria**: Given the index's golden tests on both platforms, Then they pass unchanged; Given a fixture layout with another folder, Then both scripts index it.
 - **Dependencies**: TASK-PLG-039
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: New scenario "another folder" written first: 2 FAIL on each suite against the old scripts; after the change `test-build-index.sh` (default and POSIX) and `.ps1`: "All checks passed", golden files unchanged; both generators on this repository: 693 entries, index unchanged.
+- **Assumptions**: The tests take the folder from the layout copy and rename the fixtures' `process` folder to it, so the rename needs no test edit.
 
 ### TASK-PLG-041: `agnos-init` reads the layout and migrates `process/`
 - **Tier**: L
