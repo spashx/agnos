@@ -155,7 +155,8 @@ ADR-TRC-003).
 - **EARS Type**: Event-driven
 - **Statement**: WHEN an element is selected, the page SHALL draw it with its linked elements up to the chosen depth (1 to
   3), each type with its own colour and shape, highlight the element and its direct links, fade the others, and select
-  any element the user clicks; the whole graph SHALL be drawable on request.
+  any element the user clicks. (amended on 2026-11-07, ADR-TRC-015: the whole graph is no longer drawable on request —
+  a force layout of every element was unreadable)
 - **Rationale**: navigating links is faster on a graph than in tables.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a requirement linked to one decision and one file, When it is selected at depth 1, Then the
@@ -293,8 +294,9 @@ ADR-TRC-003).
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The page SHALL give every control (view tabs, type and trigram filters, quality shortcuts, the graph
-  toolbar's depth, switches, Fit and Whole graph, the coverage filter, Export CSV, the matrix headers, the detail panel's
-  buttons, the overview tiles) a tooltip that says what it does or what it counts.
+  toolbar's depth, switches, Fit, the coverage filter, Export CSV, the matrix headers, the detail panel's
+  buttons, the overview tiles) a tooltip that says what it does or what it counts. (amended on 2026-11-07, ADR-TRC-015:
+  Whole graph removed)
 - **Rationale**: a reader new to the page learns it by pointing, not by reading a manual.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the page, When its controls are read, Then each one listed has a non-empty title.

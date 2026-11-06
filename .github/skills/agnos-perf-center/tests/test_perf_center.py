@@ -515,6 +515,18 @@ class GraphViewTest(unittest.TestCase):
         self.assertIn("<canvas", dom)
 
 
+class GraphToolbarTest(unittest.TestCase):
+    """TASK-TRC-099: RQ-TRC-012, RQ-TRC-045 (ADR-TRC-015, DEC-TRC-060)."""
+
+    def test_RQ_TRC_012_given_the_page_then_whole_graph_is_removed_and_fit_remains(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "page.html"
+            page, _ = generate(path)
+        self.assertNotIn('id="whole"', page)
+        self.assertNotIn("Whole graph", page)
+        self.assertIn('id="fit"', page)
+
+
 def rendered_dom_after(page_path, script, window=BROWSER_WINDOW):
     """The DOM once the page ran, then the given script (a copy of the page with the script at its end)."""
     copy = page_path.with_name("scripted-" + page_path.name)
@@ -839,7 +851,7 @@ class WheelZoomTest(unittest.TestCase):
 
 
 TOOLTIP_TARGETS = (".tab", "#type-filters .chip", "#tri-filters .chip", ".quality-shortcut", "#depth", "#depth button",
-                   "#display", "#show-files", "#show-hierarchy", "#fit", "#whole", "#coverage-filter button", "#export-csv", "#reset-columns", "#expand-checks", "#collapse-checks",
+                   "#display", "#show-files", "#show-hierarchy", "#fit", "#coverage-filter button", "#export-csv", "#reset-columns", "#expand-checks", "#collapse-checks",
                    "#matrix-table th", ".kpi-type", "#search")
 READ_TOOLTIPS = """
 agnosTrace.select("RQ-DEM-002");

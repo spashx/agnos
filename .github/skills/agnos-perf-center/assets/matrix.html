@@ -65,7 +65,7 @@
       </section>
       <section data-help="graph" data-title="Graph" hidden>
         <h3>Graph</h3>
-        <p>The selected element and its links, as a flow of columns: features, requirements, ADRs and decisions, plans and tasks, source files, undefined IDs. <b>Depth</b> follows links 1 to 3 steps away; <b>Whole graph</b> draws everything the filters show. The wheel zooms.</p>
+        <p>The selected element and its links, as a flow of columns: features, requirements, ADRs and decisions, plans and tasks, source files, undefined IDs. <b>Depth</b> follows links 1 to 3 steps away. The wheel zooms.</p>
         <ul>
           <li><b>Source files</b> draws the files, linked to the IDs they cite and the functions they define.</li>
           <li><b>Specification hierarchy</b> draws and follows feature to requirement, ADR to decision, plan to task.</li>
@@ -229,7 +229,6 @@
         <span class="toolbar-spacer"></span>
         <span class="graph-status" id="graph-status" title="Elements and links drawn, depth, elements left out by the limits, drawing time"></span>
         <button class="button" type="button" id="fit" title="Zoom out so that the whole drawing fits the frame">Fit</button>
-        <button class="button" type="button" id="whole" title="Draw every element shown by the filters, as dots, whatever the selection (asks first above 1,500)">Whole graph</button>
       </div>
       <div class="graph-frame">
         <div class="graph-scroll" id="graph-scroll"><div class="graph" id="cy" aria-label="Traceability graph"></div></div>

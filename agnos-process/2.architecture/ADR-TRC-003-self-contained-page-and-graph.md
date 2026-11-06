@@ -38,10 +38,12 @@ an edge between two nodes of one column bows out of it. Positions are computed b
 drawing is the same at every visit and redraws in well under 500 ms (RQ-TRC-020); the view never zooms below a readable
 floor (a token) and starts at its top-left corner, "Fit" shows all of it. Selection: the element is outlined in the
 accent colour, its edges drawn in the accent colour, the others dimmed (RQ-TRC-012); clicking a node selects it; hovering
-shows its title. "Whole graph" draws every element as a dot with `cose`, after a warning when there are more than 1,500.
+shows its title.
 A first concentric layout was replaced at the owner's review: at depth 2 a requirement brought ~370 nodes, which the fit
 shrank to unreadable dots.
 Amended by DEC-TRC-040 and DEC-TRC-041 (ADR-TRC-010, 2026-10-28): Cytoscape.js 3.30.2 is loaded from cdnjs, no longer vendored.
+Amended by DEC-TRC-060 (ADR-TRC-015, 2026-11-07): "Whole graph" is removed — it drew every element as a dot with `cose`,
+after a warning past 1,500, but the result had no structure left to read.
 
 ### DEC-TRC-007: One page, four views, one selection
 A header (title, generation time, inputs, theme switch), a sidebar (search with keyboard navigation, type and trigram

@@ -632,7 +632,7 @@
 
   // ---- graph (TASK-TRC-006: RQ-TRC-012, RQ-TRC-020; DEC-TRC-006) ------------------------------------------------
   // The neighbourhood of the selection is laid out as a traceability flow: one column per element family, left to
-  // right, each node a labelled pill tinted with its type colour. The whole graph uses a force layout of small dots.
+  // right, each node a labelled pill tinted with its type colour.
   const COLUMNS = [["FTR"], ["RQ"], ["ADR", "DEC"], ["PLAN", "TASK"], ["FN"], ["FILE"], ["UNDEFINED"]];
   const COLUMN_NAME = ["Features", "Requirements", "ADRs · decisions", "Plans · tasks", "Implementation", "Source files",
     "Undefined IDs"];                   // RQ-TRC-048: the code column holds functions, classes or namespaces
@@ -661,8 +661,6 @@
   const MAX_PER_COLUMN = 72;            // beyond this, the column ends with a "+n more" note
   const MONO_CHAR_RATIO = 0.62;         // width of a monospace character, as a share of the font size
   const LABEL_MAX_CHARS = 26;
-  const WHOLE_GRAPH_WARN = 1500;        // the whole graph above this many nodes asks before drawing
-  const COSE_ITERATIONS = 600;
   const STRIPE_PERCENT = 7;             // the type colour band at the left of a pill, as a share of its width
   const BOW_RATIO = 0.35;               // how far a same-column edge bows out, as a share of its height
   const BOW_WEIGHT = 0.5;               // the bow's control point sits halfway along the edge
@@ -755,7 +753,6 @@
     const container = $("cy");
     let tipTimer = null;
     let cy = null;
-    let whole = false;
     let depth = 1;
     let detail = DETAIL.function;       // RQ-TRC-047: the level of detail, the function level by default
     let enclosing = true;               // RQ-TRC-047: the enclosing boxes drawn around the level's own
@@ -1094,13 +1091,6 @@
       return placed;
     }
 
-    function wholeElements() {
-      const keys = [...nodes.keys()].filter((k) => nodeAllowed(nodes.get(k)));
-      return { elements: [...keys.map((key) => ({ group: VALUE_NODES, classes: "item dot",
-        data: { id: key, type: nodes.get(key).type, label: shortLabel(nodes.get(key)), width: 0 } })), ...edgesAmong(keys)],
-      drawn: keys.length, total: keys.length };
-    }
-
     function ensure() {
       if (cy) return cy;
       cy = cytoscape({ container, style: style(), minZoom: num("--c-graph-zoom-min"), maxZoom: num("--c-graph-zoom-max"),
@@ -1189,7 +1179,7 @@
       const centre = own.union(frames.descendants());
       if (centre.empty()) return;
       const near = centre.closedNeighborhood();
-      cy.nodes(VALUE_ITEM).not(near).addClass(whole ? VALUE_FADED : "dim");
+      cy.nodes(VALUE_ITEM).not(near).addClass("dim");
       // DEC-TRC-020: a frame holding nothing near the selection is faint like its pills, not a veil drawn over them.
       cy.nodes(".box").not(VALUE_ITEM).filter((frame) => frame.descendants(VALUE_ITEM).intersection(near).empty()).addClass("faint");
       cy.edges().not(centre.connectedEdges()).addClass(VALUE_FADED);
@@ -1204,26 +1194,23 @@
       }
       const started = performance.now();
       const key = isCommitKey(state.selected) ? null : state.selected;     // DEC-HST-009: a commit is not drawn here
-      $("graph-empty").hidden = Boolean(key) || whole;
+      $("graph-empty").hidden = Boolean(key);
       ensure();
       cy.resize();
       let built = { elements: [], drawn: 0, total: 0 };
       centre = key;
-      if (whole) built = wholeElements();
-      else if (key) {
+      if (key) {
         const view = detailView(neighbourhood(key));      // the 400-node limit applies to what the level draws
         const drawnFor = new Set(boxStarts(key).map(view.drawnOf));   // a box whose functions the level draws as one
         centre = drawnFor.size === 1 ? [...drawnFor][0] : key;
         built = { ...flowElements(nearest(view.levels), centre, view), total: view.levels.size };
       }
       cy.batch(() => { cy.elements().remove(); cy.add(built.elements); });
-      if (whole) cy.layout({ name: "cose", animate: false, numIter: COSE_ITERATIONS }).run();
-      else cy.layout({ name: "preset" }).run();
+      cy.layout({ name: "preset" }).run();
       highlight(centre);
       frame();
       const ms = Math.round(performance.now() - started);
-      const parts = [`${built.drawn} elements`, `${cy.edges().length} links`];
-      if (!whole) parts.push(`depth ${depth}`);
+      const parts = [`${built.drawn} elements`, `${cy.edges().length} links`, `depth ${depth}`];
       if (built.total > built.drawn) parts.push(`${built.total - built.drawn} not drawn`);
       parts.push(`${ms} ms`);
       $("graph-status").textContent = parts.join(" · ");
@@ -1238,7 +1225,7 @@
       fitCanvas();
       cy.fit(undefined, padding);
       const floor = num("--c-graph-flow-min-zoom");
-      if (!whole && cy.zoom() < floor) {
+      if (cy.zoom() < floor) {
         const box = cy.elements().boundingBox();
         const scroller = $(VALUE_GRAPH_SCROLL);
         container.style.width = `${Math.ceil(Math.max(scroller.clientWidth, box.w * floor + 2 * padding))}px`;
@@ -1265,7 +1252,6 @@
       if (!b) return;
       depth = Number(b.dataset.depth);
       for (const other of $(VALUE_DEPTH).querySelectorAll(TAG_BUTTON)) other.setAttribute(VALUE_ARIA_PRESSED, String(other === b));
-      whole = false;
       dirty = true;
       if (visible()) draw();          // a hidden frame has no size: drawn when the view is shown
     });
@@ -1334,12 +1320,6 @@
       fitCanvas();
       cy.fit(undefined, num(CSS_VAR_S_SPACE_XL));
     });
-    $("whole").addEventListener(EVENT_CLICK, () => {
-      const count = [...nodes.values()].filter(nodeAllowed).length;
-      if (count > WHOLE_GRAPH_WARN && !window.confirm(`Draw all ${count} elements? The layout may take a while.`)) return;
-      whole = true;
-      draw();
-    });
 
     clear($("legend")).append(...NODE_TYPES.map((t) => el(TAG_SPAN, { class: VALUE_LEGEND_ITEM },
       el(TAG_SPAN, { class: `legend-shape shape-RQ t-${t}` }), TYPE_NAME[t][0])),
@@ -1358,7 +1338,6 @@
       elements() { return cy ? cy.elements().map((e) => e.data()) : []; },
       show() { if (dirty || !cy) draw(); else cy.resize(); },
       select(key) {
-        if (whole && cy) { centre = key; highlight(key); return; }
         dirty = true;
         if (visible()) draw();
       },
