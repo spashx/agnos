@@ -62,7 +62,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-096: The About topic says "app" and shows the addresses
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Say "This app" in place of "This page" in the About text, and show the address each About link opens, beside its icon, in place of "GitHub: spashx" and "LinkedIn: spashx".
 - **Requirement refs**: RQ-TRC-113
 - **ADR refs**: ADR-TRC-014 (DEC-TRC-058)
@@ -70,4 +70,4 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-TRC-095
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
-- **Assumptions**: None
+- **Assumptions**: The prefixes "GitHub:" and "LinkedIn:" are dropped with the name, the icon naming the site; the sentence "by spashx" stays.

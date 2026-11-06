@@ -811,4 +811,4 @@ TASK-TRC-092|15-26|Done|Brand and badge tokens
 TASK-TRC-093|27-38|Done|The brand mark in the header and, larger, in About
 TASK-TRC-094|39-50|Done|The foot names the application and its version
 TASK-TRC-095|51-62|Done|The Licenses topic and its badges
-TASK-TRC-096|63-73|Not Started|The About topic says "app" and shows the addresses
+TASK-TRC-096|63-73|Done|The About topic says "app" and shows the addresses
