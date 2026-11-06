@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-042: The perf center and the other delivered skills read the layout
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Generate the copies of `agnos-perf-center` and of any other delivered skill whose scripts cite the layout; move their SKILL.md texts onto the layout's paths.
 - **Requirement refs**: RQ-PLG-036, RQ-PLG-037
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-027, DEC-PLG-028)
 - **Acceptance Criteria**: Given their suites, Then they pass; Given `layout.py --check`, Then it reports nothing for these skills.
 - **Dependencies**: TASK-PLG-039
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `--check` extended to delivered scripts, tested first (1 FAIL, then 11 OK); it found 5 lines of the perf center, then 0. Perf-center suite on a copy: 367 run, 363 OK, 3 skipped (opt-in perf tests, `AGNOS_PERF_CENTER_PERF`), 1 FAIL RQ-HST-015 (history imported the copy): fixed, the log's path given by `perf_center.py`; `test_history` 45 OK, `test_friction` 8 OK, `test_delivery` 9 OK.
+- **Assumptions**: The perf center's tests take the index and log names from the copy; its fixture `tests/fixtures/repo/process/INDEX.idx.md` is renamed with the rename (TASK-PLG-045).
 
 ### TASK-PLG-043: The release reads the layout, checks it, and renames the generated skill
 - **Tier**: L

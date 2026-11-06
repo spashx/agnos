@@ -10,12 +10,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 
 import history  # noqa: E402
 from test_history import RepoTestCase, setUpModule  # noqa: E402,F401
 
-LOG = "process/_sessionstate/METRICS_LOG.md"
+LOG = f"process/{agnos_layout.METRICS_LOG}"
 HEADER = "| Date | TRI | AskUserQuestion | ErrorRecovery | ReTiered | VerificationCatches |\n|---|---|:-:|:-:|:-:|:-:|\n"
 ROW_1 = "| 2026-10-01 | ABC | 1 | 2 | 3 | 4 |\n"
 ROW_2 = "| 2026-10-02 | DEF | 0 | 1 | 0 | 2 |\n"
@@ -28,7 +29,8 @@ class FrictionLogTest(RepoTestCase):
     def build(self, since=None):
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            block = history.build(self.repo.top / "process", {}, {}, [], [self.repo.top / "process"], since, tasks={})
+            block = history.build(self.repo.top / "process", {}, {}, [], [self.repo.top / "process"], since, tasks={},
+                                  friction_log=agnos_layout.METRICS_LOG)
         return block, err.getvalue()
 
     def subject_of(self, block, entry):

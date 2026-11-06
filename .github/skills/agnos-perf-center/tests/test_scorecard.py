@@ -10,6 +10,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import scorecard as sc  # noqa: E402
 import perf_center as tm  # noqa: E402
@@ -503,7 +504,7 @@ def five_area_process(root):
         (root / name).write_text("\n".join([f"# FTR-{tri}-001: Area", "", "## Requirements", "", f"### RQ-{tri}-001: One", "", "text",
                                             "", f"### RQ-{tri}-002: Two", "", "text"]) + "\n", encoding="utf-8")
         rows += [f"@{name}", f"FTR-{tri}-001|1-11||Area", f"RQ-{tri}-001|5-7||One", f"RQ-{tri}-002|9-11||Two"]
-    (root / "process" / "INDEX.idx.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (root / "process" / agnos_layout.INDEX).write_text("\n".join(rows) + "\n", encoding="utf-8")
     (root / "src").mkdir()
     (root / "src" / "code.py").write_text("# RQ-AAA-001\n", encoding="utf-8")
     return root / "process", root / "src"

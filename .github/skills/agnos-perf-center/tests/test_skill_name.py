@@ -11,6 +11,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import perf_center  # noqa: E402
 
@@ -54,7 +55,7 @@ class SkillNameTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             process = Path(tmp) / "process"
             process.mkdir()
-            (process / "INDEX.idx.md").write_bytes((FIXTURE / "process" / "INDEX.idx.md").read_bytes())
+            (process / agnos_layout.INDEX).write_bytes((FIXTURE / "process" / agnos_layout.INDEX).read_bytes())
             code = perf_center.main(["--process", str(process), "--sources", str(FIXTURE / "src")])
             self.assertEqual(0, code)
             for output in OUTPUTS:

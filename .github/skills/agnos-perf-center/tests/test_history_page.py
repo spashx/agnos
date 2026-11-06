@@ -12,6 +12,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 
 import perf_center as tm  # noqa: E402
@@ -969,7 +970,7 @@ def large_process(root, count):
     ids = [line.split(":")[0][4:] for line in lines[2:]]
     rows = ["# AGNOS process index", f"@{name}", f"FTR-BIG-001|1-{len(lines)}||Big"]
     rows += [f"{i}|{n + 3}-{n + 3}||R" for n, i in enumerate(ids)]
-    (root / "process" / "INDEX.idx.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (root / "process" / agnos_layout.INDEX).write_text("\n".join(rows) + "\n", encoding="utf-8")
     (root / "src").mkdir()
     (root / "src" / "code.py").write_text("# RQ-BIG-001\n", encoding="utf-8")
     return root / "process", root / "src", ids

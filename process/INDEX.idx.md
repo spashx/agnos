@@ -120,7 +120,7 @@ RQ-MTA-003|46-55||An existing demo can still be rebuilt
 RQ-MTA-004|56-66||The layers are stated
 RQ-MTA-005|67-79||The demo holds the project only
 @process/1.requirements/FTR-MTA-002-release-dry-run.md
-FTR-MTA-002|1-129||A Release Rehearsed Without Publishing
+FTR-MTA-002|1-130||A Release Rehearsed Without Publishing
 RQ-MTA-006|18-29||The rehearsal changes nothing but its output
 RQ-MTA-007|30-39||The output comes from a commit
 RQ-MTA-008|40-51||Every tracked file has a layer
@@ -128,8 +128,8 @@ RQ-MTA-009|52-67||The defined IDs are removed, the examples stay
 RQ-MTA-010|68-78||A defined ID left fails the rehearsal
 RQ-MTA-011|79-91||The output behaves as the workshop does
 RQ-MTA-012|92-106||The report says what to read
-RQ-MTA-013|107-117||A maintainer skill like the others
-RQ-MTA-014|118-129||The workshop's citations stay in comments
+RQ-MTA-013|107-118||A maintainer skill like the others
+RQ-MTA-014|119-130||The workshop's citations stay in comments
 @process/1.requirements/FTR-PLG-001-marketplace.md
 FTR-PLG-001|1-131||AGNOS Marketplace for Claude Code, GitHub Copilot and OpenAI Codex
 RQ-PLG-001|22-30||A marketplace target
@@ -415,7 +415,7 @@ DEC-PLG-023|20-24||The version is proposed from the changelog's sections, chosen
 DEC-PLG-025|25-30||`VERSION` among the init's templates is the single source of the version
 DEC-PLG-026|31-37||`agnos-init` writes the guide and the version into `process/`
 @process/2.architecture/ADR-PLG-006-process-folder-layout.md
-ADR-PLG-006|1-69|Accepted (owner, 2026-11-06) — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated|The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
+ADR-PLG-006|1-72|Accepted (owner, 2026-11-06) — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated|The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 DEC-PLG-027|15-21||`layout.json` is the source, each skill holds a generated copy
 DEC-PLG-028|22-28||One check, run by the tests and by the release
 DEC-PLG-029|29-33||The rename is one edit of the layout, done last
@@ -658,7 +658,7 @@ TASK-PLG-038|16-27|Done|Feature, decisions and plan
 TASK-PLG-039|28-39|Done|The layout and its generator
 TASK-PLG-040|40-51|Done|`agnos-index` reads the layout
 TASK-PLG-041|52-63|Done|`agnos-init` reads the layout and migrates `process/`
-TASK-PLG-042|64-75|Not Started|The perf center and the other delivered skills read the layout
+TASK-PLG-042|64-75|Done|The perf center and the other delivered skills read the layout
 TASK-PLG-043|76-87|Not Started|The release reads the layout, checks it, and renames the generated skill
 TASK-PLG-044|88-99|Not Started|The instructions file and the entry points cite the layout's paths
 TASK-PLG-045|100-111|Not Started|The rename

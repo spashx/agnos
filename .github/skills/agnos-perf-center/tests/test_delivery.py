@@ -9,6 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 
 import history  # noqa: E402
@@ -55,7 +56,7 @@ class DeliveryTestCase(RepoTestCase):
     def build_repository(self, fix_day=None):
         tiers = ["S", "S", "M", "S"]
         statuses = ["Not Started", "Done", "Not Started", "Not Started"]
-        self.repo.commit({"process/INDEX.idx.md": INDEX_TEXT, FEATURE: FEATURE_TEXT, PLAN: plan(statuses, tiers),
+        self.repo.commit({f"process/{agnos_layout.INDEX}": INDEX_TEXT, FEATURE: FEATURE_TEXT, PLAN: plan(statuses, tiers),
                           CODE: CODE_TEXT}, author=CAROL, message="docs(ABC): PLAN-ABC-001 planned")
         tiers[0], statuses[0] = "L", "Done"
         self.repo.commit({PLAN: plan(statuses, tiers), CODE: CODE_TEXT.replace("return 1", "return 10")},

@@ -12,6 +12,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import perf_center as tm  # noqa: E402
 
@@ -84,7 +85,7 @@ class ProcessModelTest(unittest.TestCase):
             out = Path(tmp) / "page.html"
             code, _, err = run_main(["--process", tmp, "--sources", str(SOURCES), "--out", str(out)])
             self.assertEqual(1, code)
-            self.assertIn("INDEX.idx.md", err)
+            self.assertIn(agnos_layout.INDEX, err)
             self.assertFalse(out.exists())
 
     def test_RQ_TRC_002_given_a_missing_source_folder_when_the_generator_runs_then_it_exits_1(self):

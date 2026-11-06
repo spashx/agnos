@@ -2,7 +2,7 @@
 """agnos-perf-center: the traceability matrix of an AGNOS process and its sources, as one self-contained HTML page.
 
 Procedure and options: ../SKILL.md (FTR-TRC-001; ADR-TRC-001, ADR-TRC-002, ADR-TRC-003).
-Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS ID grammar and the INDEX.idx.md format,
+Python >= 3.9, standard library only (DEC-TRC-001, RQ-TRC-021). Knows the AGNOS ID grammar and the process index's format,
 nothing of the product being developed (RQ-TRC-019). --call-graph loads callgraph.py beside it (FTR-TRC-002,
 ADR-TRC-004). Kept free of quality findings (RQ-QLT-009, DEC-QLT-008).
 """
@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))    # scorecard.py, beside this script (ADR-TRC-008)
 import scorecard  # noqa: E402
+import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-PLG-027: the process folder's names, generated beside this script
 
 # RQ-TRC-067: a literal written more than once is a named constant.
 DURATION_FORMAT = ".3f"    # RQ-TRC-107: seconds, three decimals
@@ -49,8 +50,8 @@ TYPE_RQ = "RQ"
 TIER_RE = re.compile(r"^- \*\*Tier\*\*:\s*([SML])\b")     # RQ-TRC-068: a task's tier, as the AGNOS template writes it
 KEY_DELIVERY = "delivery"
 
-INDEX_NAME = "INDEX.idx.md"
-DEFAULT_OUT_NAME = "PERF-CENTER.html"
+INDEX_NAME = agnos_layout.INDEX
+DEFAULT_OUT_NAME = agnos_layout.PERF_CENTER_PAGE
 TYPES = ("FTR", "RQ", "ADR", "DEC", "PLAN", "TASK")
 ID_PATTERN = r"(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}"
 NUMBER_LENGTH = 3
@@ -158,7 +159,7 @@ class Model:
 # ---- process -----------------------------------------------------------------------------------------------------
 # RQ-TRC-003
 def parse_index(index_path):
-    """The rows of INDEX.idx.md: one element per 'ID|first-last|status|title' row, under its '@document' line."""
+    """The rows of the process index: one element per 'ID|first-last|status|title' row, under its '@document' line."""
     rows, doc = [], ""
     for raw in index_path.read_text(encoding=ENCODING).splitlines():
         if raw.startswith("@"):
@@ -371,7 +372,7 @@ def build_history(args, process, model, scanned, graph):
     try:
         return module, module.build(process, documents, dict(scanned), functions, [process, *map(Path, args.sources)],
                                     args.history_since, depth=history_depth(args.history_depth),
-                                    tasks=task_tiers(process, model))
+                                    tasks=task_tiers(process, model), friction_log=agnos_layout.METRICS_LOG)
     except (module.HistoryUnavailable, module.GitError) as error:
         print(f"agnos-perf-center: warning: no history: {error}", file=sys.stderr)
         return module, None

@@ -48,6 +48,8 @@ LIST_SEPARATOR = " "
 FOLDER, SUBFOLDERS, INDEX = "folder", "subfolders", "index"
 FILES_IN_FOLDER = ("index", "sessionState", "metricsLog", "projectRules", "perfCenterPage")
 LEGACY_FOLDER, LEGACY_INDEX = "legacyFolder", "legacyIndex"
+SCRIPT_SUFFIXES = (".py", ".ps1", ".sh")
+VENDOR = "vendor"
 PATH_CHARS = r"[\w.*<>{}/-]*"
 TRAILING = ".-"                               # a sentence's full stop is not part of a path
 
@@ -123,9 +125,42 @@ def cited_paths(layout):
     return re.compile(rf"(?<![\w./-])(?:{names})/{PATH_CHARS}")
 
 
-def check(root, layout):
-    """Findings 'file:line: what' for each copy that differs and each undeclared path cited in the Markdown (RQ-PLG-037)."""
+def delivered_scripts(root):
+    """The scripts of the delivered skills, their generated copies, tests and vendored code left out (RQ-PLG-036)."""
+    copy_names = set(COPY_NAMES.values())
+    found = []
+    for path in sorted((root / SKILLS).glob(f"*/{SCRIPTS}/**/*")):
+        relative = path.relative_to(root / SKILLS)
+        if (path.suffix in SCRIPT_SUFFIXES and not relative.parts[0].startswith(META_PREFIX)
+                and path.name not in copy_names and VENDOR not in relative.parts):
+            found.append(path)
+    return found
+
+
+def script_literals(layout):
+    """The names a delivered script may hold only through its copy: the files, their base names and the subfolders (RQ-PLG-036)."""
+    names = {layout[key] for key in (*FILES_IN_FOLDER, LEGACY_INDEX)} | set(layout[SUBFOLDERS])
+    return sorted(names | {name.rsplit("/", 1)[-1] for name in names}, key=len, reverse=True)
+
+
+def check_scripts(root, layout):
+    """Findings for each line of a delivered script naming the folder or a name of the layout (RQ-PLG-036)."""
     findings = []
+    literals = script_literals(layout)
+    pattern = cited_paths(layout)
+    for path in delivered_scripts(root):
+        for number, line in enumerate(path.read_text(encoding=ENCODING).splitlines(), start=1):
+            held = next((name for name in literals if name in line), None) or next(
+                (match.group() for match in pattern.finditer(line)), None)
+            if held:
+                findings.append(f"{path.relative_to(root).as_posix()}:{number}: {held} is the layout's, read it from the copy")
+    return findings
+
+
+def check(root, layout):
+    """Findings 'file:line: what' for each copy that differs, each layout name in a delivered script and each undeclared
+    path cited in the Markdown (RQ-PLG-036, RQ-PLG-037)."""
+    findings = check_scripts(root, layout)
     for path, data in copies(root, layout).items():
         target = root / path
         if not target.is_file():

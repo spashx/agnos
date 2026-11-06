@@ -17,6 +17,7 @@ from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 
 from test_perf_center import BROWSER, rendered_dom_after, run_main  # noqa: E402
@@ -100,7 +101,7 @@ def write_repository(top):
         for n in range(REQUIREMENTS_PER_FEATURE):
             first = 3 + n * LINES_PER_REQUIREMENT
             rows.append(f"{requirement_id(f, n)}|{first}-{first + LINES_PER_REQUIREMENT - 1}||Requirement {n}")
-    (top / "process" / "INDEX.idx.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (top / "process" / agnos_layout.INDEX).write_text("\n".join(rows) + "\n", encoding="utf-8")
     return top / "process", top / "src"
 
 

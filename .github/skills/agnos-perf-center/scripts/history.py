@@ -89,7 +89,6 @@ SIGN_ADDED = "+"
 SIGN_REMOVED = "-"
 
 # FTR-TRC-006, DEC-TRC-045: the rows of the friction log at HEAD, each with the commit that added it.
-FRICTION_LOG = Path("_sessionstate") / "METRICS_LOG.md"
 BLAME_HEADER_RE = re.compile(r"^([0-9a-f]{40,64}) \d+ \d+")
 BLAME_TEXT = "\t"
 TABLE_MARK = "|"
@@ -921,9 +920,10 @@ def blamed_lines(repo, path):
     return lines
 
 
-def friction_block(lines, position, merges):
+def friction_block(lines, position, merges, name):
     """RQ-TRC-090, RQ-TRC-091: [date, trigram, 4 counters, commit index] of each data row of the log's blamed lines; a
-    row outside the history read is left out, a malformed row or one of a merge also named on the error stream."""
+    row outside the history read is left out, a malformed row or one of a merge also named on the error stream, the log by
+    its name."""
     rows, in_table = [], False
     for commit, text in lines:
         if not text.startswith(TABLE_MARK):
@@ -933,7 +933,7 @@ def friction_block(lines, position, merges):
             continue
         found = FRICTION_ROW_RE.match(text)
         if found is None or commit in merges:
-            print(f"agnos-perf-center: warning: {FRICTION_LOG.name}: row left out: {text}", file=sys.stderr)
+            print(f"agnos-perf-center: warning: {name}: row left out: {text}", file=sys.stderr)
         elif commit in position:
             date, trigram, *counters = found.groups()
             rows.append([date, trigram, *map(int, counters), position[commit]])
@@ -958,7 +958,7 @@ def history_limits(since, depth, listed, shallow):
 
 
 # agnos-qa-exception: PLR0913 the generator's one entry here: its tracked lists and limits are separate inputs
-def build(folder, documents, files, functions, scope, since=None, *, depth=None, tasks=None):
+def build(folder, documents, files, functions, scope, since=None, *, depth=None, tasks=None, friction_log=None):
     """The data file's history block, for the repository holding folder. documents is {path: [(ID, first, last)]} of
     the process documents, files {shown path: path} of the scanned files, functions [(shown path, first, last)] of the
     call graph in its order (empty without one), scope the folders whose history is read; with tasks {ID: (tier,
@@ -977,9 +977,11 @@ def build(folder, documents, files, functions, scope, since=None, *, depth=None,
              KEY_GRAPH: build_graph(repo, since, position)}
     if tasks is not None:
         block[KEY_DELIVERY] = delivery_block(tasks, watching.events, tally, authored, listed, load_delivery_settings())
-        log = relative_to(Path(folder) / FRICTION_LOG, repo.top)
+        # RQ-PLG-036 / DEC-PLG-027: the log's path in the folder is the caller's, from the layout, so that this module
+        # imports only the standard library (RQ-HST-015)
+        log = relative_to(Path(folder) / friction_log, repo.top)
         block[KEY_DELIVERY]["friction"] = friction_block(blamed_lines(repo, log), position,
-                                                         {c[KEY_HASH] for c in commits if is_merge(c)})
+                                                         {c[KEY_HASH] for c in commits if is_merge(c)}, Path(friction_log).name)
     return block
 
 

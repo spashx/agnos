@@ -18,6 +18,7 @@ from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 
 import perf_center as tm  # noqa: E402
@@ -85,7 +86,7 @@ def write_repository(top):
     for tri in TRIGRAMS:
         rows += [f"@process/3.plan/PLAN-{tri}-001.md", f"PLAN-{tri}-001|1-{2 + TASKS_PER_PLAN * TASK_LINES}||Plan"]
         rows += [f"TASK-{tri}-{n + 1:03d}|{3 + n * TASK_LINES}-{2 + (n + 1) * TASK_LINES}|Done|Task {n + 1}" for n in range(TASKS_PER_PLAN)]
-    (top / "process" / "INDEX.idx.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (top / "process" / agnos_layout.INDEX).write_text("\n".join(rows) + "\n", encoding="utf-8")
     return top / "process", top / "src"
 
 

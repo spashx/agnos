@@ -20,6 +20,7 @@ from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import history  # noqa: E402
 import perf_center as tm  # noqa: E402
@@ -389,7 +390,7 @@ class GeneratorTest(RepoTestCase):
         super().setUp()
         lines = numbered(1, 20)
         self.feature = "process/1.requirements/FTR-ABC-001.md"
-        self.repo.commit({"process/INDEX.idx.md": INDEX_TEXT, self.feature: lines, CODE: CODE_TEXT}, author=CAROL)
+        self.repo.commit({f"process/{agnos_layout.INDEX}": INDEX_TEXT, self.feature: lines, CODE: CODE_TEXT}, author=CAROL)
         self.repo.commit({self.feature: lines.replace("line 7\n", "line seven\n")}, author=ALICE, co_authors=[CLAUDE])
         self.out = self.folder / "out" / "TRACE.html"
 
