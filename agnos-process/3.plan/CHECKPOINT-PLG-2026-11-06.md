@@ -13,7 +13,6 @@
   nothing to install. RQ-HST-015 unchanged: the perf center's history gets the friction log's path from its caller.
 
 ## Open
-- TASK-PLG-047: the Claude Code half of `agnos-meta-plugin-proof` not run (`claude` absent from the PATH of the run).
 - TASK-PLG-007 (PLAN-PLG-001) In Progress, unchanged.
 - ADR-PLG-005 Proposed; PLAN-PLG-005 (TASK-PLG-032 In Progress, TASK-PLG-033 to TASK-PLG-037 Not Started) is next, in a new
   session; its files now go under `agnos-process/` (the plan's paths may need the new names).
