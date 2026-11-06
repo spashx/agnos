@@ -1,6 +1,6 @@
 ---
 name: agnos-index
-description: "AGNOS process index skill. Regenerates process/INDEX.idx.md, the machine-oriented index (ID, line range, status, title) of every FTR/RQ/ADR/DEC/PLAN/TASK definition in process/. USE FOR: START SESSION step 4 (before scanning process/) and commit-task (before staging). The index SHALL NEVER be edited by hand."
+description: "AGNOS process index skill. Regenerates agnos-process/process.idx.md, the machine-oriented index (ID, line range, status, title) of every FTR/RQ/ADR/DEC/PLAN/TASK definition in agnos-process/. USE FOR: START SESSION step 4 (before scanning agnos-process/) and commit-task (before staging). The index SHALL NEVER be edited by hand."
 argument-hint: "(no arguments)"
 ---
 

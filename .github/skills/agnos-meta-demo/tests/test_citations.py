@@ -2,6 +2,7 @@
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-demo/tests -v
 """
+import json
 import re
 import subprocess
 import sys
@@ -10,7 +11,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 SKILLS = ".github/skills"
-INDEX = ROOT / "process" / "INDEX.idx.md"
+# RQ-PLG-036 / DEC-PLG-027: the process folder and its index, as the layout declares them
+LAYOUT = json.loads((ROOT / SKILLS / "agnos-init" / "assets" / "layout.json").read_text(encoding="utf-8"))
+INDEX = ROOT / LAYOUT["folder"] / LAYOUT["index"]
 CHANGELOG = ROOT / "CHANGELOG.md"
 DOCS_SYNC_SKILL = ROOT / SKILLS / "agnos-meta-docs-sync" / "SKILL.md"
 SCRIPTS = (f"{SKILLS}/agnos-perf-center/scripts/perf_center.py",
@@ -20,7 +23,7 @@ ID_TYPES = "FTR|RQ|ADR|DEC|PLAN|TASK"
 DEFINITION_RE = re.compile(rf"^(?:{ID_TYPES})-([A-Z]{{3}})-\d{{3}}\|", re.M)
 HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
 COMMENT_OPEN = "<!--"
-SKIPPED_RE = re.compile(rf"^process/|/tests?/|^{SKILLS}/agnos-meta-demo/assets/")
+SKIPPED_RE = re.compile(rf"^{re.escape(LAYOUT['folder'])}/|/tests?/|^{SKILLS}/agnos-meta-demo/assets/")
 MARKDOWN_RE = re.compile(r"\.md$", re.I)
 PREVIOUS_ENTRY_ID = "TASK-TRC-091"
 COMMENT_FORM = "<!-- TASK-TRC-046, RQ-TRC-058 -->"

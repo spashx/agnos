@@ -6,7 +6,7 @@
 
 - `--exclude` replaces the excluded names: `.git`, `.hg`, `.svn`, `node_modules`, `build`, `build-*`, `build_*`, `cmake-build-*`,
   `dist`, `out`, `_deps`, `.venv`, `venv`, `__pycache__`, `.idea`, `.vs`, `.vscode`, `target`, `bin`, `obj`.
-- Exit code 1: no `INDEX.idx.md`, a missing source folder, a broken design token, a history option without `--history`, or a
+- Exit code 1: no `process.idx.md`, a missing source folder, a broken design token, a history option without `--history`, or a
   depth that is not a positive integer.
 - Without the call-graph packages, the summary says `call graph skipped: tree-sitter not installed, run: pip install -r …`. They
   are prebuilt wheels, no compiler needed.

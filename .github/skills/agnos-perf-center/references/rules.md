@@ -78,7 +78,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 - `scripts/history.py` is loaded only with `--history`; it runs the `git` command, nothing else beyond the standard
   library. Without `--history`, git is not run and the data file is unchanged.
 - An **intervention** is a non-merge commit that changed lines of an element's definition (its range in
-  `INDEX.idx.md`), of a function's range (with `--call-graph`), or of a scanned file. The ranges of the working tree are
+  `process.idx.md`), of a function's range (with `--call-graph`), or of a scanned file. The ranges of the working tree are
   followed back through every earlier version, across renames and merges, from one `git log -p -U0 -M -m --parents`
   over the process and source folders, as `git log -L` follows one range. Merge commits and uncommitted changes credit
   no one. The changed lines are counted as git's `--numstat` counts them, a hunk's removed lines in proportion of its

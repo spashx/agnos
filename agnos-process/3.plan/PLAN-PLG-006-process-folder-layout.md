@@ -99,15 +99,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-045: The rename
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Set `folder` to `agnos-process` and `index` to `process.idx.md`, regenerate the copies, `git mv process agnos-process` and the index in this repository, update `.gitignore` and `.gitattributes`, and regenerate the index.
 - **Requirement refs**: RQ-PLG-034, RQ-PLG-036
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-029)
 - **Acceptance Criteria**: Given the layout's edit, Then no other script changes by hand; Given every suite of the repository, Then it passes; Given `agnos-index` and the perf center on this repository, Then they run on `agnos-process/` And the index is `agnos-process/process.idx.md`.
 - **Dependencies**: TASK-PLG-044
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: One edit of `layout.json`, `--write`, no script edited by hand. `git mv` of the folder, its index and the perf center's fixture. `--check` named 50 lines of prose, rewritten, then 0 findings. Both index generators: 693 entries on `agnos-process/process.idx.md`; perf center on `agnos-process`: A 9.5/10. On a committed copy: perf center 367 run, 364 OK, 3 skipped (opt-in perf tests); init 29, plugin-proof 16, docs-sync 18, demo 12, qa 32 OK; both index suites passed; release 118 of 120: the 2 rehearsals proved on the demo fail until the demo is rebuilt (TASK-PLG-046).
+- **Assumptions**: Maintainer files that wrote the folder out (`layers.json`, tests of the perf center, the release, docs-sync, the demo) were moved onto the layout here; the demo's own scenario stays for TASK-PLG-046.
 
 ### TASK-PLG-046: The demo rebuilt on `agnos-process/`
 - **Tier**: M

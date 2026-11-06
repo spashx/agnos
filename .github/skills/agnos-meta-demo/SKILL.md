@@ -58,7 +58,7 @@ powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/verify.ps1 [-
 
 Checks the demo against its 21 requirements and prints `PASS` or `FAIL` for each (exit 1 if any fails).
 It runs this repository's `agnos-index` and `agnos-perf-center` against the demo, so it doubles as a regression
-test of AGNOS. `-BaseRef` also checks that this repository changed only under `process/` and the skill
+test of AGNOS. `-BaseRef` also checks that this repository changed only under `agnos-process/` and the skill
 folders since that ref. A failure is fixed in the scenario or the content, then the demo is rebuilt; the
 demo's history is never edited by hand.
 

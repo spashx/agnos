@@ -41,7 +41,7 @@ Claude Code named by `AGNOS_CLAUDE` when it is not on the PATH. A tool that is a
 | `init` | `CLAUDE.md` written by the model calling `agnos-init` | no |
 | `init-direct` | The installed script run by this tool, only when `init` was not observed, so that the next questions have the block | no |
 | `process` | The answer holds a number known only from the process skill | no |
-| `index` | `process/INDEX.idx.md` written by the model calling `agnos-index` | no |
+| `index` | `agnos-process/process.idx.md` written by the model calling `agnos-index` | no |
 | `agent` | A test agent, added to the copy in each tool's place, answers its marker | no |
 | `linux-suites` | The suites' exit code | `--linux` |
 

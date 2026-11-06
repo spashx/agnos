@@ -22,8 +22,8 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | Component | What it does |
 |---|---|
 | **The process** | Requirements (EARS) → Architecture Decision Records → Plans and tasks (Gherkin), each artifact with a unique ID and explicit links to the others. |
-| **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched, creates its `process/` folders and writes the guide `AGNOS-GETTING-STARTED.md`. |
-| **`agnos-index`** | Deterministically regenerates `process/INDEX.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
+| **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched, creates its `agnos-process/` folders and writes the guide `AGNOS-GETTING-STARTED.md`. |
+| **`agnos-index`** | Deterministically regenerates `agnos-process/process.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
 | **`agnos-perf-center`** | Generates a complete application, opened from disk, to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |

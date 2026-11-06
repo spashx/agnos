@@ -1,6 +1,6 @@
 ---
 name: agnos-init
-description: "AGNOS process initialisation skill. Adds AGNOS to a project by completing its CLAUDE.md and AGENTS.md with one delimited block and creating its process/ folders, without touching what the developer wrote. USE FOR: adding AGNOS to a new or existing repository, updating the block after AGNOS changes, or whenever agnos-index reports that process/ is missing."
+description: "AGNOS process initialisation skill. Adds AGNOS to a project by completing its CLAUDE.md and AGENTS.md with one delimited block and creating its agnos-process/ folders, without touching what the developer wrote. USE FOR: adding AGNOS to a new or existing repository, updating the block after AGNOS changes, or whenever agnos-index reports that agnos-process/ is missing."
 argument-hint: "<project folder>"
 ---
 
@@ -37,9 +37,14 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
 | With a damaged block | Stops before any write, naming the file | Exit 1 |
 
 Every byte outside the block is preserved, and the block takes the file's line ending. It also creates
-each folder of `process/` that is absent, with a `readme.md` saying what it holds, and writes `AGNOS-GETTING-STARTED.md`, the
+each folder of `agnos-process/` that is absent, with a `readme.md` saying what it holds, and writes `AGNOS-GETTING-STARTED.md`, the
 user's guide, at the project's root: that file is AGNOS's, rewritten whole from its template and reported `created`, `updated` or
 `unchanged`. <!-- RQ-PLG-021 / DEC-PLG-016 --> It changes nothing else in the project.
+
+A project initialised before holds its artifacts in `process/`: when `process/INDEX.idx.md` exists and `agnos-process/` does not, the
+script renames the folder to `agnos-process/` and its index to `process.idx.md`, with `git mv` when git tracks them so that their
+history follows, and reports `moved`. A `process/` without that index is not AGNOS's and is left untouched. When both folders
+exist, it stops before any write, exit 1, naming both: the user keeps one. <!-- RQ-PLG-038 / DEC-PLG-031 -->
 
 To update a project after AGNOS changes, call it again.
 

@@ -60,7 +60,7 @@ What the manifests say comes from `assets/marketplace.json`.
 | The output holds what is declared | Lists the files on disk against the delivered and generated ones; the checks run Python with no bytecode written <!-- RQ-PLG-012 --> | Exit 1, naming the file |
 | The plugin has what it needs | The instructions file and a released version in `CHANGELOG.md` at HEAD | Exit 1 before writing anything |
 
-An ID belongs to the repository when its trigram appears in the commit's `process/INDEX.idx.md`, defined there or not. Examples
+An ID belongs to the repository when its trigram appears in the commit's `agnos-process/process.idx.md`, defined there or not. Examples
 such as `RQ-EXP-001` use another trigram, and stay: keep it that way when writing an example.
 
 The comparison uses the demo through a temporary clone, so the demo does not change. A language whose parser is absent is said on the error stream and not parsed.

@@ -24,8 +24,9 @@ FIXTURE = HERE / "fixtures" / "repo"
 # Assembled, so that this file does not hold what it looks for.
 FORMER = re.compile("|".join(("agnos[-_]" + "trace", "trace_" + "matrix",
                               "TRACEABILITY" + r"\.(html|json|data\.js)")), re.I)
-HISTORY = re.compile(r"^(process/3\.plan/|CHANGELOG\.md$|process/INDEX\.idx\.md$"
-                     r"|process/1\.requirements/FTR-TRC-008-|process/2\.architecture/ADR-TRC-013-)")
+FOLDER = re.escape(agnos_layout.FOLDER)     # RQ-PLG-036: the process folder, wherever the layout puts it
+HISTORY = re.compile(rf"^({FOLDER}/3\.plan/|CHANGELOG\.md$|{FOLDER}/{re.escape(agnos_layout.INDEX)}$"
+                     rf"|{FOLDER}/1\.requirements/FTR-TRC-008-|{FOLDER}/2\.architecture/ADR-TRC-013-)")
 INSTRUCTIONS = REPO / ".github" / "instructions" / "agnos-sw-eng.instructions.md"
 
 

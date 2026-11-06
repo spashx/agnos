@@ -14,6 +14,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 
 import changes_since as cs  # noqa: E402
+import agnos_layout  # noqa: E402  RQ-PLG-036: the folder and index names, as the script reads them
 
 TRACE_TESTS = HERE.parents[1] / "agnos-perf-center" / "tests"      # the literal test of the agnos-perf-center skill
 sys.path.insert(0, str(TRACE_TESTS))
@@ -51,7 +52,8 @@ class ChangesSinceTest(unittest.TestCase):
         self.first = commit(self.repo, "chore: start", {"CHANGELOG.md": "# Changelog\n", "AGENTS.md": "# Agents\n",
                                                          "README.md": "# Readme\n"})
         self.second = commit(self.repo, "docs: changelog entry", {"CHANGELOG.md": "# Changelog\n- one\n"})
-        commit(self.repo, "chore: index", {"process/INDEX.idx.md": "index\n", "process/_sessionstate/session.yaml": "x: 1\n"})
+        commit(self.repo, "chore: index", {f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}": "index\n",
+                                           f"{agnos_layout.FOLDER}/{agnos_layout.SESSION_STATE}": "x: 1\n"})
         self.skill = commit(self.repo, "feat(ABC): add a skill", {
             ".github/skills/one/SKILL.md": SKILL_FRONT.format(name="one", description="A process skill."),
             ".github/skills/agnos-meta-two/SKILL.md": SKILL_FRONT.format(name="agnos-meta-two", description="Builds a thing.")})

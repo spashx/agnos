@@ -11,13 +11,13 @@ argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <fil
 Needs Python 3.9 or later, standard library only. It knows only the AGNOS ID grammar and index format, so it works on any AGNOS
 project. Run it; do not read the scripts. `<skill-folder>` is the folder holding this file.
 
-1. Invoke the `agnos-index` skill first: the matrix reads `INDEX.idx.md`, never the documents' headings.
+1. Invoke the `agnos-index` skill first: the matrix reads `process.idx.md`, never the documents' headings.
 2. From the project's root (`python` on `windows`, `python3` on `linux` / `macos`):
    `python <skill-folder>/scripts/perf_center.py --process process --sources <source folder>`
 
 | Parameter | Meaning |
 |---|---|
-| `--process <dir>` | The folder holding `INDEX.idx.md` |
+| `--process <dir>` | The folder holding `process.idx.md` |
 | `--sources <dir>` | Repeatable: every folder whose files should carry IDs (code, tests, build, CI). Not a documentation folder quoting IDs as examples: they would be counted. |
 | `--out <file>` | Default `<process>/PERF-CENTER.html` |
 | `--ext .x`, `--exclude <pattern>` | Repeatable; replace the scanned extensions, the excluded names (`fnmatch`) |

@@ -71,7 +71,7 @@ class AnywhereTest(unittest.TestCase):
         self.project = self.base / "project"
         (self.project / agnos_layout.FOLDER / "1.requirements").mkdir(parents=True)
         (self.project / "src").mkdir()
-        (self.project / "process" / "1.requirements" / "FTR-ABC-001-x.md").write_text("# FTR-ABC-001: X\n", encoding="utf-8")
+        (self.project / agnos_layout.FOLDER / "1.requirements" / "FTR-ABC-001-x.md").write_text("# FTR-ABC-001: X\n", encoding="utf-8")
 
     def installed(self, name):
         target = self.base / "plugin" / "skills" / name

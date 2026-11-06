@@ -13,7 +13,7 @@ run every command from the project's root.
 ## Script Selection
 
 Every validation step below runs a `<validate-ids>` script. Select it from `session.platform`
-(read `process/_sessionstate/session.yaml` first if not already in context):
+(read `agnos-process/_sessionstate/session.yaml` first if not already in context):
 
 | `session.platform` | Command |
 |---|---|

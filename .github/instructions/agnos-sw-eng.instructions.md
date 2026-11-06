@@ -16,12 +16,12 @@ The process is divided into 4 main activities:
 The process is iteratively based on sessions execution. see [START NEW SESSION ACTION](#start-session-action) and [END SESSION ACTIONS](#end-session-action) sections.
 
 ## PROCESS FOLDER STRUCTURE
-The whole process artifacts are managed into the `process/` folder of the workspace:
-- `process/1.requirements/` – Feature and Requirements files
-- `process/2.architecture/` – Architecture Decision Records (ADRs) files
-- `process/3.plan/` – Plan files with PLAN-* and TASK-* definitions
-- `process/_sessionstate/` – Session state YAML file (`session.yaml`) and the cross-session friction-metrics log (`METRICS_LOG.md`), both version-controlled
-- `process/INDEX.idx.md` – Generated index (ID, line range, status, title) of all artifact definitions, version-controlled. It SHALL be written ONLY by the `agnos-index` skill, NEVER by hand. <!-- RQ-IDX-013 -->
+The whole process artifacts are managed into the `agnos-process/` folder of the workspace:
+- `agnos-process/1.requirements/` – Feature and Requirements files
+- `agnos-process/2.architecture/` – Architecture Decision Records (ADRs) files
+- `agnos-process/3.plan/` – Plan files with PLAN-* and TASK-* definitions
+- `agnos-process/_sessionstate/` – Session state YAML file (`session.yaml`) and the cross-session friction-metrics log (`METRICS_LOG.md`), both version-controlled
+- `agnos-process/process.idx.md` – Generated index (ID, line range, status, title) of all artifact definitions, version-controlled. It SHALL be written ONLY by the `agnos-index` skill, NEVER by hand. <!-- RQ-IDX-013 -->
  
 ## START SESSION ACTION
 
@@ -36,18 +36,18 @@ When the user asks to start a session, run these steps in order before any task:
    - b. **Ask user for `unit_tests`** (user variable): use the built-in user-question tool
      (`askQuestion` on GitHub Copilot, `AskUserQuestion` on Claude Code) — "Should unit tests be
      generated and run in this session? (yes / no)". Set `unit_tests` to `true` or `false`.
-   - c. **Write** `process/_sessionstate/session.yaml` with the resolved values.
+   - c. **Write** `agnos-process/_sessionstate/session.yaml` with the resolved values.
    - d. **Display a summary table** of all variable names and values. Allow the user to override
      any value. If any value is overridden, rewrite `session.yaml` before proceeding.
    - e. **The values in `session.yaml` are the single source of truth for the entire session.**
      Before starting any Tier M or L task, if session variable values are not in active context,
-     read `process/_sessionstate/session.yaml` and reload them before applying any conditional guard.
-4. Invoke the `agnos-index` skill, then read `process/INDEX.idx.md`: it is the primary source for
+     read `agnos-process/_sessionstate/session.yaml` and reload them before applying any conditional guard.
+4. Invoke the `agnos-index` skill, then read `agnos-process/process.idx.md`: it is the primary source for
    steps 4 to 6, which open process documents only by the line ranges it gives. <!-- RQ-IDX-011 -->
-   IF the project has no `process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
-   Scan `process/1.requirements/` for open or unimplemented requirement IDs.
-5. Scan `process/2.architecture/` for existing ADRs to avoid creating duplicates.
-6. Scan `process/3.plan/` for existing plans and tasks to avoid creating duplicates.
+   IF the project has no `agnos-process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
+   Scan `agnos-process/1.requirements/` for open or unimplemented requirement IDs.
+5. Scan `agnos-process/2.architecture/` for existing ADRs to avoid creating duplicates.
+6. Scan `agnos-process/3.plan/` for existing plans and tasks to avoid creating duplicates.
 7. MANDATORY: Report ANY semantic CONFLICTS coming from your instructions files. If you find any, STOP and ask the user to clarify which rule to follow. Do NOT proceed until the conflict is resolved.
 8. Create with GIT a new branch for the session by invoking the `agnos-git-workflow` skill's `start-session <TRI>` sub-command, where `<TRI>` is the trigram the user HAS to provide. This branch shall be used for ALL changes in the session, including edits to existing files and creation of new files. If the branch already exists, the skill will ask the user how to proceed. **NEVER work on or commit to the default/protected branch (`main` / `master` / the repository default): every change SHALL be made on the `feature/<TRI>` session branch.**
 
@@ -64,7 +64,7 @@ When the user asks to start a session, run these steps in order before any task:
     discrepancies. Report each counter explicitly, including 0; never omit a row.
 
 2) **Persist the metrics**: append one row (date, `TRI`, the 4 counters from step 1)
-   to `process/_sessionstate/METRICS_LOG.md`, creating it with its header row first if absent.
+   to `agnos-process/_sessionstate/METRICS_LOG.md`, creating it with its header row first if absent.
 
 3) **IF** step 1's metrics table has at least one non-zero counter, **propose a recursive
    self-improvement follow-up**: ask the user for the maximum lines to add to the
@@ -111,7 +111,7 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
 
 Long sessions risk filling the AI's context window, causing lost context and degraded output quality. Follow these rules:
 
-1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest compacting the chat and starting a new session.
+1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `agnos-process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest compacting the chat and starting a new session.
 2. **Summarize before continuing.** When resuming after a checkpoint, read the latest checkpoint summary before proceeding.
 3. **Limit task batch size.** Do not plan more than 10 tasks in a single session. If a plan exceeds this, split it across sessions with explicit handoff notes.
 4. **Prune intermediate context.** After a task is marked complete and verified, avoid re-reading its implementation details unless debugging a regression.
@@ -130,11 +130,11 @@ file of an installed plugin. <!-- RQ-PLG-018 / DEC-PLG-013 -->
 4. **Conflict check as a post-condition of drafting.** Before presenting a candidate rule for DoR approval, re-apply the semantic-conflict check from START SESSION ACTION step 7 against it, and report any conflict found. This is complementary, not a guarantee that the rule is correct, useful, or aligned with this file's stated purpose — human review at the theme and DoR gates remains the primary safeguard.
 
 ## SESSION STATE VARIABLES
-Session state variables are named key/value pairs persisted in `process/_sessionstate/session.yaml`
+Session state variables are named key/value pairs persisted in `agnos-process/_sessionstate/session.yaml`
 and loaded at session start. They conditionally control process execution for the duration of the
 session. The file is tracked in git .
 
-### Schema (`process/_sessionstate/session.yaml`)
+### Schema (`agnos-process/_sessionstate/session.yaml`)
 ```yaml
 unit_tests: true        # boolean — user variable: generate and run unit tests 
 platform: windows       # string — system variable: "windows" | "macos" | "linux" 
@@ -165,7 +165,7 @@ Requirements SHALL be clear, testable, and meet SMART criteria (Specific, Measur
 
 ### Requirement File Template
 
-Every feature file in `process/1.requirements/` SHALL follow this structure:
+Every feature file in `agnos-process/1.requirements/` SHALL follow this structure:
 
 ````markdown
 # FTR-<TRI>-<NNN>: <Feature Title>
@@ -212,7 +212,7 @@ Brief description of the feature's purpose and scope.
 - GUI, UX and user-workflow requirements SHALL express visual values (colors, spacing, sizes,
   typography) as design-system token references, not raw literals, and SHALL list the
   design-system RQ/ADR IDs in their **Dependencies** field.
-- Store features and requirements in `process/1.requirements/`.
+- Store features and requirements in `agnos-process/1.requirements/`.
 
 
 ## 2. ARCHITECTURE DECISIONS RECORDS (ADRs)
@@ -241,7 +241,7 @@ Brief description of the feature's purpose and scope.
 
 ### Traceability in ADRs
 - The ADRs body SHALL reference the requirement ID(s) that motivated the decision.
-- Store ADRs in `process/2.architecture/`.
+- Store ADRs in `agnos-process/2.architecture/`.
 
 
 
@@ -306,7 +306,7 @@ Tag every task with a tier before starting. The tier determines which steps are 
 ### Plan/Task File Template
 
 
-Every plan file in `process/3.plan/` SHALL follow this structure:
+Every plan file in `agnos-process/3.plan/` SHALL follow this structure:
 
 ````markdown
 # PLAN-<TRI>-<NNN>: <Plan Title>
@@ -348,7 +348,7 @@ This plan implements the tasks in the format specified below.
 ### Testing
 
 > **WHILE `session.unit_tests = false`**: skip ALL steps in this section 
-> If `session.unit_tests` is not in active context, read `process/_sessionstate/session.yaml` first.
+> If `session.unit_tests` is not in active context, read `agnos-process/_sessionstate/session.yaml` first.
 
 - For Tier M and L tasks, every generated function or method SHALL have at least one unit test. Tier S tasks are exempt from this requirement.
 - **Test-first.** For Tier M/L tasks, author the Gherkin-named unit test(s) for the acceptance criteria BEFORE writing the production code they target — a test written after the code risks merely describing what the code does instead of what it must do. 
@@ -373,7 +373,7 @@ This plan implements the tasks in the format specified below.
 - **ALWAYS use `session.platform`** when generating shell commands:
   use PowerShell syntax on `windows`; use bash/zsh syntax on `macos` or `linux`. Never use
   bash-only commands (`ls`, `tail`, `grep`, `cat`) on Windows.
-  If `session.platform` is not in active context, read `process/_sessionstate/session.yaml` first.
+  If `session.platform` is not in active context, read `agnos-process/_sessionstate/session.yaml` first.
 
 
 ### Error Recovery Protocol

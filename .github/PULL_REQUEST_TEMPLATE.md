@@ -13,7 +13,7 @@
 - **Related issue(s)**: `#...` or `None`
 
 If this PR implements a tracked `TASK-*`, its `Verification` and `Assumptions` fields (per the
-task's own file under `process/3.plan/`) should already be filled in from real evidence produced
+task's own file under `agnos-process/3.plan/`) should already be filled in from real evidence produced
 in this branch — not from memory. Link or paste that evidence below if it isn't obvious from the
 diff.
 
