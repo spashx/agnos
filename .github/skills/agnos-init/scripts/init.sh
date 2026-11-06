@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # agnos-init (bash): adds AGNOS to a project, the block of its entry-point files, its guide and its process folders.
-# RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016).
+# RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
 # Usage: init.sh --target <project folder>
 # Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
 # written (message on the error stream). init.ps1 gives the same bytes.
@@ -14,10 +14,11 @@ CR=$(printf '\r')
 END_PATTERN="^$END_MARKER$CR?\$"
 ENTRY_FILES='CLAUDE.md AGENTS.md'
 README='readme.md'
-GUIDE='AGNOS-GETTING-STARTED.md'
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 # RQ-PLG-036 / DEC-PLG-027: every name of the process folder comes from the generated agnos-layout.sh.
 . "$SCRIPT_DIR/agnos-layout.sh"
+GUIDE=$AGNOS_GUIDE
+OWNED_FILES="$AGNOS_GUIDE $AGNOS_VERSION"    # RQ-PLG-033 / DEC-PLG-026: written into the process folder
 PROCESS_FOLDERS=''
 for sub in $AGNOS_SUBFOLDERS; do PROCESS_FOLDERS="$PROCESS_FOLDERS $AGNOS_FOLDER/$sub"; done
 
@@ -130,20 +131,6 @@ for file in $ENTRY_FILES; do
   fi
 done
 
-# RQ-PLG-021 / DEC-PLG-016: the guide is AGNOS's own file, rewritten whole from its template.
-guide_template=$SCRIPT_DIR/../assets/templates/$GUIDE
-if [ ! -e "$target/$GUIDE" ]; then
-  guide_action=created
-elif cmp -s "$guide_template" "$target/$GUIDE"; then
-  guide_action=unchanged
-else
-  guide_action=updated
-fi
-if [ "$guide_action" != unchanged ]; then
-  cat "$guide_template" > "$target/$GUIDE" || fail "cannot write $GUIDE"
-fi
-echo "$REPORT_PREFIX$guide_action $GUIDE"
-
 for folder in $PROCESS_FOLDERS; do    # RQ-INI-005
   path=$target/$folder
   if [ ! -e "$path" ]; then
@@ -151,4 +138,30 @@ for folder in $PROCESS_FOLDERS; do    # RQ-INI-005
     echo "${REPORT_PREFIX}created $folder"
   fi
 done
+
+# RQ-PLG-021, RQ-PLG-033 / DEC-PLG-016, DEC-PLG-026: AGNOS's own files, rewritten whole from their templates into the folder.
+for owned in $OWNED_FILES; do
+  owned_template=$SCRIPT_DIR/../assets/templates/$owned
+  owned_path=$target/$AGNOS_FOLDER/$owned
+  if [ ! -e "$owned_path" ]; then
+    owned_action=created
+  elif cmp -s "$owned_template" "$owned_path"; then
+    owned_action=unchanged
+  else
+    owned_action=updated
+  fi
+  if [ "$owned_action" != unchanged ]; then
+    cat "$owned_template" > "$owned_path" || fail "cannot write $AGNOS_FOLDER/$owned"
+  fi
+  echo "$REPORT_PREFIX$owned_action $AGNOS_FOLDER/$owned"
+done
+
+# RQ-PLG-033 / DEC-PLG-026: a root guide a former init wrote goes; any other file of that name stays.
+first_line() {   # <file>
+  head -n 1 "$1" | tr -d '\r'
+}
+if [ -f "$target/$GUIDE" ] && [ "$(first_line "$target/$GUIDE")" = "$(first_line "$SCRIPT_DIR/../assets/templates/$GUIDE")" ]; then
+  rm -f "$target/$GUIDE" || fail "cannot remove $GUIDE"
+  echo "${REPORT_PREFIX}moved $GUIDE to $AGNOS_FOLDER/$GUIDE"
+fi
 exit 0

@@ -23,7 +23,7 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
    Use `powershell` (Windows PowerShell 5.1), never `pwsh`: PowerShell 7 is not guaranteed to be installed.
 
 3. Check the exit code:
-   - `0`: done. Report each line to the user, then give them two separate steps: first, close this conversation and open a new conversation in the tool, so that it reads the block; then, in that new conversation, ask the agent to start an AGNOS session. Name `AGNOS-GETTING-STARTED.md` as the guide to read meanwhile. <!-- RQ-PLG-020, RQ-PLG-021 / DEC-PLG-015, DEC-PLG-016 -->
+   - `0`: done. Report each line to the user, then give them two separate steps: first, close this conversation and open a new conversation in the tool, so that it reads the block; then, in that new conversation, ask the agent to start an AGNOS session. Name `agnos-process/AGNOS-GETTING-STARTED.md` as the guide to read meanwhile. <!-- RQ-PLG-020, RQ-PLG-021, RQ-PLG-033 / DEC-PLG-015, DEC-PLG-016, DEC-PLG-026 -->
    - `1`: error, nothing written. Report the message. For a damaged block, the user repairs its lines: do not guess its limits.
 
 ## What it does
@@ -37,9 +37,11 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
 | With a damaged block | Stops before any write, naming the file | Exit 1 |
 
 Every byte outside the block is preserved, and the block takes the file's line ending. It also creates
-each folder of `agnos-process/` that is absent, with a `readme.md` saying what it holds, and writes `AGNOS-GETTING-STARTED.md`, the
-user's guide, at the project's root: that file is AGNOS's, rewritten whole from its template and reported `created`, `updated` or
-`unchanged`. <!-- RQ-PLG-021 / DEC-PLG-016 --> It changes nothing else in the project.
+each folder of `agnos-process/` that is absent, with a `readme.md` saying what it holds, and writes into `agnos-process/` the
+user's guide `AGNOS-GETTING-STARTED.md` and `VERSION`, the AGNOS version installed: both are AGNOS's, rewritten whole from their
+templates and reported `created`, `updated` or `unchanged`. A root `AGNOS-GETTING-STARTED.md` whose first line is AGNOS's, written by
+a former init, is removed and reported `moved`; any other root file of that name stays. <!-- RQ-PLG-021, RQ-PLG-033 / DEC-PLG-016, DEC-PLG-026 -->
+It changes nothing else in the project.
 
 A project initialised before holds its artifacts in `process/`: when `process/INDEX.idx.md` exists and `agnos-process/` does not, the
 script renames the folder to `agnos-process/` and its index to `process.idx.md`, with `git mv` when git tracks them so that their

@@ -41,6 +41,9 @@ MAX_SKILL_LINES = 500
 PROJECT_RULES = f"{FOLDER}/{LAYOUT['projectRules']}"
 GUIDE = "AGNOS-GETTING-STARTED.md"
 GUIDE_TEMPLATE = SKILL_DIR / "assets/templates" / GUIDE
+FOLDER_GUIDE = f"{FOLDER}/{GUIDE}"      # RQ-PLG-033 / DEC-PLG-026
+FOLDER_VERSION = f"{FOLDER}/VERSION"
+OWNED_FILES = {FOLDER_GUIDE: GUIDE_TEMPLATE, FOLDER_VERSION: SKILL_DIR / "assets/templates" / "VERSION"}
 GUIDE_EXAMPLE_TRIGRAM = b"EXP"
 GUIDE_STEPS = ("new conversation", "AGNOS session", "Write the requirement", "approved", "commit-task",
                "End of session", "agnos-perf-center")
@@ -381,26 +384,50 @@ class MigrationTest(InitCase):
 
 
 class GuideTest(InitCase):
-    """RQ-PLG-021, RQ-PLG-022, DEC-PLG-016, DEC-PLG-017."""
+    """RQ-PLG-021, RQ-PLG-022, RQ-PLG-033, DEC-PLG-016, DEC-PLG-017, DEC-PLG-026: the guide and the version in the process folder."""
 
-    def test_RQ_PLG_021_given_a_new_project_when_either_script_runs_then_the_guide_is_created_from_its_template(self):
+    def test_RQ_PLG_033_given_a_new_project_when_either_script_runs_then_the_guide_and_version_are_created_in_the_folder(self):
         for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertEqual(GUIDE_TEMPLATE.read_bytes(), (project / GUIDE).read_bytes())
-            self.assertIn(f"created {GUIDE}", result.stdout)
+            for name, template in OWNED_FILES.items():
+                self.assertEqual(template.read_bytes(), (project / name).read_bytes(), name)
+                self.assertIn(f"created {name}", result.stdout)
+            self.assertFalse((project / GUIDE).exists(), "a guide was written at the root")
 
-    def test_RQ_PLG_021_given_a_guide_with_other_content_when_run_then_it_is_rewritten_and_reported_updated(self):
-        for _, project, result in self.each_script({GUIDE: b"# edited by hand\n"}):
+    def test_RQ_PLG_033_given_files_with_other_content_when_run_then_they_are_rewritten_and_reported_updated(self):
+        for _, project, result in self.each_script({name: b"# edited by hand\n" for name in OWNED_FILES}):
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertEqual(GUIDE_TEMPLATE.read_bytes(), (project / GUIDE).read_bytes())
-            self.assertIn(f"updated {GUIDE}", result.stdout)
+            for name, template in OWNED_FILES.items():
+                self.assertEqual(template.read_bytes(), (project / name).read_bytes(), name)
+                self.assertIn(f"updated {name}", result.stdout)
 
-    def test_RQ_PLG_021_given_the_same_guide_when_run_again_then_it_is_reported_unchanged(self):
+    def test_RQ_PLG_033_given_a_second_run_then_the_guide_and_version_are_reported_unchanged(self):
         for name, runner in RUNNERS.items():
             with self.subTest(script=name):
                 project = self.project(name)
                 self.assertEqual(0, runner(project).returncode)
-                self.assertIn(f"unchanged {GUIDE}", runner(project).stdout)
+                said = runner(project).stdout
+                for owned in OWNED_FILES:
+                    self.assertIn(f"unchanged {owned}", said)
+
+    def test_RQ_PLG_033_given_a_root_guide_written_by_a_former_init_then_it_is_removed_and_reported_moved(self):
+        former = GUIDE_TEMPLATE.read_bytes().split(b"\n", 1)[0] + b"\nan older guide\n"
+        for _, project, result in self.each_script({GUIDE: former}):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertFalse((project / GUIDE).exists())
+            self.assertIn(f"moved {GUIDE} to {FOLDER_GUIDE}", result.stdout)
+
+    def test_RQ_PLG_033_given_a_root_file_of_that_name_with_another_first_line_then_it_is_untouched(self):
+        mine = b"# My own getting started\n"
+        for _, project, result in self.each_script({GUIDE: mine}):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(mine, (project / GUIDE).read_bytes())
+            self.assertNotIn(f"moved {GUIDE}", result.stdout)
+
+    def test_RQ_PLG_033_given_the_readme_and_the_success_step_then_they_name_the_guide_in_the_folder(self):
+        self.assertIn(FOLDER_GUIDE, (ROOT / "README.md").read_text(encoding="utf-8"))
+        self.assertIn(FOLDER_GUIDE, SUCCESS_STEP_RE.search((SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")).group())
+        self.assertIn(f"`{FOLDER_GUIDE}`".encode(), GUIDE_TEMPLATE.read_bytes())
 
     def test_RQ_PLG_021_given_the_template_then_it_names_each_step_and_no_path_outside_the_project(self):
         data = GUIDE_TEMPLATE.read_bytes()

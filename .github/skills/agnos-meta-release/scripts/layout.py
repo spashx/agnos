@@ -47,7 +47,8 @@ CAMEL_RE = re.compile(r"(?<!^)(?=[A-Z])")
 LIST_SEPARATOR = " "
 
 FOLDER, SUBFOLDERS, INDEX = "folder", "subfolders", "index"
-FILES_IN_FOLDER = ("index", "sessionState", "metricsLog", "projectRules", "perfCenterPage")
+FILES_IN_FOLDER = ("index", "sessionState", "metricsLog", "projectRules", "perfCenterPage",
+                   "guide", "version")        # RQ-PLG-033 / DEC-PLG-026: AGNOS's own files in the folder
 LEGACY_FOLDER, LEGACY_INDEX = "legacyFolder", "legacyIndex"
 SCRIPT_SUFFIXES = (".py", ".ps1", ".sh")
 VENDOR = "vendor"
@@ -102,7 +103,7 @@ def write(root, layout):
 def declared(layout):
     """(exact paths, prefixes) of the process folder the layout declares, legacy names included (RQ-PLG-037, DEC-PLG-031)."""
     folder = layout[FOLDER]
-    exact = {f"{folder}/", *(f"{folder}/{layout[key]}" for key in FILES_IN_FOLDER),
+    exact = {f"{folder}/", *(f"{folder}/{layout[key]}" for key in FILES_IN_FOLDER if key in layout),
              *(f"{folder}/{sub}" for sub in layout[SUBFOLDERS]),
              f"{layout[LEGACY_FOLDER]}/", f"{layout[LEGACY_FOLDER]}/{layout[LEGACY_INDEX]}"}
     prefixes = tuple(f"{folder}/{sub}/" for sub in layout[SUBFOLDERS])
@@ -140,18 +141,19 @@ def delivered_scripts(root):
 
 def script_literals(layout):
     """The names a delivered script may hold only through its copy: the files, their base names and the subfolders (RQ-PLG-036)."""
-    names = {layout[key] for key in (*FILES_IN_FOLDER, LEGACY_INDEX)} | set(layout[SUBFOLDERS])
+    names = {layout[key] for key in (*FILES_IN_FOLDER, LEGACY_INDEX) if key in layout}   # an older commit may lack a newer key | set(layout[SUBFOLDERS])
     return sorted(names | {name.rsplit("/", 1)[-1] for name in names}, key=len, reverse=True)
 
 
 def check_scripts(root, layout):
     """Findings for each line of a delivered script naming the folder or a name of the layout (RQ-PLG-036)."""
     findings = []
-    literals = script_literals(layout)
+    # a name standing alone: inside a word, such as the copy's own constant AGNOS_VERSION, it is not the layout's value
+    literals = [(name, re.compile(rf"(?<![\w-]){re.escape(name)}(?![\w-])")) for name in script_literals(layout)]
     pattern = cited_paths(layout)
     for path in delivered_scripts(root):
         for number, line in enumerate(path.read_text(encoding=ENCODING).splitlines(), start=1):
-            held = next((name for name in literals if name in line), None) or next(
+            held = next((name for name, alone in literals if alone.search(line)), None) or next(
                 (match.group() for match in pattern.finditer(line)), None)
             if held:
                 findings.append(f"{path.relative_to(root).as_posix()}:{number}: {held} is the layout's, read it from the copy")

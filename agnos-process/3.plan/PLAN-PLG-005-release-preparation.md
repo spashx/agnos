@@ -64,15 +64,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-037: `agnos-init` writes the guide and the version into `agnos-process/`
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make `init.ps1` and `init.sh` write `agnos-process/AGNOS-GETTING-STARTED.md` and `agnos-process/VERSION` and move a root guide of AGNOS's; update the init's success step, `README.md`, the guide's references and the demo if its checks require it.
 - **Requirement refs**: RQ-PLG-033, RQ-PLG-021, RQ-PLG-022
 - **ADR refs**: ADR-PLG-005 (DEC-PLG-026), ADR-PLG-003 (DEC-PLG-016)
 - **Acceptance Criteria**: Given RQ-PLG-033's criteria, Then they hold, tested first on both scripts; Given the suites of `agnos-init`, `agnos-meta-release`, `agnos-meta-demo` and `agnos-perf-center`, Then they pass.
 - **Dependencies**: TASK-PLG-035
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: GuideTest rewritten first for RQ-PLG-033 (both scripts, same bytes; created/updated/unchanged; root guide moved or kept; README and success step). Suites: agnos-init 32 OK; agnos-meta-release 132 OK; agnos-meta-demo 12 OK; agnos-perf-center 367 run, 364 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`). `layout.py --check`: 0 findings.
+- **Assumptions**: The two names are declared in `layout.json` (`guide`, `version`), the layout check matching a name standing alone and tolerating a key an older commit lacks (DEC-PLG-026 completed); the demo needed no rebuild, none of its checks naming the guide.
 
 ### TASK-PLG-036: The preparation run on this repository
 - **Tier**: M

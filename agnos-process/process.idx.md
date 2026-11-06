@@ -409,12 +409,12 @@ DEC-PLG-019|16-21||"Functions traced" is a medium-risk check
 DEC-PLG-020|22-25||One DoD line for functions
 DEC-PLG-021|26-32||A test's ID goes in its doc comment, its name stays Gherkin
 @agnos-process/2.architecture/ADR-PLG-005-release-preparation.md
-ADR-PLG-005|1-75|Accepted (owner, 2026-11-06) — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016.|Release Preparation
+ADR-PLG-005|1-77|Accepted (owner, 2026-11-06) — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016.|Release Preparation
 DEC-PLG-022|13-19||A maintainer skill with a deterministic script and an agent's procedure
 DEC-PLG-023|20-24||The version is proposed from the changelog's sections, chosen by the maintainer
 DEC-PLG-024|25-29||The release reports the unreleased entries without failing
 DEC-PLG-025|30-35||`VERSION` among the init's templates is the single source of the version
-DEC-PLG-026|36-42||`agnos-init` writes the guide and the version into `agnos-process/`
+DEC-PLG-026|36-44||`agnos-init` writes the guide and the version into `agnos-process/`
 @agnos-process/2.architecture/ADR-PLG-006-process-folder-layout.md
 ADR-PLG-006|1-72|Accepted (owner, 2026-11-06) — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated|The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 DEC-PLG-027|15-21||`layout.json` is the source, each skill holds a generated copy
@@ -652,7 +652,7 @@ TASK-PLG-032|17-28|Done|Feature, decisions and plan
 TASK-PLG-033|29-40|Done|The preparation script
 TASK-PLG-034|41-52|Done|The skill's procedure
 TASK-PLG-035|53-64|Done|The release reads `VERSION` and reports unreleased entries
-TASK-PLG-037|65-76|Not Started|`agnos-init` writes the guide and the version into `agnos-process/`
+TASK-PLG-037|65-76|Done|`agnos-init` writes the guide and the version into `agnos-process/`
 TASK-PLG-036|77-87|Not Started|The preparation run on this repository
 @agnos-process/3.plan/PLAN-PLG-006-process-folder-layout.md
 PLAN-PLG-006|1-134||The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once

@@ -22,7 +22,7 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | Component | What it does |
 |---|---|
 | **The process** | Requirements (EARS) → Architecture Decision Records → Plans and tasks (Gherkin), each artifact with a unique ID and explicit links to the others. |
-| **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched, creates its `agnos-process/` folders and writes the guide `AGNOS-GETTING-STARTED.md`. |
+| **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched, creates its `agnos-process/` folders and writes into them the guide `AGNOS-GETTING-STARTED.md` and `VERSION`. |
 | **`agnos-index`** | Deterministically regenerates `agnos-process/process.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
@@ -70,9 +70,10 @@ between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGN
 **3. Open a new conversation in your tool**, so that it reads the block, **and in it ask the agent to start an AGNOS session.**
 <!-- RQ-PLG-020 -->
 
-**Then read `AGNOS-GETTING-STARTED.md`**, which `agnos-init` wrote at your project's root: a complete worked session, what you
-type and what comes back, and the concepts behind it. Its source is
-[the skill's template](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md). <!-- RQ-PLG-021, RQ-PLG-022 -->
+**Then read `agnos-process/AGNOS-GETTING-STARTED.md`**, which `agnos-init` wrote into your project's process folder, beside
+`agnos-process/VERSION`, the AGNOS version installed: a complete worked session, what you type and what comes back, and the
+concepts behind it. Its source is
+[the skill's template](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md). <!-- RQ-PLG-021, RQ-PLG-022, RQ-PLG-033 -->
 
 ---
 

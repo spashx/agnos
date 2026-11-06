@@ -160,6 +160,25 @@ class LayoutTest(LayoutFixture):
         self.assertEqual(result.returncode, EXIT_FAILED)
         self.assertIn("agnos-perf-center/scripts/tool.py:2", result.stdout)
 
+    def test_RQ_PLG_036_given_a_script_reading_the_copys_constant_then_the_check_passes_and_the_bare_name_fails(self):
+        """Given AGNOS_VERSION read from the copy, Then it passes; Given 'VERSION' written out, Then its line is named (RQ-PLG-033, RQ-PLG-036)."""
+        run(self.root, "--write")
+        script = self.root / layout.SKILLS / "agnos-init" / layout.SCRIPTS / "init.sh"
+        script.write_text('OWNED="$AGNOS_GUIDE $AGNOS_VERSION"\n', encoding=ENCODING)
+        result = run(self.root, "--check")
+        self.assertEqual(result.returncode, EXIT_OK, result.stdout)
+        script.write_text('OWNED="$AGNOS_GUIDE $AGNOS_VERSION"\nNAME=VERSION\n', encoding=ENCODING)
+        result = run(self.root, "--check")
+        self.assertEqual(result.returncode, EXIT_FAILED)
+        self.assertIn("agnos-init/scripts/init.sh:2: VERSION", result.stdout)
+
+    def test_RQ_PLG_037_given_a_skill_citing_the_guide_and_version_in_the_folder_then_the_check_passes(self):
+        """Given a SKILL.md citing agnos-process/AGNOS-GETTING-STARTED.md and agnos-process/VERSION, Then it passes (RQ-PLG-033, RQ-PLG-037)."""
+        run(self.root, "--write")
+        self.write_skill_text("Read `agnos-process/AGNOS-GETTING-STARTED.md`; `agnos-process/VERSION` names the version.\n")
+        result = run(self.root, "--check")
+        self.assertEqual(result.returncode, EXIT_OK, result.stdout)
+
     def test_RQ_PLG_036_given_a_maintainer_script_holding_a_name_of_the_layout_then_the_check_ignores_it(self):
         """Given an agnos-meta- skill's script writing the index's name out, When checked, Then it passes (RQ-PLG-036)."""
         run(self.root, "--write")

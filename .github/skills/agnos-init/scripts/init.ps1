@@ -2,7 +2,7 @@
 .SYNOPSIS
   Adds AGNOS to a project: the block of its entry-point files, its guide and its process folders.
 .DESCRIPTION
-  RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016).
+  RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
   Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
   written (message on the error stream). init.sh gives the same bytes.
 .PARAMETER Target   Folder of the project.
@@ -23,11 +23,15 @@ $ENTRY_FILES = @('CLAUDE.md', 'AGENTS.md')
 . (Join-Path $PSScriptRoot 'agnos-layout.ps1')
 $PROCESS_FOLDERS = @($AGNOS_SUBFOLDERS | ForEach-Object { "$AGNOS_FOLDER/$_" })
 $README = 'readme.md'
-$GUIDE = 'AGNOS-GETTING-STARTED.md'
+$GUIDE = $AGNOS_GUIDE
+$OWNED_FILES = @($AGNOS_GUIDE, $AGNOS_VERSION)  # RQ-PLG-033 / DEC-PLG-026: written into the process folder
 # DEC-INI-002: one byte is one character, so that encodings and line endings pass through unchanged.
 $BYTES = [System.Text.Encoding]::GetEncoding(28591)
 
 function Read-Bytes([string]$Path) { return $BYTES.GetString([System.IO.File]::ReadAllBytes($Path)) }   # ReadAllText would consume a BOM
+
+# RQ-PLG-033: the first line of a text, without its line ending.
+function Get-FirstLine([string]$Text) { return ($Text -split "`n", 2)[0].TrimEnd("`r") }
 
 function Get-Eol([string]$Text) {
   $at = $Text.IndexOf($LF)
@@ -110,18 +114,6 @@ try {
       Write-Output "$REPORT_PREFIX$($plan.Action) $($plan.File)"
     }
   }
-  # RQ-PLG-021 / DEC-PLG-016: the guide is AGNOS's own file, rewritten whole from its template.
-  $guidePath = Join-Path $targetFull $GUIDE
-  $guideBytes = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "../assets/templates/$GUIDE"))
-  if (-not (Test-Path -LiteralPath $guidePath)) {
-    $guideAction = 'created'
-  } elseif ($BYTES.GetString([System.IO.File]::ReadAllBytes($guidePath)) -ceq $BYTES.GetString($guideBytes)) {
-    $guideAction = 'unchanged'
-  } else {
-    $guideAction = 'updated'
-  }
-  if ($guideAction -ne 'unchanged') { [System.IO.File]::WriteAllBytes($guidePath, $guideBytes) }
-  Write-Output "$REPORT_PREFIX$guideAction $GUIDE"
   foreach ($folder in $PROCESS_FOLDERS) {                     # RQ-INI-005
     $path = Join-Path $targetFull $folder
     if (-not (Test-Path -LiteralPath $path)) {
@@ -129,6 +121,29 @@ try {
       $template = Join-Path $PSScriptRoot "../assets/templates/$(Split-Path -Leaf $folder).$README"
       [System.IO.File]::WriteAllBytes((Join-Path $path $README), [System.IO.File]::ReadAllBytes($template))
       Write-Output "$($REPORT_PREFIX)created $folder"
+    }
+  }
+  # RQ-PLG-021, RQ-PLG-033 / DEC-PLG-016, DEC-PLG-026: AGNOS's own files, rewritten whole from their templates into the folder.
+  foreach ($owned in $OWNED_FILES) {
+    $ownedPath = Join-Path (Join-Path $targetFull $AGNOS_FOLDER) $owned
+    $ownedBytes = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "../assets/templates/$owned"))
+    if (-not (Test-Path -LiteralPath $ownedPath)) {
+      $ownedAction = 'created'
+    } elseif ((Read-Bytes $ownedPath) -ceq $BYTES.GetString($ownedBytes)) {
+      $ownedAction = 'unchanged'
+    } else {
+      $ownedAction = 'updated'
+    }
+    if ($ownedAction -ne 'unchanged') { [System.IO.File]::WriteAllBytes($ownedPath, $ownedBytes) }
+    Write-Output "$REPORT_PREFIX$ownedAction $AGNOS_FOLDER/$owned"
+  }
+  # RQ-PLG-033 / DEC-PLG-026: a root guide a former init wrote goes; any other file of that name stays.
+  $rootGuide = Join-Path $targetFull $GUIDE
+  if (Test-Path -LiteralPath $rootGuide -PathType Leaf) {
+    $template = Read-Bytes (Join-Path $PSScriptRoot "../assets/templates/$GUIDE")
+    if ((Get-FirstLine (Read-Bytes $rootGuide)) -ceq (Get-FirstLine $template)) {
+      Remove-Item -LiteralPath $rootGuide
+      Write-Output "$($REPORT_PREFIX)moved $GUIDE to $AGNOS_FOLDER/$GUIDE"
     }
   }
   exit 0

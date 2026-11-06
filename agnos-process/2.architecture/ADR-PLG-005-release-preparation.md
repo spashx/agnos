@@ -37,7 +37,9 @@ the changelog stay as written (`[v3.1]` included); new headings take the bare ve
 `init.ps1` and `init.sh` write `agnos-process/AGNOS-GETTING-STARTED.md` and `agnos-process/VERSION` from their templates, as they write the guide
 today, reported `created`, `updated` or `unchanged`. A root `AGNOS-GETTING-STARTED.md` whose first line is AGNOS's is removed and
 reported `moved`; any other is left. `agnos-index` reads only the subfolders of `agnos-process/`, so neither file is indexed. The init's
-success step, `README.md` and the guide's own references name `agnos-process/AGNOS-GETTING-STARTED.md`. Fulfils RQ-PLG-033; amends
+success step, `README.md` and the guide's own references name `agnos-process/AGNOS-GETTING-STARTED.md`. Both names are declared
+once in `layout.json` (`guide`, `version`) and read by the scripts from their copies (RQ-PLG-036); the check matches a name of the
+layout standing alone, so that a copy's constant such as `AGNOS_VERSION` is not one. Fulfils RQ-PLG-033; amends
 RQ-PLG-021 and DEC-PLG-016 on the guide's location.
 
 ## Consequences
