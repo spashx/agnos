@@ -21,6 +21,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
+# RQ-PLG-034, RQ-PLG-036 / DEC-PLG-027: the process folder's names come from the generated agnos-layout.ps1
+. (Join-Path $PSScriptRoot 'agnos-layout.ps1')
+$PF = [regex]::Escape($AGNOS_FOLDER)
 $SKILL_NAME = 'agnos-meta-demo'
 $TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|agnos-overview\.png$)'   # RQ-MTA-005, RQ-INI-008
 $INIT_SCRIPT = '.github/skills/agnos-init/scripts/init.ps1'
@@ -43,9 +46,9 @@ $REBUILD_FOLDER_PREFIX = 'agnos-demo-verify-'
 $FULL_SCORE = '10.0'; $NO_SCORE = 'n/a'
 $UI_ARTIFACTS = @('FTR-DSN-001', 'ADR-DSN-001', 'PLAN-DSN-001', 'FTR-WEB-001', 'ADR-WEB-001', 'PLAN-WEB-001')   # RQ-DMO-022
 $ROLE_BY_PATH = @(
-  @{ Pattern = '^process/1\.requirements/FTR-'; Role = 'po' }
-  @{ Pattern = '^process/2\.architecture/ADR-'; Role = 'arch' }
-  @{ Pattern = '^process/3\.plan/PLAN-'; Role = 'dev' }
+  @{ Pattern = "^$PF/1\.requirements/FTR-"; Role = 'po' }
+  @{ Pattern = "^$PF/2\.architecture/ADR-"; Role = 'arch' }
+  @{ Pattern = "^$PF/3\.plan/PLAN-"; Role = 'dev' }
   @{ Pattern = '^service/roombook/.+\.py$'; Role = 'dev' }
   @{ Pattern = '^client/src/.+\.ts$'; Role = 'dev' }
   @{ Pattern = '^service/tests/test_.+\.py$'; Role = 'qa' }
@@ -86,7 +89,7 @@ $workingDays = @(for ($d = $periodStart; $d -le $periodEnd; $d = $d.AddDays(1)) 
   if ($d.DayOfWeek -notin 'Saturday', 'Sunday' -and $holidayDates -notcontains $d.ToString('yyyy-MM-dd')) { $d }
 })
 $demoFiles = Get-Tracked $Demo
-$planTasks = @($demoFiles | Where-Object { $_ -match '^process/3\.plan/PLAN-.*\.md$' } | ForEach-Object {
+$planTasks = @($demoFiles | Where-Object { $_ -match "^$PF/3\.plan/PLAN-.*\.md$" } | ForEach-Object {
   $text = Demo-Git @('show', "HEAD:$_") | Out-String
   [regex]::Matches($text, '(?ms)^### (TASK-[A-Z]{3}-\d{3}):.*?(?=^### |\z)') | ForEach-Object {
     $b = $_.Value
@@ -130,10 +133,10 @@ foreach ($t in $untested) { [void]$problems.Add("$($t.Id) has no test commit") }
 Report 'RQ-DMO-004' ($problems.Count -eq 0) $(if ($problems.Count) { Show-Failures $problems } else { "$($codeFiles.Count) code files cite RQs, tests are Gherkin-named, no repeated literal, every M/L task has a test commit" })
 
 # RQ-DMO-005
-$ftrs = @($demoFiles | Where-Object { $_ -match '^process/1\.requirements/FTR-' })
-$adrs = @($demoFiles | Where-Object { $_ -match '^process/2\.architecture/ADR-' })
-$plans = @($demoFiles | Where-Object { $_ -match '^process/3\.plan/PLAN-' })
-$allProcessText = ($demoFiles | Where-Object { $_ -match '^process/[123]\.' } | ForEach-Object { Demo-Git @('show', "HEAD:$_") }) -join "`n"
+$ftrs = @($demoFiles | Where-Object { $_ -match "^$PF/1\.requirements/FTR-" })
+$adrs = @($demoFiles | Where-Object { $_ -match "^$PF/2\.architecture/ADR-" })
+$plans = @($demoFiles | Where-Object { $_ -match "^$PF/3\.plan/PLAN-" })
+$allProcessText = ($demoFiles | Where-Object { $_ -match "^$PF/[123]\." } | ForEach-Object { Demo-Git @('show', "HEAD:$_") }) -join "`n"
 $rqCount = ([regex]::Matches($allProcessText, '(?m)^### RQ-[A-Z]{3}-\d{3}:')).Count
 $adrOk = @($adrs | Where-Object { $t = (Demo-Git @('show', "HEAD:$_")) -join "`n"; $t -match '(?m)^### DEC-' -and $t -match '```mermaid' }).Count
 $defined = @([regex]::Matches($allProcessText, '(?m)^#{1,3} ((?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}):') | ForEach-Object { $_.Groups[1].Value })
@@ -145,10 +148,10 @@ $earsOk = @('Ubiquitous', 'Event-driven', 'State-driven', 'Unwanted-behavior') |
 $tiersPresent = @('S', 'M', 'L' | Where-Object { $tier = $_; @($planTasks | Where-Object { $_.Tier -eq $tier }).Count -gt 0 })
 $unfilled = @($planTasks | Where-Object { $_.Tier -in 'M', 'L' -and ($_.Verification -match '^(Pending|Filled)' -or -not $_.Verification -or -not $_.Assumptions) })
 $alternatives = @($adrs | Where-Object { ((Demo-Git @('show', "HEAD:$_")) -join "`n") -match '## Alternatives Considered' }).Count
-$logText = if ($demoFiles -contains 'process/_sessionstate/METRICS_LOG.md') { (Demo-Git @('show', 'HEAD:process/_sessionstate/METRICS_LOG.md')) -join "`n" } else { '' }
+$logText = if ($demoFiles -contains "$AGNOS_FOLDER/$AGNOS_METRICS_LOG") { (Demo-Git @('show', "HEAD:$AGNOS_FOLDER/$AGNOS_METRICS_LOG")) -join "`n" } else { '' }
 $logRows = ([regex]::Matches($logText, '(?m)^\| \d{4}-\d{2}-\d{2} \|')).Count
 $sessionBranches = @(Demo-Git @('branch', '--list', 'feature/*'))
-Report 'RQ-DMO-006' (($earsOk.Count -eq 0) -and ($tiersPresent.Count -eq 3) -and ($unfilled.Count -eq 0) -and ($alternatives -eq $adrs.Count) -and ($demoFiles -contains 'process/_sessionstate/session.yaml') -and ($logRows -ge $sessionBranches.Count)) "missing EARS types: $($earsOk.Count); tiers present: $($tiersPresent -join ''); M/L tasks unfilled: $($unfilled.Count); metrics rows $logRows for $($sessionBranches.Count) sessions"
+Report 'RQ-DMO-006' (($earsOk.Count -eq 0) -and ($tiersPresent.Count -eq 3) -and ($unfilled.Count -eq 0) -and ($alternatives -eq $adrs.Count) -and ($demoFiles -contains "$AGNOS_FOLDER/$AGNOS_SESSION_STATE") -and ($logRows -ge $sessionBranches.Count)) "missing EARS types: $($earsOk.Count); tiers present: $($tiersPresent -join ''); M/L tasks unfilled: $($unfilled.Count); metrics rows $logRows for $($sessionBranches.Count) sessions"
 
 # RQ-DMO-007
 $indexRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INDEX_SCRIPT) -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden
@@ -159,7 +162,7 @@ Report 'RQ-DMO-007' (($indexRun.ExitCode -eq 0) -and ($dirty.Count -eq 0)) "agno
 $traceDir = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + 'trace-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $traceDir | Out-Null
 $traceScript = Join-Path $Toolkit '.github/skills/agnos-perf-center/scripts/perf_center.py'
-$traceOut = (& python $traceScript --process (Join-Path $Demo 'process') --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') | Out-String)
+$traceOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') | Out-String)
 $traceExit = $LASTEXITCODE
 Remove-Item -LiteralPath $traceDir -Recurse -Force
 # The generator's summary line since its quality scorecard (FTR-TRC-003): "RQ n: covered n, indirect n, uncovered n;
@@ -179,7 +182,7 @@ $globalOk = (Test-Path -LiteralPath $record) -and ((Get-Content -LiteralPath $re
 $outside = @()
 if ($BaseRef) {
   $changed = @(& git -C $Toolkit diff --name-only $BaseRef) + @(& git -C $Toolkit ls-files --others --exclude-standard)
-  $outside = @($changed | Where-Object { $_ -and $_ -notmatch "^process/|^\.github/skills/$SKILL_NAME/|^\.claude/skills/$SKILL_NAME/" })
+  $outside = @($changed | Where-Object { $_ -and $_ -notmatch "^$PF/|^\.github/skills/$SKILL_NAME/|^\.claude/skills/$SKILL_NAME/" })
 }
 Report 'RQ-DMO-010' (($remotes.Count -eq 0) -and $globalOk -and ($outside.Count -eq 0)) "remotes: $($remotes.Count); global git configuration unchanged by the build: $globalOk; toolkit files changed outside DMO and the skill: $($outside.Count)"
 
@@ -238,7 +241,7 @@ Report 'RQ-DMO-016' (($outOfHours.Count -eq 0) -and ($offsets.Count -eq 1)) "com
 # RQ-DMO-017
 $known = @{}
 $orderProblems = New-Object System.Collections.ArrayList
-$logPatch = Demo-Git @('log', '--all', '--reverse', '--topo-order', '--no-merges', '-p', '-U0', '--no-color', '--format=@@@%H%x1f%s', '--', 'process', 'service', 'client', ':!process/INDEX.idx.md')
+$logPatch = Demo-Git @('log', '--all', '--reverse', '--topo-order', '--no-merges', '-p', '-U0', '--no-color', '--format=@@@%H%x1f%s', '--', $AGNOS_FOLDER, 'service', 'client', ":!$AGNOS_FOLDER/$AGNOS_INDEX")
 $blocks = @(); $header = $null; $added = New-Object System.Collections.ArrayList
 foreach ($line in $logPatch) {
   if ($line.StartsWith('@@@')) { if ($header) { $blocks += , @($header, @($added)) }; $header = $line.Substring(3); [void]($added = New-Object System.Collections.ArrayList) }
@@ -266,9 +269,9 @@ $olderThanParent = @($commits | Where-Object { $c = $_; @($c.Parents | Where-Obj
 Report 'RQ-DMO-019' ($fsckOk -and ($future.Count -eq 0) -and ($olderThanParent.Count -eq 0)) "git fsck --strict ok: $fsckOk; commits in the future: $($future.Count); commits older than a parent: $($olderThanParent.Count)"
 
 # RQ-DMO-022: the design system and the interface made on it, the UX designer's work, the client's tests
-$indexText = if (Test-Path -LiteralPath (Join-Path $Demo 'process/INDEX.idx.md')) { [System.IO.File]::ReadAllText((Join-Path $Demo 'process/INDEX.idx.md')) } else { '' }
+$indexText = if (Test-Path -LiteralPath (Join-Path $Demo "$AGNOS_FOLDER/$AGNOS_INDEX")) { [System.IO.File]::ReadAllText((Join-Path $Demo "$AGNOS_FOLDER/$AGNOS_INDEX")) } else { '' }
 $uiMissing = @($UI_ARTIFACTS | Where-Object { $indexText -notmatch ('(?m)^' + [regex]::Escape($_) + '\|') })
-$webPlan = @(Get-ChildItem -LiteralPath (Join-Path $Demo 'process/3.plan') -Filter 'PLAN-WEB-*.md' -ErrorAction SilentlyContinue)
+$webPlan = @(Get-ChildItem -LiteralPath (Join-Path $Demo "$AGNOS_FOLDER/3.plan") -Filter 'PLAN-WEB-*.md' -ErrorAction SilentlyContinue)
 $webCitesDesign = ($webPlan.Count -gt 0) -and ([System.IO.File]::ReadAllText($webPlan[0].FullName) -match '(RQ|ADR|DEC)-DSN-\d{3}')
 $uxCommits = @(Demo-Git @('log', '--all', '--author=-ux', '--format=%h'))
 $clientTests = Start-Process -FilePath node -ArgumentList '--test', 'tests/*.test.ts' -WorkingDirectory (Join-Path $Demo 'client') -Wait -PassThru -WindowStyle Hidden

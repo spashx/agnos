@@ -3,7 +3,7 @@
 <!-- RQ-DMO-004, RQ-DMO-003 / ADR-DMO-001 (DEC-DMO-001, DEC-DMO-004) -->
 
 Contract given to the code-generating sub-agents. The demo's process documents are in
-`assets/content/process/`; the code goes in `assets/content/service/` (Python) and `assets/content/client/`
+`assets/content/agnos-process/`; the code goes in `assets/content/service/` (Python) and `assets/content/client/`
 (TypeScript). Write original code: copy nothing from an existing project.
 
 ## Rules for every file
@@ -15,7 +15,7 @@ Contract given to the code-generating sub-agents. The demo's process documents a
   (`UPPER_SNAKE_CASE`) declared once, close to its use.
 - Traceability: the first line of each file is a comment listing the requirement and decision IDs it
   implements, for example `# RQ-BKG-003, DEC-BKG-002 (ADR-BKG-001)` or `// RQ-CLI-004, DEC-CLI-002`. Cite
-  only IDs defined in `assets/content/process/`. Each public class or function has a one-line docstring or
+  only IDs defined in `assets/content/agnos-process/`. Each public class or function has a one-line docstring or
   comment with the requirement it serves.
 - Tests are named in Gherkin: `test_given_<state>_when_<action>_then_<result>` (Python) or
   `test("given <state>, when <action>, then <result>", ...)` (TypeScript), with `# Given`, `# When`,

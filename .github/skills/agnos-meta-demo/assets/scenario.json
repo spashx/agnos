@@ -88,7 +88,7 @@
       "by": "nina-dev",
       "message": "chore(BKG): start session BKG",
       "add": [
-        "process/_sessionstate/session.yaml"
+        "agnos-process/_sessionstate/session.yaml"
       ]
     },
     {
@@ -98,11 +98,11 @@
       "by": "linda-po",
       "message": "docs(BKG): FTR-BKG-001 room reservation, RQ-BKG-001 to RQ-BKG-006",
       "add": [
-        "process/1.requirements/FTR-BKG-001-room-reservation.md"
+        "agnos-process/1.requirements/FTR-BKG-001-room-reservation.md"
       ],
       "edits": [
         {
-          "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
+          "path": "agnos-process/1.requirements/FTR-BKG-001-room-reservation.md",
           "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must",
           "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should"
         }
@@ -116,7 +116,7 @@
       "by": "omar-arch",
       "message": "docs(BKG): ADR-BKG-001 layered architecture with ports",
       "add": [
-        "process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"
+        "agnos-process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"
       ],
       "index": true
     },
@@ -128,7 +128,7 @@
       "message": "docs(BKG): RQ-BKG-004 raised to Must after review with the office",
       "edits": [
         {
-          "path": "process/1.requirements/FTR-BKG-001-room-reservation.md",
+          "path": "agnos-process/1.requirements/FTR-BKG-001-room-reservation.md",
           "find": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Should",
           "replace": "- **Rationale**: A meeting must fit in the room.\n- **Priority**: Must"
         }
@@ -142,11 +142,11 @@
       "by": "omar-arch",
       "message": "docs(BKG): ADR-BKG-002 in-memory reservation storage",
       "add": [
-        "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"
+        "agnos-process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"
       ],
       "edits": [
         {
-          "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
+          "path": "agnos-process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
           "find": "## Status\nSuperseded by ADR-BKG-003",
           "replace": "## Status\nAccepted"
         }
@@ -160,7 +160,7 @@
       "by": "nina-dev",
       "message": "docs(BKG): PLAN-BKG-001 core booking",
       "add": [
-        "process/3.plan/PLAN-BKG-001-core-booking.md"
+        "agnos-process/3.plan/PLAN-BKG-001-core-booking.md"
       ],
       "index": true
     },
@@ -330,7 +330,7 @@
       "by": "linda-po",
       "message": "docs(BKG): FTR-BKG-002 reservations survive a restart, RQ-BKG-007",
       "add": [
-        "process/1.requirements/FTR-BKG-002-reservation-persistence.md"
+        "agnos-process/1.requirements/FTR-BKG-002-reservation-persistence.md"
       ],
       "index": true
     },
@@ -341,7 +341,7 @@
       "by": "omar-arch",
       "message": "docs(BKG): ADR-BKG-003 JSON file reservation storage",
       "add": [
-        "process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"
+        "agnos-process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"
       ],
       "index": true
     },
@@ -353,7 +353,7 @@
       "message": "docs(BKG): ADR-BKG-002 superseded by ADR-BKG-003",
       "edits": [
         {
-          "path": "process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
+          "path": "agnos-process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md",
           "find": "## Status\nAccepted",
           "replace": "## Status\nSuperseded by ADR-BKG-003"
         }
@@ -367,7 +367,7 @@
       "by": "paul-dev",
       "message": "docs(BKG): PLAN-BKG-002 durable reservations",
       "add": [
-        "process/3.plan/PLAN-BKG-002-persistence.md"
+        "agnos-process/3.plan/PLAN-BKG-002-persistence.md"
       ],
       "index": true
     },
@@ -429,7 +429,7 @@
       "message": "docs(BKG): session BKG friction metrics",
       "appendLines": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "lines": [
             "# AGNOS Session Friction Metrics Log",
             "",
@@ -459,16 +459,16 @@
       "by": "linda-po",
       "message": "docs(NTF): FTR-NTF-001 reservation reminders, RQ-NTF-001 to RQ-NTF-004",
       "add": [
-        "process/1.requirements/FTR-NTF-001-reservation-reminders.md"
+        "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md"
       ],
       "edits": [
         {
-          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "path": "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md",
           "find": "retry until 3 attempts have",
           "replace": "retry until 2 attempts have"
         },
         {
-          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "path": "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md",
           "find": "**Then** 3 attempts are made",
           "replace": "**Then** 2 attempts are made"
         }
@@ -483,12 +483,12 @@
       "message": "docs(NTF): RQ-NTF-003 retry count raised to 3 attempts",
       "edits": [
         {
-          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "path": "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md",
           "find": "retry until 2 attempts have",
           "replace": "retry until 3 attempts have"
         },
         {
-          "path": "process/1.requirements/FTR-NTF-001-reservation-reminders.md",
+          "path": "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md",
           "find": "**Then** 2 attempts are made",
           "replace": "**Then** 3 attempts are made"
         }
@@ -502,7 +502,7 @@
       "by": "omar-arch",
       "message": "docs(NTF): ADR-NTF-001 in-process events and notifier port",
       "add": [
-        "process/2.architecture/ADR-NTF-001-in-process-events-and-notifier-port.md"
+        "agnos-process/2.architecture/ADR-NTF-001-in-process-events-and-notifier-port.md"
       ],
       "index": true
     },
@@ -513,7 +513,7 @@
       "by": "paul-dev",
       "message": "docs(NTF): PLAN-NTF-001 reminders",
       "add": [
-        "process/3.plan/PLAN-NTF-001-reminders.md"
+        "agnos-process/3.plan/PLAN-NTF-001-reminders.md"
       ],
       "index": true
     },
@@ -626,7 +626,7 @@
       "message": "docs(NTF): session NTF friction metrics",
       "appendLines": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "lines": [
             "| 2026-10-02 | NTF | 1 | 0 | 0 | 1 |"
           ]
@@ -653,11 +653,11 @@
       "by": "linda-po",
       "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-005",
       "add": [
-        "process/1.requirements/FTR-CLI-001-api-client-and-cli.md"
+        "agnos-process/1.requirements/FTR-CLI-001-api-client-and-cli.md"
       ],
       "edits": [
         {
-          "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
+          "path": "agnos-process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
           "find": "within 5 seconds",
           "replace": "within 10 seconds"
         }
@@ -672,7 +672,7 @@
       "message": "docs(CLI): RQ-CLI-004 timeout lowered to 5 seconds",
       "edits": [
         {
-          "path": "process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
+          "path": "agnos-process/1.requirements/FTR-CLI-001-api-client-and-cli.md",
           "find": "within 10 seconds",
           "replace": "within 5 seconds"
         }
@@ -686,7 +686,7 @@
       "by": "omar-arch",
       "message": "docs(CLI): ADR-CLI-001 HTTP/JSON contract and typed client",
       "add": [
-        "process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"
+        "agnos-process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"
       ],
       "index": true
     },
@@ -697,7 +697,7 @@
       "by": "nina-dev",
       "message": "docs(CLI): PLAN-CLI-001 HTTP API, client and command line",
       "add": [
-        "process/3.plan/PLAN-CLI-001-http-api-client-cli.md"
+        "agnos-process/3.plan/PLAN-CLI-001-http-api-client-cli.md"
       ],
       "index": true
     },
@@ -836,7 +836,7 @@
       "message": "docs(CLI): session CLI friction metrics",
       "appendLines": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "lines": [
             "| 2026-10-23 | CLI | 1 | 0 | 0 | 1 |"
           ]
@@ -865,7 +865,7 @@
       "add": [
         {
           "from": "drafts/FTR-DSN-001.d1.md",
-          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+          "to": "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
         }
       ],
       "index": true
@@ -877,7 +877,7 @@
       "by": "omar-arch",
       "message": "docs(DSN): ADR-DSN-001 design tokens in three tiers, generated as CSS custom properties",
       "add": [
-        "process/2.architecture/ADR-DSN-001-design-tokens-in-three-tiers.md"
+        "agnos-process/2.architecture/ADR-DSN-001-design-tokens-in-three-tiers.md"
       ],
       "index": true
     },
@@ -890,7 +890,7 @@
       "add": [
         {
           "from": "drafts/FTR-DSN-001.d2.md",
-          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+          "to": "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
         }
       ],
       "index": true
@@ -904,7 +904,7 @@
       "add": [
         {
           "from": "drafts/FTR-DSN-001.d3.md",
-          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+          "to": "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
         },
         "client/design/tokens.json"
       ],
@@ -934,7 +934,7 @@
       "by": "nina-dev",
       "message": "docs(DSN): PLAN-DSN-001 design system tokens and stylesheet",
       "add": [
-        "process/3.plan/PLAN-DSN-001-design-system.md"
+        "agnos-process/3.plan/PLAN-DSN-001-design-system.md"
       ],
       "index": true
     },
@@ -947,7 +947,7 @@
       "add": [
         {
           "from": "drafts/FTR-DSN-001.d4.md",
-          "to": "process/1.requirements/FTR-DSN-001-design-system.md"
+          "to": "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
         }
       ],
       "index": true
@@ -1009,7 +1009,7 @@
           "replace": "  ],\n  \"notes\": {\n    \"colour.amber.800\": \"Added for TASK-DSN-003 (RQ-DSN-004): amber 600 on amber 50 reached only 3.1:1, below the 4.5:1 threshold; amber 800 gives 6.8:1. Deviation from the first mockup value, recorded here by the UX designer.\"\n  }\n}"
         },
         {
-          "path": "process/1.requirements/FTR-DSN-001-design-system.md",
+          "path": "agnos-process/1.requirements/FTR-DSN-001-design-system.md",
           "find": "amber 50, 600",
           "replace": "amber 50, 800"
         }
@@ -1042,7 +1042,7 @@
       "message": "docs(DSN): session DSN friction metrics",
       "appendLines": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "lines": [
             "| 2026-10-15 | DSN | 1 | 1 | 0 | 1 |"
           ]
@@ -1070,7 +1070,7 @@
       "by": "linda-po",
       "message": "docs(WEB): FTR-WEB-001 booking web interface, RQ-WEB-001 to RQ-WEB-006",
       "add": [
-        "process/1.requirements/FTR-WEB-001-booking-web-interface.md"
+        "agnos-process/1.requirements/FTR-WEB-001-booking-web-interface.md"
       ],
       "index": true
     },
@@ -1081,7 +1081,7 @@
       "by": "omar-arch",
       "message": "docs(WEB): ADR-WEB-001 server-rendered web interface on the typed client",
       "add": [
-        "process/2.architecture/ADR-WEB-001-server-rendered-web-interface.md"
+        "agnos-process/2.architecture/ADR-WEB-001-server-rendered-web-interface.md"
       ],
       "index": true
     },
@@ -1102,7 +1102,7 @@
       "by": "rob-ux",
       "message": "docs(DSN): FTR-DSN-001 component catalogue names the requirement that owns each behaviour",
       "add": [
-        "process/1.requirements/FTR-DSN-001-design-system.md"
+        "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
       ],
       "index": true
     },
@@ -1113,7 +1113,7 @@
       "by": "paul-dev",
       "message": "docs(WEB): PLAN-WEB-001 booking interface",
       "add": [
-        "process/3.plan/PLAN-WEB-001-booking-interface.md"
+        "agnos-process/3.plan/PLAN-WEB-001-booking-interface.md"
       ],
       "index": true
     },
@@ -1232,7 +1232,7 @@
       "message": "docs(WEB): session WEB friction metrics",
       "appendLines": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "lines": [
             "| 2026-10-23 | WEB | 2 | 0 | 1 | 1 |"
           ]
@@ -1262,7 +1262,7 @@
       "message": "Merge branch 'feature/WEB'",
       "resolveFiles": [
         {
-          "path": "process/_sessionstate/METRICS_LOG.md",
+          "path": "agnos-process/_sessionstate/METRICS_LOG.md",
           "from": "drafts/METRICS_LOG.web.md"
         }
       ]

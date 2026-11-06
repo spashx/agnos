@@ -2,6 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 node_modules/
-process/PERF-CENTER.html
-process/PERF-CENTER.json
-process/PERF-CENTER.data.js
+agnos-process/PERF-CENTER.html
+agnos-process/PERF-CENTER.json
+agnos-process/PERF-CENTER.data.js

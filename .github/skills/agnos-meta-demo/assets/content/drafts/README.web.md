@@ -24,7 +24,7 @@ interface, it has a design system: every colour, size and spacing comes from the
 | DSN | FTR-DSN-001 | Design system: three-tier tokens, contrast and literal checks, stylesheet generated from the tokens |
 | WEB | FTR-WEB-001 | Web interface: rooms, booking, cancellation, worded refusals, unavailable service |
 
-The process artifacts are in `process/` (requirements, ADRs, plans, session state, generated index). The code
+The process artifacts are in `agnos-process/` (requirements, ADRs, plans, session state, generated index). The code
 cites them in comments, and the AGNOS traceability skill can show the links.
 
 ## The team

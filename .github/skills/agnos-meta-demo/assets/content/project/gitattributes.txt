@@ -1,1 +1,1 @@
-process/INDEX.idx.md text eol=lf
+agnos-process/process.idx.md text eol=lf

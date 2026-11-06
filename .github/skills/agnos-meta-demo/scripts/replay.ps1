@@ -27,13 +27,15 @@ $GENERATED_MARKER = 'agnos-demo-generated'
 $MARKER_TEXT = 'created by the agnos-meta-demo skill (replay.ps1)'
 $INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
 $INIT_SCRIPT = '.github/skills/agnos-init/scripts/init.ps1'
-$INDEX_PATH = 'process/INDEX.idx.md'
-$PLAN_PATH_PATTERN = '^process/3\.plan/PLAN-.*\.md$'
+# RQ-PLG-034, RQ-PLG-036 / DEC-PLG-027: the process folder's names come from the generated agnos-layout.ps1
+. (Join-Path $PSScriptRoot 'agnos-layout.ps1')
+$INDEX_PATH = "$AGNOS_FOLDER/$AGNOS_INDEX"
+$PLAN_PATH_PATTERN = "^$([regex]::Escape($AGNOS_FOLDER))/3\.plan/PLAN-.*\.md$"
 $PLAN_STATUS_PATTERN = '(?m)^- \*\*Status\*\*: .*$'
 $PLAN_OPEN_STATUS = '- **Status**: Not Started'
 $PLAN_VERIFICATION_PATTERN = '(?ms)^- \*\*Verification\*\*: .*?(?=^- \*\*Assumptions\*\*:)'
 $PLAN_OPEN_VERIFICATION = "- **Verification**: Pending.`n"
-$TASK_PLAN_GLOB = 'process/3.plan/PLAN-*.md'
+$TASK_PLAN_GLOB = "$AGNOS_FOLDER/3.plan/PLAN-*.md"
 $LOCAL_GIT_CONFIG = @{
   'core.autocrlf'     = 'false'
   'core.safecrlf'     = 'false'
@@ -155,7 +157,7 @@ function Close-Task([string]$TaskId, [string]$ContentFull, [string]$TargetFull) 
   $final = [regex]::Match((Read-Text $library.FullName), $blockPattern).Value
   $finalStatus = [regex]::Match($final, $PLAN_STATUS_PATTERN).Value
   $finalVerification = [regex]::Match($final, $PLAN_VERIFICATION_PATTERN).Value
-  $planPath = Join-Path $TargetFull "process/3.plan/$($library.Name)"
+  $planPath = Join-Path $TargetFull "$AGNOS_FOLDER/3.plan/$($library.Name)"
   $text = Read-Text $planPath
   $current = [regex]::Match($text, $blockPattern)
   if (-not $current.Success) { throw "task $TaskId not found in the built plan $($library.Name)" }

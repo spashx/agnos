@@ -20,7 +20,7 @@ A meeting-room booking service in Python (`service/`) with a TypeScript HTTP cli
 | NTF | FTR-NTF-001 | Creation event, reminders before the meeting, retries on failure |
 | CLI | FTR-CLI-001 | HTTP/JSON API, typed client, command-line tool |
 
-The process artifacts are in `process/` (requirements, ADRs, plans, session state, generated index). The code
+The process artifacts are in `agnos-process/` (requirements, ADRs, plans, session state, generated index). The code
 cites them in comments, and the AGNOS traceability skill can show the links.
 
 ## The team

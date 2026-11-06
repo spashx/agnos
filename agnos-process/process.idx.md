@@ -662,7 +662,7 @@ TASK-PLG-042|64-75|Done|The perf center and the other delivered skills read the 
 TASK-PLG-043|76-87|Done|The release reads the layout, checks it, and renames the generated skill
 TASK-PLG-044|88-99|Done|The instructions file and the entry points cite the layout's paths
 TASK-PLG-045|100-111|Done|The rename
-TASK-PLG-046|112-123|Not Started|The demo rebuilt on `agnos-process/`
+TASK-PLG-046|112-123|Done|The demo rebuilt on `agnos-process/`
 TASK-PLG-047|124-134|Not Started|The release rehearsed and proved after the rename
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

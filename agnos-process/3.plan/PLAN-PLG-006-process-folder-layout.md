@@ -111,15 +111,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-046: The demo rebuilt on `agnos-process/`
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Move `agnos-meta-demo`'s scenario and checks onto the layout, rebuild the demo and verify it.
 - **Requirement refs**: RQ-PLG-034
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-029)
 - **Acceptance Criteria**: Given the rebuilt demo, Then its artifacts are under `agnos-process/` And `agnos-meta-demo`'s checks pass.
 - **Dependencies**: TASK-PLG-045
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `build.ps1 -Verify`: exit 0, "23 passed, 0 failed"; demo HEAD holds `agnos-process/`, no `process/`; demo suite 12 OK; `--check` 0 findings.
+- **Assumptions**: `replay.ps1` and `verify.ps1` read the layout's copy; the scenario and the content are data of a project kept with today's AGNOS, so their paths were rewritten and `assets/content/process/` moved with `git mv`.
 
 ### TASK-PLG-047: The release rehearsed and proved after the rename
 - **Tier**: M
