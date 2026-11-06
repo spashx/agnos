@@ -9,7 +9,7 @@ Source: the owner's session of 2026-11-05. `agnos-meta-docs-sync` is described a
 marketplace regenerated that day delivered a user's guide and a changelog behind the process (RQ-PLG-025, RQ-PLG-026 absent).
 
 The owner asked, the same session, for the version in SemVer 2.0.0 and in one place, to be reused by the documents or the perf center, and for the user's guide
-and the version to be in the project's `process/` folder once the plugin is installed.
+and the version to be in the project's `agnos-process/` folder once the plugin is installed.
 
 Out of scope: publishing (merge, tag, push stay the owner's); choosing the version in the owner's place; showing the version in the
 documents or the perf center (made possible by RQ-PLG-032 and RQ-PLG-033, not done here).
@@ -81,7 +81,7 @@ documents or the perf center (made possible by RQ-PLG-032 and RQ-PLG-033, not do
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN `agnos-init` runs on a project, it SHALL write `AGNOS-GETTING-STARTED.md` and `VERSION` into the project's process folder (`agnos-process/`, RQ-PLG-034), each reported `created`, `updated` or `unchanged`; IF an `AGNOS-GETTING-STARTED.md` is at the project's root and its first line is the one AGNOS writes, THEN it SHALL remove it and report it `moved`, leaving any other root file untouched. Amends RQ-PLG-021 and DEC-PLG-016 on the guide's location.
-- **Rationale**: the files AGNOS owns in a project stay in its `process/` folder, away from the developer's root; the version installed in a project can be read there.
+- **Rationale**: the files AGNOS owns in a project stay in its `agnos-process/` folder, away from the developer's root; the version installed in a project can be read there.
 - **Priority**: Must
-- **Acceptance Criteria**: Given a project, When `agnos-init` runs, Then `process/AGNOS-GETTING-STARTED.md` and `process/VERSION` equal the templates And are reported `created`; Given a second run, Then both are `unchanged`; Given a root `AGNOS-GETTING-STARTED.md` written by a former init, Then it is removed and reported `moved`; Given a root file of that name with another first line, Then it is untouched; Given the Windows and the Linux scripts, Then they write the same bytes; Given `agnos-index`, Then neither file adds an entry; Given the README and the init's success step, Then they name `process/AGNOS-GETTING-STARTED.md`.
+- **Acceptance Criteria**: Given a project, When `agnos-init` runs, Then `agnos-process/AGNOS-GETTING-STARTED.md` and `agnos-process/VERSION` equal the templates And are reported `created`; Given a second run, Then both are `unchanged`; Given a root `AGNOS-GETTING-STARTED.md` written by a former init, Then it is removed and reported `moved`; Given a root file of that name with another first line, Then it is untouched; Given the Windows and the Linux scripts, Then they write the same bytes; Given `agnos-index`, Then neither file adds an entry; Given the README and the init's success step, Then they name `agnos-process/AGNOS-GETTING-STARTED.md`.
 - **Dependencies**: RQ-PLG-021, RQ-PLG-022, RQ-PLG-032, RQ-PLG-034, RQ-INI-007

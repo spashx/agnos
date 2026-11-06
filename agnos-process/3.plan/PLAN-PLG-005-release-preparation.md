@@ -16,15 +16,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-032: Feature, decisions and plan
 - **Tier**: L
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Write FTR-PLG-005, ADR-PLG-005 and this plan.
 - **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032, RQ-PLG-033
 - **ADR refs**: ADR-PLG-005
 - **Acceptance Criteria**: Given the owner's approval, Then ADR-PLG-005 is Accepted; Given the index, Then it has no duplicate.
 - **Dependencies**: TASK-PLG-047
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: ADR-PLG-005 Accepted (owner, 2026-11-06); `agnos-index`: 694 entries, exit 0, no duplicate; no `process/` path left in FTR/ADR/PLAN-PLG-005.
+- **Assumptions**: DEC-PLG-024, cited by TASK-PLG-035 but absent, written from RQ-PLG-031; `process/` read as `agnos-process/` (RQ-PLG-034).
 
 ### TASK-PLG-033: The preparation script
 - **Tier**: M
@@ -62,10 +62,10 @@ This plan implements the tasks in the format specified below.
 - **Verification**:
 - **Assumptions**:
 
-### TASK-PLG-037: `agnos-init` writes the guide and the version into `process/`
+### TASK-PLG-037: `agnos-init` writes the guide and the version into `agnos-process/`
 - **Tier**: L
 - **Status**: Not Started
-- **Description**: Make `init.ps1` and `init.sh` write `process/AGNOS-GETTING-STARTED.md` and `process/VERSION` and move a root guide of AGNOS's; update the init's success step, `README.md`, the guide's references and the demo if its checks require it.
+- **Description**: Make `init.ps1` and `init.sh` write `agnos-process/AGNOS-GETTING-STARTED.md` and `agnos-process/VERSION` and move a root guide of AGNOS's; update the init's success step, `README.md`, the guide's references and the demo if its checks require it.
 - **Requirement refs**: RQ-PLG-033, RQ-PLG-021, RQ-PLG-022
 - **ADR refs**: ADR-PLG-005 (DEC-PLG-026), ADR-PLG-003 (DEC-PLG-016)
 - **Acceptance Criteria**: Given RQ-PLG-033's criteria, Then they hold, tested first on both scripts; Given the suites of `agnos-init`, `agnos-meta-release`, `agnos-meta-demo` and `agnos-perf-center`, Then they pass.

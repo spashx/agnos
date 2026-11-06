@@ -1,7 +1,7 @@
 # ADR-PLG-005: Release Preparation
 
 ## Status
-Proposed — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016.
+Accepted (owner, 2026-11-06) — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016.
 
 ## Context
 FTR-PLG-005: the steps before a release (sync the documents, review, choose a version, commit) are written nowhere as one
@@ -22,17 +22,22 @@ From `VERSION`: next major when `[Unreleased]` holds `### Removed`, next minor w
 for `### Fixed` only. The maintainer may give another version, accepted if it is SemVer 2.0.0 (the specification's regular
 expression, pre-release and build metadata included) and above the current one by SemVer precedence. Fulfils RQ-PLG-028, RQ-PLG-029.
 
+### DEC-PLG-024: The release reports the unreleased entries without failing
+`release.py` counts the bullets under `## [Unreleased]` of `CHANGELOG.md` at the rehearsed commit; when the count is above 0, it
+prints `unreleased: <n> entries, version <VERSION> delivered` and records `unreleased_entries` in its report and on its page. The exit
+code is unchanged, so a rehearsal during development still passes. Fulfils RQ-PLG-031.
+
 ### DEC-PLG-025: `VERSION` among the init's templates is the single source of the version
 `.github/skills/agnos-init/assets/templates/VERSION`: one line, SemVer 2.0.0, no `v` prefix, created at `3.1.0` from the changelog's
 `[v3.1]`. `release.py` reads it at the rehearsed commit instead of the changelog's latest heading and writes it into the four
 manifests; it is delivered with the `agnos-init` skill, as the guide is (DEC-PLG-017), so no layer rule changes. Released sections of
 the changelog stay as written (`[v3.1]` included); new headings take the bare version, as Keep a Changelog shows it. Fulfils RQ-PLG-032.
 
-### DEC-PLG-026: `agnos-init` writes the guide and the version into `process/`
-`init.ps1` and `init.sh` write `process/AGNOS-GETTING-STARTED.md` and `process/VERSION` from their templates, as they write the guide
+### DEC-PLG-026: `agnos-init` writes the guide and the version into `agnos-process/`
+`init.ps1` and `init.sh` write `agnos-process/AGNOS-GETTING-STARTED.md` and `agnos-process/VERSION` from their templates, as they write the guide
 today, reported `created`, `updated` or `unchanged`. A root `AGNOS-GETTING-STARTED.md` whose first line is AGNOS's is removed and
-reported `moved`; any other is left. `agnos-index` reads only the subfolders of `process/`, so neither file is indexed. The init's
-success step, `README.md` and the guide's own references name `process/AGNOS-GETTING-STARTED.md`. Fulfils RQ-PLG-033; amends
+reported `moved`; any other is left. `agnos-index` reads only the subfolders of `agnos-process/`, so neither file is indexed. The init's
+success step, `README.md` and the guide's own references name `agnos-process/AGNOS-GETTING-STARTED.md`. Fulfils RQ-PLG-033; amends
 RQ-PLG-021 and DEC-PLG-016 on the guide's location.
 
 ## Consequences
