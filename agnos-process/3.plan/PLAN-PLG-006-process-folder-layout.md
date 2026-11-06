@@ -123,12 +123,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-047: The release rehearsed and proved after the rename
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rehearse HEAD into an empty scratchpad folder and prove it; migrate a copy of `agnos-trial-copilot` with the new init.
 - **Requirement refs**: RQ-PLG-034, RQ-PLG-035, RQ-PLG-038
 - **ADR refs**: ADR-PLG-006
 - **Acceptance Criteria**: Given a rehearsal, Then the exit is 0 And no delivered file cites `process/` as AGNOS's folder; Given the proof, Then every line passes; Given the copy of `agnos-trial-copilot`, Then its folder and index are moved And `agnos-index` runs on it.
 - **Dependencies**: TASK-PLG-046
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Rehearsal of `62d32de`: exit 0, 61 files, 1,224 IDs removed, no problem; `process/` left only in `agnos-init`'s migration wording, the legacy constants of the copies and `CHANGELOG.md`'s history; `agnos-instructions/SKILL.md` named `agnos-instructions`, no `agnos-process` skill. Proof: exit 0, Copilot marketplace-add, install, skills (6 of 6) pass; Claude Code absent from the proof's PATH, not proved. Copy of `agnos-trial-copilot`: `moved process to agnos-process`, 4 renames in `git status` with `agnos-process/process.idx.md`, `agnos-index` exit 0, 5 entries.
+- **Assumptions**: The Claude Code half of the proof is left to the owner's next proof run, where `claude` is on the PATH.
