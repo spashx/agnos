@@ -112,7 +112,7 @@ This plan implements the tasks in the format specified below.
 ### TASK-PLG-007: Install proof and user documents
 - **Tier**: M
 - **Status**: In Progress
-- **Description**: Install from a clean clone in Claude Code, Copilot CLI and VS Code, run a session up to its first commit, and write the install commands and the tested / not tested table in `README.md` and `GETTING_STARTED.MD`.
+- **Description**: Install from a clean clone in Claude Code, Copilot CLI and VS Code, run a session up to its first commit, and write the install commands and the tested / not tested table in `README.md` and the user's guide, `agnos-process/AGNOS-GETTING-STARTED.md` in a project (RQ-PLG-033).
 - **Requirement refs**: RQ-PLG-008, RQ-PLG-009
 - **ADR refs**: ADR-PLG-001
 - **Acceptance Criteria**: Given RQ-PLG-009's criteria, Then they hold in each tool on Windows; Given the README, Then every cell of the table states a result actually observed; Given the release, Then the final report's checks are true.
