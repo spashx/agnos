@@ -13,10 +13,13 @@ END_MARKER='<!-- AGNOS:END -->'
 CR=$(printf '\r')
 END_PATTERN="^$END_MARKER$CR?\$"
 ENTRY_FILES='CLAUDE.md AGENTS.md'
-PROCESS_FOLDERS='process/1.requirements process/2.architecture process/3.plan process/_sessionstate'
 README='readme.md'
 GUIDE='AGNOS-GETTING-STARTED.md'
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+# RQ-PLG-036 / DEC-PLG-027: every name of the process folder comes from the generated agnos-layout.sh.
+. "$SCRIPT_DIR/agnos-layout.sh"
+PROCESS_FOLDERS=''
+for sub in $AGNOS_SUBFOLDERS; do PROCESS_FOLDERS="$PROCESS_FOLDERS $AGNOS_FOLDER/$sub"; done
 
 fail() {
   echo "$REPORT_PREFIX$1" >&2
@@ -87,7 +90,35 @@ plan_file() {   # <file>
   echo updated > "$result.action"
 }
 
+# RQ-PLG-038 / DEC-PLG-031: whether git tracks a path of the project; no git, or no repository, means untracked.
+tracked() {   # <path>
+  git -C "$target" ls-files --error-unmatch -- "$1" >/dev/null 2>&1
+}
+
+# RQ-PLG-038 / DEC-PLG-031: renames with git mv when tracked, so that the history follows, with a plain rename otherwise.
+move_process_path() {   # <from> <to>
+  if tracked "$1"; then
+    git -C "$target" mv -- "$1" "$2" >/dev/null 2>&1 || fail "git mv $1 $2 failed"
+  else
+    mv "$target/$1" "$target/$2" || fail "cannot rename $1 to $2"
+  fi
+}
+
+migrate=no
+if [ "$AGNOS_LEGACY_FOLDER" != "$AGNOS_FOLDER" ] && [ -f "$target/$AGNOS_LEGACY_FOLDER/$AGNOS_LEGACY_INDEX" ]; then
+  migrate=yes
+  [ -e "$target/$AGNOS_FOLDER" ] && fail "both $AGNOS_LEGACY_FOLDER/ and $AGNOS_FOLDER/ exist: keep one, then call agnos-init again"
+fi
+
 for file in $ENTRY_FILES; do plan_file "$file"; done
+
+if [ "$migrate" = yes ]; then
+  move_process_path "$AGNOS_LEGACY_FOLDER" "$AGNOS_FOLDER"
+  if [ "$AGNOS_LEGACY_INDEX" != "$AGNOS_INDEX" ]; then
+    move_process_path "$AGNOS_FOLDER/$AGNOS_LEGACY_INDEX" "$AGNOS_FOLDER/$AGNOS_INDEX"
+  fi
+  echo "${REPORT_PREFIX}moved $AGNOS_LEGACY_FOLDER to $AGNOS_FOLDER"
+fi
 
 for file in $ENTRY_FILES; do
   path=$target/$file

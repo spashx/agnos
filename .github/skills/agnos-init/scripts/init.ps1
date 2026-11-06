@@ -19,7 +19,9 @@ $END_PATTERN = '(?m)^<!-- AGNOS:END -->(?=\r?$)'
 $LF = "`n"
 $CRLF = "`r`n"
 $ENTRY_FILES = @('CLAUDE.md', 'AGENTS.md')
-$PROCESS_FOLDERS = @('process/1.requirements', 'process/2.architecture', 'process/3.plan', 'process/_sessionstate')
+# RQ-PLG-036 / DEC-PLG-027: every name of the process folder comes from the generated agnos-layout.ps1.
+. (Join-Path $PSScriptRoot 'agnos-layout.ps1')
+$PROCESS_FOLDERS = @($AGNOS_SUBFOLDERS | ForEach-Object { "$AGNOS_FOLDER/$_" })
 $README = 'readme.md'
 $GUIDE = 'AGNOS-GETTING-STARTED.md'
 # DEC-INI-002: one byte is one character, so that encodings and line endings pass through unchanged.
@@ -66,10 +68,40 @@ function Get-Plan([string]$File, [string]$Path) {
   return @{ Path = $Path; File = $File; Text = $text; Action = 'updated'; Old = $old }
 }
 
+# RQ-PLG-038 / DEC-PLG-031: whether git tracks a path of the project; no git, or no repository, means untracked.
+function Test-Tracked([string]$Root, [string]$Path) {
+  $ErrorActionPreference = 'Continue'
+  try { & git -C $Root ls-files --error-unmatch -- $Path 2>&1 | Out-Null } catch { return $false }
+  return $LASTEXITCODE -eq 0
+}
+
+# RQ-PLG-038 / DEC-PLG-031: renames with git mv when tracked, so that the history follows, with a plain rename otherwise.
+function Move-ProcessPath([string]$Root, [string]$From, [string]$To) {
+  if (Test-Tracked $Root $From) {
+    $ErrorActionPreference = 'Continue'
+    & git -C $Root mv -- $From $To 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git mv $From $To failed" }
+  } else {
+    Move-Item -LiteralPath (Join-Path $Root $From) -Destination (Join-Path $Root $To)
+  }
+}
+
 try {
   $targetFull = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).Path, $Target))   # an absolute target stays as it is
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) { throw "target folder not found: $Target" }
+  $legacyIndex = Join-Path (Join-Path $targetFull $AGNOS_LEGACY_FOLDER) $AGNOS_LEGACY_INDEX
+  $migrate = ($AGNOS_LEGACY_FOLDER -ne $AGNOS_FOLDER) -and (Test-Path -LiteralPath $legacyIndex -PathType Leaf)
+  if ($migrate -and (Test-Path -LiteralPath (Join-Path $targetFull $AGNOS_FOLDER))) {
+    throw "both $AGNOS_LEGACY_FOLDER/ and $AGNOS_FOLDER/ exist: keep one, then call agnos-init again"
+  }
   $plans = @($ENTRY_FILES | ForEach-Object { Get-Plan $_ (Join-Path $targetFull $_) })
+  if ($migrate) {
+    Move-ProcessPath $targetFull $AGNOS_LEGACY_FOLDER $AGNOS_FOLDER
+    if ($AGNOS_LEGACY_INDEX -ne $AGNOS_INDEX) {
+      Move-ProcessPath $targetFull "$AGNOS_FOLDER/$AGNOS_LEGACY_INDEX" "$AGNOS_FOLDER/$AGNOS_INDEX"
+    }
+    Write-Output "$($REPORT_PREFIX)moved $AGNOS_LEGACY_FOLDER to $AGNOS_FOLDER"
+  }
   foreach ($plan in $plans) {
     if ($plan.Text -ceq $plan.Old) {                          # RQ-INI-003
       Write-Output "$($REPORT_PREFIX)unchanged $($plan.File)"

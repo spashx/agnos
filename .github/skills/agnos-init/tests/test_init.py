@@ -3,6 +3,7 @@
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-init/tests -v
 The bash version is run by Git Bash when found, else by `bash` on the PATH; set AGNOS_BASH to choose another one.
 """
+import json
 import os
 import re
 import shutil
@@ -22,7 +23,13 @@ PROCESS_SKILL = "agnos-process"
 ANY_PATH_RE = re.compile(rb"\.\./|\.github|\.claude|\{\{")
 MISSING_TARGET = "missing"
 ENTRY_FILES = ("CLAUDE.md", "AGENTS.md")
-PROCESS_FOLDERS = ("1.requirements", "2.architecture", "3.plan", "_sessionstate")
+# RQ-PLG-036 / DEC-PLG-027: the folder's names come from the layout the scripts' copies are generated from.
+LAYOUT = json.loads((SKILL_DIR / "assets" / "layout.json").read_text(encoding="utf-8"))
+FOLDER = LAYOUT["folder"]
+INDEX = LAYOUT["index"]
+LEGACY_FOLDER = LAYOUT["legacyFolder"]
+LEGACY_INDEX = LAYOUT["legacyIndex"]
+PROCESS_FOLDERS = tuple(LAYOUT["subfolders"])
 README = "readme.md"
 BEGIN = b"<!-- AGNOS:BEGIN"
 END = b"<!-- AGNOS:END -->"
@@ -31,7 +38,7 @@ OLD_TIME = 946684800
 ID_RE = re.compile(rb"\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b")
 MAX_DESCRIPTION = 1024
 MAX_SKILL_LINES = 500
-PROJECT_RULES = "process/project-rules.md"
+PROJECT_RULES = f"{FOLDER}/{LAYOUT['projectRules']}"
 GUIDE = "AGNOS-GETTING-STARTED.md"
 GUIDE_TEMPLATE = SKILL_DIR / "assets/templates" / GUIDE
 GUIDE_EXAMPLE_TRIGRAM = b"EXP"
@@ -48,13 +55,13 @@ def bash_command():
     return str(GIT_BASH) if GIT_BASH.exists() else "bash"
 
 
-def run_powershell(project, target="."):
-    return subprocess.run(["powershell", "-NoProfile", "-File", str(PS_SCRIPT), "-Target", target],
+def run_powershell(project, target=".", script=PS_SCRIPT):
+    return subprocess.run(["powershell", "-NoProfile", "-File", str(script), "-Target", target],
                           cwd=project, capture_output=True, text=True, encoding="utf-8")
 
 
-def run_bash(project, target="."):
-    return subprocess.run([bash_command(), SH_SCRIPT.as_posix(), "--target", target],
+def run_bash(project, target=".", script=SH_SCRIPT):
+    return subprocess.run([bash_command(), Path(script).as_posix(), "--target", target],
                           cwd=project, capture_output=True, text=True, encoding="utf-8")
 
 
@@ -242,8 +249,8 @@ class ProcessFolderTest(InitCase):
         for _, project, result in self.each_script():
             self.assertEqual(0, result.returncode, result.stderr)
             for folder in PROCESS_FOLDERS:
-                self.assertEqual([README], [p.name for p in (project / "process" / folder).iterdir()])
-                data = (project / "process" / folder / README).read_bytes()
+                self.assertEqual([README], [p.name for p in (project / FOLDER / folder).iterdir()])
+                data = (project / FOLDER / folder / README).read_bytes()
                 self.assertEqual((SKILL_DIR / "assets/templates" / f"{folder}.{README}").read_bytes(), data)
                 self.assertTrue(data.startswith(b"# "), folder)
                 self.assertNotIn(b"\r", data, folder)
@@ -251,17 +258,17 @@ class ProcessFolderTest(InitCase):
 
     def test_RQ_INI_005_given_a_folder_with_content_when_run_then_it_gets_no_readme_and_its_file_stays(self):
         plan = b"# PLAN\n"
-        for _, project, result in self.each_script({"process/3.plan/PLAN-X.md": plan}):
+        for _, project, result in self.each_script({f"{FOLDER}/3.plan/PLAN-X.md": plan}):
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertFalse((project / "process/3.plan" / README).exists())
-            self.assertEqual(plan, (project / "process/3.plan/PLAN-X.md").read_bytes())
+            self.assertFalse((project / FOLDER / "3.plan" / README).exists())
+            self.assertEqual(plan, (project / FOLDER / "3.plan/PLAN-X.md").read_bytes())
 
     def test_RQ_INI_005_given_a_readme_the_user_changed_when_run_again_then_it_stays(self):
         for name, runner in RUNNERS.items():
             with self.subTest(script=name):
                 project = self.project(name)
                 self.assertEqual(0, runner(project).returncode)
-                readme = project / "process/3.plan" / README
+                readme = project / FOLDER / "3.plan" / README
                 readme.write_bytes(b"# Mine\n")
                 self.assertEqual(0, runner(project).returncode)
                 self.assertEqual(b"# Mine\n", readme.read_bytes())
@@ -278,6 +285,99 @@ class ProcessFolderTest(InitCase):
         result = subprocess.run(command, cwd=project, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn(": 0 entries, 0 documents", result.stdout)
+
+
+NEW_FOLDER = "agnos-process"
+NEW_INDEX = "process.idx.md"
+MOVED = f"moved {LEGACY_FOLDER}"
+LEGACY_DOCUMENT = f"{LEGACY_FOLDER}/1.requirements/FTR-ABC-001.md"
+AGNOS_FILES = {f"{LEGACY_FOLDER}/{LEGACY_INDEX}": b"# index\n", LEGACY_DOCUMENT: b"# FTR-ABC-001: A\n"}
+GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@example.org", "-c", "core.autocrlf=false")
+
+
+def git(project, *arguments):
+    """git run in a test project, with an identity of its own (RQ-PLG-038)."""
+    return subprocess.run([*GIT, *arguments], cwd=project, capture_output=True, text=True, check=True).stdout
+
+
+class MigrationTest(InitCase):
+    """RQ-PLG-038, DEC-PLG-031: run on a copy of the skill whose layout names agnos-process/ and process.idx.md."""
+
+    def setUp(self):
+        """A copy of the skill's scripts and assets, its layout copies naming the new folder and index (RQ-PLG-038)."""
+        super().setUp()
+        skill = self.base / "skill"
+        shutil.copytree(SKILL_DIR / "scripts", skill / "scripts")
+        shutil.copytree(SKILL_DIR / "assets", skill / "assets")
+        for name, pattern in (("agnos-layout.ps1", "${0} = '{1}'"), ("agnos-layout.sh", "{0}='{1}'")):
+            path = skill / "scripts" / name
+            prefix = "$" if name.endswith(".ps1") else ""
+            lines = []
+            for line in path.read_text(encoding="utf-8").splitlines():
+                for key, value in (("AGNOS_FOLDER", NEW_FOLDER), ("AGNOS_INDEX", NEW_INDEX)):
+                    if line.startswith(f"{prefix}{key} ") or line.startswith(f"{prefix}{key}="):
+                        line = pattern.format(key, value)
+                lines.append(line)
+            path.write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+        self.runners = {name: (lambda project, runner=runner, script=skill / "scripts" / script: runner(project, ".", script))
+                        for name, runner, script in (("powershell", run_powershell, "init.ps1"), ("bash", run_bash, "init.sh"))
+                        if name in RUNNERS}
+
+    def each_run(self, files):
+        """Runs both renamed scripts on the same files, checks they wrote the same bytes (RQ-PLG-038)."""
+        runs = []
+        for name, runner in self.runners.items():
+            project = self.project(name, files)
+            runs.append((name, project, runner(project)))
+        for _, project, _result in runs[1:]:
+            self.assertEqual(snapshot(runs[0][1]), snapshot(project))
+        return runs
+
+    def test_RQ_PLG_038_given_a_tracked_agnos_folder_when_run_then_git_shows_renames_and_it_is_reported_moved(self):
+        """Given a git project with a tracked process/ of AGNOS, When run, Then git shows renames to agnos-process/ (RQ-PLG-038)."""
+        for name, runner in self.runners.items():
+            with self.subTest(script=name):
+                project = self.project(name, AGNOS_FILES)
+                git(project, "init", "-q")
+                git(project, "add", ".")
+                git(project, "commit", "-q", "-m", "process")
+                result = runner(project)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertIn(MOVED, result.stdout)
+                status = git(project, "status", "--porcelain")
+                self.assertIn(f"R  {LEGACY_FOLDER}/{LEGACY_INDEX} -> {NEW_FOLDER}/{NEW_INDEX}", status)
+                self.assertIn(f"R  {LEGACY_DOCUMENT} -> {NEW_FOLDER}/1.requirements/FTR-ABC-001.md", status)
+                self.assertFalse((project / LEGACY_FOLDER).exists())
+
+    def test_RQ_PLG_038_given_an_untracked_agnos_folder_when_run_then_it_is_renamed_and_reported_moved(self):
+        """Given an untracked process/ of AGNOS, When run, Then it is renamed And reported moved (RQ-PLG-038)."""
+        for _, project, result in self.each_run(AGNOS_FILES):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertIn(MOVED, result.stdout)
+            self.assertEqual(b"# index\n", (project / NEW_FOLDER / NEW_INDEX).read_bytes())
+            self.assertTrue((project / NEW_FOLDER / "1.requirements/FTR-ABC-001.md").is_file())
+            self.assertFalse((project / LEGACY_FOLDER).exists())
+
+    def test_RQ_PLG_038_given_a_process_folder_without_index_when_run_then_it_is_left_untouched(self):
+        """Given a process/ without INDEX.idx.md, When run, Then it is left as it was (RQ-PLG-038)."""
+        files = {f"{LEGACY_FOLDER}/notes.txt": b"mine\n"}
+        for _, project, result in self.each_run(files):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertNotIn(MOVED, result.stdout)
+            self.assertEqual(b"mine\n", (project / LEGACY_FOLDER / "notes.txt").read_bytes())
+            self.assertTrue((project / NEW_FOLDER / "3.plan" / README).is_file())
+
+    def test_RQ_PLG_038_given_both_folders_when_run_then_it_exits_1_names_both_and_changes_nothing(self):
+        """Given process/ of AGNOS and agnos-process/, When run, Then the exit is 1 And nothing changed (RQ-PLG-038)."""
+        files = {**AGNOS_FILES, f"{NEW_FOLDER}/3.plan/PLAN-X.md": b"# PLAN\n"}
+        for name, runner in self.runners.items():
+            with self.subTest(script=name):
+                project = self.project(name, files)
+                result = runner(project)
+                self.assertEqual(1, result.returncode, name)
+                self.assertIn(LEGACY_FOLDER, result.stderr)
+                self.assertIn(NEW_FOLDER, result.stderr)
+                self.assertEqual(files, snapshot(project))
 
 
 class GuideTest(InitCase):
@@ -312,7 +412,7 @@ class GuideTest(InitCase):
         data = GUIDE_TEMPLATE.read_bytes()
         self.assertIn(b"`<TYPE>-<TRI>-<NNN>`", data)
         for folder in PROCESS_FOLDERS:
-            self.assertIn(f"`process/{folder}/`".encode(), data, folder)
+            self.assertIn(f"`{FOLDER}/{folder}/`".encode(), data, folder)
 
     def test_RQ_PLG_022_given_the_template_then_its_only_ids_are_the_guides_example(self):
         self.assertEqual({GUIDE_EXAMPLE_TRIGRAM}, set(ID_TRIGRAM_RE.findall(GUIDE_TEMPLATE.read_bytes())))

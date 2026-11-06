@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-041: `agnos-init` reads the layout and migrates `process/`
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Generate the init's copies; `init.ps1` and `init.sh` create the layout's folders and move an AGNOS `process/`.
 - **Requirement refs**: RQ-PLG-036, RQ-PLG-038
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-027, DEC-PLG-031), ADR-INI-001
 - **Acceptance Criteria**: Given RQ-PLG-038's criteria, Then they hold on both scripts, tested first; Given the init's suite, Then it passes.
 - **Dependencies**: TASK-PLG-039
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: 4 `MigrationTest` cases (tracked, untracked, no index, both folders; PowerShell and bash) written first: 6 FAIL, 25 existing OK; after the change: 29 run, OK, 0 skipped.
+- **Assumptions**: The migration tests run on a temporary copy of the skill whose layout copies name `agnos-process`/`process.idx.md`, the repository's layout still saying `process`; the report line is `moved process to agnos-process`; exit 1 for both folders only when `process/` is AGNOS's (holds the legacy index).
 
 ### TASK-PLG-042: The perf center and the other delivered skills read the layout
 - **Tier**: L
