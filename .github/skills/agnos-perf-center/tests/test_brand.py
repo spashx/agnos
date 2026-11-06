@@ -3,10 +3,12 @@ DEC-TRC-058).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-perf-center/tests -v
 """
+import re
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
@@ -134,6 +136,88 @@ class BrandMarkTest(unittest.TestCase):
         self.assertEqual(float(resolve(tokens, HEADER_MARK, "light").removesuffix(PIXELS)), float(got["header-width"]))
         self.assertGreaterEqual(float(got["about-width"]), ABOUT_MARK_TIMES * float(got["header-width"]))
         self.assertEqual("true", got["above-text"])
+
+
+# RQ-TRC-109, RQ-TRC-110, DEC-TRC-057: the foot of the left panel
+APP_TITLE = "AGNOS Performance Center"
+FOOT_RE = re.compile(r'<footer class="side-footer"[^>]*>(.*?)</footer>', re.DOTALL)
+TAG_RE = re.compile(r"<[^>]*>")
+UNREADABLE_VERSIONS = ("v3.2\n", "3.1\n", "03.1.0\n", "", "3.1.0\n3.2.0\n", "latest\n")
+READ_FOOT = """
+document.documentElement.dataset.foot = document.querySelector(".side-footer").textContent.replace(/\\s+/g, " ").trim();
+"""
+
+
+def foot(page):
+    """The text of the left panel's foot in a generated page, tags removed and spaces collapsed."""
+    return " ".join(TAG_RE.sub("", FOOT_RE.search(page).group(1)).split())
+
+
+def generate_with_version(directory, name, content):
+    """A page generated while VERSION holds `content`; None as content means the file does not exist."""
+    version = Path(directory) / f"VERSION-{name}"
+    if content is not None:
+        version.write_text(content, encoding="utf-8")
+    with mock.patch.object(tm, "VERSION_PATH", version):
+        page, _ = generate(Path(directory) / f"{name}.html")
+    return page
+
+
+class PageVersionTest(unittest.TestCase):
+    """TASK-TRC-094: RQ-TRC-109, RQ-TRC-110 (DEC-TRC-057)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_109_given_a_VERSION_of_3_1_0_when_a_page_is_generated_then_the_foot_reads_the_title_and_v_3_1(self):
+        self.assertEqual(f"{APP_TITLE} v.3.1", foot(generate_with_version(self.tmp.name, "a", "3.1.0\n")))
+
+    def test_RQ_TRC_109_given_a_VERSION_of_3_12_4_then_the_foot_shows_v_3_12_without_the_patch(self):
+        self.assertEqual(f"{APP_TITLE} v.3.12", foot(generate_with_version(self.tmp.name, "b", "3.12.4")))
+
+    def test_RQ_TRC_109_given_a_prerelease_VERSION_then_the_foot_shows_its_major_and_minor_only(self):
+        self.assertEqual(f"{APP_TITLE} v.4.0", foot(generate_with_version(self.tmp.name, "c", "4.0.0-rc.1+build.5\n")))
+
+    def test_RQ_TRC_109_given_only_VERSION_changed_then_the_foot_changes_and_the_data_files_stay_the_same(self):
+        first = generate_with_version(self.tmp.name, "d1", "3.1.0\n")
+        second = generate_with_version(self.tmp.name, "d2", "5.2.0\n")
+        self.assertEqual((f"{APP_TITLE} v.3.1", f"{APP_TITLE} v.5.2"), (foot(first), foot(second)))
+        for suffix in (tm.DATA_JSON_SUFFIX, tm.DATA_SCRIPT_SUFFIX):
+            self.assertEqual(first.path.with_name("d1" + suffix).read_bytes(), second.path.with_name("d2" + suffix).read_bytes())
+
+    def test_RQ_TRC_109_given_the_foot_then_it_names_no_library(self):
+        text = foot(generate_with_version(self.tmp.name, "e", "3.1.0\n"))
+        for needle in ("cdnjs", "Cytoscape", "ECharts", "MIT", "Apache"):
+            self.assertNotIn(needle, text)
+
+    def test_RQ_TRC_110_given_no_VERSION_file_when_a_page_is_generated_then_the_run_succeeds_and_the_foot_reads_the_title_alone(self):
+        self.assertEqual(APP_TITLE, foot(generate_with_version(self.tmp.name, "f", None)))
+
+    def test_RQ_TRC_110_given_a_VERSION_that_is_not_one_semver_line_then_the_foot_reads_the_title_alone(self):
+        for number, content in enumerate(UNREADABLE_VERSIONS):
+            with self.subTest(content=content):
+                self.assertEqual(APP_TITLE, foot(generate_with_version(self.tmp.name, f"g{number}", content)))
+
+    def test_RQ_TRC_109_given_the_repository_then_the_foot_shows_the_version_of_its_VERSION_file(self):
+        major, minor = tm.VERSION_PATH.read_text(encoding="utf-8").strip().split(".")[:2]
+        page, _ = generate(Path(self.tmp.name) / "repo.html")
+        self.assertEqual(f"{APP_TITLE} v.{major}.{minor}", foot(page))
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class FootInBrowserTest(unittest.TestCase):
+    """TASK-TRC-094: RQ-TRC-109 (DEC-TRC-057), in a headless browser."""
+
+    def test_RQ_TRC_109_given_the_page_once_its_script_ran_then_the_foot_still_reads_the_title_and_the_version_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = generate_with_version(tmp, "h", "3.1.0\n")
+            got = found(rendered_dom_after(page.path, READ_FOOT), "foot")
+        self.assertEqual({"foot": f"{APP_TITLE} v.3.1"}, got)
 
 
 if __name__ == "__main__":

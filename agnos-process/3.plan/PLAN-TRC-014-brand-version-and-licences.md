@@ -38,15 +38,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-094: The foot names the application and its version
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Read `VERSION` at generation, replace a `@VERSION@` marker of the template by `v.<major>.<minor>` or by nothing, write the foot as static text of the template, and remove the footer's library line from the page script.
 - **Requirement refs**: RQ-TRC-109, RQ-TRC-110
 - **ADR refs**: ADR-TRC-014 (DEC-TRC-057)
 - **Acceptance Criteria**: Given a `VERSION` of `3.1.0`, When a page is generated, Then its foot reads "AGNOS Performance Center v.3.1" and names no library; Given `3.12.4`, Then `v.3.12`; Given no `VERSION`, or `v3.2`, Then the run exits 0 and the foot reads the title alone; Given the data files, Then they are unchanged: the hash of RQ-TRC-026 stays.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**: (at closure)
-- **Assumptions**: (at closure)
+- **Verification**: `test_brand.py` foot tests (9 new) failed first (`AttributeError`: no `VERSION_PATH`), then `test_brand.py`: 16 run, OK, 0 skipped, covering 3.1.0, 3.12.4, a prerelease, six unreadable contents, an absent file, the repository's own `VERSION`, identical data files across two versions, and the foot after the page script ran in a browser. `test_callgraph.py -k RQ_TRC_026`: 1 OK (the data hash is unchanged). `test_literals.py`: 2 OK. `test_perf_center.py -k RQ_TRC_010`: 2 OK; `-k RQ_TRC_018`: 3 OK; `-k RQ_TRC_082`: 2 OK. `test_help.py`: 8 OK.
+- **Assumptions**: The foot's `id="about"` is dropped since nothing reads it; the file is read at each generation from the sibling `agnos-init` skill; a prerelease or build suffix is accepted and not shown; the libraries' notice is absent from the page until TASK-TRC-095 puts it in the Licenses topic.
 
 ### TASK-TRC-095: The Licenses topic and its badges
 - **Tier**: M

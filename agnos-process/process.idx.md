@@ -809,6 +809,6 @@ TASK-TRC-090|27-37|Done|Duration on the generator's last output line
 PLAN-TRC-014|1-73||Brand, Version and Licences in the Page
 TASK-TRC-092|15-26|Done|Brand and badge tokens
 TASK-TRC-093|27-38|Done|The brand mark in the header and, larger, in About
-TASK-TRC-094|39-50|Not Started|The foot names the application and its version
+TASK-TRC-094|39-50|Done|The foot names the application and its version
 TASK-TRC-095|51-62|Not Started|The Licenses topic and its badges
 TASK-TRC-096|63-73|Not Started|The About topic says "app" and shows the addresses

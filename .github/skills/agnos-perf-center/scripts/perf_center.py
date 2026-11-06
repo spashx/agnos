@@ -81,11 +81,17 @@ TEMPLATE_PATH = ASSETS_DIR / "matrix.html"
 TOKENS_PATH = ASSETS_DIR / "tokens.json"
 KEY_LIBRARIES = "libraries"
 LIBRARIES_PATH = ASSETS_DIR / "libraries.json"     # RQ-TRC-082, DEC-TRC-040: the libraries loaded from cdnjs
+# RQ-TRC-109, RQ-TRC-110, DEC-TRC-057: AGNOS's one version (RQ-PLG-032), in a sibling skill of this one, as one SemVer 2.0.0 line
+# (the regular expression of semver.org); the foot of the page shows `v.<major>.<minor>`.
+VERSION_PATH = SKILL_DIR.parent / "agnos-init" / "assets" / "templates" / "VERSION"
+VERSION_PREFIX = "v."
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+                       r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
 CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
 CALLGRAPH_MODULE = "agnos_perf_center_callgraph"
 HISTORY_PATH = Path(__file__).resolve().parent / "history.py"        # FTR-HST-001, ADR-HST-001
 HISTORY_MODULE = "agnos_perf_center_history"
-MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES)@")
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES|VERSION)@")
 DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
 DATA_SCRIPT_SUFFIX = ".data.js"     # RQ-TRC-010: the same data, loaded by the page (a page from disk fetches no file)
 DATA_GLOBAL = "window.AGNOS_PERF_CENTER_DATA"
@@ -552,6 +558,18 @@ def library_meta(libraries):
     return [{k: lib[k] for k in ("name", "version", "licence", "global", "use")} for lib in libraries]
 
 
+# RQ-TRC-109, RQ-TRC-110, DEC-TRC-057
+def version_label():
+    """The version the foot of the page shows, `v.<major>.<minor>`, from the VERSION file; the empty string when the file
+    is absent or is not one SemVer 2.0.0 line, so that the foot then shows the title alone and the run is not failed."""
+    try:
+        lines = Path(VERSION_PATH).read_text(encoding=ENCODING).splitlines()
+    except (OSError, ValueError):
+        return ""
+    match = SEMVER_RE.match(lines[0]) if len(lines) == 1 else None
+    return f"{VERSION_PREFIX}{match.group(1)}.{match.group(2)}" if match else ""
+
+
 def page_elements(model):
     """The elements as the page reads them: those defined in index order, then the undefined ones by name."""
     defined = [e for e in model.elements.values() if e[KEY_KIND] == KEY_ELEMENT]
@@ -600,6 +618,7 @@ def render_page(title, data_script):
         "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding=ENCODING)),
         "TITLE": html.escape(title),
         "DATA_SCRIPT": html.escape(data_script),
+        "VERSION": html.escape(version_label()),                # RQ-TRC-109: the foot's version, never in the data
     }
     template = TEMPLATE_PATH.read_text(encoding=ENCODING)
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], template)
