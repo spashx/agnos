@@ -514,6 +514,7 @@ DEC-TRC-054|15-17||Outputs, script and page title follow; the template keeps `ma
 DEC-TRC-055|18-20||History keeps the former name, a test guards the rest
 @agnos-process/3.plan/CHECKPOINT-MTA-INI-2026-10-31.md
 @agnos-process/3.plan/CHECKPOINT-PLG-2026-11-01.md
+@agnos-process/3.plan/CHECKPOINT-PLG-2026-11-06.md
 @agnos-process/3.plan/PLAN-AGT-001-agent-entry-points.md
 PLAN-AGT-001|1-30||Agent entry points
 TASK-AGT-001|14-30|Done|AGENTS.md and CLAUDE.md skill alignment
