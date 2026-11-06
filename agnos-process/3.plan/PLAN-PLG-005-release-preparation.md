@@ -74,6 +74,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: GuideTest rewritten first for RQ-PLG-033 (both scripts, same bytes; created/updated/unchanged; root guide moved or kept; README and success step). Suites: agnos-init 32 OK; agnos-meta-release 132 OK; agnos-meta-demo 12 OK; agnos-perf-center 367 run, 364 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`). `layout.py --check`: 0 findings.
 - **Assumptions**: The two names are declared in `layout.json` (`guide`, `version`), the layout check matching a name standing alone and tolerating a key an older commit lacks (DEC-PLG-026 completed); the demo needed no rebuild, none of its checks naming the guide.
 
+### TASK-PLG-048: The skill's README with a diagram of the release steps
+- **Tier**: M
+- **Status**: Done
+- **Description**: Add `README.md` to `agnos-meta-release-prep`: the release steps explained simply, with a Mermaid flowchart, and the local rehearsals that can be repeated with the same version.
+- **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030
+- **ADR refs**: ADR-PLG-005 (DEC-PLG-022)
+- **Acceptance Criteria**: Given the README, Then its diagram names the steps in RQ-PLG-030's order And a test checks it; Given a rehearsal, Then the README is left out (Meta layer).
+- **Dependencies**: TASK-PLG-034
+- **Assignee**: AI
+- **Verification**: `ReadmeTest` written first (diagram's steps in order, Meta layer); release-prep suite 25 run, OK, 0 skipped; `layout.py --check`: 0 findings.
+- **Assumptions**: Written in English as the repository's other documents; the diagram splits preparing (the skill) from rehearsing and publishing (printed, never run).
+
 ### TASK-PLG-036: The preparation run on this repository
 - **Tier**: M
 - **Status**: Not Started

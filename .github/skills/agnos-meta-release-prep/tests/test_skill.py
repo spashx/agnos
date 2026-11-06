@@ -79,5 +79,27 @@ class OrderTest(unittest.TestCase):
         self.assertRegex(body, r"(?i)not approve[^\n]*\n?[^\n]*commit nothing")
 
 
+README = SKILL_DIR / "README.md"
+MERMAID_RE = re.compile(r"```mermaid\n(.*?)```", re.S)
+# RQ-PLG-030: the diagram's nodes, in the order of the release steps
+DIAGRAM_STEPS = ("release_prep.py check", "agnos-meta-docs-sync", "release_prep.py review", "approves",
+                 "release_prep.py set-version", "commit-task", "agnos-meta-release --dry-run", "agnos-meta-plugin-proof",
+                 "agnos-marketplace", "merge, tag, push")
+
+
+class ReadmeTest(unittest.TestCase):
+    """RQ-PLG-030, TASK-PLG-048: the README draws the release steps in order, and stays out of the release."""
+
+    def test_RQ_PLG_030_given_the_readme_then_its_diagram_names_the_steps_in_order(self):
+        diagram = MERMAID_RE.search(README.read_text(encoding="utf-8")).group(1)
+        self.assertTrue(diagram.startswith("flowchart"), diagram[:40])
+        positions = [diagram.find(step) for step in DIAGRAM_STEPS]
+        self.assertNotIn(-1, positions, dict(zip(DIAGRAM_STEPS, positions)))
+        self.assertEqual(sorted(positions), positions, dict(zip(DIAGRAM_STEPS, positions)))
+
+    def test_RQ_PLG_030_given_the_release_rules_then_the_readme_is_left_out(self):
+        self.assertEqual(release.LAYER_META, release.layer_of(f".github/skills/{NAME}/README.md", release.load_rules()))
+
+
 if __name__ == "__main__":
     unittest.main()
