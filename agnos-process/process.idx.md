@@ -513,7 +513,6 @@ ADR-TRC-013|1-38|Accepted — approved by the owner on 2026-10-31, for FTR-TRC-0
 DEC-TRC-053|12-14||The skill is renamed by `git mv`, its IDs stay
 DEC-TRC-054|15-17||Outputs, script and page title follow; the template keeps `matrix.*`
 DEC-TRC-055|18-20||History keeps the former name, a test guards the rest
-@agnos-process/3.plan/CHECKPOINT-MTA-INI-2026-10-31.md
 @agnos-process/3.plan/CHECKPOINT-PLG-2026-11-01.md
 @agnos-process/3.plan/CHECKPOINT-PLG-2026-11-06.md
 @agnos-process/3.plan/PLAN-AGT-001-agent-entry-points.md
