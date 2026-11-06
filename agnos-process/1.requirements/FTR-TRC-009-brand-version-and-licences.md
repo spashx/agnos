@@ -78,6 +78,15 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 - **Acceptance Criteria**: Given the page, When the header and the About topic are read in a browser, Then each holds the mark, its tile and four bars filled with the brand grey, light, blue, green and yellow; And the About mark is at least three times the header mark's width; Given the light and the dark themes, Then the mark is the same in both.
 - **Dependencies**: RQ-TRC-103, ADR-TRC-002
 
+### RQ-TRC-116: The name and the tagline beside the mark in About
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The About topic SHALL show, to the right of the large mark and centred on it, the name "AGNOS" in capital letters, bold and widely spaced, and below it the tagline "Efficiency by traceability", smaller, of medium weight and in the muted text colour, both from design-system tokens and following the theme; the mark, the name and the tagline SHALL stand above the About text.
+- **Rationale**: the mark alone does not say whose it is; the lockup of the retained design names it where the reader learns who made the page (owner request of 2026-11-06, from the design's lockup, with this tagline in place of the design's).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the About topic, When it is read in a browser, Then the name reads "AGNOS" and the tagline "Efficiency by traceability", the name to the right of the mark, the tagline below the name and aligned with it on the left, the pair centred on the mark, all above the text; And the name is 30 px, bold, with a letter-spacing of 0.12 em, and the tagline 13 px, weight 500, with 0.02 em; And their colours are those of the text and the muted-text tokens, in each theme; Given the style and the script, Then they hold no raw visual value.
+- **Dependencies**: RQ-TRC-114, RQ-TRC-018, ADR-TRC-002
+
 ## Non-Functional Requirements
 
 ### RQ-TRC-115: Brand and badge colours from the design system, readable

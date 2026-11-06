@@ -342,6 +342,90 @@ class LicencesTopicTest(unittest.TestCase):
         self.assertNotIn("<img", self.page)
 
 
+# RQ-TRC-116, DEC-TRC-059: the lockup of the retained design in the About topic, as the design states it
+LOCKUP_NAME, LOCKUP_TAGLINE = "AGNOS", "Efficiency by traceability"
+LOCKUP_TOKENS = {"text-wordmark": "30px", "tracking-wordmark": "0.12em", "tracking-tagline": "0.02em",
+                 "line-display": "1.1", "line-snug": "1.3", "weight-bold": "700", "weight-medium": "500",
+                 "text-small": "13px"}
+READ_LOCKUP = """
+const out = document.documentElement.dataset;
+document.getElementById("help-button").click();
+document.querySelector('#help-list button[data-topic="about"]').click();
+const about = document.querySelector('[data-help="about"]');
+const mark = about.querySelector("svg.brand-mark").getBoundingClientRect();
+const name = about.querySelector(".about-wordmark"), tagline = about.querySelector(".about-tagline");
+const n = name.getBoundingClientRect(), t = tagline.getBoundingClientRect();
+const style = (node) => { const s = getComputedStyle(node); return [s.fontSize, s.fontWeight, s.letterSpacing, s.lineHeight].join(" "); };
+out.nameText = name.textContent; out.taglineText = tagline.textContent;
+out.nameStyle = style(name); out.taglineStyle = style(tagline);
+out.toTheRight = String(n.left >= mark.right && t.left >= mark.right);
+out.below = String(t.top >= n.bottom - 1);
+out.aligned = String(Math.abs(n.left - t.left) < 1);
+out.centred = String(Math.abs((n.top + t.bottom) / 2 - (mark.top + mark.bottom) / 2) < 2);
+out.aboveText = String(Math.max(mark.bottom, t.bottom) <= about.querySelector("p").getBoundingClientRect().top);
+const colours = () => `${getComputedStyle(name).color}|${getComputedStyle(tagline).color}`;
+document.documentElement.dataset.theme = "light"; out.coloursLight = colours();
+document.documentElement.dataset.theme = "dark"; out.coloursDark = colours();
+"""
+LOCKUP_NAMES = ("name-text", "tagline-text", "name-style", "tagline-style", "to-the-right", "below", "aligned", "centred",
+                "above-text", "colours-light", "colours-dark")
+LENGTH_TOLERANCE = 0.05
+
+
+def semantic(tokens, name, theme):
+    """The raw value a semantic token ends in, in a theme (DEC-TRC-009)."""
+    reference = tokens["semantic"][name]
+    return tokens["global"][reference[theme] if isinstance(reference, dict) else reference]
+
+
+class LockupTokensTest(unittest.TestCase):
+    """TASK-TRC-097: RQ-TRC-116, RQ-TRC-018 (DEC-TRC-059)."""
+
+    def test_RQ_TRC_116_given_the_token_file_then_the_type_values_of_the_lockup_are_those_of_the_retained_design(self):
+        tokens = tm.load_tokens(tm.TOKENS_PATH)
+        self.assertEqual(LOCKUP_TOKENS, {name: semantic(tokens, name, "light") for name in LOCKUP_TOKENS})
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class AboutLockupTest(unittest.TestCase):
+    """TASK-TRC-097: RQ-TRC-116 (DEC-TRC-059), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        page, _ = generate(Path(cls.tmp.name) / "page.html")
+        cls.got = found(rendered_dom_after(page.path, READ_LOCKUP), *LOCKUP_NAMES)
+        cls.tokens = tm.load_tokens(tm.TOKENS_PATH)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def lengths(self, text):
+        """The numbers of a computed style, `font-size weight letter-spacing line-height`, without their units."""
+        return [float(part.removesuffix("px")) for part in text.split()]
+
+    def test_RQ_TRC_116_given_the_about_topic_then_the_name_and_the_tagline_read_as_the_owner_wrote_them(self):
+        self.assertEqual((LOCKUP_NAME, LOCKUP_TAGLINE), (self.got["name-text"], self.got["tagline-text"]))
+
+    def test_RQ_TRC_116_given_the_lockup_then_the_name_is_right_of_the_mark_the_tagline_below_it_and_the_pair_centred_above_the_text(self):
+        self.assertEqual({key: "true" for key in ("to-the-right", "below", "aligned", "centred", "above-text")},
+                         {key: self.got[key] for key in ("to-the-right", "below", "aligned", "centred", "above-text")})
+
+    def test_RQ_TRC_116_given_the_lockup_then_the_name_and_the_tagline_are_set_as_the_design_states_them(self):
+        name_size, tagline_size = 30, 13                                            # the design's, checked in the token test
+        expected_name = [name_size, 700, 0.12 * name_size, 1.1 * name_size]
+        expected_tagline = [tagline_size, 500, 0.02 * tagline_size, 1.3 * tagline_size]
+        for got, expected in ((self.got["name-style"], expected_name), (self.got["tagline-style"], expected_tagline)):
+            for found_value, wanted in zip(self.lengths(got), expected):
+                self.assertAlmostEqual(wanted, found_value, delta=LENGTH_TOLERANCE, msg=got)
+
+    def test_RQ_TRC_116_given_each_theme_then_the_name_and_the_tagline_take_the_text_and_the_muted_text_colours(self):
+        for theme in tm.THEMES:
+            expected = "|".join(rgb(semantic(self.tokens, token, theme)) for token in ("text", "text-muted"))
+            self.assertEqual(expected, self.got[f"colours-{theme}"], theme)
+
+
 # RQ-TRC-113, DEC-TRC-058: the About topic's sentence and link buttons
 ABOUT_SENTENCE = "This app is generated by agnos-perf-center, a skill of the AGNOS process, by spashx."
 ABOUT_BUTTONS = "https://github.com/spashx https://www.linkedin.com/in/64493197"

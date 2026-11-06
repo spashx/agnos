@@ -83,7 +83,12 @@ button, input, select { font: inherit; color: inherit; }
   height: var(--c-brand-mark-size);
   flex: none;
 }
-.brand-mark-large { display: block; width: var(--c-brand-mark-size-large); height: var(--c-brand-mark-size-large); margin-bottom: var(--s-space-md); }
+.brand-mark-large { display: block; width: var(--c-brand-mark-size-large); height: var(--c-brand-mark-size-large); }
+/* RQ-TRC-116, DEC-TRC-059: the lockup of the About topic, the name and the tagline centred to the right of the large mark */
+.about-brand { display: flex; align-items: center; gap: var(--s-space-lg); margin-bottom: var(--s-space-md); }
+.about-brand-text { display: flex; flex-direction: column; gap: var(--s-space-hair); }
+.about-wordmark { color: var(--s-text); font-size: var(--s-text-wordmark); font-weight: var(--s-weight-bold); line-height: var(--s-line-display); letter-spacing: var(--s-tracking-wordmark); }
+.about-tagline { color: var(--s-text-muted); font-size: var(--s-text-small); font-weight: var(--s-weight-medium); line-height: var(--s-line-snug); letter-spacing: var(--s-tracking-tagline); }
 .mark-tile { fill: var(--c-brand-mark-tile); }
 .mark-bar-light { fill: var(--c-brand-mark-bar-light); }
 .mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }

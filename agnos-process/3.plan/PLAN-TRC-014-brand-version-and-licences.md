@@ -4,8 +4,8 @@
 Give the page a coloured brand mark in the design system, a foot naming the application and its version, a Licenses topic of local badges in the Help dialog, and About links showing their addresses. Each task writes its Gherkin-named tests first.
 
 ## References
-- **Requirements**: RQ-TRC-109 to RQ-TRC-115; amended: RQ-TRC-082, RQ-TRC-103
-- **ADRs**: ADR-TRC-014 (DEC-TRC-056 to DEC-TRC-058); uses ADR-TRC-002 (the design system), ADR-TRC-012 (the Help dialog)
+- **Requirements**: RQ-TRC-109 to RQ-TRC-116; amended: RQ-TRC-082, RQ-TRC-103
+- **ADRs**: ADR-TRC-014 (DEC-TRC-056 to DEC-TRC-059); uses ADR-TRC-002 (the design system), ADR-TRC-012 (the Help dialog)
 
 This plan implements the tasks in the format specified below.
 ---
@@ -71,3 +71,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: The prefixes "GitHub:" and "LinkedIn:" are dropped with the name, the icon naming the site; the sentence "by spashx" stays.
+
+### TASK-TRC-097: The name and the tagline beside the mark in About
+- **Tier**: L
+- **Status**: Done
+- **Description**: Add the five type tokens the design states and the scale lacks, and show in About, above its sentence, the design's lockup: the large mark, and to its right "AGNOS" with "Efficiency by traceability" below it. Approved by the owner on 2026-11-06 with the mark kept at 96 px; Tier L because it amends DEC-TRC-056.
+- **Requirement refs**: RQ-TRC-116, RQ-TRC-114, RQ-TRC-018
+- **ADR refs**: ADR-TRC-014 (DEC-TRC-059, DEC-TRC-056), ADR-TRC-002
+- **Acceptance Criteria**: Given the About topic read in a browser, When its lockup is read, Then the name reads "AGNOS" and the tagline "Efficiency by traceability", the name to the right of the mark, the tagline below it and left-aligned with it, the pair centred on the mark, all above the text; And the name is 30 px, bold, with 0.12 em of letter-spacing and the tagline 13 px, weight 500, with 0.02 em; And their colours are those of the text and muted-text tokens in each theme; Given the style, the script and the template, Then they hold no raw visual value.
+- **Dependencies**: TASK-TRC-093, TASK-TRC-096
+- **Assignee**: AI
+- **Verification**: `test_brand.py` lockup tests (5 new) failed first (5 errors, tokens and elements absent), then the full suite: 398 run, OK, 3 skipped (367 of the baseline plus the 31 of `test_brand.py`, the 3 skipped unchanged). Checked in a headless browser: "AGNOS" and "Efficiency by traceability" read as written; the name right of the 96px mark, the tagline below and aligned, the pair centred on the mark, all above the sentence; 30px/700/0.12em/1.1 and 13px/500/0.02em/1.3 within 0.05px; colours equal to the text and muted-text tokens in both themes; `test_perf_center.py -k RQ_TRC_018`: no raw visual value; the data hash of RQ-TRC-026 unchanged. Screenshots in both themes.
+- **Assumptions**: The mark in the lockup is decorative (`aria-hidden`), the name beside it naming it; the design's greys are replaced by the semantic text and muted-text tokens (a few points of lightness, recorded in DEC-TRC-059 and the token file); the lockup keeps the sentence and the link buttons below it; the name is written "AGNOS" in the template, not made capital by style; the lockup stands as one block above the sentence with one spacing token under it.
