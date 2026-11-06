@@ -415,7 +415,7 @@ DEC-PLG-023|20-24||The version is proposed from the changelog's sections, chosen
 DEC-PLG-025|25-30||`VERSION` among the init's templates is the single source of the version
 DEC-PLG-026|31-37||`agnos-init` writes the guide and the version into `process/`
 @process/2.architecture/ADR-PLG-006-process-folder-layout.md
-ADR-PLG-006|1-69|Proposed — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated|The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
+ADR-PLG-006|1-69|Accepted (owner, 2026-11-06) — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated|The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 DEC-PLG-027|15-21||`layout.json` is the source, each skill holds a generated copy
 DEC-PLG-028|22-28||One check, run by the tests and by the release
 DEC-PLG-029|29-33||The rename is one edit of the layout, done last
@@ -654,7 +654,7 @@ TASK-PLG-037|65-76|Not Started|`agnos-init` writes the guide and the version int
 TASK-PLG-036|77-87|Not Started|The preparation run on this repository
 @process/3.plan/PLAN-PLG-006-process-folder-layout.md
 PLAN-PLG-006|1-134||The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
-TASK-PLG-038|16-27|In Progress|Feature, decisions and plan
+TASK-PLG-038|16-27|Done|Feature, decisions and plan
 TASK-PLG-039|28-39|Not Started|The layout and its generator
 TASK-PLG-040|40-51|Not Started|`agnos-index` reads the layout
 TASK-PLG-041|52-63|Not Started|`agnos-init` reads the layout and migrates `process/`

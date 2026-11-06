@@ -15,15 +15,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-038: Feature, decisions and plan
 - **Tier**: L
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Write FTR-PLG-006, ADR-PLG-006 and this plan, and mark PLAN-PLG-005 as depending on it.
 - **Requirement refs**: RQ-PLG-034, RQ-PLG-035, RQ-PLG-036, RQ-PLG-037, RQ-PLG-038
 - **ADR refs**: ADR-PLG-006
 - **Acceptance Criteria**: Given the owner's approval, Then ADR-PLG-006 is Accepted; Given the index, Then it has no duplicate.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: ADR-PLG-006 Status set to Accepted on the owner's word (2026-11-06); `agnos-index` exit 0, no duplicate.
+- **Assumptions**: None
 
 ### TASK-PLG-039: The layout and its generator
 - **Tier**: L

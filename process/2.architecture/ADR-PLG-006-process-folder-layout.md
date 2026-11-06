@@ -1,7 +1,7 @@
 # ADR-PLG-006: The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 
 ## Status
-Proposed — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated
+Accepted (owner, 2026-11-06) — for FTR-PLG-006 (RQ-PLG-034 to RQ-PLG-038). Choices of the owner on 2026-11-06: the name `agnos-process/`, the generated
 skill renamed, migration by `git mv`, one JSON source with generated copies, this plan before PLAN-PLG-005, the index named `process.idx.md`.
 
 ## Context
