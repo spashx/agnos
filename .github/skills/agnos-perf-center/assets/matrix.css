@@ -77,17 +77,18 @@ button, input, select { font: inherit; color: inherit; }
 
 .brand { display: flex; align-items: center; gap: var(--s-space-md); min-width: var(--s-space-none); }
 
+/* RQ-TRC-114, DEC-TRC-056: the brand mark, one symbol of the sprite, in the header and, larger, in About */
 .brand-mark {
-  width: var(--c-control-height);
-  height: var(--c-control-height);
-  padding: var(--s-space-xs);
-  border-radius: var(--s-radius-md);
-  background: var(--s-accent);
-  fill: var(--s-text-on-accent);
-  stroke: var(--s-text-on-accent);
-  stroke-width: var(--s-stroke-focus);
+  width: var(--c-brand-mark-size);
+  height: var(--c-brand-mark-size);
   flex: none;
 }
+.brand-mark-large { display: block; width: var(--c-brand-mark-size-large); height: var(--c-brand-mark-size-large); margin-bottom: var(--s-space-md); }
+.mark-tile { fill: var(--c-brand-mark-tile); }
+.mark-bar-light { fill: var(--c-brand-mark-bar-light); }
+.mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }
+.mark-bar-green { fill: var(--c-brand-mark-bar-green); }
+.mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
 
 .brand-text { display: flex; flex-direction: column; min-width: var(--s-space-none); }
 

@@ -26,15 +26,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-093: The brand mark in the header and, larger, in About
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Draw the "Spans" mark as one symbol of the template's sprite, use it in the header in place of the three dots and above the About text at a larger size, its colours set from the component tokens.
 - **Requirement refs**: RQ-TRC-114, RQ-TRC-115
 - **ADR refs**: ADR-TRC-014 (DEC-TRC-056)
 - **Acceptance Criteria**: Given the page, When the header and the About topic are read in a browser, Then each holds the mark, whose tile and four bars are filled with the brand tile, light, blue, green and yellow tokens, the three coloured bars each starting further right than the one above; And the About mark is at least three times as wide as the header's; Given the light and the dark themes, Then the filled colours are equal.
 - **Dependencies**: TASK-TRC-092
 - **Assignee**: AI
-- **Verification**: (at closure)
-- **Assumptions**: (at closure)
+- **Verification**: `test_brand.py` browser tests (4 new) failed first (3 empty results, 1 error), then `test_brand.py`: 7 run, OK, 0 skipped. `test_help.py`: 8 OK. `test_literals.py`: 2 OK. `test_perf_center.py -k RQ_TRC_018`: 3 OK (no raw visual value). Headless screenshots of the page in both themes: the mark in the header and 96px in About, above the text.
+- **Assumptions**: The header mark stays decorative (`aria-hidden`), the About mark is named "AGNOS Performance Center"; the mark sits above the About paragraph with one spacing token under it; the old three-dot markup and its accent-colour styling are removed.
 
 ### TASK-TRC-094: The foot names the application and its version
 - **Tier**: M
