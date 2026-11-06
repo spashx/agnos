@@ -82,18 +82,12 @@ class CatalogueTest(MarketplaceCase):
         self.assertEqual(AGENT_PLUGINS_SCHEMA, root["$schema"])
         self.assertNotIn("$schema", claude)
 
-    def test_RQ_PLG_002_given_the_changelog_then_the_version_is_its_latest_release(self):
+    def test_RQ_PLG_032_given_the_version_file_then_the_version_is_the_one_it_holds(self):
+        """RQ-PLG-032 replaces the changelog's latest release as the version's source (DEC-PLG-025)."""
         self.built()
         for name in MANIFESTS:
             self.assertEqual("1.2.0", self.json_of(name)["version"], name)
         self.assertEqual("1.2.0", self.json_of(CATALOGUES[0])["plugins"][0]["version"])
-
-    def test_RQ_PLG_002_given_a_changelog_with_no_release_when_it_runs_then_it_stops_and_says_so(self):
-        self.commit({CHANGELOG_FILE: "## [Unreleased]\n"})
-        code, errors = self.rehearse()
-        self.assertEqual(EXIT_FAILED, code)
-        self.assertIn(CHANGELOG_FILE, errors)
-        self.assertFalse(self.output.exists())
 
 
 class ProcessSkillTest(MarketplaceCase):

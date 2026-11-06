@@ -60,6 +60,9 @@ function header() {
   const passed = REPORT.problems.length === 0;
   PAGE.append(element("h1", "Release report"));
   PAGE.append(element("p", "Commit " + REPORT.commit, "meta mono"));
+  if (REPORT.unreleasedEntries) {   // RQ-PLG-031 / DEC-PLG-024
+    PAGE.append(element("p", "Unreleased: " + REPORT.unreleasedEntries + " changelog entries, version " + REPORT.version + " delivered", "meta"));
+  }
   PAGE.append(element("p", passed ? "Passed: nothing blocks this release" : "Failed: " + REPORT.problems.length + " problems",
     "verdict " + (passed ? "ok" : "error")));
 }

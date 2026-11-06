@@ -109,7 +109,16 @@ TOOLS_KEY = "tools"
 MODEL_KEY = "model"
 MODELS_KEY = "models"
 LIST_SEPARATOR = ", "
-RELEASE_RE = re.compile(r"^## \[v?(\d+)\.(\d+)(?:\.(\d+))?\]", re.M)
+# RQ-PLG-032 / DEC-PLG-025: the version's single source, and the regular expression of SemVer 2.0.0 (semver.org)
+VERSION_FILE = f"{WORKSHOP_SKILLS}agnos-init/assets/templates/VERSION"
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+                       r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+                       r"(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+# RQ-PLG-031 / DEC-PLG-024: the bullets of the changelog's [Unreleased] section, up to the next release heading
+UNRELEASED_RE = re.compile(r"^## \[Unreleased\][^\n]*$", re.M | re.I)
+NEXT_RELEASE_RE = re.compile(r"^## ", re.M)
+BULLET_RE = re.compile(r"^[-*] ", re.M)
+UNRELEASED_KEY = "unreleasedEntries"
 PLUGINS_KEY = "plugins"
 PLUGIN_MANIFESTS = ("plugin.json", ".claude-plugin/plugin.json")
 SAME_EVERYWHERE = ("name", "version", "description")
@@ -185,11 +194,22 @@ def place_of(path):
     return path
 
 
-# RQ-PLG-002
-def release_version(changelog):
-    """The version of the changelog's latest release as x.y.z, or None."""
-    found = RELEASE_RE.search(changelog)
-    return ".".join(part or "0" for part in found.groups()) if found else None
+# RQ-PLG-002, RQ-PLG-032 / DEC-PLG-025
+def release_version(text):
+    """The version a `VERSION` file holds, when it is one SemVer 2.0.0 line; None otherwise."""
+    lines = text.splitlines()
+    return lines[0] if len(lines) == 1 and SEMVER_RE.match(lines[0]) else None
+
+
+# RQ-PLG-031 / DEC-PLG-024
+def unreleased_entries(changelog):
+    """How many bullets the changelog's [Unreleased] section holds."""
+    found = UNRELEASED_RE.search(changelog)
+    if not found:
+        return 0
+    section = changelog[found.end():]
+    after = NEXT_RELEASE_RE.search(section)
+    return len(BULLET_RE.findall(section[:after.start()] if after else section))
 
 
 def write_json(path, data):
@@ -674,9 +694,11 @@ def rehearse(repo, output, demo, proof):
         return refused("; ".join(refusals))
     if INSTRUCTIONS not in [path for path, _ in delivered]:
         return refused(f"no {INSTRUCTIONS} at HEAD: the plugin would hold no process")
-    version = release_version(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in [path for path, _ in delivered] else None
+    delivered_paths = [path for path, _ in delivered]
+    version = release_version(git(repo, "show", f"HEAD:{VERSION_FILE}").decode(ENCODING)) if VERSION_FILE in delivered_paths else None
     if not version:
-        return refused(f"no released version in {CHANGELOG} at HEAD: the plugin would have none")
+        return refused(f"{VERSION_FILE} at HEAD is absent or not one SemVer 2.0.0 line: the plugin would have no version")
+    unreleased = unreleased_entries(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in delivered_paths else 0
     left_out = [path for path, _ in entries if layer_of(path, rules) == LAYER_META]
     try:
         pattern = id_pattern(index_trigrams(git(repo, "show", f"HEAD:{INDEX_PATH}").decode(ENCODING)))
@@ -692,7 +714,7 @@ def rehearse(repo, output, demo, proof):
     tokens, unstyled = report_tokens(output)
     problems = drifted + left + unsound + unproved + unstyled + stray_files(output, [*placed, *MARKETPLACE_FILES])
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
-              "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
+              "version": version, UNRELEASED_KEY: unreleased, "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
               "checks": {"noIdLeft": not left, "manifests": not unsound, "sameBehaviour": not unproved}, "problems": problems}
     Path(f"{output}{REPORT_SUFFIX}").write_text(json.dumps(report, indent=2) + "\n", encoding=ENCODING, newline="\n")
     Path(f"{output}{PAGE_SUFFIX}").write_text(report_page(report, tokens), encoding=ENCODING, newline="\n")
@@ -704,6 +726,8 @@ PRINTED = (("problems", None), ("toRead", "text"), ("mentions", "what"), ("idsOu
 
 
 def print_findings(report):
+    if report[UNRELEASED_KEY]:      # RQ-PLG-031 / DEC-PLG-024: said, failing nothing
+        print(f"unreleased: {report[UNRELEASED_KEY]} entries, version {report['version']} delivered")
     for key, field in PRINTED:
         for item in report[key]:
             print(f"{key}: {item}" if field is None else f"{key}: {item['file']}:{item['line']}: {item[field]}")

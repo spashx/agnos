@@ -52,15 +52,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-035: The release reads `VERSION` and reports unreleased entries
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Create the init's template `VERSION` at `3.1.0`; make `release.py` read it and refuse it absent or not SemVer 2.0.0, and print and record the unreleased entries in the report and its page.
 - **Requirement refs**: RQ-PLG-031, RQ-PLG-032
 - **ADR refs**: ADR-PLG-005 (DEC-PLG-024, DEC-PLG-025), ADR-PLG-002
 - **Acceptance Criteria**: Given the criteria of RQ-PLG-031 and RQ-PLG-032, Then they hold, tested first; Given the release's suite, Then it passes; Given a rehearsal of HEAD, Then the manifests hold `3.1.0`.
 - **Dependencies**: TASK-PLG-032
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_version.py` (11 tests, RQ-PLG-031/032) written first; release suite on a committed scratch clone with the demo: 130 run, OK, 0 skipped. Rehearsal of that HEAD: exit 0, the manifests and report `version` `3.1.0`, `unreleasedEntries` 81. The clone lacked some `agnos-meta-demo/assets/content` files (Windows path length), Meta layer, not delivered.
+- **Assumptions**: The owner's 4.0.0 is chosen at TASK-PLG-036, `VERSION` created at `3.1.0` per DEC-PLG-025; fixture-count tests (`test_console`, `test_select`, `test_inventory`) and RQ-PLG-002's changelog-version tests updated to the behaviour RQ-PLG-032 replaces.
 
 ### TASK-PLG-037: `agnos-init` writes the guide and the version into `agnos-process/`
 - **Tier**: L

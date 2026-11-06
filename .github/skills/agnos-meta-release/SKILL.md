@@ -41,7 +41,7 @@ not delivered.
 |---|---|
 | `.claude-plugin/marketplace.json` | The catalogue read by Claude Code and Copilot |
 | `.agents/plugins/marketplace.json` | The catalogue read by Codex |
-| `plugins/agnos/plugin.json`, `plugins/agnos/.claude-plugin/plugin.json` | The manifests, with the version of the changelog's latest release |
+| `plugins/agnos/plugin.json`, `plugins/agnos/.claude-plugin/plugin.json` | The manifests, with the version of `agnos-init`'s template `VERSION` <!-- RQ-PLG-032 --> |
 | `plugins/agnos/skills/<name>/` | Each delivered skill |
 | `plugins/agnos/skills/agnos-instructions/SKILL.md` | The process instructions as a skill, generated |
 | `README.md`, `COMPATIBILITY.md`, `LICENSE.md`, `CHANGELOG.md`, `agnos-overview.png`, `.gitignore` | From the repository; the user's guide is `agnos-init`'s template, delivered with that skill <!-- RQ-PLG-022 --> |
@@ -58,7 +58,8 @@ What the manifests say comes from `assets/marketplace.json`.
 | The output behaves as the repository | Parses its Python, JSON, JavaScript, PowerShell and bash; compares what `agnos-index`, `agnos-perf-center` and `agnos-init` write | Exit 1, naming the file or the skill |
 | The manifests are consistent | Reads the four manifests and catalogues: required fields, plugin folders that exist, the same name, version and description. No AI tool is called, so the verdict is the same on any machine; each tool's own validation and a real install are `agnos-meta-plugin-proof`'s <!-- RQ-PLG-015 --> | Exit 1, naming the file |
 | The output holds what is declared | Lists the files on disk against the delivered and generated ones; the checks run Python with no bytecode written <!-- RQ-PLG-012 --> | Exit 1, naming the file |
-| The plugin has what it needs | The instructions file and a released version in `CHANGELOG.md` at HEAD | Exit 1 before writing anything |
+| The plugin has what it needs | The instructions file, and `.github/skills/agnos-init/assets/templates/VERSION` holding one SemVer 2.0.0 line, at HEAD <!-- RQ-PLG-032 --> | Exit 1 before writing anything, naming the file |
+| The changelog is released | Counts the entries under `## [Unreleased]` of `CHANGELOG.md` at HEAD; prints `unreleased: <n> entries, version <VERSION> delivered` and records `unreleasedEntries` in the report and its page <!-- RQ-PLG-031 --> | Nothing fails: the line says the commit was not prepared |
 
 An ID belongs to the repository when its trigram appears in the commit's `agnos-process/process.idx.md`, defined there or not. Examples
 such as `RQ-EXP-001` use another trigram, and stay: keep it that way when writing an example.
