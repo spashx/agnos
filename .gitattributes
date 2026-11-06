@@ -8,5 +8,9 @@ process/INDEX.idx.md text eol=lf
 .github/skills/agnos-meta-plugin-proof/scripts/*.sh text eol=lf
 .github/skills/agnos-init/assets/templates/* text eol=lf
 
+# RQ-PLG-037 / DEC-PLG-028: the layout's generated copies are compared byte for byte with what layout.py generates
+.github/skills/*/scripts/agnos_layout.py text eol=lf
+.github/skills/*/scripts/agnos-layout.* text eol=lf
+
 # RQ-TRC-024 / DEC-TRC-006: the vendored graph library is compared with its recorded SHA-256, so it stays byte-exact
 .github/skills/agnos-perf-center/scripts/vendor/** -text

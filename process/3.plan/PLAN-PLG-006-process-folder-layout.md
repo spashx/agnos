@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-039: The layout and its generator
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `layout.json` (folder still `process`), `layout.py --write` and `--check`, and their tests.
 - **Requirement refs**: RQ-PLG-036, RQ-PLG-037
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-027, DEC-PLG-028)
 - **Acceptance Criteria**: Given RQ-PLG-036's and RQ-PLG-037's criteria on fixtures, Then they hold, tested first.
 - **Dependencies**: TASK-PLG-038
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_layout.py` written first: 8 fixture tests passed, the working-tree one failed (9 copies missing) until `--write`; then `--check` exit 0, 0 findings. Suite of `agnos-meta-release` on a copy: 115 run, 113 OK, 2 skipped (the demo was not in the copy).
+- **Assumptions**: `layout.json` also declares `projectRules` and `perfCenterPage`, the two files at the folder's root that the Markdown cites; the copies carry no requirement ID, being generated (the generator carries them); the folder the index scans is every subfolder but the session state's; copies forced LF in `.gitattributes`.
 
 ### TASK-PLG-040: `agnos-index` reads the layout
 - **Tier**: L
