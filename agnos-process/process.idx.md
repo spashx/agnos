@@ -649,7 +649,7 @@ TASK-PLG-031|76-86|Done|The release rehearsed again with the new rule
 @agnos-process/3.plan/PLAN-PLG-005-release-preparation.md
 PLAN-PLG-005|1-87||Release Preparation
 TASK-PLG-032|17-28|Done|Feature, decisions and plan
-TASK-PLG-033|29-40|Not Started|The preparation script
+TASK-PLG-033|29-40|Done|The preparation script
 TASK-PLG-034|41-52|Not Started|The skill's procedure
 TASK-PLG-035|53-64|Done|The release reads `VERSION` and reports unreleased entries
 TASK-PLG-037|65-76|Not Started|`agnos-init` writes the guide and the version into `agnos-process/`

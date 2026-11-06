@@ -37,6 +37,7 @@ COPIES = {                                   # DEC-PLG-027: each skill gets only
     "agnos-meta-release": (PY,),
     "agnos-meta-plugin-proof": (PY,),
     "agnos-meta-docs-sync": (PY,),
+    "agnos-meta-release-prep": (PY,),        # RQ-PLG-027 / DEC-PLG-022
     "agnos-meta-demo": (PS1,),
 }
 GENERATED_MARK = "GENERATED from agnos-init/assets/layout.json by the layout generator, never edit by hand."

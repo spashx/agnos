@@ -28,15 +28,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-033: The preparation script
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `scripts/release_prep.py` with `check`, `review` and `set-version`, and its unit tests on temporary git repositories.
 - **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-032
 - **ADR refs**: ADR-PLG-005 (DEC-PLG-022, DEC-PLG-023, DEC-PLG-025)
 - **Acceptance Criteria**: Given the criteria of RQ-PLG-027 to RQ-PLG-029, Then they hold, tested first; Given the suite, Then it passes, the skipped tests stated with why.
 - **Dependencies**: TASK-PLG-032, TASK-PLG-035
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_release_prep.py` written first: 17 run, OK, 0 skipped (check, proposal, review, set-version, SemVer precedence of section 11). `layout.py --write`/`--check`: 0 findings; release suite `-k layout`: 14 run, OK, 0 skipped.
+- **Assumptions**: `### Deprecated` raises the minor and `### Security` the patch, as SemVer reads them (RQ-PLG-028 silent); SemVer's regular expression copied from `release.py`, each skill's scripts importing only their own folder (RQ-MTA-013); `review` exits 0, stopping is the procedure's (TASK-PLG-034).
 
 ### TASK-PLG-034: The skill's procedure
 - **Tier**: M
