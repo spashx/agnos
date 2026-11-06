@@ -40,15 +40,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-034: The skill's procedure
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the SKILL.md (docs-sync sub-agent, the approval question, `commit-task`, the next steps printed) and its Claude Code pointer, tested for the steps' order and for the release leaving the skill out.
 - **Requirement refs**: RQ-PLG-028, RQ-PLG-029, RQ-PLG-030
 - **ADR refs**: ADR-PLG-005 (DEC-PLG-022)
 - **Acceptance Criteria**: Given the SKILL.md, Then it names the steps in RQ-PLG-030's order And runs none of the publishing ones; Given a rehearsal, Then the skill is left out of the marketplace.
 - **Dependencies**: TASK-PLG-033
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_skill.py` written first (steps' order, no publishing command before the next steps, nothing committed without approval, Meta layer); release-prep suite 23 run OK, docs-sync 18 OK, release 130 OK, 0 skipped.
+- **Assumptions**: The marketplace folder is `agnos-marketplace`, as earlier plans name it (PLAN-PLG-004); the commit's task is the one the maintainer names.
 
 ### TASK-PLG-035: The release reads `VERSION` and reports unreleased entries
 - **Tier**: L
