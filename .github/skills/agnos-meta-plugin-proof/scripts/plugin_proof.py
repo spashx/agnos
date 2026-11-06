@@ -13,6 +13,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))    # the layout's generated copy, beside this script
+import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-PLG-027
+
 ENCODING = "utf-8"
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -33,7 +36,7 @@ HOMES = {"claude": {"CLAUDE_CONFIG_DIR": "claude-home"},
          "copilot": {"COPILOT_HOME": "copilot-home", "COPILOT_CACHE_HOME": "copilot-cache"}}
 SKILLS_RE = {"claude": re.compile(r"Skills \((\d+)\)"), "copilot": re.compile(r"Installed (\d+) skills")}
 INIT_RESULT = "CLAUDE.md"
-INDEX_RESULT = "process/INDEX.idx.md"
+INDEX_RESULT = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
 INIT_DIRECT = "init-direct"
 PROCESS_ANSWER = "400"               # the line budget of the instructions, known only from the process skill
 AGENT_NAME = "agnos-proof-helper"

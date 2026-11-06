@@ -45,6 +45,9 @@ and `legacyIndex` in `layout.json`. Fulfils RQ-PLG-038.
 ## Consequences
 - Easier: renaming the folder or a file of the layout is one edit and one generation; a stale path in a skill's text fails a test.
 - Harder: each change to `layout.json` needs `layout.py --write`; generated files are committed beside the scripts.
+- Amended (owner, 2026-11-06): RQ-MTA-013 and RQ-PLG-010 ask for the standard library and the modules of the script's own
+  `scripts/` folder (the layout's copy, `layout.py`), nothing to install; the history of the perf center stays standard library
+  only (RQ-HST-015), its log's path given by its caller.
 - Constrained: projects initialised before must call `agnos-init` once to be migrated; the perf center's `--history` sees the
   rename as git sees it.
 

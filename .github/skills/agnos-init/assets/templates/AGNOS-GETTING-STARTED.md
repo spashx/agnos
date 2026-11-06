@@ -4,7 +4,7 @@
 AGNOS is now part of this project. This guide walks one complete session, start to finish, on one small feature, so
 you can see what you type, what the agent produces, and how the pieces stay wired together.
 
-> **Precedence.** This guide illustrates the process; it does not define it. The process is the `agnos-process` skill
+> **Precedence.** This guide illustrates the process; it does not define it. The process is the `agnos-instructions` skill
 > of the AGNOS plugin, and it is normative: where the two disagree, the skill wins. Each stage below names the
 > section of the process it illustrates.
 
@@ -84,7 +84,7 @@ Start a new AGNOS session, trigram EXP.
 
 **The agent then, without further prompting:**
 
-1. Loads the process through the `agnos-process` skill, as the block orders, and reads any stack-specific
+1. Loads the process through the `agnos-instructions` skill, as the block orders, and reads any stack-specific
    instructions in the project, and `process/project-rules.md` if it exists (see Stage 9).
 2. **Probes your platform**: runs `$PSVersionTable` (Windows) or `uname -s` (macOS/Linux) and sets `platform`. This
    is a system variable: you are not asked.
@@ -815,7 +815,7 @@ Ask the agent: it reads the skills of the AGNOS plugin, which the tool lists.
 
 | Skill | What it is for |
 |---|---|
-| `agnos-process` | The rules themselves, normative: ID schema, templates, tiers, Definition of Done, session variables |
+| `agnos-instructions` | The rules themselves, normative: ID schema, templates, tiers, Definition of Done, session variables |
 | `agnos-init` | Adds AGNOS to a project; call it again after an update of the plugin, to refresh the block and this guide |
 | `agnos-index` | Regenerates `process/INDEX.idx.md` |
 | `agnos-git-workflow` | The session branch and the task commits |

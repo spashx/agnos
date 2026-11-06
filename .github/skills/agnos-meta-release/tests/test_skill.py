@@ -36,7 +36,7 @@ class PackagingTest(unittest.TestCase):
         self.assertLess(len(SKILL.read_text(encoding="utf-8").splitlines()), LINES_LIMIT)
         self.assertIn(f".github/skills/{NAME}/SKILL.md", POINTER.read_text(encoding="utf-8"))
 
-    def test_RQ_MTA_013_given_the_script_then_it_imports_the_standard_library_only(self):
+    def test_RQ_MTA_013_given_the_script_then_it_imports_the_standard_library_and_its_own_folder_only(self):
         tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
         imported = set()
         for node in ast.walk(tree):
@@ -44,7 +44,8 @@ class PackagingTest(unittest.TestCase):
                 imported |= {alias.name.split(".")[0] for alias in node.names}
             elif isinstance(node, ast.ImportFrom):
                 imported.add(node.module.split(".")[0])
-        self.assertEqual(set(), imported - set(sys.stdlib_module_names))
+        beside = {path.stem for path in SCRIPT.parent.glob("*.py")}     # RQ-PLG-036: nothing to install
+        self.assertEqual(set(), imported - set(sys.stdlib_module_names) - beside)
 
     def test_RQ_MTA_013_given_the_changelog_then_it_names_the_skill(self):
         self.assertIn(NAME, CHANGELOG.read_text(encoding="utf-8"))

@@ -8,6 +8,7 @@ Python >= 3.10, standard library only. Procedure: ../SKILL.md.
 """
 import argparse
 import ast
+import io
 import json
 import os
 import re
@@ -15,9 +16,14 @@ import shutil
 import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))    # the layout's copy and its generator, beside this script
+import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-PLG-027: every name of the process folder
+import layout  # noqa: E402  RQ-PLG-037 / DEC-PLG-028: the check of the rehearsed commit
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 LAYERS_PATH = ASSETS / "layers.json"
@@ -41,7 +47,7 @@ EXECUTABLE_MODE = "100755"
 TREE_FIELDS = 3                 # git ls-tree: mode, type, hash
 DURATION_FORMAT = ".3f"
 
-INDEX_PATH = "process/INDEX.idx.md"
+INDEX_PATH = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
 ID_TYPES = "FTR|RQ|ADR|DEC|PLAN|TASK"
 DEFINITION_RE = re.compile(rf"^(?:{ID_TYPES})-([A-Z]{{3}})-\d{{3}}\|", re.M)
 NEVER_MATCHES = "(?!)"
@@ -67,10 +73,10 @@ TEST_FILE_PREFIX = "test"
 # RQ-MTA-011 / DEC-MTA-010
 DEMO_FOLDER_NAME = "agnos-lightweight-process.demo"
 FIXED_TIME = "2000-01-01T00:00:00Z"
-PERF_PAGE = "process/PERF-CENTER.html"
-PERF_RESULTS = ("process/PERF-CENTER.json", "process/PERF-CENTER.data.js")
-INIT_RESULTS = ("CLAUDE.md", "AGENTS.md", "process/1.requirements/readme.md", "process/2.architecture/readme.md",
-                "process/3.plan/readme.md", "process/_sessionstate/readme.md")
+PERF_PAGE = f"{agnos_layout.FOLDER}/{agnos_layout.PERF_CENTER_PAGE}"
+PERF_RESULTS = tuple(f"{PERF_PAGE.rsplit('.', 1)[0]}{suffix}" for suffix in (".json", ".data.js"))
+INIT_RESULTS = ("CLAUDE.md", "AGENTS.md",
+                *(f"{agnos_layout.FOLDER}/{sub}/{agnos_layout.FOLDER_README}" for sub in agnos_layout.SUBFOLDERS))
 INDEX_SCRIPT = "agnos-index/scripts/build-index"
 INIT_SCRIPT = "agnos-init/scripts/init"
 PERF_SCRIPT = "agnos-perf-center/scripts/perf_center.py"
@@ -79,7 +85,8 @@ WORKSHOP_SKILLS = ".github/skills/"
 INSTRUCTIONS = ".github/instructions/agnos-sw-eng.instructions.md"
 PLUGIN_FOLDER = "plugins/agnos"
 PLUGIN_SKILLS = f"{PLUGIN_FOLDER}/skills/"
-PROCESS_SKILL_FILE = f"{PLUGIN_SKILLS}agnos-process/SKILL.md"
+# RQ-PLG-035 / DEC-PLG-030: the generated skill takes its name from assets/marketplace.json
+PROCESS_SKILL_FILE = f"{PLUGIN_SKILLS}{json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))['process']['name']}/SKILL.md"
 PERF_SCRIPT_FOLDER = f"{PLUGIN_SKILLS}{Path(PERF_SCRIPT).parent.as_posix()}"
 SKILL_FILE = "SKILL.md"
 CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"
@@ -127,7 +134,7 @@ TOOL_PARSERS = {".js": (NODE, lambda p: [NODE, "--check", p]),
 # Windows may resolve bash to WSL's, which cannot read a Windows path: it gets the text instead.
 PARSED_FROM_STDIN = {".sh"}
 MARKDOWN_RE = re.compile(r"\.md$", re.I)
-NOT_SCANNED_FOR_CITATIONS_RE = re.compile(r"^process/|/tests?/|/assets/content/")
+NOT_SCANNED_FOR_CITATIONS_RE = re.compile(rf"^{re.escape(agnos_layout.FOLDER)}/|/tests?/|/assets/content/")
 
 
 def fail(message):
@@ -506,7 +513,7 @@ def run_index(toolkit, workspace):
 def run_perf_center(toolkit, workspace):
     clone = workspace / "demo"
     script = str(Path(toolkit) / PERF_SCRIPT)
-    code = run_tool([sys.executable, script, "--process", "process", "--sources", ".", "--call-graph", "--history",
+    code = run_tool([sys.executable, script, "--process", agnos_layout.FOLDER, "--sources", ".", "--call-graph", "--history",
                      "--generated-at", FIXED_TIME, "--out", PERF_PAGE], clone)
     results = {"exit": code}
     for name in PERF_RESULTS:
@@ -638,6 +645,20 @@ def refused(message):
     return fail(message), None
 
 
+def layout_findings(repo):
+    """layout.py --check run on the files of HEAD, each finding naming its file and line; a commit holding no layout.json
+    has nothing to check (RQ-PLG-037, DEC-PLG-028)."""
+    try:
+        git(repo, "cat-file", "-e", f"HEAD:{layout.LAYOUT_PATH.as_posix()}")
+    except subprocess.CalledProcessError:
+        return []
+    with tempfile.TemporaryDirectory() as folder:
+        with tarfile.open(fileobj=io.BytesIO(git(repo, "archive", "--format=tar", "HEAD"))) as archive:
+            archive.extractall(folder, filter="data")
+        root = Path(folder)
+        return [f"layout: {finding}" for finding in layout.check(root, layout.load(root))]
+
+
 def rehearse(repo, output, demo, proof):
     """Classify every file before writing any, so that a refusal delivers nothing. Returns the exit code and the report, if written."""
     rules = load_rules()
@@ -661,6 +682,7 @@ def rehearse(repo, output, demo, proof):
         pattern = id_pattern(index_trigrams(git(repo, "show", f"HEAD:{INDEX_PATH}").decode(ENCODING)))
     except subprocess.CalledProcessError:
         return refused(f"no {INDEX_PATH} at HEAD: the IDs to remove cannot be known")
+    drifted = layout_findings(repo)
     output.mkdir(parents=True, exist_ok=True)
     findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
     write_marketplace(output, version)
@@ -668,7 +690,7 @@ def rehearse(repo, output, demo, proof):
     unsound = manifest_problems(output)
     unproved = proof(repo, output, demo)
     tokens, unstyled = report_tokens(output)
-    problems = left + unsound + unproved + unstyled + stray_files(output, [*placed, *MARKETPLACE_FILES])
+    problems = drifted + left + unsound + unproved + unstyled + stray_files(output, [*placed, *MARKETPLACE_FILES])
     report = {"commit": git(repo, "rev-parse", "HEAD").decode(ENCODING).strip(), "delivered": [path for path, _ in delivered],
               "leftOut": left_out, **findings, "idsOutsideComments": workshop_citations(repo, entries, pattern),
               "checks": {"noIdLeft": not left, "manifests": not unsound, "sameBehaviour": not unproved}, "problems": problems}

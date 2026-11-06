@@ -43,7 +43,7 @@ not delivered.
 | `.agents/plugins/marketplace.json` | The catalogue read by Codex |
 | `plugins/agnos/plugin.json`, `plugins/agnos/.claude-plugin/plugin.json` | The manifests, with the version of the changelog's latest release |
 | `plugins/agnos/skills/<name>/` | Each delivered skill |
-| `plugins/agnos/skills/agnos-process/SKILL.md` | The process instructions as a skill, generated |
+| `plugins/agnos/skills/agnos-instructions/SKILL.md` | The process instructions as a skill, generated |
 | `README.md`, `COMPATIBILITY.md`, `LICENSE.md`, `CHANGELOG.md`, `agnos-overview.png`, `.gitignore` | From the repository; the user's guide is `agnos-init`'s template, delivered with that skill <!-- RQ-PLG-022 --> |
 | `.gitattributes` | The marketplace's own, from `assets/marketplace.gitattributes.txt` |
 

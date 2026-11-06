@@ -114,7 +114,7 @@ copy format of DEC-MTA-005, abandoned by the owner on 2026-10-31.
 - **Category**: Non-Functional
 - **NFR Type**: Maintainability
 - **EARS Type**: Event-driven
-- **Statement**: WHEN a maintainer runs the skill `agnos-meta-plugin-proof` on a built marketplace, it SHALL install it from a clean copy in a configuration isolated from the maintainer's, for each tool present, SHALL report per tool what it observed and what it did not, and, only when asked, SHALL put questions to the tools' models and run the delivered suites on Linux.
+- **Statement**: WHEN a maintainer runs the skill `agnos-meta-plugin-proof` on a built marketplace, it SHALL install it from a clean copy in a configuration isolated from the maintainer's, for each tool present, SHALL report per tool what it observed and what it did not, and, only when asked, SHALL put questions to the tools' models and run the delivered suites on Linux; its script SHALL import only the standard library and the modules of its own `scripts/` folder, so that nothing is installed. <!-- clause written down, as its test already held it, and widened to the folder's modules by RQ-PLG-036 / DEC-PLG-027, 2026-11-06 -->
 - **Metric**: a run changes neither the maintainer's tool configurations nor the marketplace; no model is called without its option.
 - **Measurement Method**: unit tests on the commands and the isolation; a real run.
 - **Priority**: Should

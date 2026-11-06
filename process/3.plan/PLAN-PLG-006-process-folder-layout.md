@@ -75,15 +75,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-043: The release reads the layout, checks it, and renames the generated skill
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: `release.py` and the maintainer skills take the layout from their copies, run `layout.py --check` on the rehearsed commit, and generate `agnos-instructions`.
 - **Requirement refs**: RQ-PLG-035, RQ-PLG-036, RQ-PLG-037
 - **ADR refs**: ADR-PLG-006 (DEC-PLG-028, DEC-PLG-030), ADR-PLG-001
 - **Acceptance Criteria**: Given RQ-PLG-035's and RQ-PLG-037's criteria, Then they hold, tested first; Given the suites of the release, the proof and the demo, Then they pass.
 - **Dependencies**: TASK-PLG-040, TASK-PLG-041, TASK-PLG-042
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `ReleaseTest` (3) and the `agnos-instructions` expectations written first: 3 ERROR, 2 FAIL, then OK. On a copy committed as HEAD: release 120 OK, plugin-proof 16 OK, init 29 OK, docs-sync 18 OK, 0 skipped; `--check` 0 findings. Two stdlib-only tests failed on the copy imports: RQ-MTA-013 and RQ-PLG-010 amended by the owner (standard library and the modules of the script's own folder), tests following.
+- **Assumptions**: A rehearsed commit holding no `layout.json` (the tests' synthetic repositories) has no layout to check; the AGNOS block and the guide take the new skill name here, with the release, since the plugin delivers it; `tarfile`'s `filter="data"` needs Python 3.12 or a patched 3.10/3.11.
 
 ### TASK-PLG-044: The instructions file and the entry points cite the layout's paths
 - **Tier**: M

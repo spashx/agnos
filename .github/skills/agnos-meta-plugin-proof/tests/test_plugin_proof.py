@@ -183,14 +183,15 @@ class PackagingTest(unittest.TestCase):
             self.assertIn("USE FOR", DESCRIPTION_RE.search(text).group(1))
             self.assertLess(len(text.splitlines()), LINES_LIMIT)
 
-    def test_RQ_PLG_010_given_the_script_then_it_imports_the_standard_library_only(self):
+    def test_RQ_PLG_010_given_the_script_then_it_imports_the_standard_library_and_its_own_folder_only(self):
         imported = set()
         for node in ast.walk(ast.parse((SKILL_DIR / "scripts" / "plugin_proof.py").read_text(encoding="utf-8"))):
             if isinstance(node, ast.Import):
                 imported |= {alias.name.split(".")[0] for alias in node.names}
             elif isinstance(node, ast.ImportFrom):
                 imported.add(node.module.split(".")[0])
-        self.assertEqual(set(), imported - set(sys.stdlib_module_names))
+        beside = {path.stem for path in (SKILL_DIR / "scripts").glob("*.py")}     # RQ-PLG-036: nothing to install
+        self.assertEqual(set(), imported - set(sys.stdlib_module_names) - beside)
 
 
 if __name__ == "__main__":

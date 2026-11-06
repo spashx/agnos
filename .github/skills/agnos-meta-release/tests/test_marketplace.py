@@ -16,7 +16,8 @@ from test_select import CHANGELOG_FILE, INSTRUCTIONS_FILE, EXIT_FAILED, EXIT_OK,
 
 PLUGIN = "plugins/agnos"
 SKILLS = f"{PLUGIN}/skills"
-PROCESS_SKILL = f"{SKILLS}/agnos-process/SKILL.md"
+PROCESS_SKILL = f"{SKILLS}/agnos-instructions/SKILL.md"     # RQ-PLG-035 / DEC-PLG-030
+OLD_PROCESS_SKILL = f"{SKILLS}/agnos-process"
 CATALOGUES = (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json")
 MANIFESTS = (f"{PLUGIN}/plugin.json", f"{PLUGIN}/.claude-plugin/plugin.json")
 ATTRIBUTES = ".gitattributes"
@@ -102,7 +103,8 @@ class ProcessSkillTest(MarketplaceCase):
         self.commit({INSTRUCTIONS_FILE: "# Process <!-- RQ-ABC-001 -->\nThe rules.\n"})
         self.built()
         text = (self.output / PROCESS_SKILL).read_text(encoding="utf-8")
-        self.assertRegex(text, r'\A---\nname: agnos-process\ndescription: ".+"\n---\n')
+        self.assertRegex(text, r'\A---\nname: agnos-instructions\ndescription: ".+"\n---\n')
+        self.assertFalse((self.output / OLD_PROCESS_SKILL).exists())     # RQ-PLG-035: no skill named agnos-process
         self.assertIn("The rules.\n", text)
         self.assertNotIn("RQ-ABC-001", text)
 

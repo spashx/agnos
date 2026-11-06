@@ -108,11 +108,12 @@ Out of scope: publishing (a commit on `main`, a tag, a push), the `plugin` targe
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: `agnos-meta-release` SHALL be packaged as `.github/skills/agnos-meta-release/SKILL.md` with its Claude Code pointer, its
-  tests under its `tests/` folder, and it SHALL run from one Python script using the standard library only.
-- **Rationale**: the same command on all three platforms, and the `SKILL.md` practices the owner keeps for every skill.
+  tests under its `tests/` folder, and it SHALL run from one Python command using the standard library and, beside it in its
+  `scripts/` folder, the repository's own modules only, so that nothing is installed. <!-- amended by RQ-PLG-036 / DEC-PLG-027, 2026-11-06 -->
+- **Rationale**: the same command on all three platforms, with nothing to install, and the `SKILL.md` practices the owner keeps for every skill.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the skill, Then its description says what and when within 1,024 characters, And `SKILL.md` is under 500
-  lines, And the script imports nothing outside the standard library, And `CHANGELOG.md` names the skill.
+  lines, And the script imports nothing but the standard library and the modules of its own `scripts/` folder, And `CHANGELOG.md` names the skill.
 - **Dependencies**: RQ-MTA-001, DEC-MTA-007
 
 ### RQ-MTA-014: The workshop's citations stay in comments

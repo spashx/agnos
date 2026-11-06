@@ -13,9 +13,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))    # the layout's generated copy, beside this script
+import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-PLG-027
+
 TARGETS = ("CHANGELOG.md", "AGENTS.md", "CLAUDE.md",
            ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md")   # RQ-PLG-022 / DEC-PLG-017: the user's guide
-IGNORED_PREFIXES = ("process/INDEX.idx.md", "process/_sessionstate/")
+IGNORED_PREFIXES = (f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}",
+                    f"{agnos_layout.FOLDER}/{agnos_layout.SESSION_STATE.split('/')[0]}/")
 SKILLS_DIR = ".github/skills"
 SKILL_FILE = "SKILL.md"
 META_PREFIX = "agnos-meta-"            # RQ-MTA-002, DEC-MTA-003: the only criterion

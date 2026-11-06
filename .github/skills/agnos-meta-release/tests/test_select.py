@@ -16,6 +16,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 import release  # noqa: E402
+import agnos_layout  # noqa: E402  RQ-PLG-036: the process folder's names, as the scripts read them
 
 ROOT = HERE.parents[3]
 EXIT_OK = 0
@@ -23,14 +24,14 @@ EXIT_FAILED = 1
 TOOLKIT_FILE = "README.md"
 SKILL_FILE = ".github/skills/agnos-index/SKILL.md"
 SKILL_PLACE = "plugins/agnos/skills/agnos-index/SKILL.md"
-PROCESS_PLACE = "plugins/agnos/skills/agnos-process/SKILL.md"
+PROCESS_PLACE = "plugins/agnos/skills/agnos-instructions/SKILL.md"     # RQ-PLG-035
 INSTRUCTIONS_FILE = ".github/instructions/agnos-sw-eng.instructions.md"
 CHANGELOG_FILE = "CHANGELOG.md"
 GENERATED = (".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", ".gitattributes",
              "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json")
 SKILL_TEST = ".github/skills/agnos-index/tests/test_a.py"
 META_SKILL = ".github/skills/agnos-meta-other/SKILL.md"
-PROCESS_FILE = "process/INDEX.idx.md"
+PROCESS_FILE = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
 SETTINGS = ".claude/settings.json"
 UNKNOWN_FILE = "stray.txt"
 PUBLIC_FILES = ("LICENSE.md", ".gitignore")
@@ -194,7 +195,7 @@ class LayersTest(RehearsalCase):
         for path in WORKSHOP_FILES:
             self.assertNotIn(path, delivered)
         for path in delivered:
-            self.assertFalse(path.startswith("process/"), path)
+            self.assertFalse(path.startswith(f"{agnos_layout.FOLDER}/"), path)
             self.assertNotIn("agnos-meta-", path)
             self.assertNotIn("/tests/", path)
             self.assertNotEqual(SETTINGS, path)

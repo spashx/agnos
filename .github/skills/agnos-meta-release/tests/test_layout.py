@@ -13,6 +13,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 import layout  # noqa: E402
+import release  # noqa: E402
 
 ROOT = HERE.parents[3]
 EXIT_OK = 0
@@ -35,7 +36,7 @@ def run(root, *arguments):
                           capture_output=True, text=True, encoding=ENCODING)
 
 
-class LayoutTest(unittest.TestCase):
+class LayoutFixture(unittest.TestCase):
     """A fixture repository holding the layout and the skill folders it is copied into (RQ-PLG-036, RQ-PLG-037)."""
 
     def setUp(self):
@@ -81,6 +82,10 @@ class LayoutTest(unittest.TestCase):
             script = f". '{path}'; " + "; ".join(f'printf "%s\\n" "$AGNOS_{key}"' for key in PRINTED_KEYS)
             output = subprocess.run([bash(), "-c", script], capture_output=True, text=True)
         return output.stdout.splitlines()
+
+
+class LayoutTest(LayoutFixture):
+    """layout.py --write and --check (RQ-PLG-036, RQ-PLG-037; TASK-PLG-039, TASK-PLG-042)."""
 
     def test_RQ_PLG_036_given_the_layout_when_written_then_each_copy_says_it_is_generated(self):
         """Given the layout, When the copies are written, Then each starts with its generated line (RQ-PLG-036)."""
@@ -146,10 +151,58 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(result.returncode, EXIT_FAILED)
         self.assertIn("process/NOTES.md", result.stdout)
 
+    def test_RQ_PLG_036_given_a_delivered_script_holding_a_name_of_the_layout_then_the_check_fails_naming_its_line(self):
+        """Given a delivered skill's script writing the index's name out, When checked, Then file and line are named (RQ-PLG-036)."""
+        run(self.root, "--write")
+        script = self.root / layout.SKILLS / "agnos-perf-center" / layout.SCRIPTS / "tool.py"
+        script.write_text('"""A tool."""\nNAME = "INDEX.idx.md"\n', encoding=ENCODING)
+        result = run(self.root, "--check")
+        self.assertEqual(result.returncode, EXIT_FAILED)
+        self.assertIn("agnos-perf-center/scripts/tool.py:2", result.stdout)
+
+    def test_RQ_PLG_036_given_a_maintainer_script_holding_a_name_of_the_layout_then_the_check_ignores_it(self):
+        """Given an agnos-meta- skill's script writing the index's name out, When checked, Then it passes (RQ-PLG-036)."""
+        run(self.root, "--write")
+        script = self.root / layout.SKILLS / "agnos-meta-demo" / layout.SCRIPTS / "tool.py"
+        script.write_text('NAME = "INDEX.idx.md"\n', encoding=ENCODING)
+        self.assertEqual(run(self.root, "--check").returncode, EXIT_OK)
+
     def test_RQ_PLG_037_given_the_working_tree_then_the_check_passes(self):
         """Given this repository's working tree, When checked, Then the exit is 0 (RQ-PLG-037)."""
         result = run(ROOT, "--check")
         self.assertEqual(result.returncode, EXIT_OK, result.stdout + result.stderr)
+
+
+class ReleaseTest(LayoutFixture):
+    """The release checks the layout of the commit it rehearses (RQ-PLG-037, DEC-PLG-028; TASK-PLG-043)."""
+
+    def commit(self):
+        """The fixture committed as a git repository (RQ-PLG-037)."""
+        for arguments in (("init", "-q"), ("add", "."), ("-c", "user.name=t", "-c", "user.email=t@example.org",
+                                                         "commit", "-q", "-m", "fixture")):
+            subprocess.run(["git", "-C", str(self.root), *arguments], check=True, capture_output=True)
+
+    def test_RQ_PLG_037_given_a_commit_as_generated_then_the_release_finds_nothing(self):
+        """Given a commit whose copies are as generated, When the release checks it, Then nothing is found (RQ-PLG-037)."""
+        run(self.root, "--write")
+        self.commit()
+        self.assertEqual([], release.layout_findings(self.root))
+
+    def test_RQ_PLG_037_given_a_commit_with_a_copy_edited_by_hand_then_the_release_names_it(self):
+        """Given a committed copy edited by hand, When the release checks it, Then the copy is named (RQ-PLG-037)."""
+        run(self.root, "--write")
+        edited = self.copy("agnos-perf-center", "py")
+        edited.write_text(edited.read_text(encoding=ENCODING) + "X = 1\n", encoding=ENCODING)
+        self.commit()
+        self.assertTrue(any("agnos-perf-center/scripts/agnos_layout.py" in f for f in release.layout_findings(self.root)))
+
+    def test_RQ_PLG_037_given_a_commit_with_a_skill_citing_an_old_subfolder_then_the_release_names_its_line(self):
+        """Given folder agnos-process And a committed SKILL.md citing process/3.plan/, Then its file and line are named (RQ-PLG-037)."""
+        self.set_layout(folder=OTHER_FOLDER, index=OTHER_INDEX)
+        run(self.root, "--write")
+        self.write_skill_text("# Skill\n\nRead `process/3.plan/` first.\n")
+        self.commit()
+        self.assertTrue(any("agnos-index/SKILL.md:3" in f for f in release.layout_findings(self.root)))
 
 
 if __name__ == "__main__":

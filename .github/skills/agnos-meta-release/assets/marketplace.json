@@ -17,7 +17,7 @@
     "category": "Productivity"
   },
   "process": {
-    "name": "agnos-process",
+    "name": "agnos-instructions",
     "description": "The AGNOS software engineering process: sessions, requirements, architecture decisions, plans, tasks, code quality and traceability. USE FOR: any work in a project whose CLAUDE.md or AGENTS.md holds an AGNOS block, before any other action, and whenever the user starts or ends a session."
   }
 }

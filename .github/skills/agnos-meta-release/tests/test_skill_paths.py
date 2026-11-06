@@ -11,6 +11,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the process folder's names, as the scripts read them
+
 ROOT = Path(__file__).resolve().parents[4]
 SKILLS = ROOT / ".github" / "skills"
 META_PREFIX = "agnos-meta-"
@@ -22,8 +25,8 @@ WORKSHOP_PATH_RE = re.compile(r"\.github/|\.claude/|CLAUDE_")
 COMMAND_RE = re.compile(r"scripts/\S+\.(?:ps1|sh|py)")
 TEXT_SUFFIXES = {".md", ".ps1", ".sh", ".py", ".json", ".txt"}
 GIT_BASH = Path(r"C:\Program Files\Git\bin\bash.exe")
-INDEX_FILE = "process/INDEX.idx.md"
-PERF_PAGE = "process/PERF-CENTER.html"
+INDEX_FILE = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
+PERF_PAGE = f"{agnos_layout.FOLDER}/{agnos_layout.PERF_CENTER_PAGE}"
 
 
 def delivered_skills():
@@ -66,7 +69,7 @@ class AnywhereTest(unittest.TestCase):
         self.base = Path(tempfile.mkdtemp(prefix="agnos-skill-paths-"))
         self.addCleanup(shutil.rmtree, self.base, ignore_errors=True)
         self.project = self.base / "project"
-        (self.project / "process" / "1.requirements").mkdir(parents=True)
+        (self.project / agnos_layout.FOLDER / "1.requirements").mkdir(parents=True)
         (self.project / "src").mkdir()
         (self.project / "process" / "1.requirements" / "FTR-ABC-001-x.md").write_text("# FTR-ABC-001: X\n", encoding="utf-8")
 
@@ -92,9 +95,9 @@ class AnywhereTest(unittest.TestCase):
         self.assert_only_in_project(INDEX_FILE)
 
     def test_RQ_PLG_005_given_an_installed_perf_center_when_run_from_a_project_then_the_page_lands_in_the_project(self):
-        (self.project / "process" / "INDEX.idx.md").write_text("", encoding="utf-8")
+        (self.project / INDEX_FILE).write_text("", encoding="utf-8")
         script = self.installed("agnos-perf-center") / "scripts" / "perf_center.py"
-        self.run_here(sys.executable, str(script), "--process", "process", "--sources", "src")
+        self.run_here(sys.executable, str(script), "--process", agnos_layout.FOLDER, "--sources", "src")
         self.assert_only_in_project(PERF_PAGE)
 
 

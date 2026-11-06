@@ -659,7 +659,7 @@ TASK-PLG-039|28-39|Done|The layout and its generator
 TASK-PLG-040|40-51|Done|`agnos-index` reads the layout
 TASK-PLG-041|52-63|Done|`agnos-init` reads the layout and migrates `process/`
 TASK-PLG-042|64-75|Done|The perf center and the other delivered skills read the layout
-TASK-PLG-043|76-87|Not Started|The release reads the layout, checks it, and renames the generated skill
+TASK-PLG-043|76-87|Done|The release reads the layout, checks it, and renames the generated skill
 TASK-PLG-044|88-99|Not Started|The instructions file and the entry points cite the layout's paths
 TASK-PLG-045|100-111|Not Started|The rename
 TASK-PLG-046|112-123|Not Started|The demo rebuilt on `agnos-process/`
