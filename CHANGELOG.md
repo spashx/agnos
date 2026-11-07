@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- `agnos-session` skill: `init --tri <TRI> --tests <true|false>` writes `agnos-process/_sessionstate/session.yaml` whole, with `tri`, `tests` and the detected `platform`, and prints it; `show` prints the state on one line; `close` appends the session's friction-metrics row to `METRICS_LOG.md`, so the agent never writes these files itself <!-- ADR-INI-002, TASK-INI-006, RQ-INI-011 to RQ-INI-015, RQ-INI-018 -->
+- `agnos-init` adds `agnos-process/_sessionstate/session.yaml` to the project's `.gitignore` when git's rules do not ignore it yet, and reports `.gitignore` created, added or unchanged <!-- ADR-INI-002, TASK-INI-008, RQ-INI-016 -->
+
+### Changed
+- **BREAKING:** the session variable `unit_tests` is renamed `tests`, in `session.yaml` and in the instructions, which say "test" where they said "unit test" and no longer forbid renaming a session key. `init` rewrites the file whole, so a session start replaces the former key <!-- ADR-INI-002, DEC-INI-013, TASK-INI-007, RQ-INI-017 -->
+- **BREAKING:** `agnos-process/_sessionstate/session.yaml` is no longer version-controlled; `METRICS_LOG.md` stays version-controlled. `agnos-init` never untracks a committed file: a project that committed `session.yaml` runs `git rm --cached agnos-process/_sessionstate/session.yaml` itself. There is no migration <!-- ADR-INI-002, DEC-INI-012, TASK-INI-008, TASK-INI-011, RQ-INI-016 -->
+- START SESSION asks for the trigram and the tests question, then invokes `agnos-session init`; END SESSION invokes `agnos-session close` for the metrics row <!-- ADR-INI-002, TASK-INI-007, RQ-INI-015, RQ-INI-017 -->
+
 ## [3.2.0]
 
 ### Added

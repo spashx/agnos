@@ -111,7 +111,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-010: The documents follow
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-docs-sync` for `AGNOS-GETTING-STARTED.md`, `AGENTS.md`, `CLAUDE.md` and the changelog, its breaking
   entries saying that `unit_tests` becomes `tests` and that a project untracks `session.yaml` itself; update the `_sessionstate`
   readme template of `agnos-init`.
@@ -121,5 +121,9 @@ This plan implements the tasks in the format specified below.
   `session.yaml` appear nowhere, And the changelog has the two breaking entries; Given `agnos-meta-docs-sync`'s and `agnos-init`'s tests, Then they pass.
 - **Dependencies**: TASK-INI-006, TASK-INI-007, TASK-INI-008, TASK-INI-009
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `git grep unit_tests` outside `agnos-process/` and the changelog: only the test datum of `test_session.py`;
+  `session.yaml` is said version-controlled nowhere. CHANGELOG `[Unreleased]`: 2 Added, 2 BREAKING. Re-run: `agnos-init/tests` 38 OK,
+  `agnos-meta-docs-sync/tests` 18 OK, 0 skipped. Demo rebuilt for the changed templates: `build -Verify` 23 passed, 0 failed,
+  84 commits, HEAD 749beab, its `_sessionstate/readme.md` the new template, status clean.
+- **Assumptions**: `AGNOS-GETTING-STARTED.md`, `AGENTS.md` and `CHANGELOG.md` written by `agnos-meta-docs-sync` and reviewed in the
+  diff; `CLAUDE.md` had no drift; the demo is rebuilt here since `agnos-init` writes both changed templates into it.
