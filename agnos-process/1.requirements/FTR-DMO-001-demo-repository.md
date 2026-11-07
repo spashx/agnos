@@ -107,7 +107,8 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo's process artifacts SHALL exercise these mechanisms at least once: the four EARS
   types, Gherkin criteria, tasks of tier S, M and L with Verification and Assumptions filled, an ADR with
-  alternatives considered, a session state file and a metrics log with one row per session.
+  alternatives considered, and a metrics log with one row per session (amended on 2026-11-07, DEC-INI-012:
+  no session state file, which is not version-controlled).
 - **Rationale**: A demonstration must show the capabilities of the process, not only a typical path.
 - **Priority**: Should
 - **Acceptance Criteria** (Gherkin):

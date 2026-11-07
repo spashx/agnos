@@ -84,16 +84,6 @@
     {
       "op": "commit",
       "date": "2026-08-25",
-      "time": "09:48",
-      "by": "nina-dev",
-      "message": "chore(BKG): start session BKG",
-      "add": [
-        "agnos-process/_sessionstate/session.yaml"
-      ]
-    },
-    {
-      "op": "commit",
-      "date": "2026-08-25",
       "time": "14:05",
       "by": "linda-po",
       "message": "docs(BKG): FTR-BKG-001 room reservation, RQ-BKG-001 to RQ-BKG-006",

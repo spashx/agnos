@@ -6,20 +6,20 @@ FTR-AGT-001|1-48||Agent entry points
 RQ-AGT-001|17-32||Every agent entry point loads the whole process
 RQ-AGT-002|33-48||Every entry point restates the approval gate explicitly
 @agnos-process/1.requirements/FTR-DMO-001-demo-repository.md
-FTR-DMO-001|1-241||Demo repository
+FTR-DMO-001|1-242||Demo repository
 RQ-DMO-001|28-41||Sibling independent repository
 RQ-DMO-002|42-58||The project without AGNOS
 RQ-DMO-003|59-73||Source code in two languages
 RQ-DMO-004|74-89||Code follows the AGNOS code rules
 RQ-DMO-005|90-104||Process artifacts that led to the code
-RQ-DMO-006|105-120||The process mechanisms are showcased
-RQ-DMO-007|121-133||The index is produced by the skill
-RQ-DMO-008|134-147||Traceability between process and code
-RQ-DMO-009|148-163||README declares the demo synthetic
-RQ-DMO-020|164-183||The generator is kept as the `agnos-meta-demo` skill
-RQ-DMO-022|184-203||A user interface built on a design system
-RQ-DMO-010|206-227||Creating the demo leaves the user's environment untouched
-RQ-DMO-021|228-241||Rebuilding is reproducible
+RQ-DMO-006|105-121||The process mechanisms are showcased
+RQ-DMO-007|122-134||The index is produced by the skill
+RQ-DMO-008|135-148||Traceability between process and code
+RQ-DMO-009|149-164||README declares the demo synthetic
+RQ-DMO-020|165-184||The generator is kept as the `agnos-meta-demo` skill
+RQ-DMO-022|185-204||A user interface built on a design system
+RQ-DMO-010|207-228||Creating the demo leaves the user's environment untouched
+RQ-DMO-021|229-242||Rebuilding is reproducible
 @agnos-process/1.requirements/FTR-DMO-002-simulated-team-history.md
 FTR-DMO-002|1-158||Simulated team and history
 RQ-DMO-011|19-35||Identities encode the role
@@ -661,13 +661,13 @@ PLAN-INI-002|1-37||An Order to Read the Instructions
 TASK-INI-004|15-26|Done|The CLAUDE.md block orders the agent to read the instructions
 TASK-INI-005|27-37|Done|A readme in each process folder
 @agnos-process/3.plan/PLAN-INI-003-session-state-by-script.md
-PLAN-INI-003|1-121||Session State Written by a Script
+PLAN-INI-003|1-125||Session State Written by a Script
 TASK-INI-006|17-39|Done|The `agnos-session` skill
 TASK-INI-007|40-59|Done|The instructions call the skill
 TASK-INI-008|60-79|Done|`agnos-init` keeps `session.yaml` out of git
 TASK-INI-011|80-93|Done|This repository untracks its `session.yaml`
-TASK-INI-009|94-107|Not Started|The demo without a committed session state
-TASK-INI-010|108-121|Not Started|The documents follow
+TASK-INI-009|94-111|Done|The demo without a committed session state
+TASK-INI-010|112-125|Not Started|The documents follow
 @agnos-process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion

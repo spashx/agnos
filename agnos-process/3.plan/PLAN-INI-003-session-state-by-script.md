@@ -93,7 +93,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-009: The demo without a committed session state
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Keep the change of `agnos-meta-demo/scripts/verify.ps1` that drops `session.yaml` from the RQ-DMO-006 check, remove
   "a session state file" from the Statement of RQ-DMO-006, remove `session.yaml` from the demo's content, then rebuild and verify the demo.
 - **Requirement refs**: RQ-DMO-006, RQ-INI-016
@@ -102,8 +102,12 @@ This plan implements the tasks in the format specified below.
   the demo holds `session.yaml`; Given `agnos-meta-demo/tests`, Then they pass.
 - **Dependencies**: TASK-INI-008, TASK-INI-011
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `build -Verify`: 84 commits, HEAD 6bf5da0, 23 passed, 0 failed (RQ-DMO-006: metrics rows 5 for 5 sessions;
+  RQ-INI-008: agnos-init exit 0, changes after the call 0; RQ-DMO-021: same HEAD on a second build). Re-checked: `git log --all --
+  agnos-process/_sessionstate/session.yaml` in the demo: 0 commits; its `.gitignore` ends with that path; status clean.
+  `agnos-meta-demo/tests`: OK. The `verify.ps1` change was committed with TASK-INI-006 (owner's choice).
+- **Assumptions**: the commit `chore(BKG): start session BKG`, which added only `session.yaml`, is removed from the scenario (85 to
+  84 commits, above the minimum of 50); the line is added to the demo's own `.gitignore` content, copied over the one `init` writes.
 
 ### TASK-INI-010: The documents follow
 - **Tier**: M
