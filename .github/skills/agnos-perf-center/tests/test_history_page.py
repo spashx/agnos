@@ -808,8 +808,9 @@ class ContrastTest(unittest.TestCase):
                             number("history-identity-chroma"),
                             (number("history-identity-hue-start") + turn * number("history-identity-hue-step")) % 360)
                   for turn in range(GOLDEN_SHOWN)]
-        shared = [self.colour(f"identity-{n}", tm.THEMES[0]) for n in range(1, 13)] + golden     # one value for both themes
-        pairs = [(m, b) for m in shared for b in self.backgrounds()]
+        pairs = [(m, b) for m in golden for b in self.backgrounds()]                              # one value for both themes
+        pairs += [(self.colour(f"identity-{n}", theme), back) for n in range(1, 13)                # per theme (DEC-TRC-064, TASK-TRC-103)
+                  for theme, back in zip(tm.THEMES, self.backgrounds())]
         pairs += [(self.colour(f"kind-{k}", theme), back) for k in ("human", "agent", "together")
                   for theme, back in zip(tm.THEMES, self.backgrounds())]                         # each theme on its own surface
         weak = [(m, round(contrast(m, b), 2)) for m, b in pairs if contrast(m, b) < MARK_CONTRAST]
