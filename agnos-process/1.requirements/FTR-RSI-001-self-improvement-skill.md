@@ -88,17 +88,20 @@ of that target with a script.
 
 ## Non-Functional Requirements
 
-### RQ-RSI-004: One portable script
+### RQ-RSI-004: Shell scripts only
 - **Category**: Non-Functional
 - **NFR Type**: Portability
 - **EARS Type**: Ubiquitous
-- **Statement**: The skill's script SHALL be a single Python file using the standard library only,
-  run unchanged on Windows, Linux and macOS.
-- **Metric**: one `.py` file, zero third-party import
-- **Measurement Method**: unit tests run on Windows; review of the imports
+- **Statement**: The skill's script SHALL exist as `budget.ps1` (Windows PowerShell 5.1) and
+  `budget.sh` (bash), giving the same output and exit codes, with no other runtime.
+- **Rationale**: The process's core skills need no runtime beyond the shells; this one is used by a
+  process step.
+- **Metric**: `scripts/` holds `budget.ps1` and `budget.sh` only; identical output on every test case
+- **Measurement Method**: unit tests running both scripts on each case
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the skill's `scripts/` folder
-  - **When** its files and imports are listed
-  - **Then** there is one Python file and every import is from the standard library
+  - **When** its files are listed
+  - **Then** they are `budget.ps1` and `budget.sh`
+  - **And** on every test case both give the same output and exit code
 - **Dependencies**: RQ-RSI-003

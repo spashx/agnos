@@ -6,6 +6,8 @@ agnos-process/process.idx.md text eol=lf
 # RQ-INI-001 / DEC-INI-001: both versions of agnos-init give the same bytes on every checkout
 .github/skills/agnos-init/scripts/*.sh text eol=lf
 .github/skills/agnos-meta-plugin-proof/scripts/*.sh text eol=lf
+# RQ-RSI-004 / DEC-RSI-003: budget.sh runs under bash on every checkout
+.github/skills/agnos-self-improvement/scripts/*.sh text eol=lf
 .github/skills/agnos-init/assets/templates/* text eol=lf
 
 # RQ-PLG-037 / DEC-PLG-028: the layout's generated copies are compared byte for byte with what layout.py generates

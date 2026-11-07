@@ -194,11 +194,11 @@ RQ-QLT-008|96-108||A maintainer skill with its complement
 RQ-QLT-009|111-121||agnos-perf-center's code has nothing left open
 RQ-QLT-010|122-132||The page's skeleton answers its accessibility findings
 @agnos-process/1.requirements/FTR-RSI-001-self-improvement-skill.md
-FTR-RSI-001|1-104||Recursive self-improvement as a skill
+FTR-RSI-001|1-107||Recursive self-improvement as a skill
 RQ-RSI-001|22-41||The self-improvement procedure is provided by a skill
 RQ-RSI-002|42-64||The improvement target is always declared
 RQ-RSI-003|65-88||The line budget of the target is measured
-RQ-RSI-004|91-104||One portable script
+RQ-RSI-004|91-107||Shell scripts only
 @agnos-process/1.requirements/FTR-TRC-001-traceability-matrix.md
 FTR-TRC-001|1-505||AGNOS Traceability Matrix
 RQ-TRC-001|22-32||Command-line inputs and output
@@ -458,10 +458,10 @@ DEC-QLT-006|39-43||The rule set, in the assets
 DEC-QLT-007|44-47||VS Code's diagnostics are a complement outside the report
 DEC-QLT-008|48-51||Corrections keep the behaviour and `matrix.js` in one file
 @agnos-process/2.architecture/ADR-RSI-001-self-improvement-skill.md
-ADR-RSI-001|1-64|Accepted — approved by the owner on 2026-11-07|Recursive self-improvement packaged as a skill
+ADR-RSI-001|1-67|Accepted — approved by the owner on 2026-11-07|Recursive self-improvement packaged as a skill
 DEC-RSI-001|20-27||A skill owns the procedure, the instructions file keeps the trigger
 DEC-RSI-002|28-34||The target is always declared, with no fallback
-DEC-RSI-003|35-41||A stateless script measures the budget
+DEC-RSI-003|35-42||A stateless script measures the budget
 @agnos-process/2.architecture/ADR-TRC-001-trace-generator-and-link-model.md
 ADR-TRC-001|1-87|Accepted — owner request of 2026-10-18 (a skill that builds the complete traceability matrix of an AGNOS process and its|Trace Generator and Link Model
 DEC-TRC-001|18-26||One Python script, standard library only
@@ -730,12 +730,12 @@ TASK-QLT-005|64-75|Done|Python, the complex functions
 TASK-QLT-006|76-87|Done|matrix.html, the accessibility findings
 TASK-QLT-007|88-98|Done|Say the skill exists
 @agnos-process/3.plan/PLAN-RSI-001-self-improvement-skill.md
-PLAN-RSI-001|1-89||Recursive self-improvement as a skill
+PLAN-RSI-001|1-95||Recursive self-improvement as a skill
 TASK-RSI-001|17-36|Done|Feature, ADR and plan
-TASK-RSI-002|37-49|Not Started|Budget script and its tests
-TASK-RSI-003|50-62|Not Started|The skill's entry points
-TASK-RSI-004|63-77|Not Started|Instructions file and entry points
-TASK-RSI-005|78-89|Not Started|Changelog entry
+TASK-RSI-002|37-55|Done|Budget script and its tests
+TASK-RSI-003|56-68|Not Started|The skill's entry points
+TASK-RSI-004|69-83|Not Started|Instructions file and entry points
+TASK-RSI-005|84-95|Not Started|Changelog entry
 @agnos-process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
 PLAN-TRC-001|1-177||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references

@@ -33,10 +33,11 @@ delivered (`layers.json`: workshop layer). A missing declaration, or a path outs
 root, stops the skill with an error. Amends DEC-PLG-013: "this file otherwise" is removed.
 
 ### DEC-RSI-003: A stateless script measures the budget
-`scripts/self_improvement.py`, standard library only, resolves the target and prints its ceiling,
+`scripts/budget.ps1` (Windows PowerShell 5.1) and `scripts/budget.sh` (bash), with the same output
+and exit codes and no other runtime, as the process's other core skills (RQ-RSI-004), resolve the target and print its ceiling,
 line count and lines left, exiting with an error over the ceiling. The ceiling is the instructions
 file's own "SHALL NOT exceed <N> lines" when it is the target, otherwise the declaration's optional
-`at most <N> lines`, otherwise 100. The script keeps no state and reads no git history: the budget
+`at most <N> lines`, otherwise 100. The scripts keep no state and read no git history: the budget
 is the target's line count against its ceiling, re-measured at each iteration.
 
 ## Consequences
@@ -50,6 +51,8 @@ is the target's line count against its ceiling, re-measured at each iteration.
 - A mode variable (meta / plugin) in `session.yaml`: rejected, the declaration makes modes needless.
 - A state file or git trailers holding the effort's start commit: rejected with the rule that
   protected pre-effort content, which it served.
+- A Python script, as `agnos-perf-center`: rejected by the owner, it would make Python a requirement
+  of a process step; only the optional perf center needs it.
 - A ceiling declared in the `agnos-init` block: rejected by the owner for a default in the skill.
 
 ## Diagram
@@ -57,7 +60,7 @@ is the target's line count against its ceiling, re-measured at each iteration.
 flowchart LR
   C[.claude/skills/agnos-self-improvement/SKILL.md] -->|points to| G[.github/skills/agnos-self-improvement/SKILL.md]
   I[instructions file: trigger] -->|invoke| G
-  G --> S[scripts/self_improvement.py]
+  G --> S[scripts/budget.ps1 / budget.sh]
   S -->|reads declaration| E[CLAUDE.md / AGENTS.md]
   E -->|names| T[improvement target]
   S -->|measures lines vs ceiling| T

@@ -36,16 +36,22 @@ the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
 
 ### TASK-RSI-002: Budget script and its tests
 - **Tier**: L
-- **Status**: Not Started
-- **Description**: Write `scripts/self_improvement.py` (target resolution, ceiling, budget) and its
-  unit tests, tests first.
+- **Status**: Done
+- **Description**: Write `scripts/budget.ps1` and `scripts/budget.sh` (target resolution, ceiling,
+  budget) and their unit tests, tests first. First written in Python, rewritten as shell scripts on
+  the owner's decision (RQ-RSI-004 amended).
 - **Requirement refs**: RQ-RSI-002, RQ-RSI-003, RQ-RSI-004
 - **ADR refs**: ADR-RSI-001 (DEC-RSI-002, DEC-RSI-003)
 - **Acceptance Criteria** (Gherkin): those of RQ-RSI-002, RQ-RSI-003 and RQ-RSI-004, one test each
 - **Dependencies**: TASK-RSI-001
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: None
+- **Verification**: before the scripts: 9 tests, FAILED (failures=9). After: `unittest discover`
+  Ran 9 tests, OK, 0 skipped, each case running both scripts with identical output. `budget.ps1` and
+  `budget.sh` on this repository: exit 1, same "no declaration" message (expected until TASK-RSI-004).
+- **Assumptions**: CLAUDE.md is read before AGENTS.md, the first declaration wins. "Outside the
+  project" is checked on the path's text (absolute, or `..` above the root), symbolic links not
+  followed: the target may not exist yet. bash counts lines with `awk`, as PowerShell counts a last
+  line without line ending. Files read as UTF-8. `.gitattributes` keeps `budget.sh` LF.
 
 ### TASK-RSI-003: The skill's entry points
 - **Tier**: M
