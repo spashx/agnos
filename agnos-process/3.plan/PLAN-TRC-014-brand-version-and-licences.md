@@ -107,3 +107,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S); `layout.py --check`: 0 findings; perf-center suite 396 OK, 3 skipped.
 - **Assumptions**: None
+
+### TASK-TRC-102: "AGNOS v.<major>.<minor>" in the foot and in About; badges link to SPDX
+- **Tier**: L
+- **Status**: Done
+- **Description**: Per ADR-TRC-016: the foot and the About name read "AGNOS @APP_VERSION@" (name style unchanged); the Licenses introduction sentence is removed; each badge of the tone table links to its SPDX page in a new tab. Amend RQ-TRC-109, RQ-TRC-110, RQ-TRC-112, RQ-TRC-116 accordingly. Tests first.
+- **Requirement refs**: RQ-TRC-109, RQ-TRC-110, RQ-TRC-111, RQ-TRC-112, RQ-TRC-116, RQ-TRC-080
+- **ADR refs**: ADR-TRC-016 (DEC-TRC-061, DEC-TRC-062), ADR-TRC-014, ADR-TRC-002 (design system)
+- **Acceptance Criteria**: Given `VERSION.txt` holding `3.1.0`, When a page is generated, Then the foot reads "AGNOS v.3.1" And the About name reads "AGNOS v.3.1" with the name's tokens unchanged; Given no readable version, Then both read "AGNOS"; Given the Licenses topic, Then the introduction sentence is absent And each badge is an `<a target="_blank">` whose `href` is `https://spdx.org/licenses/<its licence>.html`; Given each address of the tone table, Then it answered HTTP 200 when checked.
+- **Dependencies**: TASK-TRC-101, TASK-PLG-051
+- **Assignee**: AI
+- **Verification**: Test-first: `test_brand` 17 failures before the code (e.g. `'AGNOS v.3.12' != 'AGNOS Performance Center v.3.12'`); after: 33 OK (re-run after the review fix). Template: foot and About name both `AGNOS @APP_VERSION@`, introduction sentence gone. SPDX HEAD 2026-11-07: AGPL-3.0, MIT, Apache-2.0 each 200. `layout.py --check`: 0 findings. Perf-center suite: 401 run, 398 OK, 3 skipped (performance tests, `AGNOS_PERF_CENTER_PERF` unset).
+- **Assumptions**: An unreadable version leaves "AGNOS " in the About name's HTML, rendered "AGNOS".

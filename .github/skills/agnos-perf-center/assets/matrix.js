@@ -1371,12 +1371,27 @@
   const LICENCE_TONE = { "AGPL-3.0": "green", MIT: "blue", "Apache-2.0": "yellow" };
   const TONE_DEFAULT = "light";
   const CLASS_BADGE_VALUE = "licence-badge-value";
+  // RQ-TRC-112, DEC-TRC-062: the page of a licence at SPDX, the one template of every badge's address; checked once, never requested
+  const SPDX_URL = "https://spdx.org/licenses/{id}.html";
+  const SPDX_ID = "{id}";
+  const CLASS_BADGE = "licence-badge";
+  const CLASS_BADGE_LINK = "licence-badge licence-badge-link";
 
   function renderLicences() {
     const list = $("licence-list");
-    list.append(...(DATA.meta.libraries || []).map((lib) => el(TAG_SPAN, { class: "licence-badge" },
+    list.append(...(DATA.meta.libraries || []).map((lib) => el(TAG_SPAN, { class: CLASS_BADGE },
       el(TAG_SPAN, { class: "licence-badge-label", text: `${lib.name} ${lib.version}` }), el(TAG_SPAN, { class: CLASS_BADGE_VALUE, text: lib.licence }))));
     for (const value of list.querySelectorAll(`.${CLASS_BADGE_VALUE}`)) value.dataset.tone = LICENCE_TONE[value.textContent] || TONE_DEFAULT;
+    for (const badge of list.querySelectorAll(`.${CLASS_BADGE}`)) linkBadge(badge);
+  }
+
+  // RQ-TRC-112, DEC-TRC-062: a badge of a tabled licence becomes a link to its SPDX page in a new tab; any other keeps no link.
+  function linkBadge(badge) {
+    const id = badge.querySelector(`.${CLASS_BADGE_VALUE}`).textContent;
+    if (!Object.hasOwn(LICENCE_TONE, id)) return;
+    const link = el("a", { class: CLASS_BADGE_LINK, href: SPDX_URL.replace(SPDX_ID, id), target: "_blank", rel: "noopener" });
+    link.append(...badge.childNodes);
+    badge.replaceWith(link);
   }
 
   // ---- overview -----------------------------------------------------------------------------------------------

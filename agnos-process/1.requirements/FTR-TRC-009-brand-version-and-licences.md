@@ -27,19 +27,19 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 ### RQ-TRC-109: Title and version at the foot of the left panel
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The page SHALL show, at the bottom of its left panel, the application's title, "AGNOS Performance Center", followed by its version as `v.<major>.<minor>`, both taken at generation from the `VERSION.txt` file of RQ-PLG-032 (the patch number is not shown), in place of the notice of the libraries and their licences. Amends RQ-TRC-082 on where the notice stands.
+- **Statement**: The page SHALL show, at the bottom of its left panel, the application's name, "AGNOS", followed by its version as `v.<major>.<minor>` ("AGNOS v.<major>.<minor>"), both taken at generation from the `VERSION.txt` file of RQ-PLG-032 (the patch number is not shown), in place of the notice of the libraries and their licences. Amends RQ-TRC-082 on where the notice stands. <!-- amended by DEC-TRC-061 (2026-11-07) -->
 - **Rationale**: a reader of a page found in a report or a chat should know which tool and which version made it; the notice of the libraries moves to the Licenses topic (RQ-TRC-111).
 - **Priority**: Must
-- **Acceptance Criteria**: Given a `VERSION.txt` holding `3.1.0`, When a page is generated, Then the foot of the left panel reads "AGNOS Performance Center v.3.1" And names no library; Given `3.12.4`, Then it reads "v.3.12"; Given only `VERSION.txt` changed, Then the next page shows the new version without any other file changed.
+- **Acceptance Criteria**: Given a `VERSION.txt` holding `3.1.0`, When a page is generated, Then the foot of the left panel reads "AGNOS v.3.1" And names no library; Given `3.12.4`, Then it reads "v.3.12"; Given only `VERSION.txt` changed, Then the next page shows the new version without any other file changed.
 - **Dependencies**: RQ-PLG-032, RQ-TRC-082, RQ-TRC-010
 
 ### RQ-TRC-110: A version that cannot be read
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
-- **Statement**: IF the `VERSION.txt` file is absent, or is not one line holding a SemVer 2.0.0 version, THEN the generator SHALL still write the page, whose foot shows the title alone, with no `v.`.
+- **Statement**: IF the `VERSION.txt` file is absent, or is not one line holding a SemVer 2.0.0 version, THEN the generator SHALL still write the page, whose foot reads "AGNOS" alone, with no `v.`. <!-- amended by DEC-TRC-061 (2026-11-07) -->
 - **Rationale**: a page is more useful without its version than not generated; the file stands beside the skill's, and a layout without it is a packaging problem the page need not break on.
 - **Priority**: Must
-- **Acceptance Criteria**: Given no `VERSION.txt` file, When a page is generated, Then the generator exits 0 And the foot reads "AGNOS Performance Center" with no `v.`; Given a `VERSION.txt` holding `v3.2`, Then the same.
+- **Acceptance Criteria**: Given no `VERSION.txt` file, When a page is generated, Then the generator exits 0 And the foot reads "AGNOS" with no `v.`; Given a `VERSION.txt` holding `v3.2`, Then the same.
 - **Dependencies**: RQ-TRC-109, RQ-PLG-032
 
 ### RQ-TRC-111: A Licenses topic in the Help dialog
@@ -54,7 +54,7 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 ### RQ-TRC-112: Licences drawn as coloured badges
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The Licenses topic SHALL draw each licence as a two-part badge in the manner of the GitHub README badges: a grey label holding the name (for a library, its name and version; for the application, "AGNOS") and, against it, a value holding the licence, filled with a brand colour that depends on the licence; the badge SHALL be drawn by the page itself and request nothing from any site.
+- **Statement**: The Licenses topic SHALL draw each licence as a two-part badge in the manner of the GitHub README badges: a grey label holding the name (for a library, its name and version; for the application, "AGNOS") and, against it, a value holding the licence, filled with a brand colour that depends on the licence; the badge SHALL be drawn by the page itself and request nothing from any site; each badge SHALL be a link opening, in a new tab, the SPDX page of its licence, `https://spdx.org/licenses/<SPDX id>.html`, for each licence the script classifies, and no other licence gets a link. <!-- amended by DEC-TRC-062 (2026-11-07) -->
 - **Rationale**: a coloured badge is read at a glance and is what readers know from repositories (owner request of 2026-11-06, with a sample); drawing it locally keeps RQ-TRC-080's promise that the page requests nothing else.
 - **Priority**: Must
 - **Acceptance Criteria**: Given the Licenses topic, When a badge is inspected, Then it has a label part and a value part side by side, the label grey and the value filled with one of the brand blue, green, yellow or light tokens; Given two libraries of different licences, Then their values have different fills; Given the page's requests, Then none goes to a badge service.
@@ -81,10 +81,10 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 ### RQ-TRC-116: The name and the tagline beside the mark in About
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The About topic SHALL show, to the right of the large mark and centred on it, the name "AGNOS" in capital letters, bold and widely spaced, and below it the tagline "Efficiency by traceability", smaller, of medium weight and in the muted text colour, both from design-system tokens and following the theme; the mark, the name and the tagline SHALL stand above the About text.
+- **Statement**: The About topic SHALL show, to the right of the large mark and centred on it, the name "AGNOS v.<major>.<minor>" (the label of RQ-TRC-109, "AGNOS" alone when the version cannot be read) in capital letters, bold and widely spaced, and below it the tagline "Efficiency by traceability", smaller, of medium weight and in the muted text colour, both from design-system tokens and following the theme; the mark, the name and the tagline SHALL stand above the About text. <!-- amended by DEC-TRC-061 (2026-11-07) -->
 - **Rationale**: the mark alone does not say whose it is; the lockup of the retained design names it where the reader learns who made the page (owner request of 2026-11-06, from the design's lockup, with this tagline in place of the design's).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the About topic, When it is read in a browser, Then the name reads "AGNOS" and the tagline "Efficiency by traceability", the name to the right of the mark, the tagline below the name and aligned with it on the left, the pair centred on the mark, all above the text; And the name is 30 px, bold, with a letter-spacing of 0.12 em, and the tagline 13 px, weight 500, with 0.02 em; And their colours are those of the text and the muted-text tokens, in each theme; Given the style and the script, Then they hold no raw visual value.
+- **Acceptance Criteria**: Given the About topic, When it is read in a browser, Then the name reads "AGNOS v.<major>.<minor>" and the tagline "Efficiency by traceability", the name to the right of the mark, the tagline below the name and aligned with it on the left, the pair centred on the mark, all above the text; And the name is 30 px, bold, with a letter-spacing of 0.12 em, and the tagline 13 px, weight 500, with 0.02 em; And their colours are those of the text and the muted-text tokens, in each theme; Given the style and the script, Then they hold no raw visual value.
 - **Dependencies**: RQ-TRC-114, RQ-TRC-018, ADR-TRC-002
 
 ## Non-Functional Requirements

@@ -2,7 +2,7 @@
 <!-- Amended on 2026-11-06: DEC-TRC-056 no longer leaves out the design's wordmark and tagline; DEC-TRC-059 uses them in About (RQ-TRC-116). -->
 
 ## Status
-Accepted — approved by the owner on 2026-11-06 with PLAN-TRC-014, from the owner's request of that day, reformulated as FTR-TRC-009 (RQ-TRC-109 to RQ-TRC-116). Extends ADR-TRC-002 (the design system) and ADR-TRC-012 (the Help dialog); aligns RQ-TRC-082 and RQ-TRC-103 on where the licences stand.
+Accepted — approved by the owner on 2026-11-06 with PLAN-TRC-014, from the owner's request of that day, reformulated as FTR-TRC-009 (RQ-TRC-109 to RQ-TRC-116). Extends ADR-TRC-002 (the design system) and ADR-TRC-012 (the Help dialog); aligns RQ-TRC-082 and RQ-TRC-103 on where the licences stand. DEC-TRC-057, DEC-TRC-058 and DEC-TRC-059 amended by ADR-TRC-016, 2026-11-07.
 
 ## Context
 The page names itself only in its header kicker, shows its libraries and their licences in one line of small text at the foot of the left panel, and draws its brand as three dots in the accent colour. The owner wants the foot to name the application and its version, the licences in their own Help topic drawn as coloured badges, the About links to show their addresses, and a distinctive, coloured mark shown large in About. After three rounds of mock-ups, the owner retained on 2026-11-06 the design "Spans", a reference mock-up made in a design tool: values to be replicated in the page's own styling system, not copied.

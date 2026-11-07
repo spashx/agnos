@@ -558,10 +558,10 @@ def library_meta(libraries):
     return [{k: lib[k] for k in ("name", "version", "licence", "global", "use")} for lib in libraries]
 
 
-# RQ-TRC-109, RQ-TRC-110, DEC-TRC-057
+# RQ-TRC-109, RQ-TRC-110, RQ-TRC-116, DEC-TRC-057, DEC-TRC-061
 def version_label():
-    """The version the foot of the page shows, `v.<major>.<minor>`, from the version file; the empty string when the file
-    is absent or is not one SemVer 2.0.0 line, so that the foot then shows the title alone and the run is not failed."""
+    """The version the foot of the page and the About name show, `v.<major>.<minor>`, from the version file; the empty string when the file
+    is absent or is not one SemVer 2.0.0 line, so that both then show "AGNOS" alone and the run is not failed."""
     try:
         lines = Path(VERSION_PATH).read_text(encoding=ENCODING).splitlines()
     except (OSError, ValueError):
@@ -618,7 +618,7 @@ def render_page(title, data_script):
         "SCRIPT": embed_script((ASSETS_DIR / "matrix.js").read_text(encoding=ENCODING)),
         "TITLE": html.escape(title),
         "DATA_SCRIPT": html.escape(data_script),
-        "APP_VERSION": html.escape(version_label()),                # RQ-TRC-109: the foot's version, never in the data
+        "APP_VERSION": html.escape(version_label()),                # RQ-TRC-109, RQ-TRC-116, DEC-TRC-061: the version of the foot and of the About name, never in the data
     }
     template = TEMPLATE_PATH.read_text(encoding=ENCODING)
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], template)

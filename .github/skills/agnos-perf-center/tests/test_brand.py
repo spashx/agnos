@@ -147,7 +147,7 @@ class BrandMarkTest(unittest.TestCase):
 
 
 # RQ-TRC-109, RQ-TRC-110, DEC-TRC-057: the foot of the left panel
-APP_TITLE = "AGNOS Performance Center"
+APP_TITLE = "AGNOS"      # DEC-TRC-061: the foot reads the name alone, then the version
 FOOT_RE = re.compile(r'<footer class="side-footer"[^>]*>(.*?)</footer>', re.DOTALL)
 TAG_RE = re.compile(r"<[^>]*>")
 UNREADABLE_VERSIONS = ("v3.2\n", "3.1\n", "03.1.0\n", "", "3.1.0\n3.2.0\n", "latest\n")
@@ -230,7 +230,7 @@ class FootInBrowserTest(unittest.TestCase):
 
 # RQ-TRC-111, RQ-TRC-112, DEC-TRC-058: the Licenses topic and its badges
 APP_BADGE = "AGNOS=AGPL-3.0"       # the label is the application's name (owner, 2026-11-06, RQ-TRC-112)
-LICENCE_URL = "https://github.com/spashx/agnos-lightweight-process/blob/main/LICENSE.md"
+SPDX_URL = "https://spdx.org/licenses/{id}.html"     # DEC-TRC-062
 UNCLASSIFIED_LICENCE = "BSD-3-Clause"
 READ_LICENCES = """
 const out = document.documentElement.dataset;
@@ -249,9 +249,9 @@ out.labelFill = getComputedStyle(part(badges[0], "label")).backgroundColor;
 out.labelInk = getComputedStyle(part(badges[0], "label")).color;
 out.valueFills = badges.map((b) => getComputedStyle(part(b, "value")).backgroundColor).join("|");
 out.valueInk = getComputedStyle(part(badges[0], "value")).color;
-const link = list.querySelector("a.licence-badge");
-out.link = `${link.href} ${link.target} ${link.rel}`;
+out.links = badges.map((b) => b.tagName === "A" ? `${b.getAttribute("href")} ${b.target} ${b.rel}` : "none").join(";");
 out.linkCount = String(list.querySelectorAll("a").length);
+out.intro = list.parentElement.textContent.includes("The licence of this application") ? "present" : "absent";
 out.tones = Object.keys(agnosTrace.licenceTones).join(",");
 """
 READ_ABOUT = """
@@ -262,7 +262,7 @@ const about = document.querySelector('[data-help="about"]');
 out.aboutLinks = [...about.querySelectorAll("a")].map((a) => a.href).join(" ");
 out.aboutText = about.textContent.replace(/\\s+/g, " ");
 """
-LICENCE_NAMES = ("badges", "shown", "side-by-side", "label-fill", "label-ink", "value-fills", "value-ink", "link", "link-count", "tones")
+LICENCE_NAMES = ("badges", "shown", "side-by-side", "label-fill", "label-ink", "value-fills", "value-ink", "links", "link-count", "intro", "tones")
 
 
 def library_badges(libraries):
@@ -308,10 +308,24 @@ class LicencesTopicTest(unittest.TestCase):
         self.assertEqual("|".join(tones), got["value-fills"])
         self.assertEqual(3, len(set(tones)))
 
-    def test_RQ_TRC_111_given_the_application_badge_then_it_opens_the_licence_text_in_a_new_tab_and_is_the_only_link(self):
+    def test_RQ_TRC_112_given_every_badge_then_it_is_a_link_to_its_spdx_page_in_a_new_tab(self):
+        """DEC-TRC-062: each badge, the application's included, opens https://spdx.org/licenses/<id>.html in a new tab."""
         got = self.licences()
-        self.assertEqual(f"{LICENCE_URL} _blank noopener noreferrer", got["link"])
-        self.assertEqual("1", got["link-count"])
+        licences = [APP_BADGE.split("=")[1]] + [lib["licence"] for lib in self.libraries]
+        self.assertEqual(";".join(f"{SPDX_URL.format(id=licence)} _blank noopener" for licence in licences), got["links"])
+        self.assertEqual(str(len(licences)), got["link-count"])
+        self.assertNotIn("github.com", got["links"])
+
+    def test_RQ_TRC_112_given_the_links_then_every_licence_they_name_is_in_the_tone_table(self):
+        """DEC-TRC-062: only a licence of the script's tone table is linked."""
+        got = self.licences()
+        ids = [link.split()[0].removeprefix(SPDX_URL.split("{")[0]).removesuffix(".html") for link in got["links"].split(";")]
+        self.assertTrue(set(ids) <= set(got["tones"].split(",")), ids)
+
+    def test_RQ_TRC_111_given_the_licenses_topic_then_it_has_no_introduction_sentence(self):
+        """DEC-TRC-062: the sentence explaining the badges is removed."""
+        self.assertEqual("absent", self.licences()["intro"])
+        self.assertNotIn("The licence of this application", self.page)
 
     def test_RQ_TRC_112_given_the_library_record_then_every_licence_of_it_has_a_tone_chosen_for_it(self):
         listed = self.licences()["tones"].split(",")
@@ -329,6 +343,7 @@ class LicencesTopicTest(unittest.TestCase):
         got = self.licences(page)
         self.assertEqual(library_badges(record["libraries"]), got["badges"])
         self.assertTrue(got["value-fills"].endswith(self.fill("badge-tone-light")), got["value-fills"])
+        self.assertTrue(got["links"].endswith(";none"), got["links"])     # DEC-TRC-062: no link for a licence outside the table
 
     def test_RQ_TRC_111_given_the_about_topic_then_it_no_longer_shows_the_licence_nor_its_link(self):
         got = found(rendered_dom_after(self.page.path, READ_ABOUT), "about-links", "about-text")
@@ -343,7 +358,8 @@ class LicencesTopicTest(unittest.TestCase):
 
 
 # RQ-TRC-116, DEC-TRC-059: the lockup of the retained design in the About topic, as the design states it
-LOCKUP_NAME, LOCKUP_TAGLINE = "AGNOS", "Efficiency by traceability"
+LOCKUP_TAGLINE = "Efficiency by traceability"
+LOCKUP_NAME = "AGNOS v." + ".".join(tm.VERSION_PATH.read_text(encoding="utf-8").strip().split(".")[:2])   # DEC-TRC-061
 LOCKUP_TOKENS = {"text-wordmark": "30px", "tracking-wordmark": "0.12em", "tracking-tagline": "0.02em",
                  "line-display": "1.1", "line-snug": "1.3", "weight-bold": "700", "weight-medium": "500",
                  "text-small": "13px"}
@@ -356,7 +372,7 @@ const mark = about.querySelector("svg.brand-mark").getBoundingClientRect();
 const name = about.querySelector(".about-wordmark"), tagline = about.querySelector(".about-tagline");
 const n = name.getBoundingClientRect(), t = tagline.getBoundingClientRect();
 const style = (node) => { const s = getComputedStyle(node); return [s.fontSize, s.fontWeight, s.letterSpacing, s.lineHeight].join(" "); };
-out.nameText = name.textContent; out.taglineText = tagline.textContent;
+out.nameText = name.textContent.trim(); out.taglineText = tagline.textContent;
 out.nameStyle = style(name); out.taglineStyle = style(tagline);
 out.toTheRight = String(n.left >= mark.right && t.left >= mark.right);
 out.below = String(t.top >= n.bottom - 1);
