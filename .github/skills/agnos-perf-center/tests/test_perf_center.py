@@ -997,3 +997,53 @@ class GeneratedDateTest(unittest.TestCase):
             found = dict(re.findall(r'data-(shown|expected|exact)="([^"]*)"', rendered_dom_after(path, GENERATED_SCRIPT)))
         self.assertEqual(found["expected"], found["shown"])               # the reader's date and time, no T nor Z
         self.assertIn("2026-01-01 00:00 UTC", found["exact"])
+
+
+class ScanListsShownTest(unittest.TestCase):
+    """TASK-TRC-104: RQ-TRC-119 — what is scanned and excluded is shown in the help, on every run and in the skill."""
+
+    def run_with(self, *extra):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, stdout, stderr = run_main(["--process", str(PROCESS), "--sources", str(SOURCES),
+                                             "--out", str(Path(tmp) / "page.html"), *extra])
+        self.assertEqual(0, code, stderr)
+        return stdout.splitlines()
+
+    def line(self, lines, prefix):
+        found = [line for line in lines if line.startswith(f"agnos-perf-center: {prefix}")]
+        self.assertEqual(1, len(found), (prefix, lines))
+        return found[0]
+
+    def test_RQ_TRC_119_given_help_then_ext_and_exclude_list_every_default_and_say_they_replace_it(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
+            tm.parse_args(["--help"])
+        text = " ".join(out.getvalue().split())
+        for entry in [*tm.DEFAULT_EXCLUDES, *tm.DEFAULT_EXTENSIONS, *tm.DEFAULT_NAMES]:
+            self.assertIn(entry, text)
+        self.assertGreaterEqual(text.count("replaces"), 2)
+
+    def test_RQ_TRC_119_given_a_default_run_then_the_lists_in_effect_precede_an_unchanged_summary_line(self):
+        lines = self.run_with()
+        excluded = self.line(lines, "excluded (default): ")
+        extensions = self.line(lines, "scanned extensions (default): ")
+        names = self.line(lines, "scanned names (always): ")
+        for entry in tm.DEFAULT_EXCLUDES:
+            self.assertIn(entry, excluded)
+        for entry in tm.DEFAULT_EXTENSIONS:
+            self.assertIn(entry, extensions)
+        for entry in tm.DEFAULT_NAMES:
+            self.assertIn(entry, names)
+        self.assertRegex(lines[-1], r"^agnos-perf-center: \d+ elements")
+
+    def test_RQ_TRC_119_given_user_lists_then_the_lines_say_user_and_hold_only_them(self):
+        lines = self.run_with("--exclude", "*.md", "--ext", ".py")
+        self.assertEqual("agnos-perf-center: excluded (user): *.md", self.line(lines, "excluded (user): "))
+        self.assertEqual("agnos-perf-center: scanned extensions (user): .py", self.line(lines, "scanned extensions (user): "))
+
+    def test_RQ_TRC_119_given_the_skill_then_its_report_step_names_the_scan_lines(self):
+        report = [line for line in (HERE.parent / "SKILL.md").read_text(encoding="utf-8").splitlines()
+                  if line.startswith("**Report**")]
+        self.assertEqual(1, len(report))
+        for words in ("scanned extensions", "scanned names", "excluded"):
+            self.assertIn(words, report[0])

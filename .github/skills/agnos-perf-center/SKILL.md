@@ -20,7 +20,7 @@ project. Run it; do not read the scripts. `<skill-folder>` is the folder holding
 | `--process <dir>` | The folder holding `process.idx.md` |
 | `--sources <dir>` | Repeatable: every folder whose files should carry IDs (code, tests, build, CI). Not a documentation folder quoting IDs as examples: they would be counted. |
 | `--out <file>` | Default `<process>/PERF-CENTER.html` |
-| `--ext .x`, `--exclude <pattern>` | Repeatable; replace the scanned extensions, the excluded names (`fnmatch`) |
+| `--ext .x`, `--exclude <pattern>` | Repeatable; each **replaces** its default list (`--help` shows them), at the user's responsibility <!-- RQ-TRC-119 --> |
 | `--title <t>`, `--generated-at <t>` | The page's title; a fixed timestamp makes the page byte-identical |
 | `--call-graph` | Adds functions and calls. Needs once `pip install -r <skill-folder>/requirements-callgraph.txt`; without it the page is written without them |
 | `--history` | Adds who changed what and the deliveries, from git |
@@ -35,7 +35,7 @@ them; share the three together. The page loads its libraries from cdnjs, so it n
   the page when asked. A `no history: <cause>` warning on the error stream still means the page is written.
 - `1`: input error on the error stream, nothing written. Apply the Error Recovery Protocol.
 
-**Report** to the user the line as it is, the checks scoring under 10, and the path of the page, which tells the rest to its reader.
+**Report** to the user the line as it is, the `scanned extensions`, `scanned names` and `excluded` lines before it, saying whether each is the default or the user's, the checks scoring under 10, and the path of the page, which tells the rest to its reader.
 
 **When asked to explain or maintain, read only the file concerned:**
 

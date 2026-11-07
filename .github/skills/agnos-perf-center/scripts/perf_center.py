@@ -71,7 +71,9 @@ DEFAULT_NAMES = frozenset({"CMakeLists.txt", "Makefile", "makefile", "GNUmakefil
                            "Rakefile", "Gemfile", "meson.build", "BUILD", "BUILD.bazel", "WORKSPACE"})
 DEFAULT_EXCLUDES = (".git", ".hg", ".svn", "node_modules", "build", "build-*", "build_*", "cmake-build-*", "dist",
                     "out", "_deps", ".venv", "venv", "__pycache__", ".idea", ".vs", ".vscode", "target", "bin", "obj")
-MAX_SOURCE_BYTES = 2 * 1024 * 1024             # a larger file is taken as generated or as data (DEC-TRC-003)
+LIST_SEPARATOR = ", "                          # RQ-TRC-119: how a scan list is printed
+ORIGIN_DEFAULT, ORIGIN_USER, ORIGIN_ALWAYS = "default", "user", "always"
+MAX_SOURCE_BYTES = 2 * 1024 * 1024            # a larger file is taken as generated or as data (DEC-TRC-003)
 BINARY_PROBE_BYTES = 8192                      # a NUL byte in this head marks a binary file
 
 # DEC-TRC-005, DEC-TRC-008: the page's parts, beside this script in the skill folder.
@@ -647,10 +649,14 @@ def parse_args(argv):
     parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
     parser.add_argument("--sources", required=True, action=KEY_APPEND, help="source folder to scan (repeatable)")
     parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
+    # RQ-TRC-119: the default lists are shown, so the user knows what a replacement drops.
     parser.add_argument("--ext", action=KEY_APPEND,
-                        help="source extension to scan, replaces the default list (repeatable)")
+                        help="source extension to scan, replaces the default list (repeatable); default: "
+                             f"{LIST_SEPARATOR.join(sorted(DEFAULT_EXTENSIONS))}; always scanned, whatever --ext: "
+                             f"{LIST_SEPARATOR.join(sorted(DEFAULT_NAMES))}")
     parser.add_argument("--exclude", action=KEY_APPEND,
-                        help="file or folder name pattern to skip, replaces the default list (repeatable)")
+                        help="file or folder name pattern to skip, replaces the default list (repeatable); default: "
+                             f"{LIST_SEPARATOR.join(DEFAULT_EXCLUDES)}")
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
     parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
                                                "makes the output reproducible")
@@ -678,6 +684,15 @@ def check_history_options(args):
     history_depth(args.history_depth)
 
 
+# RQ-TRC-119
+def print_scan_lists(extensions, user_extensions, excludes, user_excludes):
+    """Prints the lists in effect, each saying whether it is the default or the user's, before the summary line."""
+    origin = lambda given: ORIGIN_USER if given else ORIGIN_DEFAULT  # noqa: E731
+    print(f"agnos-perf-center: scanned extensions ({origin(user_extensions)}): {LIST_SEPARATOR.join(sorted(extensions))}")
+    print(f"agnos-perf-center: scanned names ({ORIGIN_ALWAYS}): {LIST_SEPARATOR.join(sorted(DEFAULT_NAMES))}")
+    print(f"agnos-perf-center: excluded ({origin(user_excludes)}): {LIST_SEPARATOR.join(excludes)}")
+
+
 def main(argv=None):
     started = time.perf_counter()    # RQ-TRC-107
     args = parse_args(argv)
@@ -689,8 +704,8 @@ def main(argv=None):
         check_sources(args.sources)
         check_history_options(args)
         model = build_process_model(process)
-        scanned = scan_sources(model, args.sources, extensions=args.ext or DEFAULT_EXTENSIONS,
-                               excludes=args.exclude or DEFAULT_EXCLUDES)
+        extensions, excludes = args.ext or DEFAULT_EXTENSIONS, args.exclude or DEFAULT_EXCLUDES
+        scanned = scan_sources(model, args.sources, extensions=extensions, excludes=excludes)
         analysis = analyse(model)
         graph = None
         if args.call_graph:
@@ -713,6 +728,7 @@ def main(argv=None):
         print(f"agnos-perf-center: {error}", file=sys.stderr)
         return 1
     write_outputs(out, data, title)
+    print_scan_lists(extensions, args.ext, excludes, args.exclude)
     # RQ-TRC-107: the duration is printed only, never put in the generated files.
     print(f"{line}; {out.as_posix()} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
     return 0

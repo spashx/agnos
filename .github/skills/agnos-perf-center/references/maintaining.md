@@ -4,8 +4,7 @@
 
 ## Generator details
 
-- `--exclude` replaces the excluded names: `.git`, `.hg`, `.svn`, `node_modules`, `build`, `build-*`, `build_*`, `cmake-build-*`,
-  `dist`, `out`, `_deps`, `.venv`, `venv`, `__pycache__`, `.idea`, `.vs`, `.vscode`, `target`, `bin`, `obj`.
+- `--ext` and `--exclude` replace their default lists, which `--help` prints and every run reports (RQ-TRC-119).
 - Exit code 1: no `process.idx.md`, a missing source folder, a broken design token, a history option without `--history`, or a
   depth that is not a positive integer.
 - Without the call-graph packages, the summary says `call graph skipped: tree-sitter not installed, run: pip install -r …`. They

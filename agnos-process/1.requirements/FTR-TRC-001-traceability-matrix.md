@@ -30,6 +30,21 @@ ADR-TRC-003).
   --process process --sources src` runs, Then it exits 0 and the page exists at `process/PERF-CENTER.html`.
 - **Dependencies**: DEC-TRC-001
 
+### RQ-TRC-119: What is scanned and excluded is always shown
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The trace generator SHALL show the scanned extensions, the always-scanned file names and the excluded patterns
+  in its `--help`, with the default lists, and on every run in one line each before the summary line, each line saying whether
+  the list is the default or the user's (`--ext`, `--exclude` replace the default list, at the user's own responsibility); the
+  skill SHALL have those lines reported with the summary line, so that a user calling the skill through an AI learns them too.
+- **Rationale**: the user must understand what the tool reads and skips, whether they call it or an AI does (owner, 2026-11-07).
+- **Priority**: Must
+- **Acceptance Criteria**: Given `--help`, Then the help of `--ext` and `--exclude` lists every default entry and says it
+  replaces it; Given a run without them, Then stdout holds `scanned extensions (default):`, `scanned names (always):` and
+  `excluded (default):` lines with every default entry, before an unchanged summary line; Given `--exclude "*.md"`, Then stdout
+  holds `excluded (user): *.md`; Given `SKILL.md`, Then its Report step names those lines.
+- **Dependencies**: RQ-TRC-001, RQ-TRC-006, DEC-TRC-001
+
 ### RQ-TRC-002: Missing or unreadable inputs
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
