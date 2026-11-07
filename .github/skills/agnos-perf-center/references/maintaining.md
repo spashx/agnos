@@ -4,7 +4,7 @@
 
 ## Generator details
 
-- `--ext` and `--exclude` replace their default lists, which `--help` prints and every run reports (RQ-TRC-119).
+- `--ext` and `--exclude` replace their default lists, which `--help` prints and every run reports. <!-- RQ-TRC-119 -->
 - Exit code 1: no `process.idx.md`, a missing source folder, a broken design token, a history option without `--history`, or a
   depth that is not a positive integer.
 - Without the call-graph packages, the summary says `call graph skipped: tree-sitter not installed, run: pip install -r …`. They

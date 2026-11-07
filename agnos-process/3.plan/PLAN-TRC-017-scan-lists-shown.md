@@ -26,3 +26,16 @@ Make the default and user-given scan and exclusion lists visible in the help, on
   in the repo: 65 OK. Full suite on a copy: 408 run, 0 failures, 1 error (`test_skill_name` needs `.git`, OK in the repo),
   3 skipped (perf budgets, need `AGNOS_PERF_CENTER_PERF=1`). `SKILL.md`: 46 lines (≤ 50, DEC-TRC-050).
 - **Assumptions**: The scan lines go to stdout before the summary, which stays the last line, unchanged.
+
+### TASK-TRC-105: The RQ-TRC-119 citation of maintaining.md in a comment
+- **Tier**: S
+- **Status**: Done
+- **Description**: `references/maintaining.md` cited RQ-TRC-119 as plain text, failing `agnos-meta-demo`'s citation test
+  (RQ-MTA-014); the citation becomes a comment.
+- **Requirement refs**: RQ-TRC-119
+- **ADR refs**: None
+- **Acceptance Criteria**: Given `maintaining.md`, When the demo's citation test runs, Then no ID shows outside a comment.
+- **Dependencies**: TASK-TRC-104
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
