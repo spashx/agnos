@@ -12,6 +12,8 @@ Before any other action, read **in full**:
 
 **[`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md)**
 
+Claude Code already holds that file, through the import of `CLAUDE.md`; every other agent reads it. <!-- RQ-AGT-002 / TASK-AGT-003 -->
+
 That file is the single normative source of the process. This file only tells you where things are
 and how to map the process to your tool; where they disagree, the instructions file wins. Do not
 rely on a summary, including the README.
@@ -55,8 +57,10 @@ which to run for the session's `platform`. Never reimplement a skill's work by h
 | "present the task and wait for approval" | Stop your turn; do not continue until the user approves |
 | "commit" | Only through `agnos-git-workflow commit-task` — never a raw `git commit` |
 
-Tool-specific entry points already exist for GitHub Copilot (`.github/instructions/`,
-`.github/skills/`) and Claude Code (`CLAUDE.md`, `.claude/skills/`); this file serves every other agent.
+Tool-specific entry points also exist for GitHub Copilot (`.github/instructions/`,
+`.github/skills/`) and Claude Code (`CLAUDE.md`, `.claude/skills/`). This file serves every agent: Claude Code
+reads it through the import of `CLAUDE.md`, and GitHub Copilot in VS Code reads a workspace-root `AGENTS.md` by
+default. <!-- RQ-AGT-002 / TASK-AGT-003 -->
 
 ## 5. Where things are
 

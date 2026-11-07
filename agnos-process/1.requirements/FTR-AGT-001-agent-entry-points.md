@@ -33,8 +33,10 @@ cross-tool convention read by other agents, and keeps all entry points aligned o
 ### RQ-AGT-002: Every entry point restates the approval gate explicitly
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: Each agent entry point SHALL restate, in its own text (not only by reference to the imported
-  instructions file), that every task is tiered, presented to the user, and started only after explicit approval.
+- **Statement**: `CLAUDE.md` and `AGENTS.md` SHALL each carry, in their own text or in a file they import, a
+  restatement beyond the instructions file's Definition of Ready that every task is tiered, presented to the user, and
+  started only after explicit approval. (amended on 2026-11-07, TASK-AGT-003: the statement asked for the entry
+  point's own text while its acceptance criterion asked for an import)
 - **Rationale**: an entry point's own wording is what an agent attends to most directly; a rule stated once, deep in
   the imported file, is easier to lose under a "keep going" default than one restated locally.
 - **Priority**: Should

@@ -50,3 +50,30 @@ Implements FTR-AGT-001: `AGENTS.md` and the alignment of `CLAUDE.md` on the four
 - **Assumptions**: Chosen over copying AGENTS.md's "Non-negotiable rules" text into CLAUDE.md verbatim
   (the alternative the owner was offered), per the owner's explicit choice of the import mechanism over
   duplication.
+
+### TASK-AGT-003: AGENTS.md says how each tool reads it, RQ-AGT-002 made consistent
+- **Tier**: M
+- **Status**: Done
+- **Description**: `AGENTS.md` keeps its read-in-words order (no `@` line: no other tool documents an import syntax)
+  and states that Claude Code already holds the instructions file through `CLAUDE.md`'s import; its closing sentence,
+  false since TASK-AGT-002, says which tools read it. RQ-AGT-002's statement is aligned with its acceptance criterion.
+  `CLAUDE.md` keeps both imports.
+- **Requirement refs**: RQ-AGT-001, RQ-AGT-002
+- **ADR refs**: None
+- **Acceptance Criteria** (Gherkin):
+  - **Given** `AGENTS.md`, **When** it is read, **Then** no line starts with `@`, §1 still orders reading the
+    instructions file in full, and no sentence says that Claude Code does not read it
+  - **Given** RQ-AGT-002, **When** its statement and its acceptance criterion are read, **Then** both accept a
+    restatement carried through an import
+  - **Given** `CLAUDE.md`, **When** it is read, **Then** it still holds `@AGENTS.md` and
+    `@.github/instructions/agnos-sw-eng.instructions.md`
+- **Dependencies**: TASK-AGT-002
+- **Assignee**: AI
+- **Verification**: search `^@` over `AGENTS.md` and `CLAUDE.md`: only `CLAUDE.md:5 @AGENTS.md` and
+  `CLAUDE.md:6 @.github/instructions/agnos-sw-eng.instructions.md`; `AGENTS.md:11` still "read **in full**", no
+  "every other agent" left except the new line 15 about the other agents. RQ-AGT-002's statement now names "their own
+  text or in a file they import", as its criterion does. `agnos-meta-docs-sync` tests: 18 run, 18 passed, 0 skipped.
+  `layout.py --check`: exit 1, 4 findings, all in `perf_center.py` (VERSION read from the layout), a file unchanged
+  since `0b1de8b` (TASK-TRC-094), so not caused by this task. No unit test: documentation only.
+- **Assumptions**: Option A of the owner's review of 2026-11-07, chosen over a `@` line in `AGENTS.md`
+  (TASK-AGT-003's first draft, never written) after a critic's review and the vendors' documentation.
