@@ -132,3 +132,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: Rehearsal of `62d32de`: exit 0, 61 files, 1,224 IDs removed, no problem; `process/` left only in `agnos-init`'s migration wording, the legacy constants of the copies and `CHANGELOG.md`'s history; `agnos-instructions/SKILL.md` named `agnos-instructions`, no `agnos-process` skill. Proof, `claude` on the PATH: exit 0; Claude Code validate-plugin, validate-catalogue, marketplace-add, install, skills (6 of 6) pass; Copilot marketplace-add, install, skills (6 of 6) pass. Copy of `agnos-trial-copilot`: `moved process to agnos-process`, 4 renames in `git status` with `agnos-process/process.idx.md`, `agnos-index` exit 0, 5 entries.
 - **Assumptions**: None
+
+### TASK-PLG-050: The check accepts a name read as an attribute of the copy
+- **Tier**: M
+- **Status**: Done
+- **Description**: `layout.py --check` no longer flags a layout name preceded by `.`, such as `agnos_layout.VERSION`: it is the copy's constant, not the name written out.
+- **Requirement refs**: RQ-PLG-036
+- **ADR refs**: ADR-PLG-006
+- **Acceptance Criteria**: Given a delivered script holding `agnos_layout.VERSION`, When checked, Then no finding; Given it also holds `"VERSION"`, Then that line is named.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: New test failed before the fix, passes after; `test_layout` 17 OK; `layout.py --check` on the working tree: 0 findings. Release suite on a copy: 133 run, 131 OK, 2 skipped (`test_proof` DemoTest, `test_determinism` ThisRepositoryTest: "the demo is not built" in the copy); both rehearse HEAD, run in the repo after the commits of this task and TASK-TRC-101. Perf-center suite: 399 run, 396 OK, 3 skipped.
+- **Assumptions**: None

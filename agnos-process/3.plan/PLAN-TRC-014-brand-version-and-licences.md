@@ -95,3 +95,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: The Status line of ADR-TRC-014 is corrected to "RQ-TRC-109 to RQ-TRC-116" in the same task, being a slip of TASK-TRC-097; the closed record of TASK-TRC-095, which names the former label, stays as history.
+
+### TASK-TRC-101: `perf_center.py` reads the name of `VERSION` from the layout's copy
+- **Tier**: S
+- **Status**: Done
+- **Description**: TASK-TRC-094 wrote the layout's name `VERSION` in `perf_center.py`, which `layout.py --check` refuses (4 findings, failing the release and 3 tests of `agnos-meta-release`). The file's name is read from `agnos_layout.VERSION`; the template marker becomes `@APP_VERSION@`; a docstring is reworded.
+- **Requirement refs**: RQ-PLG-036, RQ-PLG-037, RQ-TRC-109
+- **ADR refs**: ADR-PLG-006 (DEC-PLG-027, DEC-PLG-028), ADR-TRC-014 (DEC-TRC-057)
+- **Acceptance Criteria**: Given the repository, When `layout.py --check` runs, Then it exits 0 with no finding; Given a `VERSION` of `3.1.0`, When a page is generated, Then its foot still reads "v.3.1".
+- **Dependencies**: TASK-TRC-094, TASK-PLG-050 (the check accepts `agnos_layout.VERSION`)
+- **Assignee**: AI
+- **Verification**: N/A (Tier S); `layout.py --check`: 0 findings; perf-center suite 396 OK, 3 skipped.
+- **Assumptions**: None

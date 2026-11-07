@@ -148,8 +148,9 @@ def script_literals(layout):
 def check_scripts(root, layout):
     """Findings for each line of a delivered script naming the folder or a name of the layout (RQ-PLG-036)."""
     findings = []
-    # a name standing alone: inside a word, such as the copy's own constant AGNOS_VERSION, it is not the layout's value
-    literals = [(name, re.compile(rf"(?<![\w-]){re.escape(name)}(?![\w-])")) for name in script_literals(layout)]
+    # a name standing alone: inside a word, such as the copy's own constant AGNOS_VERSION, or after a dot, such as
+    # agnos_layout.VERSION, it is the copy's constant, not the layout's value (TASK-PLG-050)
+    literals = [(name, re.compile(rf"(?<![\w.-]){re.escape(name)}(?![\w-])")) for name in script_literals(layout)]
     pattern = cited_paths(layout)
     for path in delivered_scripts(root):
         for number, line in enumerate(path.read_text(encoding=ENCODING).splitlines(), start=1):
