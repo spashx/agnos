@@ -108,3 +108,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: rehearsal of `25869d8`: `exit=0, 55 files, 1195 IDs removed, 2 lines to read`; both read in the output and judged false alarms (a sentence whole once its comment left, a docstring); 15 mentions, all in `CHANGELOG.md` and the perf center's `maintaining.md`; `COMPATIBILITY.md` and the guide template present, no `GETTING_STARTED.MD`, no `__pycache__`. Proof with `AGNOS_CLAUDE` naming the VS Code extension's `claude.exe` 2.1.318: exit 0, 8 lines pass: claude validate-plugin, validate-catalogue, marketplace-add, install, skills 6 of 6; copilot marketplace-add, install, skills 6 of 6. Not run: `--with-models` (costs credits, not asked) and `--linux`.
 - **Assumptions**: the earlier output and its two reports were removed with the owner's approval of 2026-11-04. The proof's working folder `C:\pp` could not be removed by the agent: the owner's to delete.
+
+### TASK-PLG-049: The README names the settings Copilot in VS Code needs
+- **Tier**: M
+- **Status**: Done
+- **Description**: The README's Requirements section names the VS Code settings AGNOS relies on, `chat.useAgentsMdFile` and `chat.useAgentSkills`, and says that `chat.useClaudeMdFile` reads the same block again; RQ-PLG-023 is amended to ask for an AI tool's settings, and its README test names them.
+- **Requirement refs**: RQ-PLG-023
+- **ADR refs**: ADR-PLG-003 (DEC-PLG-018, unchanged: the requirements per platform are the README's)
+- **Acceptance Criteria**: Given `README.md`, When its Requirements section is read, Then it names `chat.useAgentsMdFile` and `chat.useAgentSkills`, And its headings and its silence on what was tested are unchanged.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: test first: `test_marketplace.ReadmeTest` 4 run, 1 FAIL `'chat.useAgentsMdFile' not found` before the README changed; after it, 4 passed. `agnos-meta-qa` suite 32 passed. `agnos-meta-release` suite 132 run, 129 passed, 0 skipped, 3 failed (`test_layout` RQ-PLG-037, `test_determinism` RQ-PLG-013, `test_proof` RQ-MTA-011), all from the 4 layout findings in `perf_center.py` (VERSION read from the layout), present at `ffb54ba` before this session and computed on HEAD by the rehearsal (`release.py` `layout_findings`): not caused by this task, left for a task of their own.
+- **Assumptions**: the defaults (both `true`) and the "Local sessions only" scope come from VS Code's settings reference, read on 2026-11-07; Copilot CLI's settings were not found and are not stated. Owner's choice of the README over `COMPATIBILITY.md`, which keeps DEC-PLG-018.

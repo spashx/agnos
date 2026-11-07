@@ -29,7 +29,8 @@ FORMER_GUIDE = "GETTING_STARTED.MD"
 ROOT = HERE.parents[3]
 COMPATIBILITY = "COMPATIBILITY.md"           # RQ-PLG-023
 README_SECTIONS = ["What AGNOS Provides", "Requirements", "Getting Started", "License"]
-REQUIREMENTS_NAMED = ("git", "PowerShell 5.1", "bash", "Python 3.9", "requirements-callgraph.txt", "not fetched")
+REQUIREMENTS_NAMED = ("git", "PowerShell 5.1", "bash", "Python 3.9", "requirements-callgraph.txt", "not fetched",
+                      "chat.useAgentsMdFile", "chat.useAgentSkills")     # TASK-PLG-049: the VS Code settings AGNOS relies on
 MOVED_SECTIONS = ("What was tested", "How a Session Runs", "Core Concepts", "Continuous Improvement", "Repository Map")
 
 

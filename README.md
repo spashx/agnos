@@ -49,6 +49,11 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 `pip install -r requirements-callgraph.txt` from the skill's folder, or let the agent do it with your approval. They are
 prebuilt wheels, so no compiler is needed. Without them, the page is written all the same, without functions.
 
+**GitHub Copilot in VS Code.** Keep on two settings, both on by default: `chat.useAgentsMdFile`, which reads the AGNOS
+block of your project's `AGENTS.md`, and `chat.useAgentSkills`, which lets that block invoke the `agnos-instructions`
+skill. `chat.useClaudeMdFile`, on by default too, also reads the same block from `CLAUDE.md`, which does no harm. These
+settings apply to VS Code's Local sessions. <!-- RQ-PLG-023 / TASK-PLG-049 -->
+
 The tools and systems AGNOS was checked on are listed in [COMPATIBILITY.md](COMPATIBILITY.md). <!-- RQ-PLG-008 -->
 
 ---
