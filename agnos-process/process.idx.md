@@ -902,5 +902,5 @@ PLAN-TRC-017|1-41||What is Scanned and Excluded, Always Shown
 TASK-TRC-104|15-29|Done|Scan and exclusion lists in help, run output and skill report
 TASK-TRC-105|30-41|Done|The RQ-TRC-119 citation of maintaining.md in a comment
 @agnos-process/3.plan/PLAN-TRC-018-headless-browser-tests.md
-PLAN-TRC-018|1-32||The Perf Center's Headless-Browser Tests Fail
-TASK-TRC-106|18-32|Not Started|Find why the headless-browser tests read nothing, and fix it
+PLAN-TRC-018|1-39||The Perf Center's Headless-Browser Tests Fail
+TASK-TRC-106|18-39|Done|Find why the headless-browser tests read nothing, and fix it
