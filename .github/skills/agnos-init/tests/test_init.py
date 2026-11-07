@@ -213,7 +213,7 @@ class RepeatTest(InitCase):
                 for path in project.rglob("*"):
                     if path.is_file():
                         self.assertEqual(OLD_TIME, int(path.stat().st_mtime), path.name)
-                for entry in ENTRY_FILES:
+                for entry in (*ENTRY_FILES, ".gitignore"):          # RQ-INI-016: the second run changes no .gitignore
                     self.assertIn(f"unchanged {entry}", result.stdout)
 
 
@@ -381,6 +381,73 @@ class MigrationTest(InitCase):
                 self.assertIn(LEGACY_FOLDER, result.stderr)
                 self.assertIn(NEW_FOLDER, result.stderr)
                 self.assertEqual(files, snapshot(project))
+
+
+GITIGNORE = ".gitignore"
+SESSION_STATE = f"{FOLDER}/{LAYOUT['sessionState']}"      # RQ-INI-016: the path agnos-init keeps out of git
+IGNORE_LINE = SESSION_STATE.encode() + b"\n"
+
+
+def ignored(project, path):
+    """Whether git's ignore rules match the path, tracked or not (RQ-INI-016)."""
+    return subprocess.run(["git", "check-ignore", "-q", "--no-index", "--", path], cwd=project).returncode == 0
+
+
+class GitignoreTest(InitCase):
+    """RQ-INI-016 / DEC-INI-012: the session state is added to .gitignore only when it is not ignored yet."""
+
+    def test_RQ_INI_016_given_a_project_without_gitignore_when_run_then_it_is_created_with_the_session_state(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(IGNORE_LINE, (project / GITIGNORE).read_bytes())
+            self.assertIn(f"created {GITIGNORE}", result.stdout)
+
+    def test_RQ_INI_016_given_a_git_project_when_run_then_git_ignores_the_session_state(self):
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name)
+                git(project, "init", "-q")
+                self.assertFalse(ignored(project, SESSION_STATE))
+                result = runner(project)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertTrue(ignored(project, SESSION_STATE))
+
+    def test_RQ_INI_016_given_a_git_project_whose_rule_already_ignores_it_when_run_then_gitignore_is_unchanged(self):
+        broader = f"# mine\n{FOLDER}/_sessionstate/\n".encode()
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name, {GITIGNORE: broader})
+                git(project, "init", "-q")
+                result = runner(project)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(broader, (project / GITIGNORE).read_bytes())
+                self.assertIn(f"unchanged {GITIGNORE}", result.stdout)
+
+    def test_RQ_INI_016_given_a_tracked_session_state_and_no_rule_when_run_then_the_rule_is_added(self):
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name, {GITIGNORE: b"*.log\n", SESSION_STATE: b"platform: windows\n"})
+                git(project, "init", "-q")
+                git(project, "add", ".")
+                git(project, "commit", "-q", "-m", "state")
+                result = runner(project)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(b"*.log\n" + IGNORE_LINE, (project / GITIGNORE).read_bytes())
+                self.assertIn(f"added {GITIGNORE}", result.stdout)
+
+    def test_RQ_INI_016_given_a_crlf_gitignore_without_final_newline_outside_git_when_run_then_the_line_is_added_in_crlf(self):
+        original = b"# mine\r\nbuild/"
+        for _, project, result in self.each_script({GITIGNORE: original}):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(original + b"\r\n" + SESSION_STATE.encode() + b"\r\n", (project / GITIGNORE).read_bytes())
+            self.assertIn(f"added {GITIGNORE}", result.stdout)
+
+    def test_RQ_INI_016_given_the_line_already_present_outside_git_when_run_then_gitignore_is_unchanged(self):
+        present = b"build/\r\n" + SESSION_STATE.encode() + b"\r\n"
+        for _, project, result in self.each_script({GITIGNORE: present}):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(present, (project / GITIGNORE).read_bytes())
+            self.assertIn(f"unchanged {GITIGNORE}", result.stdout)
 
 
 class GuideTest(InitCase):

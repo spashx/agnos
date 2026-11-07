@@ -59,7 +59,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-008: `agnos-init` keeps `session.yaml` out of git
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Tests first in `test_init.py`, then both `init.ps1` and `init.sh` add the path to the target's `.gitignore` only
   when `git check-ignore` says it is not ignored, or by line comparison outside a git repository, and report it.
 - **Requirement refs**: RQ-INI-016, RQ-INI-003
@@ -68,8 +68,14 @@ This plan implements the tasks in the format specified below.
   `agnos-init` still pass.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `GitignoreTest` and `RepeatTest` before the scripts: 7 run, failures=10, errors=1; after: `agnos-init/tests`
+  38 OK, 0 skipped, PowerShell 5.1 and Git Bash run on the same cases (created, added in CRLF, unchanged by a broader rule, added
+  for a tracked state, unchanged on a second run). `layout.py --check`: 0 findings. On a copy: `agnos-meta-release` 133 OK (2 skipped:
+  the demo is not built), `agnos-meta-release-prep` 25 OK, `agnos-meta-plugin-proof` 16 OK, `agnos-meta-demo` 12 OK,
+  `agnos-meta-docs-sync` 18 OK, `agnos-session` 16 OK.
+- **Assumptions**: `check-ignore --no-index`, so that a tracked state is judged by the rules alone; the line is the plain path, LF
+  in a created file, the file's first line ending otherwise; the report is `created`, `added` or `unchanged`, last of the run; the
+  demo's `.gitignore`, copied over the one `init` writes, is handled by TASK-INI-009.
 
 ### TASK-INI-011: This repository untracks its `session.yaml`
 - **Tier**: S

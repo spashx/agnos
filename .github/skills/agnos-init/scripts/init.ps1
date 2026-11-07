@@ -3,6 +3,7 @@
   Adds AGNOS to a project: the block of its entry-point files, its guide and its process folders.
 .DESCRIPTION
   RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
+  RQ-INI-016 / ADR-INI-002 (DEC-INI-012): the session state is added to .gitignore.
   Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
   written (message on the error stream). init.sh gives the same bytes.
 .PARAMETER Target   Folder of the project.
@@ -25,6 +26,8 @@ $PROCESS_FOLDERS = @($AGNOS_SUBFOLDERS | ForEach-Object { "$AGNOS_FOLDER/$_" })
 $README = 'readme.md'
 $GUIDE = $AGNOS_GUIDE
 $OWNED_FILES = @($AGNOS_GUIDE, $AGNOS_VERSION)  # RQ-PLG-033 / DEC-PLG-026: written into the process folder
+$GITIGNORE = '.gitignore'
+$SESSION_STATE = "$AGNOS_FOLDER/$AGNOS_SESSION_STATE"   # RQ-INI-016: kept out of git
 # DEC-INI-002: one byte is one character, so that encodings and line endings pass through unchanged.
 $BYTES = [System.Text.Encoding]::GetEncoding(28591)
 
@@ -90,8 +93,24 @@ function Move-ProcessPath([string]$Root, [string]$From, [string]$To) {
   }
 }
 
+# RQ-INI-016 / DEC-INI-012: whether git's rules ignore the session state, tracked or not; outside a git repository,
+# whether .gitignore holds its line.
+function Test-Ignored([string]$Root, [string]$GitignoreText) {
+  $ErrorActionPreference = 'Continue'
+  $inRepository = $false
+  try {
+    & git -C $Root rev-parse --is-inside-work-tree 2>&1 | Out-Null
+    $inRepository = $LASTEXITCODE -eq 0
+  } catch { $inRepository = $false }
+  if ($inRepository) {
+    & git -C $Root check-ignore -q --no-index -- $SESSION_STATE 2>&1 | Out-Null
+    return $LASTEXITCODE -eq 0
+  }
+  return @($GitignoreText -split $LF | ForEach-Object { $_.TrimEnd("`r") }) -ccontains $SESSION_STATE
+}
+
 try {
-  $targetFull = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).Path, $Target))   # an absolute target stays as it is
+  $targetFull =[System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).Path, $Target))   # an absolute target stays as it is
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) { throw "target folder not found: $Target" }
   $legacyIndex = Join-Path (Join-Path $targetFull $AGNOS_LEGACY_FOLDER) $AGNOS_LEGACY_INDEX
   $migrate = ($AGNOS_LEGACY_FOLDER -ne $AGNOS_FOLDER) -and (Test-Path -LiteralPath $legacyIndex -PathType Leaf)
@@ -146,6 +165,24 @@ try {
       Write-Output "$($REPORT_PREFIX)moved $GUIDE to $AGNOS_FOLDER/$GUIDE"
     }
   }
+  # RQ-INI-016 / DEC-INI-012: the session state is kept out of git, unless a rule already ignores it.
+  $gitignorePath = Join-Path $targetFull $GITIGNORE
+  $gitignoreExists = Test-Path -LiteralPath $gitignorePath -PathType Leaf
+  $gitignoreText = ''
+  if ($gitignoreExists) { $gitignoreText = Read-Bytes $gitignorePath }
+  if (Test-Ignored $targetFull $gitignoreText) {
+    $gitignoreAction = 'unchanged'
+  } elseif (-not $gitignoreExists) {
+    [System.IO.File]::WriteAllBytes($gitignorePath, $BYTES.GetBytes("$SESSION_STATE$LF"))
+    $gitignoreAction = 'created'
+  } else {
+    $eol = Get-Eol $gitignoreText
+    $text = $gitignoreText
+    if ($text.Length -gt 0 -and -not $text.EndsWith($LF)) { $text += $eol }
+    [System.IO.File]::WriteAllBytes($gitignorePath, $BYTES.GetBytes("$text$SESSION_STATE$eol"))
+    $gitignoreAction = 'added'
+  }
+  Write-Output "$REPORT_PREFIX$gitignoreAction $GITIGNORE"
   exit 0
 } catch {
   [Console]::Error.WriteLine("$REPORT_PREFIX$($_.Exception.Message)")

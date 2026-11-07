@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # agnos-init (bash): adds AGNOS to a project, the block of its entry-point files, its guide and its process folders.
 # RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
+# RQ-INI-016 / ADR-INI-002 (DEC-INI-012): the session state is added to .gitignore.
 # Usage: init.sh --target <project folder>
 # Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
 # written (message on the error stream). init.ps1 gives the same bytes.
@@ -19,6 +20,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 . "$SCRIPT_DIR/agnos-layout.sh"
 GUIDE=$AGNOS_GUIDE
 OWNED_FILES="$AGNOS_GUIDE $AGNOS_VERSION"    # RQ-PLG-033 / DEC-PLG-026: written into the process folder
+GITIGNORE='.gitignore'
+SESSION_STATE=$AGNOS_FOLDER/$AGNOS_SESSION_STATE    # RQ-INI-016: kept out of git
 PROCESS_FOLDERS=''
 for sub in $AGNOS_SUBFOLDERS; do PROCESS_FOLDERS="$PROCESS_FOLDERS $AGNOS_FOLDER/$sub"; done
 
@@ -164,4 +167,32 @@ if [ -f "$target/$GUIDE" ] && [ "$(first_line "$target/$GUIDE")" = "$(first_line
   rm -f "$target/$GUIDE" || fail "cannot remove $GUIDE"
   echo "${REPORT_PREFIX}moved $GUIDE to $AGNOS_FOLDER/$GUIDE"
 fi
+
+# RQ-INI-016 / DEC-INI-012: whether git's rules ignore the session state, tracked or not; outside a git repository,
+# whether .gitignore holds its line.
+session_state_ignored() {
+  if git -C "$target" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$target" check-ignore -q --no-index -- "$SESSION_STATE" >/dev/null 2>&1
+    return
+  fi
+  [ -f "$target/$GITIGNORE" ] && tr -d '\r' < "$target/$GITIGNORE" | grep -qxF -- "$SESSION_STATE"
+}
+
+# RQ-INI-016 / DEC-INI-012: the session state is kept out of git, unless a rule already ignores it.
+gitignore_path=$target/$GITIGNORE
+if session_state_ignored; then
+  gitignore_action=unchanged
+elif [ ! -e "$gitignore_path" ]; then
+  printf '%s\n' "$SESSION_STATE" > "$gitignore_path" || fail "cannot write $GITIGNORE"
+  gitignore_action=created
+else
+  eol_text='\n'
+  [ "$(head -n 1 "$gitignore_path" | tail -c 2 | od -An -tx1 | tr -d ' ')" = 0d0a ] && eol_text='\r\n'
+  {
+    if [ -s "$gitignore_path" ] && [ "$(tail -c 1 "$gitignore_path" | od -An -tx1 | tr -d ' ')" != 0a ]; then printf "$eol_text"; fi
+    printf "%s$eol_text" "$SESSION_STATE"
+  } >> "$gitignore_path" || fail "cannot write $GITIGNORE"
+  gitignore_action=added
+fi
+echo "$REPORT_PREFIX$gitignore_action $GITIGNORE"
 exit 0

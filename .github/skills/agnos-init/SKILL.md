@@ -41,6 +41,9 @@ each folder of `agnos-process/` that is absent, with a `readme.md` saying what i
 user's guide `AGNOS-GETTING-STARTED.md` and `VERSION.txt`, the AGNOS version installed: both are AGNOS's, rewritten whole from their
 templates and reported `created`, `updated` or `unchanged`. A root `AGNOS-GETTING-STARTED.md` whose first line is AGNOS's, written by
 a former init, is removed and reported `moved`; any other root file of that name stays. <!-- RQ-PLG-021, RQ-PLG-033 / DEC-PLG-016, DEC-PLG-026 -->
+It adds `agnos-process/_sessionstate/session.yaml` to the project's `.gitignore`, created if absent, only when git's rules do not
+ignore it yet (outside a git repository, when no line of `.gitignore` is that path), reported `created`, `added` or `unchanged`. It
+never untracks a file already committed. <!-- RQ-INI-016 / DEC-INI-012 -->
 It changes nothing else in the project.
 
 A project initialised before holds its artifacts in `process/`: when `process/INDEX.idx.md` exists and `agnos-process/` does not, the

@@ -661,13 +661,13 @@ PLAN-INI-002|1-37||An Order to Read the Instructions
 TASK-INI-004|15-26|Done|The CLAUDE.md block orders the agent to read the instructions
 TASK-INI-005|27-37|Done|A readme in each process folder
 @agnos-process/3.plan/PLAN-INI-003-session-state-by-script.md
-PLAN-INI-003|1-115||Session State Written by a Script
+PLAN-INI-003|1-121||Session State Written by a Script
 TASK-INI-006|17-39|Done|The `agnos-session` skill
 TASK-INI-007|40-59|Done|The instructions call the skill
-TASK-INI-008|60-73|Not Started|`agnos-init` keeps `session.yaml` out of git
-TASK-INI-011|74-87|Not Started|This repository untracks its `session.yaml`
-TASK-INI-009|88-101|Not Started|The demo without a committed session state
-TASK-INI-010|102-115|Not Started|The documents follow
+TASK-INI-008|60-79|Done|`agnos-init` keeps `session.yaml` out of git
+TASK-INI-011|80-93|Not Started|This repository untracks its `session.yaml`
+TASK-INI-009|94-107|Not Started|The demo without a committed session state
+TASK-INI-010|108-121|Not Started|The documents follow
 @agnos-process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion
