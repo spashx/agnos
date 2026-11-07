@@ -20,7 +20,7 @@ The whole process artifacts are managed into the `agnos-process/` folder of the 
 - `agnos-process/1.requirements/` – Feature and Requirements files
 - `agnos-process/2.architecture/` – Architecture Decision Records (ADRs) files
 - `agnos-process/3.plan/` – Plan files with PLAN-* and TASK-* definitions
-- `agnos-process/_sessionstate/` – Session state YAML file (`session.yaml`) and the cross-session friction-metrics log (`METRICS_LOG.md`), both version-controlled
+- `agnos-process/_sessionstate/` – Session state YAML file (`session.yaml`, not version-controlled) and the cross-session friction-metrics log (`METRICS_LOG.md`, version-controlled), both written ONLY by the `agnos-session` skill <!-- RQ-INI-016, RQ-INI-017 -->
 - `agnos-process/process.idx.md` – Generated index (ID, line range, status, title) of all artifact definitions, version-controlled. It SHALL be written ONLY by the `agnos-index` skill, NEVER by hand. <!-- RQ-IDX-013 -->
  
 ## START SESSION ACTION
@@ -29,19 +29,16 @@ When the user asks to start a session, run these steps in order before any task:
 
 1. Read this file fully if it has not been loaded in context yet.
 2. Read any domain- or stack-specific instruction files present in the current project.
-3. **Resolve session state variables** :
-   - a. **Detect platform** (system variable): run a terminal command to identify the OS
-     (`$PSVersionTable` on Windows, `uname -s` on macOS/Linux). Set `platform` to `windows`,
-     `macos`, or `linux`.
-   - b. **Ask user for `unit_tests`** (user variable): use the built-in user-question tool
-     (`askQuestion` on GitHub Copilot, `AskUserQuestion` on Claude Code) — "Should unit tests be
-     generated and run in this session? (yes / no)". Set `unit_tests` to `true` or `false`.
-   - c. **Write** `agnos-process/_sessionstate/session.yaml` with the resolved values.
-   - d. **Display a summary table** of all variable names and values. Allow the user to override
-     any value. If any value is overridden, rewrite `session.yaml` before proceeding.
-   - e. **The values in `session.yaml` are the single source of truth for the entire session.**
+3. **Resolve session state variables** (never write `session.yaml` yourself): <!-- RQ-INI-017 / DEC-INI-009 -->
+   - a. **Ask the user** the session trigram `<TRI>` they HAVE to provide, and, with the built-in
+     user-question tool (`askQuestion` on GitHub Copilot, `AskUserQuestion` on Claude Code), "Should
+     tests be generated and run in this session? (yes / no)".
+   - b. **Write the state** by invoking the `agnos-session` skill's `init --tri <TRI> --tests <true|false>`
+     sub-command: it detects `platform` and rewrites `session.yaml` whole.
+   - c. **Display the table** it prints. Allow the user to override any value: call `init` again with all the values.
+   - d. **The values in `session.yaml` are the single source of truth for the entire session.**
      Before starting any Tier M or L task, if session variable values are not in active context,
-     read `agnos-process/_sessionstate/session.yaml` and reload them before applying any conditional guard.
+     reload them with the `agnos-session` skill's `show` sub-command before applying any conditional guard.
 4. Invoke the `agnos-index` skill, then read `agnos-process/process.idx.md`: it is the primary source for
    steps 4 to 6, which open process documents only by the line ranges it gives. <!-- RQ-IDX-011 -->
    IF the project has no `agnos-process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
@@ -49,7 +46,7 @@ When the user asks to start a session, run these steps in order before any task:
 5. Scan `agnos-process/2.architecture/` for existing ADRs to avoid creating duplicates.
 6. Scan `agnos-process/3.plan/` for existing plans and tasks to avoid creating duplicates.
 7. MANDATORY: Report ANY semantic CONFLICTS coming from your instructions files. If you find any, STOP and ask the user to clarify which rule to follow. Do NOT proceed until the conflict is resolved.
-8. Create with GIT a new branch for the session by invoking the `agnos-git-workflow` skill's `start-session <TRI>` sub-command, where `<TRI>` is the trigram the user HAS to provide. This branch shall be used for ALL changes in the session, including edits to existing files and creation of new files. If the branch already exists, the skill will ask the user how to proceed. **NEVER work on or commit to the default/protected branch (`main` / `master` / the repository default): every change SHALL be made on the `feature/<TRI>` session branch.**
+8. Create with GIT a new branch for the session by invoking the `agnos-git-workflow` skill's `start-session <TRI>` sub-command, where `<TRI>` is the trigram given at step 3. This branch shall be used for ALL changes in the session, including edits to existing files and creation of new files. If the branch already exists, the skill will ask the user how to proceed. **NEVER work on or commit to the default/protected branch (`main` / `master` / the repository default): every change SHALL be made on the `feature/<TRI>` session branch.**
 
 ## END SESSION ACTION
 
@@ -63,8 +60,9 @@ When the user asks to start a session, run these steps in order before any task:
     invocations, Error Recovery Protocol invocations, tasks re-tiered, Verification-caught
     discrepancies. Report each counter explicitly, including 0; never omit a row.
 
-2) **Persist the metrics**: append one row (date, `TRI`, the 4 counters from step 1)
-   to `agnos-process/_sessionstate/METRICS_LOG.md`, creating it with its header row first if absent.
+2) **Persist the metrics**: invoke the `agnos-session` skill's `close <questions> <recoveries> <re-tiered> <verification>`
+   sub-command with the 4 counters from step 1, in that order: it appends the session's row to
+   `agnos-process/_sessionstate/METRICS_LOG.md`. Never write the row yourself. <!-- RQ-INI-015, RQ-INI-017 -->
 
 3) **IF** step 1's metrics table has at least one non-zero counter, **propose a recursive
    self-improvement follow-up** by invoking the `agnos-self-improvement` skill: present 1-3 candidate
@@ -126,22 +124,24 @@ the **improvement target** the project declares, never into a file of an install
 ## SESSION STATE VARIABLES
 Session state variables are named key/value pairs persisted in `agnos-process/_sessionstate/session.yaml`
 and loaded at session start. They conditionally control process execution for the duration of the
-session. The file is tracked in git .
+session. The file is not version-controlled: the `agnos-session` skill rewrites it whole at every session start. <!-- RQ-INI-016, RQ-INI-017 / DEC-INI-012, DEC-INI-013 -->
 
 ### Schema (`agnos-process/_sessionstate/session.yaml`)
 ```yaml
-unit_tests: true        # boolean — user variable: generate and run unit tests 
-platform: windows       # string — system variable: "windows" | "macos" | "linux" 
+tri: ABC                # string — user variable: the session trigram
+tests: true             # boolean — user variable: generate and run tests
+platform: windows       # string — system variable: "windows" | "macos" | "linux"
 ```
 
 ### Variable Kinds
 | Variable | Kind | Who resolves | Values |
 |----------|------|-------------|--------|
-| `unit_tests` | User | Agent asks via the user-question tool (`askQuestion` / `AskUserQuestion`) at every session start | `true` / `false` |
-| `platform` | System | Agent auto-detects via terminal probe at session start | `windows` / `macos` / `linux` |
+| `tri` | User | The user gives it at every session start | 3 uppercase letters |
+| `tests` | User | Agent asks via the user-question tool (`askQuestion` / `AskUserQuestion`) at every session start | `true` / `false` |
+| `platform` | System | The `agnos-session` skill detects it at session start | `windows` / `macos` / `linux` |
 
 ### Adding New Variables
-Add a flat key/value entry to the schema above. Never rename or remove existing keys — add only. Document the kind (user/system), who resolves it, and its allowed values.
+Add a flat key/value entry to the schema above and to the `agnos-session` skill's `init`. Document the kind (user/system), who resolves it, and its allowed values.
 
 # PROCESS ACTIVITIES
 The following chapters describe the 4 main activities of the process in detail, with specific rules and guidelines for each one.
@@ -341,14 +341,14 @@ This plan implements the tasks in the format specified below.
 
 ### Testing
 
-> **WHILE `session.unit_tests = false`**: skip ALL steps in this section 
-> If `session.unit_tests` is not in active context, read `agnos-process/_sessionstate/session.yaml` first.
+> **WHILE `session.tests = false`**: skip ALL steps in this section <!-- RQ-INI-017 / DEC-INI-013 -->
+> If `session.tests` is not in active context, reload it with the `agnos-session` skill's `show` sub-command first.
 
-- For Tier M and L tasks, every generated function or method SHALL have at least one unit test. Tier S tasks are exempt from this requirement.
-- **Test-first.** For Tier M/L tasks, author the Gherkin-named unit test(s) for the acceptance criteria BEFORE writing the production code they target — a test written after the code risks merely describing what the code does instead of what it must do. 
+- For Tier M and L tasks, every generated function or method SHALL have at least one test. Tier S tasks are exempt from this requirement.
+- **Test-first.** For Tier M/L tasks, author the Gherkin-named test(s) for the acceptance criteria BEFORE writing the production code they target — a test written after the code risks merely describing what the code does instead of what it must do. 
 - Write all tests and acceptance criteria in **Gherkin format** (Given / When / Then).
 - A function is considered delivered ONLY when ALL of the following conditions are met:
-  1. All associated unit tests pass without any modification to the test implementation.
+  1. All associated tests pass without any modification to the test implementation.
   2. Traceability to the fulfilled requirement ID is explicit and unambiguous.
 - Test modification rule: see [DoD matrix](#definition-of-done---dod-delivery-checklist) — "No failing test was modified to force it to pass." A test may only be changed if the change correctly reflects new or corrected expected behavior.
 
@@ -367,7 +367,7 @@ This plan implements the tasks in the format specified below.
 - **ALWAYS use `session.platform`** when generating shell commands:
   use PowerShell syntax on `windows`; use bash/zsh syntax on `macos` or `linux`. Never use
   bash-only commands (`ls`, `tail`, `grep`, `cat`) on Windows.
-  If `session.platform` is not in active context, read `agnos-process/_sessionstate/session.yaml` first.
+  If `session.platform` is not in active context, reload it with the `agnos-session` skill's `show` sub-command first.
 
 
 ### Error Recovery Protocol

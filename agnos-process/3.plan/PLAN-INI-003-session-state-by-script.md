@@ -39,7 +39,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-007: The instructions call the skill
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In the instructions file, START SESSION step 3 asks about tests then calls `init` and shows its table, 3.e reloads
   with `show`, END SESSION step 2 calls `close`; the folder structure says `session.yaml` is not version-controlled; the schema, the
   variables table and the Testing section use `tests`; the rule "never rename or remove existing keys" is removed.
@@ -49,8 +49,13 @@ This plan implements the tasks in the format specified below.
   are each named; Given its line count, Then it is at most 400, reported here.
 - **Dependencies**: TASK-INI-006
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `wc -l`: 380 lines, within 400. `grep -c unit_tests`: 0. Sub-commands named: `init` 2, `show` 3, `close` 1.
+  `layout.py --check`: 0 findings. Suites: `agnos-meta-docs-sync` 18 OK, `agnos-self-improvement` 9 OK, `agnos-init` 32 OK,
+  `agnos-session` 16 OK; on a copy, `agnos-meta-release` 133 OK (2 skipped: the demo is not built), `agnos-meta-release-prep` 25 OK,
+  `agnos-meta-plugin-proof` 16 OK, `agnos-meta-qa` 32 OK (6 skipped: pinned analysers not installed), `agnos-meta-demo` 12 OK.
+  `agnos-perf-center` not re-run: its headless-browser failures are tracked by TASK-TRC-106.
+- **Assumptions**: the trigram is asked at step 3 with the tests question, since `init` needs it, and step 8 reuses it (proposed
+  as 6.2.4, the owner said to continue); the reads of `session.yaml` in other skills' `SKILL.md` stay, as reading is not writing.
 
 ### TASK-INI-008: `agnos-init` keeps `session.yaml` out of git
 - **Tier**: M
