@@ -15,7 +15,8 @@ import release  # noqa: E402
 ROOT = HERE.parents[3]
 REPOSITORY_FILE_NAME = Path(release.INSTRUCTIONS).name
 TARGET = "improvement target"
-BLOCK = "AGNOS block"
+SKILL = "`agnos-self-improvement` skill"     # RQ-RSI-001 / DEC-RSI-001
+PLUGIN_RULE = "never into a file of an installed plugin"
 END_SESSION = "## END SESSION ACTION"
 SELF_IMPROVEMENT = "## RECURSIVE SELF-IMPROVEMENT SESSIONS"
 NEXT_SECTION_RE = re.compile(r"\n## ")
@@ -32,15 +33,18 @@ def section(text, heading):
 
 
 class ImprovementTargetTest(unittest.TestCase):
-    """RQ-PLG-018, DEC-PLG-013."""
+    """RQ-PLG-018, DEC-PLG-013, as amended by RQ-RSI-001, RQ-RSI-002 (DEC-RSI-001, DEC-RSI-002)."""
 
-    def test_RQ_PLG_018_given_the_delivered_process_then_self_improvement_targets_the_file_the_agnos_block_names(self):
+    def test_RQ_RSI_002_given_the_delivered_process_then_self_improvement_goes_through_the_skill_to_the_declared_target(self):
+        """Given the delivered process, When its self-improvement section is read, Then it names the skill, the target and the plugin rule."""
         rules = section(delivered_process(), SELF_IMPROVEMENT)
+        self.assertIn(SKILL, rules)
         self.assertIn(TARGET, rules)
-        self.assertIn(BLOCK, rules)
+        self.assertIn(PLUGIN_RULE, rules)
 
-    def test_RQ_PLG_018_given_the_delivered_process_then_end_session_refers_to_the_improvement_target(self):
-        self.assertIn(TARGET, section(delivered_process(), END_SESSION))
+    def test_RQ_RSI_001_given_the_delivered_process_then_end_session_invokes_the_skill(self):
+        """Given the delivered process, When END SESSION is read, Then its follow-up invokes the skill."""
+        self.assertIn(SKILL, section(delivered_process(), END_SESSION))
 
 
 class DefinitionOfDoneTest(unittest.TestCase):

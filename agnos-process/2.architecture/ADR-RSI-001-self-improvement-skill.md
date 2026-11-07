@@ -28,7 +28,7 @@ of an installed plugin; END SESSION step 3 points to the skill.
 ### DEC-RSI-002: The target is always declared, with no fallback
 The target is given by the sentence `` `<path>` is the improvement target `` in `CLAUDE.md` or
 `AGENTS.md`: the block `agnos-init` writes already says it for `agnos-process/project-rules.md`, and
-this repository's `CLAUDE.md` and `AGENTS.md` say it for the instructions file. Neither file is
+this repository's `AGENTS.md`, which its `CLAUDE.md` imports, says it for the instructions file. Neither file is
 delivered (`layers.json`: workshop layer). A missing declaration, or a path outside the project's git
 root, stops the skill with an error. Amends DEC-PLG-013: "this file otherwise" is removed.
 

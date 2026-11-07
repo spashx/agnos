@@ -67,9 +67,9 @@ When the user asks to start a session, run these steps in order before any task:
    to `agnos-process/_sessionstate/METRICS_LOG.md`, creating it with its header row first if absent.
 
 3) **IF** step 1's metrics table has at least one non-zero counter, **propose a recursive
-   self-improvement follow-up**: ask the user for the maximum lines to add to the
-   improvement target (see [RECURSIVE SELF-IMPROVEMENT SESSIONS](#recursive-self-improvement-sessions)), present 1-3 candidate themes each citing the counter(s) that motivate it, and state the
-   resulting number of iterations. Do NOT start implementing until the user confirms.
+   self-improvement follow-up** by invoking the `agnos-self-improvement` skill: present 1-3 candidate
+   themes each citing the counter(s) that motivate it. Do NOT start implementing until the user confirms. <!-- RQ-RSI-001 -->
+
 
 
 
@@ -111,23 +111,17 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
 
 Long sessions risk filling the AI's context window, causing lost context and degraded output quality. Follow these rules:
 
-1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `agnos-process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest compacting the chat and starting a new session.
+1. **Checkpoint on context pressure.** If the session has produced more than 10 tasks or the context feels saturated, generate a checkpoint summary in `agnos-process/3.plan/` capturing: completed task IDs, open task IDs, current blockers, and key decisions made. Then suggest compacting or clearing the chat and starting a new session.
 2. **Summarize before continuing.** When resuming after a checkpoint, read the latest checkpoint summary before proceeding.
 3. **Limit task batch size.** Do not plan more than 10 tasks in a single session. If a plan exceeds this, split it across sessions with explicit handoff notes.
 4. **Prune intermediate context.** After a task is marked complete and verified, avoid re-reading its implementation details unless debugging a regression.
 
 ## RECURSIVE SELF-IMPROVEMENT SESSIONS
 
-WHILE a session explicitly runs numbered iterations to improve the process, apply these on top of the
-normal process. The rules go into the **improvement target**: the file the project's AGNOS block (in
-`CLAUDE.md` or `AGENTS.md`) names for improvements, created if absent; this file otherwise. NEVER edit a
-file of an installed plugin. <!-- RQ-PLG-018 / DEC-PLG-013 -->
+WHILE a session explicitly runs numbered iterations to improve the process, invoke the
+`agnos-self-improvement` skill and follow its procedure for every iteration: the improvements go into
+the **improvement target** the project declares, never into a file of an installed plugin. <!-- RQ-RSI-001 / DEC-RSI-001, RQ-RSI-002 / DEC-RSI-002 -->
 
-1. **Tag every commit.** See the `agnos-git-workflow` skill's `commit-task` procedure for the exact
-   commit-message format, including the `Iteration: k/N` trailer it appends during this kind of session.
-2. **Budget across the whole effort, not per iteration.** The line ceiling (see MANDATORY INSTRUCTIONS-FILE LINE BUDGET) applies to the total after the last planned iteration. If a later iteration would exceed it, compress content added by an earlier iteration of the SAME effort first — NEVER rewrite content that predates it.
-3. **One theme at a time.** Propose the next iteration's theme and get it confirmed before drafting its artifacts, so each iteration can be informed by the previous one's outcome — unless the user explicitly asks for the full roadmap upfront.
-4. **Conflict check as a post-condition of drafting.** Before presenting a candidate rule for DoR approval, re-apply the semantic-conflict check from START SESSION ACTION step 7 against it, and report any conflict found. This is complementary, not a guarantee that the rule is correct, useful, or aligned with this file's stated purpose — human review at the theme and DoR gates remains the primary safeguard.
 
 ## SESSION STATE VARIABLES
 Session state variables are named key/value pairs persisted in `agnos-process/_sessionstate/session.yaml`

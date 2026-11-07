@@ -21,6 +21,9 @@ rely on a summary, including the README.
 Run its **START SESSION ACTION** when the user asks to start a session, and its **END SESSION ACTION**
 when the user closes it. <!-- RQ-INI-010 -->
 
+`.github/instructions/agnos-sw-eng.instructions.md` is the improvement target: in this repository, a
+recursive self-improvement session improves the process in that file itself. <!-- RQ-RSI-002 / DEC-RSI-002 -->
+
 ## 2. Non-negotiable rules (reminder, not a substitute)
 
 - Work only on the `feature/<TRI>` session branch — never on `main` / the default branch.
@@ -44,6 +47,7 @@ skill.
 | `agnos-git-workflow` | [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md) | `start-session <TRI>` (branch) and `commit-task <TASK> [<ADR>] <description>` (commit) |
 | `agnos-design-system` | [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md) | Create the design system of a UI project, before its first UI requirement |
 | `agnos-perf-center` | [`.github/skills/agnos-perf-center/SKILL.md`](.github/skills/agnos-perf-center/SKILL.md) | Monitor the process's execution on a project (traceability matrix, quality, history, delivery) — at session end or before a release |
+| `agnos-self-improvement` | [`.github/skills/agnos-self-improvement/SKILL.md`](.github/skills/agnos-self-improvement/SKILL.md) | Run a recursive self-improvement effort on the declared improvement target, within its line budget — END SESSION step 3 <!-- RQ-RSI-001 --> |
 
 Each skill's scripts exist for Windows PowerShell 5.1 and bash, or are Python; the `SKILL.md` says
 which to run for the session's `platform`. Never reimplement a skill's work by hand.

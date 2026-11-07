@@ -29,3 +29,7 @@ calling out explicitly:
 - **Performance center skill**: use the skill named `agnos-perf-center`. Under Claude Code it is discovered at
   `.claude/skills/agnos-perf-center/SKILL.md`, which points to the canonical procedure at
   `.github/skills/agnos-perf-center/SKILL.md` — read and follow that procedure. <!-- RQ-AGT-001 -->
+- **Self-improvement skill**: use the skill named `agnos-self-improvement`. Under Claude Code it is
+  discovered at `.claude/skills/agnos-self-improvement/SKILL.md`, which points to the canonical
+  procedure at `.github/skills/agnos-self-improvement/SKILL.md` — read and follow that procedure.
+  Its improvement target is declared in `AGENTS.md`, imported above. <!-- RQ-RSI-001, RQ-RSI-002 -->
