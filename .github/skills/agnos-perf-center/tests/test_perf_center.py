@@ -425,14 +425,28 @@ if BROWSER_FOUND and not ONLINE:
     print("agnos-perf-center tests: cdnjs unreachable, the page tests are skipped (they need the network)", file=_sys.stderr)
 
 
+COMPAT_LAYER_VAR = "__COMPAT_LAYER"   # Windows application-compatibility shim, inherited from some parent shells
+
+
+def browser_env():
+    """TASK-TRC-106 (RQ-TRC-081 page tests): os.environ without the Windows compatibility shim.
+
+    Under __COMPAT_LAYER, Edge exits 0 with an empty --dump-dom."""
+    import os
+    return {name: value for name, value in os.environ.items() if name.upper() != COMPAT_LAYER_VAR}
+
+
 def rendered_dom(page_path, fragment="", window=BROWSER_WINDOW):
-    """The DOM of the page once its script ran, from a headless browser (--dump-dom) in a window of the given size."""
+    """The DOM of the page once its script ran, from a headless browser (--dump-dom) in a window of the given size.
+
+    TASK-TRC-106 (RQ-TRC-081 page tests): launched with browser_env()."""
     import subprocess
     with tempfile.TemporaryDirectory() as profile:
         done = subprocess.run([BROWSER_FOUND, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                                f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}",
                                f"--window-size={window}", "--dump-dom",
-                               page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False)
+                               page_path.resolve().as_uri() + fragment], capture_output=True, timeout=120, check=False,
+                              env=browser_env())
     return done.stdout.decode("utf-8", errors="replace")
 
 

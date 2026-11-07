@@ -17,7 +17,7 @@ so the cause predates FTR-INI-002; TASK-INI-004 had recorded 361 run, OK, on 202
 
 ### TASK-TRC-106: Find why the headless-browser tests read nothing, and fix it
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Reproduce on one failing test of `test_brand.py`, find what the browser run returns (browser found by
   `find_browser()` of `test_perf_center.py`, its version, its output), fix the root cause in the tests' harness or in the page, then
   re-run the whole suite. Re-tier to L if the fix changes the page's public behaviour or a DEC.
@@ -28,5 +28,12 @@ so the cause predates FTR-INI-002; TASK-INI-004 had recorded 361 run, OK, on 202
   failing test, Then it was not modified only to pass.
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Cause: the Git Bash shell carries `__COMPAT_LAYER=DetectorsAppHealth` (Windows compatibility shim), absent
+  from PowerShell; Edge 157.0.4341.42 `--dump-dom` then exits 0 with 0 bytes on stdout, no stderr (with it: 0 bytes; without
+  it: 433334 bytes, `data-ready="true"`). From PowerShell the unfixed suite already gave 408 run, OK (skipped=3); from Git Bash
+  `test_brand.py` gave failures=5, errors=14. Fix: `browser_env()` in `test_perf_center.py` drops the variable for the two browser
+  launches (`rendered_dom`, `rendered_dom_live`); no assertion changed. After it, from Git Bash: `test_brand.py` 33 run, OK; whole
+  suite 408 run, failures=0, errors=0, skipped=3, all three only on `AGNOS_PERF_CENTER_PERF=1` (LargeCallGraphTest RQ-TRC-036 to 038,
+  DeliveryPerformanceTest RQ-TRC-078, HistoryPerformanceTest RQ-HST-013).
+- **Assumptions**: The variable is set by the parent process of Git Bash (not by the repository); dropping it for the browser
+  child only is the smallest fix, it does not touch the page or a DEC.

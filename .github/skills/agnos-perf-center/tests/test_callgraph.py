@@ -23,7 +23,7 @@ import callgraph as cg  # noqa: E402
 import perf_center as tm  # noqa: E402
 import scorecard as sc  # noqa: E402
 from test_perf_center import (BROWSER, FIXTURE, PROCESS, SKILL, SOURCES, comparable, data_block,  # noqa: E402
-                               generate, output_bytes, rendered_dom, rendered_dom_after, run_main)
+                               browser_env, generate, output_bytes, rendered_dom, rendered_dom_after, run_main)
 
 CALLS = FIXTURE / "calls"
 
@@ -901,14 +901,16 @@ document.documentElement.dataset.levels = JSON.stringify(levels);
 
 
 def rendered_dom_live(page_path, script):
-    """Like rendered_dom_after, without virtual time: the page's own timings are real."""
+    """Like rendered_dom_after, without virtual time: the page's own timings are real.
+
+    TASK-TRC-106 (RQ-TRC-036 to RQ-TRC-038): launched with browser_env()."""
     copy = page_path.with_name("live-" + page_path.name)
     copy.write_text(page_path.read_text(encoding="utf-8").replace("</body>", f"<script>{script}</script></body>"),
                     encoding="utf-8")
     with tempfile.TemporaryDirectory() as profile:
         done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                                f"--user-data-dir={profile}", "--window-size=1600,1000", "--dump-dom", copy.resolve().as_uri()],
-                              capture_output=True, timeout=300, check=False)
+                              capture_output=True, timeout=300, check=False, env=browser_env())
     return done.stdout.decode("utf-8", errors="replace")
 
 
