@@ -127,3 +127,20 @@ This plan implements the tasks in the format specified below.
   84 commits, HEAD 749beab, its `_sessionstate/readme.md` the new template, status clean.
 - **Assumptions**: `AGNOS-GETTING-STARTED.md`, `AGENTS.md` and `CHANGELOG.md` written by `agnos-meta-docs-sync` and reviewed in the
   diff; `CLAUDE.md` had no drift; the demo is rebuilt here since `agnos-init` writes both changed templates into it.
+
+### TASK-INI-012: agnos-session runs its script with bash
+- **Tier**: L
+- **Status**: Done
+- **Description**: Align `agnos-session` on the other skills, which run their `.sh` with `bash`: `SKILL.md` runs `bash`, `session.sh` has a
+  bash shebang, the tests run it with bash; DEC-INI-008 and DEC-INI-010 are amended. The code stays POSIX.
+- **Requirement refs**: RQ-INI-011, RQ-INI-013, RQ-INI-018
+- **ADR refs**: ADR-INI-002 (DEC-INI-008, DEC-INI-010)
+- **Acceptance Criteria**: Given `SKILL.md`, When read, Then it runs `bash <skill-folder>/scripts/session.sh` and no `sh <skill-folder>`;
+  Given `session.sh`, Then it starts with `#!/usr/bin/env bash`; Given the tests, Then they run the script with bash;
+  Given both versions on the same cases, Then they still give the same bytes.
+- **Dependencies**: TASK-INI-006
+- **Assignee**: AI
+- **Verification**: New test before the change: 17 run, 1 FAIL (SKILL.md lacks `bash <skill-folder>`). After: `agnos-session/tests` 17 OK,
+  0 skipped; `layout.py --check` 0 findings; `agnos-meta-docs-sync/tests` 18 OK, 0 skipped. No other document said `sh` for agnos-session.
+- **Assumptions**: DEC-INI-010's "sh:" label of the uname detection is read as the interpreter and becomes "bash:"; the tests keep the
+  names `SH_SCRIPT`, `run_sh` (the script's file kind), only the runner is named bash.

@@ -1,7 +1,7 @@
 """Tests of agnos-session: each case runs both scripts on the same files (FTR-INI-002, TASK-INI-006; ADR-INI-002).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-session/tests -v
-The sh version is run by `sh` started from Git Bash when found, else from `bash` on the PATH; set AGNOS_BASH to choose another one.
+The sh version is run by `bash` started from Git Bash when found, else from `bash` on the PATH; set AGNOS_BASH to choose another one.
 Linux, macOS and PowerShell 7 are simulated (a fake `uname`, a preset `IsLinux` or `IsMacOS`); only the host's platform runs for real.
 """
 import json
@@ -37,9 +37,9 @@ LOG_HEADER = b"".join((ROOT / LOG).read_bytes().splitlines(keepends=True)[:4]).r
 HOST_PLATFORM = {"Windows": "windows", "Linux": "linux", "Darwin": "macos"}[platform.system()]
 PROJECT = {f"{FOLDER}/1.requirements/readme.md": b"# Requirements\n"}
 FORMER_STATE = b"unit_tests: true\nplatform: windows\nextra: kept\n"
-# RQ-INI-013: sh reads `uname -s` from the PATH, so a fake one placed first simulates another system.
+# RQ-INI-013: bash reads `uname -s` from the PATH, so a fake one placed first simulates another system.
 SH_WRAPPER = ('fake=$(cygpath -u "$0" 2>/dev/null || printf %s "$0"); '
-              '[ -n "$0" ] && [ "$0" != none ] && PATH="$fake:$PATH"; exec sh "$@"')
+              '[ -n "$0" ] && [ "$0" != none ] && PATH="$fake:$PATH"; exec bash "$@"')
 UNAME_CASES = {"Linux": "linux", "Darwin": "macos", "MINGW64_NT-10.0-26100": "windows",
                "MSYS_NT-10.0": "windows", "CYGWIN_NT-10.0": "windows"}
 UNKNOWN_UNAME = "SunOS"
@@ -65,13 +65,13 @@ def run_powershell(project, *arguments, preset=None):
 
 
 def run_sh(project, *arguments, fake_bin="none"):
-    """Runs session.sh with sh, a fake `uname` first on the PATH when `fake_bin` is given (RQ-INI-013)."""
+    """Runs session.sh with bash, a fake `uname` first on the PATH when `fake_bin` is given (RQ-INI-013)."""
     return subprocess.run([bash_command(), "-c", SH_WRAPPER, str(fake_bin), SH_SCRIPT.as_posix(), *arguments],
                           cwd=project, capture_output=True, text=True, encoding="utf-8")
 
 
 # RQ-PLG-008: a system runs the scripts it can; the two are compared where both run.
-RUNNERS = {name: runner for name, tool, runner in (("powershell", "powershell", run_powershell), ("sh", bash_command(), run_sh))
+RUNNERS = {name: runner for name, tool, runner in (("powershell", "powershell", run_powershell), ("bash", bash_command(), run_sh))
            if shutil.which(tool)}
 
 
@@ -159,20 +159,20 @@ class PlatformTest(SessionCase):
         (folder / "uname").chmod(0o755)
         return folder
 
-    def test_RQ_INI_013_given_a_simulated_uname_when_sh_runs_then_the_platform_follows_it(self):
-        if "sh" not in RUNNERS:
-            self.skipTest("no sh on this system")
+    def test_RQ_INI_013_given_a_simulated_uname_when_bash_runs_then_the_platform_follows_it(self):
+        if "bash" not in RUNNERS:
+            self.skipTest("no bash on this system")
         for output, expected in UNAME_CASES.items():
             with self.subTest(uname=output):
-                project = self.project(f"sh-{expected}-{output[:5]}")
+                project = self.project(f"bash-{expected}-{output[:5]}")
                 result = run_sh(project, "init", "--tri", "ABC", "--tests", "true", fake_bin=self.fake_uname(output))
                 self.assertEqual(0, result.returncode, result.stderr)
                 self.assertEqual(state("ABC", "true", expected), (project / STATE).read_bytes())
 
-    def test_RQ_INI_013_given_an_unknown_uname_when_sh_runs_then_it_exits_1_and_writes_nothing(self):
-        if "sh" not in RUNNERS:
-            self.skipTest("no sh on this system")
-        project = self.project("sh-unknown", {STATE: FORMER_STATE})
+    def test_RQ_INI_013_given_an_unknown_uname_when_bash_runs_then_it_exits_1_and_writes_nothing(self):
+        if "bash" not in RUNNERS:
+            self.skipTest("no bash on this system")
+        project = self.project("bash-unknown", {STATE: FORMER_STATE})
         result = run_sh(project, "init", "--tri", "ABC", "--tests", "true", fake_bin=self.fake_uname(UNKNOWN_UNAME))
         self.assertEqual(1, result.returncode, result.stdout)
         self.assertIn(UNKNOWN_UNAME, result.stderr)
@@ -271,6 +271,12 @@ class SkillPracticesTest(unittest.TestCase):
 
     def setUp(self):
         self.text = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+    def test_RQ_INI_018_given_the_skill_then_it_runs_its_script_with_bash_as_the_other_skills(self):
+        # TASK-INI-012 / DEC-INI-008: bash, not sh.
+        self.assertIn("bash <skill-folder>/scripts/session.sh", self.text)
+        self.assertNotIn("sh <skill-folder>", self.text.replace("bash <skill-folder>", ""))
+        self.assertTrue(SH_SCRIPT.read_bytes().startswith(b"#!/usr/bin/env bash" + bytes([10])))
 
     def test_RQ_INI_018_given_the_skill_then_its_front_matter_and_size_follow_the_practices(self):
         self.assertEqual(SKILL_NAME, re.search(r"^name:\s*(\S+)\s*$", self.text, re.M).group(1))

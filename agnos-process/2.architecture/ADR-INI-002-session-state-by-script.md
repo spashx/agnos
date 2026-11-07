@@ -15,9 +15,9 @@ committed files although RQ-DMO-006 did not. The session trigram was not kept an
 ### DEC-INI-008: A dedicated skill, `agnos-session`
 A process skill holds three sub-commands, `init`, `show` and `close`, in `session.ps1` (Windows PowerShell 5.1) and `session.sh`
 (POSIX sh), reading their paths from layout copies generated for it (DEC-PLG-027). Its `SKILL.md` runs
-`powershell -NoProfile -File <skill-folder>/scripts/session.ps1` and, if `powershell` is not found, `sh <skill-folder>/scripts/session.sh`:
+`powershell -NoProfile -File <skill-folder>/scripts/session.ps1` and, if `powershell` is not found, `bash <skill-folder>/scripts/session.sh`:
 it cannot select by `session.platform`, which it writes. Behaviour rules stay in the instructions; only the writing moves to a script.
-No hook. Fulfils RQ-INI-018.
+No hook. Fulfils RQ-INI-018. (amended on 2026-11-07, TASK-INI-012: `bash`, as the other skills; the script stays POSIX sh)
 
 ### DEC-INI-009: `init` overwrites, with two required arguments
 `init --tri <TRI> --tests <true|false>` validates both before any write, then rewrites `session.yaml` whole with `tri`, `tests` and
@@ -27,9 +27,9 @@ The tests question stays with the agent, in START SESSION step 3. Fulfils RQ-INI
 
 ### DEC-INI-010: The platform is detected from the running shell
 PowerShell: `Test-Path variable:IsLinux` and its value give `linux`, the same for `IsMacOS` gives `macos`, otherwise `windows`; the
-`Test-Path` guard keeps StrictMode from failing on 5.1, where these variables are absent. sh: `uname -s` gives `Linux`, `Darwin`, or
+`Test-Path` guard keeps StrictMode from failing on 5.1, where these variables are absent. bash: `uname -s` gives `Linux`, `Darwin`, or
 a `MINGW`, `MSYS` or `CYGWIN` prefix; any other value exits 1. The tests simulate Linux, macOS and PowerShell 7; only Windows with
-PowerShell 5.1 runs for real, which each task's Verification states. Fulfils RQ-INI-013.
+PowerShell 5.1 runs for real, which each task's Verification states. Fulfils RQ-INI-013. (amended on 2026-11-07, TASK-INI-012: `bash`, as the other skills; uname detection stays)
 
 ### DEC-INI-011: `show` and `close`
 `show` prints `tri=<v> tests=<v> platform=<v>` on one line; START SESSION step 3.e uses it to reload the state. `close` validates its

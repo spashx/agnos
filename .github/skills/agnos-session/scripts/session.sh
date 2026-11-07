@@ -1,5 +1,5 @@
-#!/bin/sh
-# agnos-session (sh): writes and reads the AGNOS session state, and appends the session's friction-metrics row.
+#!/usr/bin/env bash
+# agnos-session (bash): writes and reads the AGNOS session state, and appends the session's friction-metrics row.
 # RQ-INI-011 to RQ-INI-015, RQ-INI-018 / ADR-INI-002 (DEC-INI-008 to DEC-INI-011).
 # Usage: session.sh init --tri <TRI> --tests <true|false> | show | close <questions> <recoveries> <re-tiered> <verification>
 # Run from the project's root. Exit code 0 on success, 1 on error, with nothing written (message on the error stream).

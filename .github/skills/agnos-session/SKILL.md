@@ -16,7 +16,7 @@ command from the project's root. <!-- RQ-PLG-005 -->
 The script cannot be chosen from `session.platform`, which it writes. <!-- DEC-INI-008 -->
 
 1. Run `powershell -NoProfile -File <skill-folder>/scripts/session.ps1 <sub-command> <arguments>`.
-2. Only if the `powershell` command is not found, run `sh <skill-folder>/scripts/session.sh <sub-command> <arguments>`.
+2. Only if the `powershell` command is not found, run `bash <skill-folder>/scripts/session.sh <sub-command> <arguments>`.
 
 Use `powershell`, never `pwsh`. Both versions take the same arguments and give the same bytes.
 
