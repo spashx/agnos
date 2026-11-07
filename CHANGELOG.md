@@ -4,7 +4,7 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [3.3.0]
 
 ### Added
 - `agnos-session` skill: `init --tri <TRI> --tests <true|false>` writes `agnos-process/_sessionstate/session.yaml` whole, with `tri`, `tests` and the detected `platform`, and prints it; `show` prints the state on one line; `close` appends the session's friction-metrics row to `METRICS_LOG.md`, so the agent never writes these files itself <!-- ADR-INI-002, TASK-INI-006, RQ-INI-011 to RQ-INI-015, RQ-INI-018 -->

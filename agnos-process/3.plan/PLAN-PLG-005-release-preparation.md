@@ -100,3 +100,15 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: The synced documents were committed just before, in f938aff (TASK-RSI-006), so this commit holds the
   version only. The next steps (rehearsal, plugin proof, local marketplace) are run in this session at the owner's
   explicit request, locally, with no merge, tag or push.
+
+### TASK-PLG-052: Release 3.3.0, for testing, with its marketplace
+- **Tier**: M
+- **Status**: In Progress
+- **Description**: Run `agnos-meta-release-prep` for 3.3.0, then at the owner's request the next steps locally: `agnos-meta-release` into an empty folder, `agnos-meta-plugin-proof` on it, and the regenerated marketplace folder ready to test the plugin. No merge, tag or push.
+- **Requirement refs**: RQ-PLG-027 to RQ-PLG-030
+- **ADR refs**: ADR-PLG-005
+- **Acceptance Criteria**: Given the owner's version 3.3.0, Then `VERSION.txt` and the changelog heading say 3.3.0; Given the rehearsal and the proof, Then both exit 0; Given the marketplace folder, Then it holds the plugin at 3.3.0.
+- **Dependencies**: TASK-PLG-036, TASK-INI-010
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
