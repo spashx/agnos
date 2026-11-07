@@ -103,12 +103,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-052: Release 3.3.0, for testing, with its marketplace
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Run `agnos-meta-release-prep` for 3.3.0, then at the owner's request the next steps locally: `agnos-meta-release` into an empty folder, `agnos-meta-plugin-proof` on it, and the regenerated marketplace folder ready to test the plugin. No merge, tag or push.
 - **Requirement refs**: RQ-PLG-027 to RQ-PLG-030
 - **ADR refs**: ADR-PLG-005
 - **Acceptance Criteria**: Given the owner's version 3.3.0, Then `VERSION.txt` and the changelog heading say 3.3.0; Given the rehearsal and the proof, Then both exit 0; Given the marketplace folder, Then it holds the plugin at 3.3.0.
 - **Dependencies**: TASK-PLG-036, TASK-INI-010
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `check`: passed (open: TASK-PLG-007). `review`: current 3.2.0, proposed 3.3.0, docs-sync changed nothing; `set-version 3.3.0`: exit 0, commit 6eb9f98. `release.py --dry-run` from 6eb9f98: exit=0, 70 files, 1536 IDs removed, 3 lines to read (sentences whose ID comment was removed), 18 mentions. `plugin_proof.py` without models: exit 0, Claude Code and Copilot validate/marketplace-add/install pass, skills 8 of 8 each. `agnos-marketplace` regenerated from the output: `diff -rq` identical, every version 3.3.0.
+- **Assumptions**: 3.3.0 chosen by the owner for testing, though the changelog holds BREAKING entries (SemVer would give 4.0.0); the former marketplace (3.1.0) kept as `agnos-marketplace-3.1.0.bak`; no model questions (credits) and no Linux run.

@@ -730,7 +730,7 @@ TASK-PLG-035|53-64|Done|The release reads `VERSION` and reports unreleased entri
 TASK-PLG-037|65-76|Done|`agnos-init` writes the guide and the version into `agnos-process/`
 TASK-PLG-048|77-88|Done|The skill's README with a diagram of the release steps
 TASK-PLG-036|89-103|Done|The preparation run on this repository
-TASK-PLG-052|104-114|In Progress|Release 3.3.0, for testing, with its marketplace
+TASK-PLG-052|104-114|Done|Release 3.3.0, for testing, with its marketplace
 @agnos-process/3.plan/PLAN-PLG-006-process-folder-layout.md
 PLAN-PLG-006|1-146||The Process Folder is `agnos-process/`, Its Index `process.idx.md`, Named Once
 TASK-PLG-038|16-27|Done|Feature, decisions and plan
