@@ -491,3 +491,5 @@ agnos-process/PERF-CENTER.data.js
 
 # RQ-QLT-006 / DEC-QLT-005: agnos-meta-qa's analysers and report
 .agnos-qa/
+# RQ-INI-016 / DEC-INI-012: the AGNOS session state belongs to one session, not to the history
+agnos-process/_sessionstate/session.yaml

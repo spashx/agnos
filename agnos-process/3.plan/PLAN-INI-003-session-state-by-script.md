@@ -79,7 +79,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-011: This repository untracks its `session.yaml`
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the path to this repository's `.gitignore` and run `git rm --cached agnos-process/_sessionstate/session.yaml`;
   the file stays on disk.
 - **Requirement refs**: RQ-INI-016
@@ -89,7 +89,7 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-INI-008
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
-- **Assumptions**:
+- **Assumptions**: the line is added by hand with a comment, since this repository is the toolkit and not a project `agnos-init` writes.
 
 ### TASK-INI-009: The demo without a committed session state
 - **Tier**: M
