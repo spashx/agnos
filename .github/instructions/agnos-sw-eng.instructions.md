@@ -68,9 +68,6 @@ When the user asks to start a session, run these steps in order before any task:
    self-improvement follow-up** by invoking the `agnos-self-improvement` skill: present 1-3 candidate
    themes each citing the counter(s) that motivate it. Do NOT start implementing until the user confirms. <!-- RQ-RSI-001 -->
 
-
-
-
 ## MANDATORY RULES FOR ALL ARTIFACTS
 
 ### MANDATORY UNIQUE IDENTIFIERS
@@ -80,7 +77,6 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
   - `<TRI>` is the feature or functional area trigram (3 letters uppercase) that the artifact belongs to (e.g. USR for user management, STM for state management, etc).
   - `<NNN>` is a zero-padded sequence number (e.g. 001, 002, etc) that is incremented for each new artifact of the same type and feature.
 
-  
 ### MANDATORY TRACEABILITY
 - EACH ARTIFACT SHALL reference all related artifacts by their unique identifier.
 - Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
@@ -175,7 +171,6 @@ Brief description of the feature's purpose and scope.
 
 ## Functional Requirements
 
-
 ### RQ-<TRI>-<NNN>: <Short Title>
 - **Category**: Functional
 - **EARS Type**: [Ubiquitous | Event-driven | State-driven | Unwanted-behavior | Complex]
@@ -230,14 +225,15 @@ Brief description of the feature's purpose and scope.
   [Mermaid diagrams -- required]
   ```
 - Every decision in ADR SHALL have a unique identifier in the format `DEC-<TRI>-<NNN>` (e.g., `DEC-USR-001`), consistent with the universal ID schema, that can be referenced in plans, tasks, and source code. Each decision SHALL be declared as a `### DEC-<TRI>-<NNN>: <title>` heading under `## Decision`, so that it is indexed. <!-- RQ-IDX-014 -->
+- The `## Diagram` section SHALL hold at least two Mermaid diagrams, scoped to the ADR and the requirements it cites:
+  a static one showing the domain's entity types and their relations (default: UML class diagram, `classDiagram`),
+  and a dynamic one showing their interactions (default: UML sequence diagram, `sequenceDiagram`).
+  Other diagrams MAY be added when they make the proposed technical solution easier to grasp.
 - The design system itself SHALL be captured as an ADR (token structure, tiers, generation/verification mechanism). Every subsequent UI-affecting ADR SHALL reference it.
-
 
 ### Traceability in ADRs
 - The ADRs body SHALL reference the requirement ID(s) that motivated the decision.
 - Store ADRs in `agnos-process/2.architecture/`.
-
-
 
 ## 3. PLAN - PLANNING AND EXECUTION
 
