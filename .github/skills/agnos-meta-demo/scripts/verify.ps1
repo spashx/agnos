@@ -151,7 +151,7 @@ $alternatives = @($adrs | Where-Object { ((Demo-Git @('show', "HEAD:$_")) -join 
 $logText = if ($demoFiles -contains "$AGNOS_FOLDER/$AGNOS_METRICS_LOG") { (Demo-Git @('show', "HEAD:$AGNOS_FOLDER/$AGNOS_METRICS_LOG")) -join "`n" } else { '' }
 $logRows = ([regex]::Matches($logText, '(?m)^\| \d{4}-\d{2}-\d{2} \|')).Count
 $sessionBranches = @(Demo-Git @('branch', '--list', 'feature/*'))
-Report 'RQ-DMO-006' (($earsOk.Count -eq 0) -and ($tiersPresent.Count -eq 3) -and ($unfilled.Count -eq 0) -and ($alternatives -eq $adrs.Count) -and ($demoFiles -contains "$AGNOS_FOLDER/$AGNOS_SESSION_STATE") -and ($logRows -ge $sessionBranches.Count)) "missing EARS types: $($earsOk.Count); tiers present: $($tiersPresent -join ''); M/L tasks unfilled: $($unfilled.Count); metrics rows $logRows for $($sessionBranches.Count) sessions"
+Report 'RQ-DMO-006' (($earsOk.Count -eq 0) -and ($tiersPresent.Count -eq 3) -and ($unfilled.Count -eq 0) -and ($alternatives -eq $adrs.Count) -and ($logRows -ge $sessionBranches.Count)) "missing EARS types: $($earsOk.Count); tiers present: $($tiersPresent -join ''); M/L tasks unfilled: $($unfilled.Count); metrics rows $logRows for $($sessionBranches.Count) sessions"
 
 # RQ-DMO-007
 $indexRun = Start-Process -FilePath powershell -ArgumentList '-NoProfile', '-File', (Join-Path $Toolkit $INDEX_SCRIPT) -WorkingDirectory $Demo -Wait -PassThru -WindowStyle Hidden

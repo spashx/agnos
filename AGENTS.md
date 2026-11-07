@@ -43,6 +43,7 @@ skill.
 | Skill | Procedure | Used for |
 |---|---|---|
 | `agnos-init` | [`.github/skills/agnos-init/SKILL.md`](.github/skills/agnos-init/SKILL.md) | Add AGNOS to a project, or update it there: completes its entry-point files and creates `agnos-process/` <!-- RQ-INI-009 --> |
+| `agnos-session` | [`.github/skills/agnos-session/SKILL.md`](.github/skills/agnos-session/SKILL.md) | `init` writes the session state at session start, `show` reloads it, `close` appends the friction-metrics row at session end <!-- RQ-INI-018 --> |
 | `agnos-index` | [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md) | Regenerate the artifact index — at session start and before every commit |
 | `agnos-git-workflow` | [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md) | `start-session <TRI>` (branch) and `commit-task <TASK> [<ADR>] <description>` (commit) |
 | `agnos-design-system` | [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md) | Create the design system of a UI project, before its first UI requirement |

@@ -33,6 +33,7 @@ COPY_NAMES = {PY: "agnos_layout.py", PS1: "agnos-layout.ps1", SH: "agnos-layout.
 COPIES = {                                   # DEC-PLG-027: each skill gets only the languages its scripts are written in
     "agnos-index": (PS1, SH),
     "agnos-init": (PS1, SH),
+    "agnos-session": (PS1, SH),              # RQ-INI-018 / DEC-INI-008
     "agnos-perf-center": (PY,),
     "agnos-meta-release": (PY,),
     "agnos-meta-plugin-proof": (PY,),

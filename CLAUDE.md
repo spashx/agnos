@@ -16,6 +16,9 @@ calling out explicitly:
 - **Init skill**: use the skill named `agnos-init`. Under Claude Code it is discovered at
   `.claude/skills/agnos-init/SKILL.md`, which points to the canonical procedure at
   `.github/skills/agnos-init/SKILL.md` — read and follow that procedure. <!-- RQ-INI-009 -->
+- **Session skill**: use the skill named `agnos-session`. Under Claude Code it is discovered at
+  `.claude/skills/agnos-session/SKILL.md`, which points to the canonical procedure at
+  `.github/skills/agnos-session/SKILL.md` — read and follow that procedure. <!-- RQ-INI-018 -->
 - **Git workflow skill**: use the skill named `agnos-git-workflow`. Under Claude Code it is
   discovered at `.claude/skills/agnos-git-workflow/SKILL.md`, which points to the canonical
   procedure at `.github/skills/agnos-git-workflow/SKILL.md` — read and follow that procedure.
