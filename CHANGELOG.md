@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `agnos-self-improvement` skill: the procedure of a recursive self-improvement effort, and `budget.ps1` / `budget.sh` giving the declared target's ceiling, line count and lines left; a rules file other than the instructions file gets 100 lines unless declared `at most <N> lines` <!-- ADR-RSI-001, TASK-RSI-002, TASK-RSI-003, RQ-RSI-001, RQ-RSI-003, RQ-RSI-004 -->
 - `agnos-init` writes `AGNOS-GETTING-STARTED.md` at the project's root, the user's guide for a plugin user, and reports it created, updated or unchanged <!-- ADR-PLG-003, TASK-PLG-021, RQ-PLG-021, RQ-PLG-022 -->
 - `agnos-meta-release` writes `<folder>.report.html` beside its JSON report: one self-contained page, its data embedded and escaped, drawn as text only, its styles from the perf center's design tokens <!-- ADR-PLG-002, TASK-PLG-015, TASK-PLG-016, RQ-PLG-016, RQ-PLG-017 -->
 - `agnos-meta-release` checks the four manifests and catalogues by script, with no AI tool: required fields, plugin folders, the same name, version and description everywhere <!-- ADR-PLG-002, TASK-PLG-014, RQ-PLG-015 -->
@@ -87,6 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with build and verify sub-commands <!-- ADR-DMO-001, TASK-DMO-008, TASK-DMO-009 -->
 
 ### Changed
+- The RECURSIVE SELF-IMPROVEMENT SESSIONS section and END SESSION step 3 invoke `agnos-self-improvement`; the improvement target is always declared by the project, with no fallback on the instructions file, and rules older than the effort may be revised <!-- ADR-RSI-001, TASK-RSI-004, RQ-RSI-001, RQ-RSI-002 -->
 - `agnos-init`'s success step gives two steps: open a new conversation, so that it reads the block, then ask it for an AGNOS session; the step names `AGNOS-GETTING-STARTED.md` as the guide to read meanwhile <!-- ADR-PLG-003, TASK-PLG-020, TASK-PLG-021, RQ-PLG-020, RQ-PLG-021 -->
 - The `agnos-init` block tells the agent to read `process/project-rules.md` when it exists, and names it the improvement target. Initialised projects call `agnos-init` again to update <!-- ADR-PLG-003, TASK-PLG-020, RQ-PLG-018 -->
 - The process's self-improvement goes into the improvement target, the file the project's AGNOS block names (created if absent), and into the instructions file otherwise, never into a file of an installed plugin <!-- ADR-PLG-003, TASK-PLG-019, RQ-PLG-018, RQ-PLG-019 -->

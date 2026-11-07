@@ -730,12 +730,12 @@ TASK-QLT-005|64-75|Done|Python, the complex functions
 TASK-QLT-006|76-87|Done|matrix.html, the accessibility findings
 TASK-QLT-007|88-98|Done|Say the skill exists
 @agnos-process/3.plan/PLAN-RSI-001-self-improvement-skill.md
-PLAN-RSI-001|1-95||Recursive self-improvement as a skill
+PLAN-RSI-001|1-109||Recursive self-improvement as a skill
 TASK-RSI-001|17-36|Done|Feature, ADR and plan
 TASK-RSI-002|37-55|Done|Budget script and its tests
-TASK-RSI-003|56-68|Not Started|The skill's entry points
-TASK-RSI-004|69-83|Not Started|Instructions file and entry points
-TASK-RSI-005|84-95|Not Started|Changelog entry
+TASK-RSI-003|56-71|Done|The skill's entry points
+TASK-RSI-004|72-97|Done|Instructions file and entry points
+TASK-RSI-005|98-109|Done|Changelog entry
 @agnos-process/3.plan/PLAN-TRC-001-agnos-trace-skill.md
 PLAN-TRC-001|1-177||The agnos-trace Skill
 TASK-TRC-001|16-35|Done|Process model — index, containment and process references

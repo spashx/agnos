@@ -55,7 +55,7 @@ the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
 
 ### TASK-RSI-003: The skill's entry points
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `.github/skills/agnos-self-improvement/SKILL.md`, following the skill
   authoring practices, and its `.claude/skills/` pointer.
 - **Requirement refs**: RQ-RSI-001
@@ -63,12 +63,15 @@ the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
 - **Acceptance Criteria** (Gherkin): those of RQ-RSI-001 on the skill
 - **Dependencies**: TASK-RSI-002
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: None
+- **Verification**: SKILL.md re-read: steps 2 (budget across the effort), 3 (one theme at a time),
+  4 (structure kept, any rule revisable), 5 (conflict check), 7 (`Iteration` trailer); both `.github`
+  and `.claude` entry points exist; Claude Code lists `agnos-self-improvement` among its skills.
+- **Assumptions**: No unit test: documentation only. Exit code 2 stops the iteration rather than
+  the effort: the next iteration compresses first.
 
 ### TASK-RSI-004: Instructions file and entry points
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Reduce the RECURSIVE SELF-IMPROVEMENT SESSIONS section and END SESSION step 3; add
   the improvement-target declaration and the skill to this repository's `CLAUDE.md` and `AGENTS.md`.
 - **Requirement refs**: RQ-RSI-001, RQ-RSI-002
@@ -78,12 +81,23 @@ the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
   count reported
 - **Dependencies**: TASK-RSI-003
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: None
+- **Verification**: instructions file 380 lines (was 386, ceiling 400). `budget.ps1` and `budget.sh`
+  on this repository: `target=.github/instructions/agnos-sw-eng.instructions.md ceiling=400 lines=380
+  left=20`, exit 0. Full suite on a copy: agnos-init 32 OK; agnos-meta-release 133 OK, 2 skipped (demo
+  not built); agnos-self-improvement 9 OK; agnos-meta-docs-sync 18, -plugin-proof 16, -qa 32,
+  -release-prep 25 OK; agnos-perf-center 408 OK, 3 skipped (1 named: perf test needs
+  AGNOS_PERF_CENTER_PERF=1). agnos-meta-demo: 1 failure from 048ad30 (RQ-TRC-119 outside a comment in
+  agnos-perf-center/references/maintaining.md), not in this task's files; the demo's sample service
+  tests not importable by this discovery command (`roombook`). agnos-index tests are .ps1/.sh, not run:
+  its scripts are unchanged.
+- **Assumptions**: The declaration is written once, in `AGENTS.md`, which `CLAUDE.md` imports.
+  `agnos-meta-release`'s `test_process_text.py` (RQ-PLG-018) changed to the amended behaviour
+  (RQ-RSI-001, RQ-RSI-002): the section names the skill, the target and the plugin rule, END SESSION
+  names the skill, instead of "AGNOS block" and "improvement target".
 
 ### TASK-RSI-005: Changelog entry
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the new skill and the amended target rule to `CHANGELOG.md`.
 - **Requirement refs**: RQ-RSI-001, RQ-RSI-002
 - **ADR refs**: ADR-RSI-001
