@@ -639,8 +639,9 @@ requirements are implemented, which are not, and what is linked to nothing. The 
 Generate the traceability matrix for src and tests.
 ```
 
-**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders, then reports its result line
-as it is:
+**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders, then reports, before its result line,
+the `scanned extensions`, `scanned names` and `excluded` lines, each saying whether it is the default or the user's list.
+The result line follows as it is:
 
 ```text
 agnos-perf-center: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
@@ -739,9 +740,9 @@ and its reason: that is what the next session picks up.
 The four counters are appended as one row to `agnos-process/_sessionstate/METRICS_LOG.md`, created with its header by the
 first session to close. Every counter is shown even at 0.
 
-**Improving the process for this project.** Had a counter come back non-zero, the agent would propose a follow-up:
-it asks how many lines it may add, proposes one to three themes, and waits for your confirmation before drafting
-anything. The rules it adds go into `agnos-process/project-rules.md`, which the AGNOS block of `CLAUDE.md` and `AGENTS.md`
+**Improving the process for this project.** Had a counter come back non-zero, the agent would propose a follow-up
+through the `agnos-self-improvement` skill: it asks how many lines it may add, proposes one to three themes,
+and waits for your confirmation before drafting anything. The rules it adds go into `agnos-process/project-rules.md`, which the AGNOS block of `CLAUDE.md` and `AGENTS.md`
 names: the agent reads that file in every conversation, and an update of the plugin never touches it. It never edits
 the plugin's own files.
 
@@ -822,3 +823,4 @@ Ask the agent: it reads the skills of the AGNOS plugin, which the tool lists.
 | `agnos-git-workflow` | The session branch and the task commits |
 | `agnos-design-system` | The design system of a project with a user interface |
 | `agnos-perf-center` | The traceability check and its page |
+| `agnos-self-improvement` | Runs a recursive self-improvement effort on the improvement target the project declares, within its line budget |

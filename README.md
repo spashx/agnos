@@ -26,6 +26,7 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | **`agnos-index`** | Deterministically regenerates `agnos-process/process.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability is unique and permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
+| **`agnos-self-improvement`** | Turns the session's friction metrics into rules: the improvement goes into the rules file the project declares, one theme per iteration, within a line budget its scripts measure. <!-- RQ-RSI-001 --> |
 | **`agnos-perf-center`** | Generates a complete application, opened from disk, to monitor the process's execution on a project and explore its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
 **Delivered as:** one marketplace holding the plugin `agnos`, for Claude Code, GitHub Copilot and OpenAI Codex.

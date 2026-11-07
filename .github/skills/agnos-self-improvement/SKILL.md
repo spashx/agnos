@@ -37,7 +37,7 @@ otherwise 100.
 ## Procedure
 
 1. **Budget.** Run the script. If the declared target does not exist yet, create it with a
-   `# <project> rules` title before the first iteration (RQ-PLG-018).
+   `# <project> rules` title before the first iteration. <!-- RQ-PLG-018 -->
 2. **Size the effort.** Ask the user for the maximum lines to add, at most `left`, and state the
    number of iterations it allows. The budget holds for the whole effort, not per iteration: the
    ceiling applies to the total after the last planned iteration.

@@ -107,3 +107,21 @@ the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
+
+### TASK-RSI-006: Documents synced for the release
+- **Tier**: M
+- **Status**: Done
+- **Description**: Run `agnos-meta-docs-sync` (CHANGELOG, guide) and add the skill to README and CONTRIBUTING; move the
+  citation of the skill's `SKILL.md` into a comment.
+- **Requirement refs**: RQ-RSI-001
+- **ADR refs**: ADR-RSI-001
+- **Acceptance Criteria** (Gherkin): Given the documents, When they are compared with the skills, Then each names
+  `agnos-self-improvement`, And the demo's citation test (RQ-MTA-014) passes
+- **Dependencies**: TASK-RSI-005
+- **Assignee**: AI
+- **Verification**: docs-sync edited CHANGELOG.md (missing TRC/PLG entries) and the guide (stage 9, skill row); AGENTS.md
+  and CLAUDE.md already complete. `agnos-meta-demo` tests: OK; `agnos-self-improvement` tests: OK. Demo `build -Verify`:
+  23 passed, 0 failed.
+- **Assumptions**: Older Unreleased bullets naming `process/` or `agnos-process` (the skill) are left: they record steps
+  that line "The process folder is `agnos-process/`" supersedes. `METRICS_LOG.md`, the owner's change, is in this commit
+  at the owner's request.

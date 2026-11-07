@@ -86,6 +86,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   TASK-DMO-003 to TASK-DMO-007 -->
 - `agnos-demo` demo: verification script of its requirements <!-- RQ-DMO-001 to RQ-DMO-021 -->, and the `agnos-demo` skill
   with build and verify sub-commands <!-- ADR-DMO-001, TASK-DMO-008, TASK-DMO-009 -->
+- `agnos-perf-center` page: the Spans brand mark in the header, an About topic with the design's lockup and the addresses of this app and its link buttons, a Licenses topic whose licences are coloured local badges, and the foot of the left panel naming the application and its version <!-- ADR-TRC-014, TASK-TRC-092 to TASK-TRC-097, RQ-TRC-109, RQ-TRC-110, RQ-TRC-111 to RQ-TRC-116 -->
+- `agnos-perf-center` page: one `AGNOS v.<major>.<minor>` label in the foot and in About, and the licence badges link to their SPDX entries <!-- ADR-TRC-016, TASK-TRC-102, RQ-TRC-109 to RQ-TRC-112, RQ-TRC-116 -->
+- `agnos-perf-center` page: dark theme in four surface layers, with the fragile colours given dark variants and their contrast tested <!-- ADR-TRC-017, TASK-TRC-103, RQ-TRC-117, RQ-TRC-118 -->
+- `agnos-perf-center` shows the scanned extensions, scanned names and excluded names on every run, each marked as the default or the user's list, and `--help` prints the default lists <!-- TASK-TRC-104, RQ-TRC-119 -->
+- `agnos-meta-release-prep` maintainer skill: checks the working tree and the index, syncs the documents with `agnos-meta-docs-sync`, shows the diff, the unreleased entries and a proposed SemVer 2.0.0 version, records the approved version and commits it, publishing nothing <!-- ADR-PLG-005, TASK-PLG-033, TASK-PLG-034, RQ-PLG-027 to RQ-PLG-030 -->
+- `agnos-perf-center` score: the "Functions traced" check weighs medium in the quality score <!-- ADR-PLG-004, TASK-PLG-027, RQ-PLG-024 -->
+- The Definition of Done gains, for S, M and L, the item that every new function, method and class cites its requirement ID in its doc comment or in the comment just above it <!-- ADR-PLG-004, TASK-PLG-028, RQ-PLG-025 -->
+- `agnos-meta-release` reads the version from the version file, in SemVer 2.0.0 (refused when absent or invalid), and reports the changelog's unreleased entries without failing <!-- ADR-PLG-005, TASK-PLG-035, RQ-PLG-031, RQ-PLG-032 -->
+- `agnos-init` writes `agnos-process/AGNOS-GETTING-STARTED.md` and the version file `agnos-process/VERSION.txt` <!-- ADR-PLG-005, ADR-PLG-007, TASK-PLG-037, TASK-PLG-051, RQ-PLG-021, RQ-PLG-033 -->
 
 ### Changed
 - The RECURSIVE SELF-IMPROVEMENT SESSIONS section and END SESSION step 3 invoke `agnos-self-improvement`; the improvement target is always declared by the project, with no fallback on the instructions file, and rules older than the effort may be revised <!-- ADR-RSI-001, TASK-RSI-004, RQ-RSI-001, RQ-RSI-002 -->
@@ -128,6 +137,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `CLAUDE.md` aligned on the four skills <!-- TASK-AGT-001, RQ-AGT-001 -->
 - Design-system dependencies on UI requirements; one task re-tiered to M <!-- TASK-DSY-002, ADR-FIX-001,
   TASK-FIX-001, RQ-FIX-001 -->
+- The process folder is `agnos-process/`, with its index `process.idx.md`, in place of `process/`; `agnos-init` moves an existing `process/` with `git mv` when it is tracked, and exits 1 when both folders exist <!-- ADR-PLG-006, TASK-PLG-041, TASK-PLG-045, TASK-PLG-046, RQ-PLG-034, RQ-PLG-038 -->
+- The generated process skill is `agnos-instructions`; `layout.json` declares the process folder once, `layout.py` writes its copies and checks them, and the scripts read those copies <!-- ADR-PLG-006, TASK-PLG-039, TASK-PLG-040, TASK-PLG-042, TASK-PLG-043, RQ-PLG-035 to RQ-PLG-037 -->
 
 ### Fixed
 - `agnos-meta-release` output holds what is declared: no bytecode written by its checks, and a stray file fails the rehearsal <!-- ADR-PLG-002, TASK-PLG-011, RQ-PLG-012 -->
@@ -139,6 +150,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   file <!-- ADR-TRC-005, TASK-TRC-028 -->
 - `agnos-perf-center` Untraced functions list: long function names end in an ellipsis <!-- TASK-TRC-038, RQ-TRC-035 -->
 - `agnos-perf-center` graph: relation tooltip delay halved to 1 s <!-- TASK-TRC-045, RQ-TRC-046 -->
+- `agnos-perf-center` graph: the unreadable Whole graph control removed from the toolbar <!-- ADR-TRC-015, DEC-TRC-060, TASK-TRC-099 -->
+- `agnos-perf-center` reads the version from the layout's copy, and the layout check accepts `agnos_layout.<NAME>` <!-- TASK-TRC-101, TASK-PLG-050, RQ-PLG-036, RQ-PLG-037 -->
 
 ### Removed
 - `GETTING_STARTED.MD` leaves the repository root and the release: the user's guide is `AGNOS-GETTING-STARTED.md`, which `agnos-init` writes into each project, and README, CONTRIBUTING and the issue template link to it <!-- ADR-PLG-003, TASK-PLG-022, RQ-PLG-022 -->
