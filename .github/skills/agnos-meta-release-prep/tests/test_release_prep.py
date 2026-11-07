@@ -17,7 +17,7 @@ import release_prep  # noqa: E402
 
 EXIT_OK = 0
 EXIT_FAILED = 1
-VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION"
+VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION.txt"
 CHANGELOG = "CHANGELOG.md"
 README = "README.md"
 GUIDE = ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md"
@@ -142,7 +142,7 @@ class ReviewTest(PrepCase):
 
 
 class SetVersionTest(PrepCase):
-    """RQ-PLG-029, RQ-PLG-032: the approved version written into VERSION and the changelog's heading, nothing else."""
+    """RQ-PLG-029, RQ-PLG-032: the approved version written into VERSION.txt and the changelog's heading, nothing else."""
 
     def test_RQ_PLG_029_given_3_2_0_approved_then_version_and_heading_hold_it_and_every_other_line_is_unchanged(self):
         before = self.read(CHANGELOG)

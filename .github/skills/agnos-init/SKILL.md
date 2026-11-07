@@ -38,7 +38,7 @@ the block yourself. `<skill-folder>` is the folder holding this file. <!-- RQ-PL
 
 Every byte outside the block is preserved, and the block takes the file's line ending. It also creates
 each folder of `agnos-process/` that is absent, with a `readme.md` saying what it holds, and writes into `agnos-process/` the
-user's guide `AGNOS-GETTING-STARTED.md` and `VERSION`, the AGNOS version installed: both are AGNOS's, rewritten whole from their
+user's guide `AGNOS-GETTING-STARTED.md` and `VERSION.txt`, the AGNOS version installed: both are AGNOS's, rewritten whole from their
 templates and reported `created`, `updated` or `unchanged`. A root `AGNOS-GETTING-STARTED.md` whose first line is AGNOS's, written by
 a former init, is removed and reported `moved`; any other root file of that name stays. <!-- RQ-PLG-021, RQ-PLG-033 / DEC-PLG-016, DEC-PLG-026 -->
 It changes nothing else in the project.

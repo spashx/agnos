@@ -162,7 +162,7 @@ def foot(page):
 
 
 def generate_with_version(directory, name, content):
-    """A page generated while VERSION holds `content`; None as content means the file does not exist."""
+    """A page generated while VERSION.txt holds `content`; None as content means the file does not exist."""
     version = Path(directory) / f"VERSION-{name}"
     if content is not None:
         version.write_text(content, encoding="utf-8")

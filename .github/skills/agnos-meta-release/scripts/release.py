@@ -110,7 +110,7 @@ MODEL_KEY = "model"
 MODELS_KEY = "models"
 LIST_SEPARATOR = ", "
 # RQ-PLG-032 / DEC-PLG-025: the version's single source, and the regular expression of SemVer 2.0.0 (semver.org)
-VERSION_FILE = f"{WORKSHOP_SKILLS}agnos-init/assets/templates/VERSION"
+VERSION_FILE = f"{WORKSHOP_SKILLS}agnos-init/assets/templates/VERSION.txt"
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
                        r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
                        r"(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
@@ -196,7 +196,7 @@ def place_of(path):
 
 # RQ-PLG-002, RQ-PLG-032 / DEC-PLG-025
 def release_version(text):
-    """The version a `VERSION` file holds, when it is one SemVer 2.0.0 line; None otherwise."""
+    """The version a `VERSION.txt` file holds, when it is one SemVer 2.0.0 line; None otherwise."""
     lines = text.splitlines()
     return lines[0] if len(lines) == 1 and SEMVER_RE.match(lines[0]) else None
 

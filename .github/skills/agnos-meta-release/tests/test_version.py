@@ -1,4 +1,4 @@
-"""Tests of the version read from `VERSION` and of the line on unreleased entries (RQ-PLG-031, RQ-PLG-032, TASK-PLG-035;
+"""Tests of the version read from `VERSION.txt` and of the line on unreleased entries (RQ-PLG-031, RQ-PLG-032, TASK-PLG-035;
 ADR-PLG-005: DEC-PLG-024, DEC-PLG-025).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
@@ -19,7 +19,7 @@ from test_select import (CHANGELOG_FILE, EXIT_FAILED, EXIT_OK, REPORT_SUFFIX, VE
 
 MANIFESTS = ("plugins/agnos/plugin.json", "plugins/agnos/.claude-plugin/plugin.json")
 CATALOGUES = (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json")
-DELIVERED_VERSION = "plugins/agnos/skills/agnos-init/assets/templates/VERSION"
+DELIVERED_VERSION = "plugins/agnos/skills/agnos-init/assets/templates/VERSION.txt"
 PAGE_SUFFIX = ".report.html"
 UNRELEASED_KEY = "unreleasedEntries"
 RELEASED = "## [v1.2]\n- released\n"
@@ -42,7 +42,7 @@ class VersionCase(RehearsalCase):
 
 
 class FromTheVersionFileTest(VersionCase):
-    """RQ-PLG-032: the manifests' version comes from `VERSION`, in SemVer 2.0.0."""
+    """RQ-PLG-032: the manifests' version comes from `VERSION.txt`, in SemVer 2.0.0."""
 
     def test_RQ_PLG_032_given_version_3_2_0_when_rehearsed_then_the_four_manifests_and_the_delivered_file_hold_it(self):
         self.commit({VERSION_FILE: "3.2.0\n"})

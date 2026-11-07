@@ -16,7 +16,7 @@ The steps, in plain words:
 3. **Review** what will be released: the diff, the changelog's `[Unreleased]` entries, and a version proposed from them
    (`Removed` → major, `Added` or `Changed` → minor, `Fixed` only → patch).
 4. **Approve**, or not. Without your approval nothing is recorded and nothing is committed.
-5. **Record the version** you chose: `VERSION` takes it, and `## [Unreleased]` becomes `## [<version>]`.
+5. **Record the version** you chose: `VERSION.txt` takes it, and `## [Unreleased]` becomes `## [<version>]`.
 6. **Commit** with `commit-task`: the documents and the version in one commit.
 7. **Rehearse** the release from that commit into an empty folder (`agnos-meta-release --dry-run`).
 8. **Prove** it by a real install (`agnos-meta-plugin-proof`).
@@ -46,7 +46,7 @@ flowchart TD
 ## Rehearsing without releasing
 
 Steps 7 to 9 can be run on their own, as often as you like, without preparing anything: they read a commit and change
-neither `VERSION` nor the changelog. While the changelog still holds `[Unreleased]` entries, the rehearsal says so with one
+neither `VERSION.txt` nor the changelog. While the changelog still holds `[Unreleased]` entries, the rehearsal says so with one
 line, `unreleased: <n> entries, version <VERSION> delivered`, and fails nothing. Only step 5 needs a new version, above
 the current one.
 

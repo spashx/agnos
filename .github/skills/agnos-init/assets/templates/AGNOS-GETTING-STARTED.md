@@ -34,7 +34,7 @@ Calling the `agnos-init` skill wrote these files, and left everything else in th
 | `CLAUDE.md`, `AGENTS.md` | One delimited AGNOS block, which tells the agent to load the process. Your own text around it stays yours |
 | `agnos-process/` | Four folders, `1.requirements/`, `2.architecture/`, `3.plan/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
 | `agnos-process/AGNOS-GETTING-STARTED.md` | This guide |
-| `agnos-process/VERSION` | The AGNOS version installed |
+| `agnos-process/VERSION.txt` | The AGNOS version installed |
 
 Commit them when you are ready: AGNOS does not commit them for you, and its sessions never commit on your default
 branch.

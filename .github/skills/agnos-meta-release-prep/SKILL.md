@@ -40,7 +40,7 @@ what needs no model; this file orders it around what needs an agent or a person.
    python .github/skills/agnos-meta-release-prep/scripts/release_prep.py set-version <X.Y.Z>
    ```
 
-   It writes `VERSION` and renames `## [Unreleased]` to `## [<X.Y.Z>]`. Exit `1` (not SemVer 2.0.0, not above the current
+   It writes `VERSION.txt` and renames `## [Unreleased]` to `## [<X.Y.Z>]`. Exit `1` (not SemVer 2.0.0, not above the current
    version, no `[Unreleased]`): nothing changed; give the reason and ask again.
 6. **Commit.** Invoke the `agnos-git-workflow` skill's `commit-task` sub-command with the task the maintainer names, so that
    the documents and the version are one commit. Read its short SHA with `git rev-parse --short HEAD`.

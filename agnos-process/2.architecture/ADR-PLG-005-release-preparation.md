@@ -1,7 +1,7 @@
 # ADR-PLG-005: Release Preparation
 
 ## Status
-Accepted (owner, 2026-11-06) — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016.
+Accepted (owner, 2026-11-06) — for FTR-PLG-005 (RQ-PLG-027 to RQ-PLG-033). DEC-PLG-026 amends DEC-PLG-016. DEC-PLG-025 and DEC-PLG-026 amended by DEC-PLG-032 (ADR-PLG-007, 2026-11-07): the file is `VERSION.txt`.
 
 ## Context
 FTR-PLG-005: the steps before a release (sync the documents, review, choose a version, commit) are written nowhere as one

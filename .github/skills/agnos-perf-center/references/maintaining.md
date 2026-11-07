@@ -37,7 +37,7 @@ cdnjs, the page tests are skipped.
 The brand mark is one symbol of the template (`brand-mark`), coloured by the `brand-*` tokens <!-- RQ-TRC-114 -->; the About
 topic shows it large with the name "AGNOS" and the tagline beside it, set by the tokens `text-wordmark`, `tracking-wordmark`,
 `tracking-tagline`, `line-display` and `line-snug` <!-- RQ-TRC-116 -->. The foot of
-the left panel shows `v.<major>.<minor>`, read at each generation from `agnos-init/assets/templates/VERSION`, a file of the
+the left panel shows `v.<major>.<minor>`, read at each generation from `agnos-init/assets/templates/VERSION.txt`, a file of the
 sibling skill; absent or not one SemVer line, it shows the title alone <!-- RQ-TRC-109, RQ-TRC-110 -->. The Help dialog's Licenses
 topic draws the application's licence and each library of `libraries.json` as badges <!-- RQ-TRC-111, RQ-TRC-112 -->: the tone of
 a licence is its entry in `LICENCE_TONE` of `matrix.js` (any other licence takes the light tone), and a test fails when a

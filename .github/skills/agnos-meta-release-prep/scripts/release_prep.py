@@ -4,7 +4,7 @@
 Implements FTR-PLG-005 after ADR-PLG-005 (DEC-PLG-022, DEC-PLG-023, DEC-PLG-025):
 - `check` stops on a changed working tree or duplicate IDs, else lists the tasks not Done (RQ-PLG-027);
 - `review` shows the changed files and their diff, the changelog's [Unreleased] and a proposed version (RQ-PLG-028);
-- `set-version <X.Y.Z>` writes an approved version into VERSION and the changelog's heading (RQ-PLG-029, RQ-PLG-032).
+- `set-version <X.Y.Z>` writes an approved version into VERSION.txt and the changelog's heading (RQ-PLG-029, RQ-PLG-032).
 It never commits, and publishes nothing. Python >= 3.10, standard library and this folder's modules only (RQ-MTA-013).
 """
 import argparse
@@ -25,7 +25,7 @@ INDEX_DUPLICATES = 2                    # agnos-index's exit code for duplicate 
 IS_WINDOWS = os.name == "nt"
 INDEX_SCRIPTS = Path(__file__).resolve().parents[2] / "agnos-index" / "scripts"
 INDEX_PATH = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
-VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION"     # RQ-PLG-032 / DEC-PLG-025
+VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION.txt"     # RQ-PLG-032 / DEC-PLG-025
 CHANGELOG = "CHANGELOG.md"
 # RQ-PLG-028: the four files agnos-meta-docs-sync edits; any other change is unexpected
 SYNCED = (CHANGELOG, "AGENTS.md", "CLAUDE.md", ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md")

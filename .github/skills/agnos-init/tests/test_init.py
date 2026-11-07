@@ -42,8 +42,8 @@ PROJECT_RULES = f"{FOLDER}/{LAYOUT['projectRules']}"
 GUIDE = "AGNOS-GETTING-STARTED.md"
 GUIDE_TEMPLATE = SKILL_DIR / "assets/templates" / GUIDE
 FOLDER_GUIDE = f"{FOLDER}/{GUIDE}"      # RQ-PLG-033 / DEC-PLG-026
-FOLDER_VERSION = f"{FOLDER}/VERSION"
-OWNED_FILES = {FOLDER_GUIDE: GUIDE_TEMPLATE, FOLDER_VERSION: SKILL_DIR / "assets/templates" / "VERSION"}
+FOLDER_VERSION = f"{FOLDER}/VERSION.txt"
+OWNED_FILES = {FOLDER_GUIDE: GUIDE_TEMPLATE, FOLDER_VERSION: SKILL_DIR / "assets/templates" / "VERSION.txt"}
 GUIDE_EXAMPLE_TRIGRAM = b"EXP"
 GUIDE_STEPS = ("new conversation", "AGNOS session", "Write the requirement", "approved", "commit-task",
                "End of session", "agnos-perf-center")

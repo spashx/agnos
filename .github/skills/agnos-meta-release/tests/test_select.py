@@ -27,8 +27,8 @@ SKILL_PLACE = "plugins/agnos/skills/agnos-index/SKILL.md"
 PROCESS_PLACE = "plugins/agnos/skills/agnos-instructions/SKILL.md"     # RQ-PLG-035
 INSTRUCTIONS_FILE = ".github/instructions/agnos-sw-eng.instructions.md"
 CHANGELOG_FILE = "CHANGELOG.md"
-VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION"     # RQ-PLG-032: the version's single source
-VERSION_PLACE = "plugins/agnos/skills/agnos-init/assets/templates/VERSION"
+VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION.txt"     # RQ-PLG-032: the version's single source
+VERSION_PLACE = "plugins/agnos/skills/agnos-init/assets/templates/VERSION.txt"
 GENERATED = (".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", ".gitattributes",
              "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json")
 SKILL_TEST = ".github/skills/agnos-index/tests/test_a.py"

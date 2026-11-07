@@ -27,19 +27,19 @@ Out of scope: a favicon; showing the patch number; a third-party notice file.
 ### RQ-TRC-109: Title and version at the foot of the left panel
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The page SHALL show, at the bottom of its left panel, the application's title, "AGNOS Performance Center", followed by its version as `v.<major>.<minor>`, both taken at generation from the `VERSION` file of RQ-PLG-032 (the patch number is not shown), in place of the notice of the libraries and their licences. Amends RQ-TRC-082 on where the notice stands.
+- **Statement**: The page SHALL show, at the bottom of its left panel, the application's title, "AGNOS Performance Center", followed by its version as `v.<major>.<minor>`, both taken at generation from the `VERSION.txt` file of RQ-PLG-032 (the patch number is not shown), in place of the notice of the libraries and their licences. Amends RQ-TRC-082 on where the notice stands.
 - **Rationale**: a reader of a page found in a report or a chat should know which tool and which version made it; the notice of the libraries moves to the Licenses topic (RQ-TRC-111).
 - **Priority**: Must
-- **Acceptance Criteria**: Given a `VERSION` holding `3.1.0`, When a page is generated, Then the foot of the left panel reads "AGNOS Performance Center v.3.1" And names no library; Given `3.12.4`, Then it reads "v.3.12"; Given only `VERSION` changed, Then the next page shows the new version without any other file changed.
+- **Acceptance Criteria**: Given a `VERSION.txt` holding `3.1.0`, When a page is generated, Then the foot of the left panel reads "AGNOS Performance Center v.3.1" And names no library; Given `3.12.4`, Then it reads "v.3.12"; Given only `VERSION.txt` changed, Then the next page shows the new version without any other file changed.
 - **Dependencies**: RQ-PLG-032, RQ-TRC-082, RQ-TRC-010
 
 ### RQ-TRC-110: A version that cannot be read
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
-- **Statement**: IF the `VERSION` file is absent, or is not one line holding a SemVer 2.0.0 version, THEN the generator SHALL still write the page, whose foot shows the title alone, with no `v.`.
+- **Statement**: IF the `VERSION.txt` file is absent, or is not one line holding a SemVer 2.0.0 version, THEN the generator SHALL still write the page, whose foot shows the title alone, with no `v.`.
 - **Rationale**: a page is more useful without its version than not generated; the file stands beside the skill's, and a layout without it is a packaging problem the page need not break on.
 - **Priority**: Must
-- **Acceptance Criteria**: Given no `VERSION` file, When a page is generated, Then the generator exits 0 And the foot reads "AGNOS Performance Center" with no `v.`; Given a `VERSION` holding `v3.2`, Then the same.
+- **Acceptance Criteria**: Given no `VERSION.txt` file, When a page is generated, Then the generator exits 0 And the foot reads "AGNOS Performance Center" with no `v.`; Given a `VERSION.txt` holding `v3.2`, Then the same.
 - **Dependencies**: RQ-TRC-109, RQ-PLG-032
 
 ### RQ-TRC-111: A Licenses topic in the Help dialog
