@@ -4,7 +4,7 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [3.2.0]
 
 ### Added
 - `agnos-self-improvement` skill: the procedure of a recursive self-improvement effort, and `budget.ps1` / `budget.sh` giving the declared target's ceiling, line count and lines left; a rules file other than the instructions file gets 100 lines unless declared `at most <N> lines` <!-- ADR-RSI-001, TASK-RSI-002, TASK-RSI-003, RQ-RSI-001, RQ-RSI-003, RQ-RSI-004 -->

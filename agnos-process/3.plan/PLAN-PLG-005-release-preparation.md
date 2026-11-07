@@ -88,12 +88,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-036: The preparation run on this repository
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-release-prep` on `feature/PLG`, the owner reviewing the diff and choosing the version; stop at the printed next steps.
 - **Requirement refs**: RQ-PLG-027 to RQ-PLG-030
 - **ADR refs**: ADR-PLG-005
 - **Acceptance Criteria**: Given the owner's approval, Then the commit holds the synced documents and the version heading; Given the next steps, Then none was run.
 - **Dependencies**: TASK-PLG-034, TASK-PLG-035, TASK-PLG-037
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `check`: passed, exit 0 (open: TASK-PLG-007, TASK-PLG-036). `review`: current 3.1.0, proposed 4.0.0.
+  Owner chose 3.2.0; `set-version 3.2.0`: exit 0, VERSION.txt and CHANGELOG heading written.
+- **Assumptions**: The synced documents were committed just before, in f938aff (TASK-RSI-006), so this commit holds the
+  version only. The next steps (rehearsal, plugin proof, local marketplace) are run in this session at the owner's
+  explicit request, locally, with no merge, tag or push.
