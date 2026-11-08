@@ -933,9 +933,9 @@ TASK-TRC-105|30-41|Done|The RQ-TRC-119 citation of maintaining.md in a comment
 PLAN-TRC-018|1-39||The Perf Center's Headless-Browser Tests Fail
 TASK-TRC-106|18-39|Done|Find why the headless-browser tests read nothing, and fix it
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
-PLAN-WEB-001|1-100||The agnos-meta-website Skill
+PLAN-WEB-001|1-105||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks
 TASK-WEB-002|35-52|Done|The site's design system
 TASK-WEB-003|53-73|Done|The template, the content and the placeholder images
-TASK-WEB-004|74-88|Not Started|The demo page and the output folder
-TASK-WEB-005|89-100|Not Started|A build on the demo, checked by the owner
+TASK-WEB-004|74-93|Done|The demo page and the output folder
+TASK-WEB-005|94-105|Not Started|A build on the demo, checked by the owner

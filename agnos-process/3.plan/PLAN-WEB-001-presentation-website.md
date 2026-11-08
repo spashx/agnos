@@ -73,7 +73,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-004: The demo page and the output folder
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: The `build` sub-command end to end: the demo page copied with `--demo-page` or generated with `agnos-perf-center`,
   the output written only when every check passed, the summary line and the exit codes.
 - **Requirement refs**: RQ-WEB-001, RQ-WEB-002, RQ-WEB-013
@@ -83,8 +83,13 @@ This plan implements the tasks in the format specified below.
   exit code is 1.
 - **Dependencies**: TASK-WEB-003
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `test_build.py` written first: 7 errors before the code, then `agnos-meta-website/tests` 46 OK, 0 skipped:
+  the given page and its two data files copied byte for byte; without it, the generator called on the demo's process, `service` and
+  `client` with `--history` and `--call-graph`; a content error, a failing generator, a missing data file or another page name: exit
+  1 and the folder unchanged; the owner's other files kept. `agnos-meta-qa`: 0 open. The real generation runs in TASK-WEB-005.
+- **Assumptions**: the given page must be named `PERF-CENTER.html`, since the page loads its `.data.js` by its own name and the
+  site links to that name; the generator is tested through a stand-in script; the generator runs without `-I`, so that call-graph
+  packages installed for the user stay importable.
 
 ### TASK-WEB-005: A build on the demo, checked by the owner
 - **Tier**: S

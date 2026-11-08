@@ -1,25 +1,31 @@
 ---
 name: agnos-meta-website
 description: "AGNOS maintainer skill. Builds the AGNOS presentation website, a guided tour of the demo's Performance Center for CIOs, in English and French, from the Markdown text and the images of its assets, with the demo Performance Center page. USE FOR: regenerating the site after AGNOS, its demo or the site's text evolves. It writes a folder only: committing and publishing it stay with the maintainer."
-argument-hint: "build --demo <demo repository> --out <folder>"
+argument-hint: "build --demo <demo repository> --out <folder> [--demo-page <PERF-CENTER.html>]"
 ---
 
-<!-- FTR-WEB-001; RQ-WEB-001, RQ-WEB-003, RQ-WEB-016 / ADR-WEB-001 (DEC-WEB-001, DEC-WEB-003, DEC-WEB-006) -->
+<!-- FTR-WEB-001; RQ-WEB-001, RQ-WEB-002, RQ-WEB-003, RQ-WEB-016 / ADR-WEB-001 (DEC-WEB-001 to DEC-WEB-003, DEC-WEB-006) -->
 # AGNOS Presentation Website
 
-`<skill-folder>` is the folder holding this file. Run from any folder; Python's standard library only.
+`<skill-folder>` is the folder holding this file. Run from any folder; the script uses Python's standard library only.
 
 ## Build
 
-`python -I <skill-folder>/scripts/build_site.py build --demo <demo repository> --out <folder>`
+`python -I <skill-folder>/scripts/build_site.py build --demo <demo repository> --out <folder> [--demo-page <page>]`
 
 | Argument | Meaning |
 |---|---|
-| `--demo <folder>` | The demo repository (`agnos-lightweight-process.demo`, built by `agnos-meta-demo`): its index is measured |
-| `--out <folder>` | Where the site is written, typically the working copy of `spashx/agnos.site` |
+| `--demo <folder>` | The demo repository (`agnos-lightweight-process.demo`, built by `agnos-meta-demo`): its index is measured, and its Performance Center generated when no page is given |
+| `--out <folder>` | Where the site is written, typically the working copy of `spashx/agnos.site`: `index.html`, `screens/` and `demo/` are replaced there, nothing else is touched |
+| `--demo-page <file>` | A `PERF-CENTER.html` already generated, copied into `demo/` with its `PERF-CENTER.json` and `PERF-CENTER.data.js` |
+
+Without `--demo-page`, the build runs this repository's `agnos-perf-center` on the demo's `service` and `client` with
+`--history` and `--call-graph`; the functions are left out when the call-graph packages are not installed
+(`agnos-perf-center`'s `requirements-callgraph.txt`).
 
 - Exit `0`: the site is written; show the summary line.
 - Exit `1`: nothing is written; each error names its file and its field. Correct the content, never the checks.
+- The build never commits nor pushes: publishing the folder stays with the maintainer.
 
 ## Changing the site
 
