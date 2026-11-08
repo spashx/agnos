@@ -222,6 +222,32 @@ Les exigences sont écrites comme des phrases testables (EARS), avec des critèr
 ### caption
 Roombook : chaque exigence est citée par le code qui l'implémente.
 
+## examples
+
+### requirement
+![Une exigence de Roombook, en EARS avec ses critères Gherkin](screens/example-requirement.png)
+
+### requirement-caption
+L'exigence RQ-BKG-003
+
+### adr
+![Une décision d'architecture de Roombook, avec son diagramme](screens/example-adr.png)
+
+### adr-caption
+ADR-BKG-001 et son diagramme
+
+### plan
+![Un plan de Roombook, avec l'une de ses tâches](screens/example-plan.png)
+
+### plan-caption
+PLAN-BKG-001 et TASK-BKG-003
+
+### zoom
+Exemple agrandi
+
+### close
+Fermer
+
 ## stop-graph
 
 ### view

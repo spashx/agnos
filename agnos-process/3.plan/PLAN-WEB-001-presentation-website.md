@@ -93,7 +93,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-005: A build on the demo, checked by the owner
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Build the site on the demo into a scratch folder, hand it to the owner for the visual check at 360 px and on desktop,
   in each theme, and remove `site.tmp/` once the owner accepts.
 - **Requirement refs**: RQ-WEB-008, RQ-WEB-009, RQ-WEB-014
@@ -103,3 +103,35 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: Human (visual check), AI (build)
 - **Verification**: N/A (Tier S)
 - **Assumptions**:
+
+### TASK-WEB-006: The tagline becomes "Agentic efficiency by traceability"
+- **Tier**: S
+- **Status**: Done
+- **Description**: Replace the tagline in the Performance Center's About topic and in the site's header and title, amending
+  RQ-TRC-116 and RQ-WEB-008 and the tests reading it (owner request of 2026-11-08).
+- **Requirement refs**: RQ-TRC-116, RQ-WEB-008
+- **ADR refs**: ADR-TRC-014, ADR-WEB-001
+- **Acceptance Criteria**: Given the About topic and the site's header, Then each reads "Agentic efficiency by traceability".
+- **Dependencies**: TASK-WEB-003
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: records of finished tasks keep the former tagline, as history.
+
+### TASK-WEB-007: Three examples, enlarged on click
+- **Tier**: M
+- **Status**: Done
+- **Description**: Under the Overview stop, three images (requirement, ADR with its diagram, plan with a task) side by side, each
+  with its caption, enlarged in a dialog on click; three single-colour placeholders in `assets/screens/`.
+- **Requirement refs**: RQ-WEB-017, RQ-WEB-003, RQ-WEB-012, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-004, DEC-WEB-005)
+- **Acceptance Criteria**: RQ-WEB-017's criteria; Given the template, Then it still holds no text and no raw visual value.
+- **Dependencies**: TASK-WEB-006
+- **Assignee**: AI
+- **Verification**: tests written first (4 new, failing before the code), then `agnos-meta-website/tests` 50 OK, 0 skipped: three
+  images after the Overview screenshot in the order requirement, ADR, plan, with captions; three columns, one under 640 px; a dialog
+  with a labelled close button, opened by `showModal()`, closed by the button, the backdrop or Escape (native), focus returned; no
+  text and no raw value in the template; 8 single-colour PNGs; `node --check` passed. `agnos-meta-qa`: 0 open. Real build on the
+  demo: 131 fields per language, 8 images, demo page generated with the new tagline.
+- **Assumptions**: a plain image `![alt](screens/x.png)` is a new field kind; the examples span the stop's whole width; the dialog
+  is the native `<dialog>`, whose Escape closes it; the close button is an icon, so that the template holds no text; the captions
+  name RQ-BKG-003, ADR-BKG-001, PLAN-BKG-001 and TASK-BKG-003 for the owner's screenshots. Committed with TASK-WEB-006's test line.

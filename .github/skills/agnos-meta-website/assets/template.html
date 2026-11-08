@@ -158,6 +158,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 .foot{display:flex;justify-content:space-between;gap:var(--s-web-space-16);flex-wrap:wrap;margin-top:var(--s-web-space-40);padding-top:var(--s-web-space-20);border-top:var(--s-web-border-1) solid var(--s-web-band-border);font-size:var(--s-web-text-13);color:var(--s-web-band-text-muted)}
 .foot a{color:var(--s-web-band-accent)}
 
+/* three examples under the first stop, enlarged on click (RQ-WEB-017) */
+.examples{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-web-space-20)}
+.example{margin:0}
+.example-open{display:block;width:100%;padding:0;border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-8);overflow:hidden;background:var(--s-surface-raised);cursor:zoom-in;box-shadow:var(--s-web-shadow-shot)}
+.example-open img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
+.example figcaption{margin-top:var(--s-web-space-8);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
+.zoom{padding:0;border:none;border-radius:var(--s-web-radius-10);background:var(--s-surface-raised);max-width:var(--s-web-size-zoom-width);max-height:var(--s-web-size-zoom-height);overflow:hidden}
+.zoom::backdrop{background:var(--s-web-zoom-backdrop)}
+.zoom img{display:block;max-width:var(--s-web-size-zoom-width);max-height:var(--s-web-size-zoom-height);object-fit:contain}
+.zoom-close{position:absolute;top:var(--s-web-space-8);right:var(--s-web-space-8);border:none;border-radius:var(--s-web-radius-pill);background:var(--s-text);color:var(--s-surface-subtle);display:flex;padding:var(--s-web-space-6)}
+.zoom-close svg{width:var(--s-web-size-icon);height:var(--s-web-size-icon);fill:currentColor}
+
 /* RQ-WEB-014: one column under the wide breakpoint, a compact bar under the narrow one */
 @media (max-width: {{t:web-size-breakpoint-wide}}){
   .hero .wrap,.stop .wrap,.cards{grid-template-columns:minmax(0,1fr)}
@@ -169,6 +181,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   .nav,.bar .btn{display:none}
   .bar .wrap{justify-content:space-between;gap:var(--s-web-space-10)}
   .tokens{grid-template-columns:minmax(0,1fr)}
+  .examples{grid-template-columns:minmax(0,1fr)}
   .tok:not(:last-child)::after{content:"\2193";right:auto;left:50%;top:auto;bottom:var(--s-web-size-arrow-y);transform:translateX(-50%)}
 }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.shot-open{transition:none}}
@@ -179,6 +192,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <symbol id="brand-mark" viewBox="0 0 24 24"><rect class="mark-tile" width="24" height="24" rx="5.5"></rect><rect class="mark-bar-light" x="4" y="3" width="16" height="3" rx="1"></rect><rect class="mark-bar-blue" x="4" y="8" width="6" height="3" rx="1"></rect><rect class="mark-bar-green" x="10" y="13" width="5" height="3" rx="1"></rect><rect class="mark-bar-yellow" x="15" y="18" width="5" height="3" rx="1"></rect></symbol>
   <symbol id="icon-human" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4.5"></circle><path d="M3.5 21a8.5 8.5 0 0 1 17 0Z"></path></symbol>
   <symbol id="icon-agent" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="3"></rect><path d="M11 2h2v5h-2z"></path></symbol>
+  <symbol id="icon-close" viewBox="0 0 24 24"><path d="M6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4 17.6 5 12 10.6z"></path></symbol>
   <symbol id="icon-check" viewBox="0 0 24 24"><path d="M9.5 16.2 5.3 12l-1.8 1.8 6 6L21 8.3l-1.8-1.8z"></path></symbol>
 </svg>
 
@@ -263,6 +277,11 @@ button{font:inherit;color:inherit;cursor:pointer}
       <ul class="tags" data-i18n="stop-overview.tags"></ul>
     </div>
     <div><figure class="shot" data-i18n="stop-overview.shot"></figure><p class="cap" data-i18n="stop-overview.caption"></p></div>
+    <div class="examples">
+      <figure class="example"><button type="button" class="example-open" data-i18n="examples.requirement"></button><figcaption data-i18n="examples.requirement-caption"></figcaption></figure>
+      <figure class="example"><button type="button" class="example-open" data-i18n="examples.adr"></button><figcaption data-i18n="examples.adr-caption"></figcaption></figure>
+      <figure class="example"><button type="button" class="example-open" data-i18n="examples.plan"></button><figcaption data-i18n="examples.plan-caption"></figcaption></figure>
+    </div>
   </div>
 </section>
 
@@ -368,6 +387,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   </div>
 </section>
 
+<dialog class="zoom" data-i18n-attr="aria-label=examples.zoom"><button type="button" class="zoom-close" data-i18n-attr="aria-label=examples.close"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"></use></svg></button><img></dialog>
+
 <script>
 /* RQ-WEB-007, RQ-WEB-010: the language switch and the chain's supervision switch. */
 (function () {
@@ -405,6 +426,20 @@ button{font:inherit;color:inherit;cursor:pointer}
     chain.dataset.mode = b.dataset.chain;
     $$("[data-chain]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
   }));
+  /* RQ-WEB-017: an example enlarged in a dialog; Escape, the backdrop or the button close it, the focus returns. */
+  const zoom = document.querySelector(".zoom");
+  const zoomImage = zoom.querySelector("img");
+  let opener = null;
+  $$(".example-open").forEach(b => b.addEventListener("click", () => {
+    const image = b.querySelector("img");
+    zoomImage.src = image.src;
+    zoomImage.alt = image.alt;
+    opener = b;
+    zoom.showModal();
+  }));
+  zoom.querySelector(".zoom-close").addEventListener("click", () => zoom.close());
+  zoom.addEventListener("click", event => { if (event.target === zoom) zoom.close(); });
+  zoom.addEventListener("close", () => { if (opener) opener.focus(); });
 })();
 </script>
 </body>

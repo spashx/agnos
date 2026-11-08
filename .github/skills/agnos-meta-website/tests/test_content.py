@@ -142,6 +142,12 @@ class TestContentInTheAssets(Fixture):
         self.assertIn('href="demo/PERF-CENTER.html#RQ-BKG-003"', page)
         self.assertIn('<img src="screens/view.png" alt="The view"', page)
 
+    def test_given_a_plain_image_then_it_is_an_image_without_link(self):
+        errors = []
+        self.assertEqual(site.render("x.y", ["![An example](screens/view.png)"], "en", {}, errors),
+                         (site.KIND_IMAGE, ("An example", "screens/view.png")))
+        self.assertEqual(errors, [])
+
     def test_given_an_index_excerpt_when_built_then_its_path_lines_are_dimmed(self):
         page, _ = self.page()
         self.assertIn("<span>@agnos-process/one.md</span>\nRQ-BKG-003|42-56||No double booking", page)

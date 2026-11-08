@@ -14,7 +14,7 @@ _spec = importlib.util.spec_from_file_location("agnos_meta_website", SKILL_DIR /
 site = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(site)
 
-VIEWS = ("overview", "graph", "quality", "history", "delivery")
+VIEWS = ("overview", "graph", "quality", "history", "delivery", "example-requirement", "example-adr", "example-plan")
 GIVEN_PAGE = b"<html>given demo page</html>"
 GIVEN_JSON = b'{"given": true}'
 GIVEN_SCRIPT = b"window.DATA = {};"
@@ -84,7 +84,8 @@ class TestTheSiteFolder(Fixture):
         self.assertEqual(sorted(p.name for p in (self.out / "screens").iterdir()), sorted(f"{v}.png" for v in VIEWS))
         self.assertEqual((self.out / "README.md").read_text(encoding="utf-8"), "the owner's file")
         self.assertEqual(len(out.strip().splitlines()), 1)
-        self.assertRegex(out, r"^agnos-meta-website: \d+ fields in each language, 5 images, index 1/12, demo page copied; "
+        self.assertRegex(out, r"^agnos-meta-website: \d+ fields in each language, 8 images, index 1/12, "
+                                  r"demo page copied; "
                                   r".+ written$")
 
     def test_given_a_content_error_when_built_then_the_folder_is_unchanged(self):

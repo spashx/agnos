@@ -1,7 +1,7 @@
 # ADR-WEB-001: A Maintainer Skill That Assembles the Site From Markdown, Images and the Demo Page
 
 ## Status
-Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016).
+Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions.
 
 ## Context
 The presentation website must follow AGNOS's evolutions, in English and French, with visuals continuous with the Performance Center.

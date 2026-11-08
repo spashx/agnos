@@ -18,6 +18,7 @@ _spec.loader.exec_module(site)
 
 TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
 VIEWS = ("overview", "graph", "quality", "history", "delivery")
+EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 SCREEN_RATIO = 16 / 10
 RGB_COLOUR_TYPE = 2
@@ -82,7 +83,8 @@ class TestTheBuiltPage(unittest.TestCase):
     def test_given_the_header_then_the_lockup_reads_agnos_and_its_tagline(self):
         brand = re.search(r'<a class="brand".*?</a>', PAGE, re.S).group(0)
         self.assertIn('<span class="brand-name" data-i18n="brand.name">AGNOS</span>', brand)
-        self.assertIn('<span class="brand-tagline" data-i18n="brand.tagline">Efficiency by traceability</span>', brand)
+        tagline = "Agentic efficiency by traceability"
+        self.assertIn(f'<span class="brand-tagline" data-i18n="brand.tagline">{tagline}</span>', brand)
         self.assertLess(brand.index("brand-name"), brand.index("brand-tagline"))
         css = PAGE.split("</style>")[0]
         self.assertIn(".brand-name{font-weight:var(--s-weight-bold)", css)
@@ -134,6 +136,32 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
+class TestTheExamples(unittest.TestCase):
+    """RQ-WEB-017: three examples under the Overview stop, enlarged on click."""
+
+    def test_given_the_overview_stop_then_three_examples_follow_its_screenshot(self):
+        stop = re.search(r'<section class="stop" id="overview">.*?</section>', PAGE, re.S).group(0)
+        examples = re.findall(r'<button type="button" class="example-open"[^>]*><img src="([^"]+)" alt="([^"]+)"', stop)
+        self.assertEqual([src for src, _ in examples], [f"screens/{name}.png" for name in EXAMPLES])
+        self.assertTrue(all(alt for _, alt in examples))
+        self.assertLess(stop.index("shot-link"), stop.index("example-open"))
+        captions = re.findall(r'<figcaption data-i18n="examples\.[a-z-]+">([^<]+)</figcaption>', stop)
+        self.assertEqual(len(captions), len(EXAMPLES))
+
+    def test_given_the_style_then_the_examples_stand_side_by_side_and_stack_on_phones(self):
+        css = PAGE.split("</style>")[0]
+        self.assertIn(".examples{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))", css)
+        narrow = css.split("@media (max-width: 640px)")[1]
+        self.assertIn(".examples{grid-template-columns:minmax(0,1fr)}", narrow)
+
+    def test_given_the_page_then_a_dialog_enlarges_an_example_and_closes(self):
+        self.assertRegex(PAGE, r'<dialog class="zoom"[^>]*aria-label="[^"]+"')
+        self.assertRegex(PAGE, r'<button type="button" class="zoom-close"[^>]*aria-label="[^"]+"')
+        script = re.search(r"<script>(.*?)</script>", PAGE, re.S).group(1)
+        for part in ("showModal()", "zoom.close()", "event.target === zoom", '"close"', "opener.focus()"):
+            self.assertIn(part, script)
+
+
 def png_pixels(path):
     """(width, height, colour type, the decompressed rows) of a PNG."""
     data = path.read_bytes()
@@ -154,7 +182,7 @@ class TestThePlaceholders(unittest.TestCase):
     """RQ-WEB-012: one single-colour PNG per view, at 16:10."""
 
     def test_given_the_assets_then_each_view_has_a_single_colour_placeholder(self):
-        for view in VIEWS:
+        for view in VIEWS + EXAMPLES:
             width, height, colour_type, rows = png_pixels(site.ASSETS_DIR / "screens" / f"{view}.png")
             self.assertAlmostEqual(width / height, SCREEN_RATIO, msg=view)
             self.assertEqual(colour_type, RGB_COLOUR_TYPE, view)

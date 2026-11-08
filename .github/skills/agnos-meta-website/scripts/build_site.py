@@ -69,6 +69,7 @@ SECTION = re.compile(r"^##\s+([a-z0-9-]+)\s*$")
 FIELD = re.compile(r"^###\s+([a-z0-9-]+)\s*$")
 FENCE = "```"
 LIST_ITEM = re.compile(r"^-\s+(\S.*)$")
+IMAGE = re.compile(r"^!\[([^\]]+)\]\(([^)\s]+)\)$")   # RQ-WEB-017: an image enlarged on click, without link
 SHOT = re.compile(r"^\[!\[([^\]]+)\]\(([^)\s]+)\)\]\(([^)\s]+)\)$")
 INLINE = re.compile(r"`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)")
 VARIABLE = re.compile(r"\{\{([a-z0-9.-]+)\}\}")
@@ -100,7 +101,7 @@ USED_TOKEN = re.compile(r"var\(--(?P<tier>[sc])-(?P<name>[a-z0-9-]+)\)")
 MEDIA_TOKEN = re.compile(r"\{\{t:([a-z0-9-]+)\}\}")
 SEMANTIC_PREFIX, COMPONENT_PREFIX = "s", "c"
 
-KIND_TEXT, KIND_LIST, KIND_SHOT, KIND_CODE = "text", "list", "shot", "code"
+KIND_TEXT, KIND_LIST, KIND_SHOT, KIND_CODE, KIND_IMAGE = "text", "list", "shot", "code", "image"
 REPORT = "agnos-meta-website: "
 
 
@@ -257,6 +258,9 @@ def render(key, lines, language, values, errors):
             return None
         alt, src, href = shot.groups()
         return KIND_SHOT, (typography(alt, language), src, href)
+    image = IMAGE.match(lines[0])
+    if image and len(lines) == 1:
+        return KIND_IMAGE, (typography(image.group(1), language), image.group(2))
     return KIND_TEXT, paragraph(lines, language)
 
 
@@ -300,6 +304,12 @@ def field_html(language, key, result, open_label, assets, errors, images):
         if not (Path(assets) / src).is_file():
             errors.append(f"{language}{MARKDOWN}: {key}: {src} does not exist")
         return shot_html(alt, src, href, open_label)
+    if kind == KIND_IMAGE:
+        alt, src = payload
+        images.add(src)
+        if not (Path(assets) / src).is_file():
+            errors.append(f"{language}{MARKDOWN}: {key}: {src} does not exist")
+        return f'<img src="{escape(src)}" alt="{escape(alt)}" loading="lazy">'
     if kind == KIND_LIST:
         return "".join(f"<li>{item}</li>" for item in payload)
     return payload

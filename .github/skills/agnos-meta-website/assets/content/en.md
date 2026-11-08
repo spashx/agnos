@@ -220,6 +220,32 @@ Requirements are written as testable sentences (EARS) with acceptance criteria (
 ### caption
 Roombook: every requirement is cited by the code that implements it.
 
+## examples
+
+### requirement
+![A requirement of Roombook, in EARS with its Gherkin criteria](screens/example-requirement.png)
+
+### requirement-caption
+Requirement RQ-BKG-003
+
+### adr
+![An architecture decision record of Roombook, with its diagram](screens/example-adr.png)
+
+### adr-caption
+ADR-BKG-001 and its diagram
+
+### plan
+![A plan of Roombook, with one of its tasks](screens/example-plan.png)
+
+### plan-caption
+PLAN-BKG-001 and TASK-BKG-003
+
+### zoom
+Enlarged example
+
+### close
+Close
+
 ## stop-graph
 
 ### view
