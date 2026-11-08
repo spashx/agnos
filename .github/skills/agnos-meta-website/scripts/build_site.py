@@ -13,6 +13,7 @@ summary line is printed. Exit 1: one error per line on the error stream, and not
 import argparse
 import html
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -55,6 +56,14 @@ UNITS = {"en": " KB", "fr": NBSP + "Ko"}
 SIZE_FORMAT = "{:.1f}"
 RATIO_FORMAT = "1/{}"
 SHARE_DIGITS = 1
+# RQ-WEB-005: the index's speed, measured by agnos-index on a copy of the demo's process folder
+INDEX_SCRIPTS = SKILL_DIR.parent / "agnos-index" / "scripts"
+INDEX_COMMANDS = {"nt": ("powershell", "-NoProfile", "-File", "build-index.ps1")}
+INDEX_COMMAND_POSIX = ("bash", "build-index.sh")
+INDEX_RUN = re.compile(r"(\d+) entries, .* in (\d+(?:\.\d+)?) s")
+SPEED_ITEMS = 100
+SPEED_FORMAT = "{:.1f}"
+SECONDS = {"en": " s", "fr": NBSP + "s"}
 PERCENT = 100
 
 # RQ-WEB-006: French typography
@@ -294,6 +303,25 @@ def measure(demo):
     return documents, (root / INDEX).stat().st_size
 
 
+def index_speed(demo, errors):
+    """Seconds agnos-index takes per 100 artifacts, measured on a copy of the demo's process folder. RQ-WEB-005"""
+    with tempfile.TemporaryDirectory(prefix="agnos-meta-website-index-") as folder:
+        shutil.copytree(Path(demo) / PROCESS, Path(folder) / PROCESS)
+        *program, script = INDEX_COMMANDS.get(os.name, INDEX_COMMAND_POSIX)
+        result = subprocess.run([*program, str(INDEX_SCRIPTS / script)], cwd=folder, capture_output=True, text=True,
+                                encoding=ENCODING, check=False)
+    run = INDEX_RUN.search(result.stdout)
+    if result.returncode != 0 or run is None or int(run.group(1)) == 0:
+        errors.append(f"agnos-index could not be timed on the demo (exit {result.returncode}): {result.stdout.strip()}")
+        return 0.0
+    return float(run.group(2)) * SPEED_ITEMS / int(run.group(1))
+
+
+def speed_text(speed, language):
+    """A duration in seconds, written for the language. RQ-WEB-005"""
+    return SPEED_FORMAT.format(speed).replace(".", DECIMALS[language]) + SECONDS[language]
+
+
 def size_text(size, language):
     """A size in kilobytes, written for the language. RQ-WEB-005"""
     return SIZE_FORMAT.format(size / KILO).replace(".", DECIMALS[language]) + UNITS[language]
@@ -471,17 +499,18 @@ def apply_tokens(template, tokens, errors):
     return MEDIA_TOKEN.sub(media_value, template).replace(TOKENS_MARKER, css)
 
 
-def build_page(assets, demo, errors, tokens=None):
+def build_page(assets, demo, errors, tokens=None, speed=None):
     """(page, summary) built from the assets and the demo, or None when an error was found. RQ-WEB-003 to
     RQ-WEB-007, RQ-WEB-015"""
     tokens = load_design_system(errors) if tokens is None else tokens
     template = apply_tokens(read(Path(assets) / TEMPLATE), tokens, errors)
     fields = read_content(assets, errors)
     documents, index = measure(demo)
+    speed = index_speed(demo, errors) if speed is None else speed
     images, rendered = set(), {}
     for lang in LANGUAGES:
         values = {"index.documents": size_text(documents, lang), "index.size": size_text(index, lang),
-                  "index.ratio": RATIO_FORMAT.format(round(documents / index))}
+                  "index.ratio": RATIO_FORMAT.format(round(documents / index)), "index.speed": speed_text(speed, lang)}
         rendered[lang] = render_language(lang, fields[lang], values, assets, errors, images)
     template_values = {"index.share": str(round(PERCENT * index / documents, SHARE_DIGITS)), "link.demo": DEMO_LINK}
     source = rendered[SOURCE_LANGUAGE]

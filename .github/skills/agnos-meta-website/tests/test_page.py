@@ -35,7 +35,7 @@ def build():
         process = root / "agnos-process"
         for folder in site.PROCESS_FOLDERS:
             (process / folder).mkdir(parents=True)
-        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"x" * 69014)
+        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"### RQ-BKG-001: One requirement\n" + b"x" * 69014)
         (process / site.INDEX).write_bytes(b"x" * 5843)
         errors = []
         result = site.build_page(site.ASSETS_DIR, root, errors)
@@ -165,13 +165,10 @@ class TestTheCards(unittest.TestCase):
 
 
 DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-lightweight-process.demo" / "client" / "design" / "tokens.json"
-STYLES = ("primary", "secondary", "danger")
+STYLES = ("primary", "danger")
 # site token -> the demo's token whose resolved value it repeats
 SAMPLE_TOKENS = {"web-sample-primary-background": "button.primary.background",
                  "web-sample-primary-text": "button.primary.text",
-                 "web-sample-secondary-background": "button.secondary.background",
-                 "web-sample-secondary-text": "button.secondary.text",
-                 "web-sample-secondary-border": "button.secondary.border",
                  "web-sample-danger-background": "button.danger.background",
                  "web-sample-danger-text": "button.danger.text"}
 
@@ -207,6 +204,25 @@ class TestTheDesignSystemCard(unittest.TestCase):
             self.assertEqual(site.theme_values(tokens, site_token, errors)[0].lower(), resolve(demo_token).lower(),
                              site_token)
         self.assertEqual(errors, [])
+
+
+class TestTheIndexAndGraph(unittest.TestCase):
+    """RQ-WEB-005, RQ-WEB-018: the index's measured speed, and the identifiers drawn as a small graph."""
+
+    def test_given_the_index_card_then_it_states_a_measured_speed_per_hundred_artifacts(self):
+        text = re.search(r'data-i18n="index-card.text">(.*?)</p>', PAGE, re.S).group(1)
+        self.assertRegex(text, r"deterministic skill.*\d\.\d s per 100 artifacts")
+
+    def test_given_the_identifiers_card_then_a_graph_links_task_and_adr_to_the_requirement(self):
+        card = PAGE.split('data-i18n="id-card.title"')[1].split('data-i18n="design-card.title"')[0]
+        graph = re.search(r'<svg class="id-graph".*?</svg>', card, re.S).group(0)
+        self.assertEqual(re.findall(r'class="node node-([a-z]+)"', graph), ["task", "rq", "adr"])
+        self.assertEqual(len(re.findall(r'class="edge"', graph)), 2)
+        self.assertIn(".node-rq{fill:var(--s-type-rq)}", PAGE)
+
+    def test_given_the_design_system_card_then_it_shows_two_styles(self):
+        card = PAGE.split('data-i18n="design-card.title"')[1].split("</section>")[0]
+        self.assertEqual(re.findall(r'class="sample sample-([a-z]+)"', card), list(STYLES))
 
 
 class TestTheExamples(unittest.TestCase):

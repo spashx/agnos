@@ -76,8 +76,10 @@ separate Performance Center feature: today its address selects an element only, 
 ### RQ-WEB-005: Figures measured on the demo
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN a field holds `{{index.documents}}`, `{{index.size}}` or `{{index.ratio}}`, the skill SHALL replace it with the size
-  of the demo's process documents, the size of its `process.idx.md`, and their ratio written `1/<n>`, each in the language's number format;
+- **Statement**: WHEN a field holds `{{index.documents}}`, `{{index.size}}`, `{{index.ratio}}` or `{{index.speed}}`, the skill SHALL
+  replace it with the size of the demo's process documents, the size of its `process.idx.md`, their ratio written `1/<n>`, and the
+  seconds `agnos-index` takes per 100 artifacts on a copy of the demo's process folder, each in the language's number format;
+  <!-- index.speed added by TASK-WEB-011 (owner, 2026-11-08) -->
   IF a field holds another variable, THEN it SHALL report it and exit 1.
 - **Rationale**: the only figure the site states in text is measured, never typed (measured on 2026-11-07: about one twelfth).
 - **Priority**: Must
@@ -194,10 +196,11 @@ separate Performance Center feature: today its address selects an element only, 
 - **Priority**: Must
 - **Acceptance Criteria**: Given the section, Then its cards read index, identifiers, design system, in three columns above 640 px
   and stacked below; Given the identifiers card, Then it shows from top to bottom the requirement RQ-BKG-003 as the primary key, then
-  TASK-BKG-003 and ADR-BKG-002 as foreign keys, each with the line that cites it highlighted; Given the design-system card, Then it
-  shows from top to bottom three of Roombook's button styles (primary, secondary, danger), each with its chain of tokens, the CSS
-  that consumes them and a button rendered in that style, in the demo's colours. <!-- amended by TASK-WEB-009 and TASK-WEB-010
-  (owner, 2026-11-08): blocks top to bottom, then button styles -->
+  TASK-BKG-003 and ADR-BKG-002 as foreign keys, each with the line that cites it highlighted, under a small graph linking the two to
+  the requirement in the Performance Center's type colours; Given the design-system card, Then it
+  shows from top to bottom two of Roombook's button styles (primary, danger), each with its chain of tokens, the CSS
+  that consumes them and a button rendered in that style, in the demo's colours. <!-- amended by TASK-WEB-009, TASK-WEB-010 and
+  TASK-WEB-011 (owner, 2026-11-08): blocks top to bottom, button styles, graph, two styles -->
 - **Dependencies**: RQ-WEB-003, RQ-WEB-009, RQ-WEB-015
 
 ---

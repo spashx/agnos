@@ -6,7 +6,8 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
   dimmed), or one image written as a linked image: [![alternative text](screens/<file>.png)](<address opened on click>)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
-- {{index.documents}}, {{index.size}} and {{index.ratio}} are measured on the demo by the build.
+- {{index.documents}}, {{index.size}}, {{index.ratio}} and {{index.speed}} (seconds per 100 artifacts) are measured on
+  the demo by the build.
 - Comments like this one are ignored.
 -->
 
@@ -362,7 +363,7 @@ Three more reasons it holds at scale
 Built for agents: the index
 
 ### text
-A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the lines it needs. It takes the next free identifier from it, so none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge.
+A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the lines it needs. It takes the next free identifier from it, so none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge. The index is rebuilt automatically, at session start and before every commit, by a deterministic skill, in about {{index.speed}} per 100 artifacts on Roombook.
 
 ### documents
 Process documents, {{index.documents}}
@@ -393,7 +394,7 @@ Every requirement, decision, task and function carries a unique identifier, and 
 Foreign key
 
 ### cites
-↑ cite the requirement
+cites
 
 ### primary-key
 Primary key
@@ -426,6 +427,19 @@ Identifier: an exact link
 ### caption
 Roombook: `OverlapRule.check` cites RQ-BKG-003; `grep RQ-BKG-003` finds everything that depends on it.
 
+### graph
+TASK-BKG-003 and ADR-BKG-002 both cite RQ-BKG-003
+
+### task-id
+TASK-BKG-003
+
+### requirement-id
+RQ-BKG-003
+
+### adr-id
+ADR-BKG-002
+
+
 ## design-card
 
 ### title
@@ -454,30 +468,6 @@ button.primary.background
 
 ### primary-button
 Book this room
-
-### secondary-name
-Secondary
-
-### secondary-tokens
-```
-button.secondary.background
-→ colour.surface.elevated
-→ colour.white = ==#ffffff==
-button.secondary.border
-→ colour.border.default → colour.slate.300
-```
-
-### secondary-css
-```
-.button-secondary {
-  background: var(--button-secondary-background);
-  color: var(--button-secondary-text);
-  border-color: var(--button-secondary-border);
-}
-```
-
-### secondary-button
-Cancel
 
 ### danger-name
 Danger

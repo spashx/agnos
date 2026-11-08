@@ -53,7 +53,7 @@ RQ-BKG-003|42-56||No double booking
 ```
 
 ### figure
-Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}
+Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}, speed {{index.speed}}
 """
 FR = """## page
 
@@ -82,7 +82,7 @@ RQ-BKG-003|42-56||No double booking
 ```
 
 ### figure
-Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}
+Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}, speed {{index.speed}}
 """
 DOCUMENTS_BYTES = 12000
 INDEX_BYTES = 1000
@@ -116,7 +116,8 @@ class Fixture(unittest.TestCase):
     def page(self):
         """(page, errors) of a build of the fixture."""
         errors = []
-        result = site.build_page(self.assets, self.demo, errors, tokens={tier: {} for tier in site.TIERS})
+        result = site.build_page(self.assets, self.demo, errors, tokens={tier: {} for tier in site.TIERS},
+                                 speed=0.43)
         return (result[0] if result else None), errors
 
     def french(self, page):
@@ -228,9 +229,9 @@ class TestMeasuredFigures(Fixture):
 
     def test_given_the_demo_when_built_then_the_figures_are_measured(self):
         page, _ = self.page()
-        self.assertIn("Documents 12.0 KB, index 1.0 KB, ratio 1/12", page)
+        self.assertIn("Documents 12.0 KB, index 1.0 KB, ratio 1/12, speed 0.4 s", page)
         self.assertEqual(self.french(page)["html"]["hero.figure"],
-                         "Documents 12,0" + NBSP + "Ko, index 1,0" + NBSP + "Ko, ratio 1/12")
+                         "Documents 12,0" + NBSP + "Ko, index 1,0" + NBSP + "Ko, ratio 1/12, speed 0,4" + NBSP + "s")
 
     def test_given_an_unknown_variable_then_it_is_reported(self):
         self.write("en.md", EN.replace("{{index.ratio}}", "{{index.unknown}}"))

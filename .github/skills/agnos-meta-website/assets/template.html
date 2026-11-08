@@ -136,7 +136,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 .snippet-css{padding-top:var(--s-web-space-6);border-top:var(--s-web-border-1) solid var(--s-border)}
 .sample{justify-self:start;display:inline-flex;align-items:center;padding:var(--s-web-space-8) var(--s-web-space-16);border:var(--s-web-border-1) solid transparent;border-radius:var(--s-web-radius-6);font-size:var(--s-web-text-14);font-weight:var(--s-weight-strong)}
 .sample-primary{background:var(--s-web-sample-primary-background);color:var(--s-web-sample-primary-text)}
-.sample-secondary{background:var(--s-web-sample-secondary-background);color:var(--s-web-sample-secondary-text);border-color:var(--s-web-sample-secondary-border)}
 .sample-danger{background:var(--s-web-sample-danger-background);color:var(--s-web-sample-danger-text)}
 .card .cap{margin-top:0}
 /* RQ-WEB-018: identifiers as keys */
@@ -145,6 +144,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .snippet span{color:var(--s-text-subtle)}
 .snippet mark{background:var(--s-accent-subtle);color:var(--s-accent);font-weight:var(--s-weight-strong);border-radius:var(--s-web-radius-3)}
 .key{padding:var(--s-web-space-8) var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
+.id-graph{display:block;width:100%;height:auto}
+.id-graph .edge{stroke:var(--s-graph-edge-strong);stroke-width:var(--s-web-border-2)}
+.node{stroke:var(--s-graph-node-border);stroke-width:var(--s-web-border-3)}
+.node-rq{fill:var(--s-type-rq)}.node-task{fill:var(--s-type-task)}.node-adr{fill:var(--s-type-adr)}
+.node-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text);text-anchor:middle}
+.edge-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text-subtle);text-anchor:middle}
 .key-arrow{font-size:var(--s-web-text-12);color:var(--s-text-subtle);padding-left:var(--s-web-space-10)}
 .matching{display:grid;gap:var(--s-web-space-4);list-style:none;margin:0;padding:0;font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .matching li{padding-left:var(--s-web-space-10);border-left:var(--s-web-border-3) solid var(--s-border-strong)}
@@ -365,9 +370,20 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="card">
         <h3 data-i18n="id-card.title"></h3>
         <p data-i18n="id-card.text"></p>
+        <svg class="id-graph" viewBox="0 0 300 120" role="img" data-i18n-attr="aria-label=id-card.graph">
+          <line class="edge" x1="62" y1="88" x2="150" y2="32"></line>
+          <line class="edge" x1="238" y1="88" x2="150" y2="32"></line>
+          <circle class="node node-task" cx="56" cy="92" r="12"></circle>
+          <circle class="node node-rq" cx="150" cy="28" r="15"></circle>
+          <circle class="node node-adr" cx="244" cy="92" r="12"></circle>
+          <text class="node-label" x="56" y="117" data-i18n="id-card.task-id"></text>
+          <text class="node-label" x="150" y="57" data-i18n="id-card.requirement-id"></text>
+          <text class="node-label" x="244" y="117" data-i18n="id-card.adr-id"></text>
+          <text class="edge-label" x="92" y="54" data-i18n="id-card.cites"></text>
+          <text class="edge-label" x="208" y="54" data-i18n="id-card.cites"></text>
+        </svg>
         <div class="stack">
           <div class="key"><span class="label" data-i18n="id-card.primary-key"></span><pre class="snippet" data-i18n="id-card.requirement"></pre></div>
-          <span class="key-arrow" data-i18n="id-card.cites"></span>
           <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><pre class="snippet" data-i18n="id-card.task"></pre></div>
           <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><pre class="snippet" data-i18n="id-card.adr"></pre></div>
         </div>
@@ -379,7 +395,6 @@ button{font:inherit;color:inherit;cursor:pointer}
         <p data-i18n="design-card.text"></p>
         <div class="styles">
           <div class="style"><span class="label" data-i18n="design-card.primary-name"></span><pre class="snippet" data-i18n="design-card.primary-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.primary-css"></pre><span class="sample sample-primary" data-i18n="design-card.primary-button"></span></div>
-          <div class="style"><span class="label" data-i18n="design-card.secondary-name"></span><pre class="snippet" data-i18n="design-card.secondary-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.secondary-css"></pre><span class="sample sample-secondary" data-i18n="design-card.secondary-button"></span></div>
           <div class="style"><span class="label" data-i18n="design-card.danger-name"></span><pre class="snippet" data-i18n="design-card.danger-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.danger-css"></pre><span class="sample sample-danger" data-i18n="design-card.danger-button"></span></div>
         </div>
         <p class="cap" data-i18n="design-card.caption"></p>

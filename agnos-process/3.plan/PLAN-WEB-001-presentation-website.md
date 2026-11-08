@@ -184,3 +184,19 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: the sample colours are site tokens repeating Roombook's light values in both themes, with a provenance note; the
   CSS shown is the form `stylesheet.ts` produces (`var(--button-<style>-<part>)`), written by hand in the content; the button
   labels are illustrative, after Roombook's labels; the swatch token of the former card is removed.
+
+### TASK-WEB-011: The index's speed, a graph of the identifiers, two button styles
+- **Tier**: M
+- **Status**: Done
+- **Description**: State in the index card that a deterministic skill rebuilds the index at session start and before every commit,
+  at a speed measured on the demo; draw the identifiers card's three elements as a small graph; keep two button styles.
+- **Requirement refs**: RQ-WEB-005, RQ-WEB-018, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Acceptance Criteria**: RQ-WEB-005's and RQ-WEB-018's amended criteria.
+- **Dependencies**: TASK-WEB-010
+- **Assignee**: AI
+- **Verification**: tests written first, 2 failures and 18 errors before the code; then `agnos-meta-website/tests` 59 OK, 0 skipped:
+  `{{index.speed}}` in both number formats, the speed per 100 artifacts in the index card, the graph's task, requirement and ADR
+  nodes and two edges, two styles; `agnos-meta-qa`: 0 open. Build on the demo: 0.4 s per 100 artifacts (82 entries in 0.349 s).
+- **Assumptions**: the speed is agnos-index's own reported duration, on a copy of the demo's `agnos-process/`, so the demo is not
+  written; the graph is drawn in SVG with the Performance Center's type and edge tokens; the secondary style and its tokens removed.

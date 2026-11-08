@@ -42,7 +42,7 @@ class Fixture(unittest.TestCase):
         process = self.demo / site.PROCESS
         for folder in site.PROCESS_FOLDERS:
             (process / folder).mkdir(parents=True)
-        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"x" * 12000)
+        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"### RQ-BKG-001: One requirement\n" + b"x" * 12000)
         (process / site.INDEX).write_bytes(b"x" * 1000)
         self.given = self.root / "given"
         self.given.mkdir()
