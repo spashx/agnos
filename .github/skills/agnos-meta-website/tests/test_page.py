@@ -153,7 +153,7 @@ class TestTheCards(unittest.TestCase):
 
     def test_given_the_style_then_the_blocks_of_both_cards_stand_top_to_bottom(self):
         css = PAGE.split("</style>")[0]
-        self.assertIn(".tokens{display:grid;grid-template-columns:minmax(0,1fr)", css)
+        self.assertIn(".styles{display:grid;grid-template-columns:minmax(0,1fr)", css)
         self.assertIn(".stack{display:grid;grid-template-columns:minmax(0,1fr)", css)
 
     def test_given_the_style_then_the_cards_stand_in_three_columns_and_stack_on_phones(self):
@@ -162,6 +162,51 @@ class TestTheCards(unittest.TestCase):
         wide = css.split("@media (max-width: 980px)")[1].split("}\n@media")[0]
         self.assertNotIn(".cards", wide)
         self.assertIn(".cards{grid-template-columns:minmax(0,1fr)}", css.split("@media (max-width: 640px)")[1])
+
+
+DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-lightweight-process.demo" / "client" / "design" / "tokens.json"
+STYLES = ("primary", "secondary", "danger")
+# site token -> the demo's token whose resolved value it repeats
+SAMPLE_TOKENS = {"web-sample-primary-background": "button.primary.background",
+                 "web-sample-primary-text": "button.primary.text",
+                 "web-sample-secondary-background": "button.secondary.background",
+                 "web-sample-secondary-text": "button.secondary.text",
+                 "web-sample-secondary-border": "button.secondary.border",
+                 "web-sample-danger-background": "button.danger.background",
+                 "web-sample-danger-text": "button.danger.text"}
+
+
+class TestTheDesignSystemCard(unittest.TestCase):
+    """RQ-WEB-018: three of Roombook's button styles, each with its tokens, its CSS and a rendered button."""
+
+    def test_given_the_card_then_each_style_shows_its_tokens_its_css_and_a_button(self):
+        card = PAGE.split('data-i18n="design-card.title"')[1].split("</section>")[0]
+        for style in STYLES:
+            tokens = re.search(rf'data-i18n="design-card\.{style}-tokens">(.*?)</pre>', card, re.S).group(1)
+            css = re.search(rf'data-i18n="design-card\.{style}-css">(.*?)</pre>', card, re.S).group(1)
+            self.assertIn(f"button.{style}.background", tokens)
+            self.assertIn(f".button-{style}", css)
+            self.assertIn(f"var(--button-{style}-background)", css)
+            sample = rf'<span class="sample sample-{style}" data-i18n="design-card\.{style}-button">[^<]+</span>'
+            self.assertRegex(card, sample)
+        self.assertIn(".sample-primary{background:var(--s-web-sample-primary-background)", PAGE)
+
+    def test_given_the_demo_then_the_sample_colours_are_roombooks(self):
+        if not DEMO_TOKENS.is_file():
+            self.skipTest(f"{DEMO_TOKENS} is absent: the sample colours are not compared")
+        demo = json.loads(DEMO_TOKENS.read_text(encoding="utf-8"))
+        flat = {**demo["global"], **demo["semantic"], **demo["component"]}
+
+        def resolve(name):
+            value = flat[name]
+            return resolve(value[1:-1]) if value.startswith("{") else value
+
+        errors = []
+        tokens = site.load_design_system(errors)
+        for site_token, demo_token in SAMPLE_TOKENS.items():
+            self.assertEqual(site.theme_values(tokens, site_token, errors)[0].lower(), resolve(demo_token).lower(),
+                             site_token)
+        self.assertEqual(errors, [])
 
 
 class TestTheExamples(unittest.TestCase):

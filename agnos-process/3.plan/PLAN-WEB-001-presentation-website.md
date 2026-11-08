@@ -167,3 +167,20 @@ This plan implements the tasks in the format specified below.
   `agnos-meta-qa`: 0 open; build on the demo: 142 fields per language, the ADR's comment shown.
 - **Assumptions**: ADR-BKG-002, which cites RQ-BKG-003 by name (ADR-BKG-001 cites a range), is shown, although superseded by
   ADR-BKG-003, owner's choice of 2026-11-08; a code block's `==part==` is highlighted, and comments inside a code block are shown, not removed.
+
+### TASK-WEB-010: Three of Roombook's button styles in the design-system card
+- **Tier**: M
+- **Status**: Done
+- **Description**: Replace the design-system card's single chain by Roombook's primary, secondary and danger buttons, each with its
+  chain of tokens, the CSS that consumes them and a button rendered in that style.
+- **Requirement refs**: RQ-WEB-018, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Acceptance Criteria**: RQ-WEB-018's amended criteria; Given the demo's `client/design/tokens.json`, Then the sample colours equal
+  its resolved button tokens.
+- **Dependencies**: TASK-WEB-009
+- **Assignee**: AI
+- **Verification**: 2 tests written first, failing before the code; then `agnos-meta-website/tests` 56 OK, 0 skipped (the demo's
+  tokens file was present, so the colours were compared: 7 tokens equal); `agnos-meta-qa`: 0 open; build: 147 fields per language.
+- **Assumptions**: the sample colours are site tokens repeating Roombook's light values in both themes, with a provenance note; the
+  CSS shown is the form `stylesheet.ts` produces (`var(--button-<style>-<part>)`), written by hand in the content; the button
+  labels are illustrative, after Roombook's labels; the swatch token of the former card is removed.

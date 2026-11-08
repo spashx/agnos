@@ -131,12 +131,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .bar-row{display:grid;gap:var(--s-web-space-4);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .bar-row i{display:block;height:var(--s-web-size-bar-row);border-radius:0 var(--s-web-radius-4) var(--s-web-radius-4) 0;background:var(--s-border-strong)}
 .bar-row i.hl{background:var(--s-accent)}
-.tokens{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-18)}
-.tok{position:relative;padding:var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
-.tok:not(:last-child)::after{content:"\2193";position:absolute;left:50%;bottom:var(--s-web-size-arrow-y);transform:translateX(-50%);color:var(--s-text-subtle)}
-.tok code{display:block;font-size:var(--s-web-text-12);overflow-wrap:anywhere;margin-top:var(--s-web-space-4)}
-.swatch{display:flex;align-items:center;gap:var(--s-web-space-8);margin-top:var(--s-web-space-8)}
-.swatch i{width:var(--s-web-size-swatch);height:var(--s-web-size-swatch);border-radius:var(--s-web-radius-4);border:var(--s-web-border-1) solid var(--s-border-strong);flex:none;background:var(--s-web-sample-swatch)}
+.styles{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-12)}
+.style{display:grid;gap:var(--s-web-space-6);padding:var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
+.snippet-css{padding-top:var(--s-web-space-6);border-top:var(--s-web-border-1) solid var(--s-border)}
+.sample{justify-self:start;display:inline-flex;align-items:center;padding:var(--s-web-space-8) var(--s-web-space-16);border:var(--s-web-border-1) solid transparent;border-radius:var(--s-web-radius-6);font-size:var(--s-web-text-14);font-weight:var(--s-weight-strong)}
+.sample-primary{background:var(--s-web-sample-primary-background);color:var(--s-web-sample-primary-text)}
+.sample-secondary{background:var(--s-web-sample-secondary-background);color:var(--s-web-sample-secondary-text);border-color:var(--s-web-sample-secondary-border)}
+.sample-danger{background:var(--s-web-sample-danger-background);color:var(--s-web-sample-danger-text)}
 .card .cap{margin-top:0}
 /* RQ-WEB-018: identifiers as keys */
 .stack{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-8)}
@@ -376,10 +377,10 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="card">
         <h3 data-i18n="design-card.title"></h3>
         <p data-i18n="design-card.text"></p>
-        <div class="tokens">
-          <div class="tok"><span class="label" data-i18n="design-card.component"></span><code data-i18n="design-card.component-token"></code></div>
-          <div class="tok"><span class="label" data-i18n="design-card.semantic"></span><code data-i18n="design-card.semantic-token"></code></div>
-          <div class="tok"><span class="label" data-i18n="design-card.global"></span><code data-i18n="design-card.global-token"></code><span class="swatch"><i></i><code data-i18n="design-card.global-value"></code></span></div>
+        <div class="styles">
+          <div class="style"><span class="label" data-i18n="design-card.primary-name"></span><pre class="snippet" data-i18n="design-card.primary-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.primary-css"></pre><span class="sample sample-primary" data-i18n="design-card.primary-button"></span></div>
+          <div class="style"><span class="label" data-i18n="design-card.secondary-name"></span><pre class="snippet" data-i18n="design-card.secondary-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.secondary-css"></pre><span class="sample sample-secondary" data-i18n="design-card.secondary-button"></span></div>
+          <div class="style"><span class="label" data-i18n="design-card.danger-name"></span><pre class="snippet" data-i18n="design-card.danger-tokens"></pre><pre class="snippet snippet-css" data-i18n="design-card.danger-css"></pre><span class="sample sample-danger" data-i18n="design-card.danger-button"></span></div>
         </div>
         <p class="cap" data-i18n="design-card.caption"></p>
       </div>

@@ -436,29 +436,74 @@ Des interfaces sous le même contrôle
 ### text
 Un projet avec interface définit son design system avant son premier écran, sous forme d'exigence et de décision d'architecture. Les écrans le citent, et le code lit chaque couleur et chaque taille dans un jeton. Sur Roombook, un test rejette toute valeur brute.
 
-### component
-Composant
+### primary-name
+Principal
 
-### semantic
-Sémantique
+### primary-tokens
+```
+button.primary.background
+→ colour.accent.default
+→ colour.blue.600 = ==#2563eb==
+```
 
-### global
-Global, seule valeur brute
+### primary-css
+```
+.button-primary {
+  background: var(--button-primary-background);
+  color: var(--button-primary-text);
+}
+```
+
+### primary-button
+Réserver cette salle
+
+### secondary-name
+Secondaire
+
+### secondary-tokens
+```
+button.secondary.background
+→ colour.surface.elevated
+→ colour.white = ==#ffffff==
+button.secondary.border
+→ colour.border.default → colour.slate.300
+```
+
+### secondary-css
+```
+.button-secondary {
+  background: var(--button-secondary-background);
+  color: var(--button-secondary-text);
+  border-color: var(--button-secondary-border);
+}
+```
+
+### secondary-button
+Annuler
+
+### danger-name
+Danger
+
+### danger-tokens
+```
+button.danger.background
+→ colour.error.strong
+→ colour.red.700 = ==#b91c1c==
+```
+
+### danger-css
+```
+.button-danger {
+  background: var(--button-danger-background);
+  color: var(--button-danger-text);
+}
+```
+
+### danger-button
+Annuler cette réservation
 
 ### caption
 Le fond d'un bouton, dans les jetons de Roombook : `FTR-DSN-001` et `ADR-DSN-001`.
-
-### component-token
-button.primary.background
-
-### semantic-token
-colour.accent.default
-
-### global-token
-colour.blue.600
-
-### global-value
-#2563eb
 
 ## close
 

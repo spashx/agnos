@@ -434,29 +434,74 @@ Interfaces under the same control
 ### text
 A project with a user interface defines its design system before its first screen, as a requirement and an architecture decision. Screens cite it, and the code reads every colour and size from a token. On Roombook, a test rejects any raw value.
 
-### component
-Component
+### primary-name
+Primary
 
-### semantic
-Semantic
+### primary-tokens
+```
+button.primary.background
+→ colour.accent.default
+→ colour.blue.600 = ==#2563eb==
+```
 
-### global
-Global, the only raw value
+### primary-css
+```
+.button-primary {
+  background: var(--button-primary-background);
+  color: var(--button-primary-text);
+}
+```
+
+### primary-button
+Book this room
+
+### secondary-name
+Secondary
+
+### secondary-tokens
+```
+button.secondary.background
+→ colour.surface.elevated
+→ colour.white = ==#ffffff==
+button.secondary.border
+→ colour.border.default → colour.slate.300
+```
+
+### secondary-css
+```
+.button-secondary {
+  background: var(--button-secondary-background);
+  color: var(--button-secondary-text);
+  border-color: var(--button-secondary-border);
+}
+```
+
+### secondary-button
+Cancel
+
+### danger-name
+Danger
+
+### danger-tokens
+```
+button.danger.background
+→ colour.error.strong
+→ colour.red.700 = ==#b91c1c==
+```
+
+### danger-css
+```
+.button-danger {
+  background: var(--button-danger-background);
+  color: var(--button-danger-text);
+}
+```
+
+### danger-button
+Cancel this reservation
 
 ### caption
 A button's background, from Roombook's tokens: `FTR-DSN-001` and `ADR-DSN-001`.
-
-### component-token
-button.primary.background
-
-### semantic-token
-colour.accent.default
-
-### global-token
-colour.blue.600
-
-### global-value
-#2563eb
 
 ## close
 
