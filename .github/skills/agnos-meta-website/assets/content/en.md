@@ -424,8 +424,16 @@ Semantic matching: a probable link
 ### exact
 Identifier: an exact link
 
-### caption
-Roombook: `OverlapRule.check` cites RQ-BKG-003; `grep RQ-BKG-003` finds everything that depends on it.
+### code
+```
+@service/roombook/rules/overlap_rule.py
+# ==RQ-BKG-003==, DEC-BKG-002 (ADR-BKG-001)
+class OverlapRule:
+    """Rejects an interval that overlaps an existing reservation (==RQ-BKG-003==)."""
+
+    def check(self, room: Room, request: ReservationRequest, existing: Sequence[Reservation]) -> None:
+        """Raise ReservationConflict naming the first overlapping reservation (==RQ-BKG-003==)."""
+```
 
 ### graph
 TASK-BKG-003 and ADR-BKG-002 both cite RQ-BKG-003

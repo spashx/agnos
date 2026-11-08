@@ -127,6 +127,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .card > p{color:var(--s-text-muted);font-size:var(--s-web-text-15)}
 .excerpt{margin:0;background:var(--s-web-band);color:var(--s-web-band-text);border-radius:var(--s-web-radius-6);padding:var(--s-web-space-10) var(--s-web-space-12);font-family:var(--s-web-font-mono);font-size:var(--s-web-text-12);line-height:var(--s-web-leading-code);overflow-x:auto;white-space:pre}
 .excerpt span{color:var(--s-web-band-text-muted)}
+.excerpt mark{background:transparent;color:var(--s-web-band-accent);font-weight:var(--s-weight-strong)}
 .bars{display:grid;gap:var(--s-web-space-10)}
 .bar-row{display:grid;gap:var(--s-web-space-4);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .bar-row i{display:block;height:var(--s-web-size-bar-row);border-radius:0 var(--s-web-radius-4) var(--s-web-radius-4) 0;background:var(--s-border-strong)}
@@ -395,7 +396,7 @@ button{font:inherit;color:inherit;cursor:pointer}
           <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><pre class="snippet" data-i18n="id-card.adr"></pre></div>
         </div>
         <ul class="matching"><li data-i18n="id-card.semantic"></li><li class="exact" data-i18n="id-card.exact"></li></ul>
-        <p class="cap" data-i18n="id-card.caption"></p>
+        <pre class="excerpt" data-i18n="id-card.code"></pre>
       </div>
       <div class="card">
         <h3 data-i18n="design-card.title"></h3>
