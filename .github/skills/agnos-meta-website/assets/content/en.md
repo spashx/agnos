@@ -13,7 +13,7 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 ## page
 
 ### title
-AGNOS · Efficiency by traceability
+AGNOS · Agentic efficiency by traceability
 
 ### description
 AGNOS, a lightweight engineering process for teams that build software with AI agents.
@@ -32,7 +32,7 @@ The views on this page come from Roombook, the AGNOS demo project, whose team an
 AGNOS
 
 ### tagline
-Efficiency by traceability
+Agentic efficiency by traceability
 
 ## nav
 

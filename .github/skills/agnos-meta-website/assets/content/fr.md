@@ -15,7 +15,7 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 ## page
 
 ### title
-AGNOS · Efficiency by traceability
+AGNOS · Agentic efficiency by traceability
 
 ### description
 AGNOS, un processus d'ingénierie léger pour les équipes qui développent avec des agents IA.
@@ -34,7 +34,7 @@ Les vues de cette page viennent de Roombook, le projet de démonstration d'AGNOS
 AGNOS
 
 ### tagline
-Efficiency by traceability
+Agentic efficiency by traceability
 
 ## nav
 
