@@ -184,6 +184,18 @@ separate Performance Center feature: today its address selects an element only, 
   enlarged; When Escape is pressed, the backdrop clicked or the close button used, Then it closes and the focus returns to the image.
 - **Dependencies**: RQ-WEB-003, RQ-WEB-012, RQ-WEB-015
 
+### RQ-WEB-018: Three cards behind the views
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The section behind the views SHALL show three cards side by side, in this order: the deterministic index, the
+  unique identifiers as keys (each element cites the identifiers it depends on, like primary and foreign keys in a database, so that
+  the agent follows exact links rather than semantic matching, which makes its work more deterministic), and the design system.
+- **Rationale**: the owner's message that unique identifiers make the links between information exact (owner request of 2026-11-08).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the section, Then its cards read index, identifiers, design system, in three columns above 640 px
+  and stacked below; Given the identifiers card, Then it shows TASK-BKG-003 citing RQ-BKG-003 as a foreign key its primary key.
+- **Dependencies**: RQ-WEB-003, RQ-WEB-009, RQ-WEB-015
+
 ---
 
 ## Non-Functional Requirements

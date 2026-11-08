@@ -354,7 +354,7 @@ What Roombook delivered, period by period.
 Behind the views
 
 ### title
-Two more reasons it holds at scale
+Three more reasons it holds at scale
 
 ## index-card
 
@@ -380,6 +380,38 @@ RQ-BKG-003|42-56||No double booking
 @agnos-process/3.plan/PLAN-BKG-001-core-booking.md
 TASK-BKG-003|50-66|Done|Overlap rule
 ```
+
+## id-card
+
+### title
+Exact links, not resemblance
+
+### text
+Every requirement, decision, task and function carries a unique identifier, and each element cites the ones it depends on, like a primary key and its foreign keys in a database. The agent follows exact links instead of guessing, by semantic closeness, which text relates to which. The same inputs give the same links: the agent's work becomes more deterministic, and verifiable.
+
+### foreign-key
+Foreign key
+
+### task-id
+TASK-BKG-003
+
+### cites
+cites →
+
+### primary-key
+Primary key
+
+### requirement-id
+RQ-BKG-003
+
+### semantic
+Semantic matching: a probable link
+
+### exact
+Identifier: an exact link
+
+### caption
+Roombook: `OverlapRule.check` cites RQ-BKG-003; `grep RQ-BKG-003` finds everything that depends on it.
 
 ## design-card
 

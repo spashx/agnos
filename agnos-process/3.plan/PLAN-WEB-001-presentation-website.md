@@ -135,3 +135,19 @@ This plan implements the tasks in the format specified below.
 - **Assumptions**: a plain image `![alt](screens/x.png)` is a new field kind; the examples span the stop's whole width; the dialog
   is the native `<dialog>`, whose Escape closes it; the close button is an icon, so that the template holds no text; the captions
   name RQ-BKG-003, ADR-BKG-001, PLAN-BKG-001 and TASK-BKG-003 for the owner's screenshots. Committed with TASK-WEB-006's test line.
+
+### TASK-WEB-008: A third card, identifiers as keys
+- **Tier**: M
+- **Status**: Done
+- **Description**: Add between the index and the design-system cards a card on unique identifiers as primary and foreign keys,
+  against semantic matching, the three cards side by side as the examples.
+- **Requirement refs**: RQ-WEB-018, RQ-WEB-003, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Acceptance Criteria**: RQ-WEB-018's criteria; Given the template, Then it still holds no text and no raw visual value.
+- **Dependencies**: TASK-WEB-007
+- **Assignee**: AI
+- **Verification**: 2 tests written first, failing before the code; then `agnos-meta-website/tests` 52 OK, 0 skipped: cards in the
+  order index, identifiers, design system; TASK-BKG-003 cites RQ-BKG-003 as foreign and primary key; three columns, one under
+  640 px. `agnos-meta-qa`: 0 open. Build on the demo: 141 fields per language.
+- **Assumptions**: the text approved by the owner on 2026-11-08; the section's title says three reasons; between 640 and 980 px the
+  cards keep three columns.

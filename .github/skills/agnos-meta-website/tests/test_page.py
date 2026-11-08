@@ -136,6 +136,26 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
+class TestTheCards(unittest.TestCase):
+    """RQ-WEB-018: three cards behind the views, the index, the identifiers and the design system."""
+
+    def test_given_the_page_then_three_cards_stand_in_order(self):
+        more = re.search(r'<section class="more" id="more">.*?</section>', PAGE, re.S).group(0)
+        titles = re.findall(r'<h3 data-i18n="([a-z-]+)\.title">[^<]+</h3>', more)
+        self.assertEqual(titles, ["index-card", "id-card", "design-card"])
+        card = more.split('data-i18n="id-card.title"')[1].split('data-i18n="design-card.title"')[0]
+        self.assertIn(">Primary key<", card)
+        self.assertIn(">RQ-BKG-003<", card)
+        self.assertIn(">TASK-BKG-003<", card)
+
+    def test_given_the_style_then_the_cards_stand_in_three_columns_and_stack_on_phones(self):
+        css = PAGE.split("</style>")[0]
+        self.assertIn(".cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))", css)
+        wide = css.split("@media (max-width: 980px)")[1].split("}\n@media")[0]
+        self.assertNotIn(".cards", wide)
+        self.assertIn(".cards{grid-template-columns:minmax(0,1fr)}", css.split("@media (max-width: 640px)")[1])
+
+
 class TestTheExamples(unittest.TestCase):
     """RQ-WEB-017: three examples under the Overview stop, enlarged on click."""
 
