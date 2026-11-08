@@ -392,17 +392,30 @@ Every requirement, decision, task and function carries a unique identifier, and 
 ### foreign-key
 Foreign key
 
-### task-id
-TASK-BKG-003
-
 ### cites
-cites →
+↑ cite the requirement
 
 ### primary-key
 Primary key
 
-### requirement-id
-RQ-BKG-003
+### requirement
+```
+### RQ-BKG-003: No double booking
+```
+
+### task
+```
+### TASK-BKG-003: Overlap rule
+- Requirement refs: ==RQ-BKG-003==
+- ADR refs: ADR-BKG-001 (DEC-BKG-002)
+```
+
+### adr
+```
+# ADR-BKG-001: Layered architecture with ports
+<!-- Motivated by: ==RQ-BKG-001 to RQ-BKG-006== (FTR-BKG-001) -->
+### DEC-BKG-002: Reservation rules are separate, discovered objects
+```
 
 ### semantic
 Semantic matching: a probable link

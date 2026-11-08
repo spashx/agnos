@@ -131,18 +131,20 @@ button{font:inherit;color:inherit;cursor:pointer}
 .bar-row{display:grid;gap:var(--s-web-space-4);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .bar-row i{display:block;height:var(--s-web-size-bar-row);border-radius:0 var(--s-web-radius-4) var(--s-web-radius-4) 0;background:var(--s-border-strong)}
 .bar-row i.hl{background:var(--s-accent)}
-.tokens{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-web-space-18)}
+.tokens{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-18)}
 .tok{position:relative;padding:var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
-.tok:not(:last-child)::after{content:"\2192";position:absolute;right:var(--s-web-size-arrow-x);top:50%;transform:translateY(-50%);color:var(--s-text-subtle)}
+.tok:not(:last-child)::after{content:"\2193";position:absolute;left:50%;bottom:var(--s-web-size-arrow-y);transform:translateX(-50%);color:var(--s-text-subtle)}
 .tok code{display:block;font-size:var(--s-web-text-12);overflow-wrap:anywhere;margin-top:var(--s-web-space-4)}
 .swatch{display:flex;align-items:center;gap:var(--s-web-space-8);margin-top:var(--s-web-space-8)}
 .swatch i{width:var(--s-web-size-swatch);height:var(--s-web-size-swatch);border-radius:var(--s-web-radius-4);border:var(--s-web-border-1) solid var(--s-border-strong);flex:none;background:var(--s-web-sample-swatch)}
 .card .cap{margin-top:0}
 /* RQ-WEB-018: identifiers as keys */
-.keys{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:var(--s-web-space-8)}
+.stack{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-8)}
+.snippet{margin:var(--s-web-space-4) 0 0;font-family:var(--s-web-font-mono);font-size:var(--s-web-text-12);line-height:var(--s-web-leading-code);white-space:pre-wrap;overflow-wrap:anywhere;color:var(--s-text)}
+.snippet span{color:var(--s-text-subtle)}
+.snippet mark{background:var(--s-accent-subtle);color:var(--s-accent);font-weight:var(--s-weight-strong);border-radius:var(--s-web-radius-3)}
 .key{padding:var(--s-web-space-8) var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
-.key code{display:block;font-size:var(--s-web-text-12);font-weight:var(--s-weight-medium);overflow-wrap:anywhere;margin-top:var(--s-web-space-4)}
-.key-arrow{font-size:var(--s-web-text-12);color:var(--s-text-subtle);text-align:center}
+.key-arrow{font-size:var(--s-web-text-12);color:var(--s-text-subtle);padding-left:var(--s-web-space-10)}
 .matching{display:grid;gap:var(--s-web-space-4);list-style:none;margin:0;padding:0;font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .matching li{padding-left:var(--s-web-space-10);border-left:var(--s-web-border-3) solid var(--s-border-strong)}
 .matching li.exact{border-left-color:var(--s-web-ok);color:var(--s-text)}
@@ -188,10 +190,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 @media (max-width: {{t:web-size-breakpoint-narrow}}){
   .nav,.bar .btn{display:none}
   .bar .wrap{justify-content:space-between;gap:var(--s-web-space-10)}
-  .tokens{grid-template-columns:minmax(0,1fr)}
   .examples{grid-template-columns:minmax(0,1fr)}
   .cards{grid-template-columns:minmax(0,1fr)}
-  .tok:not(:last-child)::after{content:"\2193";right:auto;left:50%;top:auto;bottom:var(--s-web-size-arrow-y);transform:translateX(-50%)}
 }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.shot-open{transition:none}}
 </style>
@@ -364,10 +364,11 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="card">
         <h3 data-i18n="id-card.title"></h3>
         <p data-i18n="id-card.text"></p>
-        <div class="keys">
-          <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><code data-i18n="id-card.task-id"></code></div>
+        <div class="stack">
+          <div class="key"><span class="label" data-i18n="id-card.primary-key"></span><pre class="snippet" data-i18n="id-card.requirement"></pre></div>
           <span class="key-arrow" data-i18n="id-card.cites"></span>
-          <div class="key"><span class="label" data-i18n="id-card.primary-key"></span><code data-i18n="id-card.requirement-id"></code></div>
+          <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><pre class="snippet" data-i18n="id-card.task"></pre></div>
+          <div class="key"><span class="label" data-i18n="id-card.foreign-key"></span><pre class="snippet" data-i18n="id-card.adr"></pre></div>
         </div>
         <ul class="matching"><li data-i18n="id-card.semantic"></li><li class="exact" data-i18n="id-card.exact"></li></ul>
         <p class="cap" data-i18n="id-card.caption"></p>

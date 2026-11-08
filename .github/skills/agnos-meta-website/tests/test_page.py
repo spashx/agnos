@@ -144,9 +144,17 @@ class TestTheCards(unittest.TestCase):
         titles = re.findall(r'<h3 data-i18n="([a-z-]+)\.title">[^<]+</h3>', more)
         self.assertEqual(titles, ["index-card", "id-card", "design-card"])
         card = more.split('data-i18n="id-card.title"')[1].split('data-i18n="design-card.title"')[0]
-        self.assertIn(">Primary key<", card)
-        self.assertIn(">RQ-BKG-003<", card)
-        self.assertIn(">TASK-BKG-003<", card)
+        snippets = re.findall(r'<pre class="snippet" data-i18n="id-card\.([a-z]+)">(.*?)</pre>', card, re.S)
+        self.assertEqual([name for name, _ in snippets], ["requirement", "task", "adr"])
+        self.assertIn("RQ-BKG-003", snippets[0][1])
+        self.assertIn("<mark>RQ-BKG-003</mark>", snippets[1][1])
+        self.assertIn("<mark>RQ-BKG-001 to RQ-BKG-006</mark>", snippets[2][1])
+        self.assertLess(card.index("Primary key"), card.index("Foreign key"))
+
+    def test_given_the_style_then_the_blocks_of_both_cards_stand_top_to_bottom(self):
+        css = PAGE.split("</style>")[0]
+        self.assertIn(".tokens{display:grid;grid-template-columns:minmax(0,1fr)", css)
+        self.assertIn(".stack{display:grid;grid-template-columns:minmax(0,1fr)", css)
 
     def test_given_the_style_then_the_cards_stand_in_three_columns_and_stack_on_phones(self):
         css = PAGE.split("</style>")[0]

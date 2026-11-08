@@ -142,6 +142,11 @@ class TestContentInTheAssets(Fixture):
         self.assertIn('href="demo/PERF-CENTER.html#RQ-BKG-003"', page)
         self.assertIn('<img src="screens/view.png" alt="The view"', page)
 
+    def test_given_a_code_block_with_marks_then_they_are_highlighted(self):
+        errors = []
+        self.assertEqual(site.render("x.y", ["```", "refs: ==RQ-BKG-003== <done>", "```"], "en", {}, errors),
+                         (site.KIND_CODE, "refs: <mark>RQ-BKG-003</mark> &lt;done&gt;"))
+
     def test_given_a_plain_image_then_it_is_an_image_without_link(self):
         errors = []
         self.assertEqual(site.render("x.y", ["![An example](screens/view.png)"], "en", {}, errors),

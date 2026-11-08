@@ -68,6 +68,7 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 SECTION = re.compile(r"^##\s+([a-z0-9-]+)\s*$")
 FIELD = re.compile(r"^###\s+([a-z0-9-]+)\s*$")
 FENCE = "```"
+FENCE_LINE = re.compile(r"^(```)$(.*?)^(```)$", re.M | re.S)
 LIST_ITEM = re.compile(r"^-\s+(\S.*)$")
 IMAGE = re.compile(r"^!\[([^\]]+)\]\(([^)\s]+)\)$")   # RQ-WEB-017: an image enlarged on click, without link
 SHOT = re.compile(r"^\[!\[([^\]]+)\]\(([^)\s]+)\)\]\(([^)\s]+)\)$")
@@ -75,6 +76,7 @@ INLINE = re.compile(r"`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s
 VARIABLE = re.compile(r"\{\{([a-z0-9.-]+)\}\}")
 HARD_BREAK = "\\"
 LINE_BREAK = "<br>"
+CODE_MARK = re.compile(r"==(.+?)==")   # RQ-WEB-018: a highlighted part of a code block
 PATH_LINE = "@"            # an index excerpt's document line, dimmed
 OPEN_ARROW = "↗"
 LABELS_SECTION = "labels."
@@ -168,10 +170,19 @@ class ContentReader:
             self.add(line if line.strip() else "")
 
 
+def without_comments(text):
+    """The text with its comments blanked, except inside fenced blocks, whose comments are shown. RQ-WEB-003,
+    RQ-WEB-018"""
+    parts = FENCE_LINE.split(text)
+    for index in range(0, len(parts), 4):
+        parts[index] = COMMENT.sub(lambda match: "\n" * match.group(0).count("\n"), parts[index])
+    return "".join(parts)
+
+
 def parse(path, name, errors):
     """{section.field: lines} of one content file; misplaced text is reported with its line number. RQ-WEB-003,
     RQ-WEB-004"""
-    text = COMMENT.sub(lambda match: "\n" * match.group(0).count("\n"), read(path))
+    text = without_comments(read(path))
     reader = ContentReader(name, errors)
     for number, line in enumerate(text.splitlines(), 1):
         reader.line(number, line)
@@ -216,9 +227,14 @@ def substitute(line, values, where, errors):
     return VARIABLE.sub(value, line)
 
 
+def marked(line):
+    """A code line escaped, its ==parts== highlighted. RQ-WEB-018"""
+    return CODE_MARK.sub(lambda match: f"<mark>{match.group(1)}</mark>", escape(line))
+
+
 def code_block(lines):
     """An index excerpt: its lines kept, its document lines dimmed. RQ-WEB-003"""
-    return "\n".join(f"<span>{escape(line)}</span>" if line.startswith(PATH_LINE) else escape(line)
+    return "\n".join(f"<span>{marked(line)}</span>" if line.startswith(PATH_LINE) else marked(line)
                      for line in lines[1:-1])
 
 

@@ -151,3 +151,19 @@ This plan implements the tasks in the format specified below.
   640 px. `agnos-meta-qa`: 0 open. Build on the demo: 141 fields per language.
 - **Assumptions**: the text approved by the owner on 2026-11-08; the section's title says three reasons; between 640 and 980 px the
   cards keep three columns.
+
+### TASK-WEB-009: The blocks of two cards, top to bottom
+- **Tier**: M
+- **Status**: Done
+- **Description**: Stack the design-system card's three token tiers, and show in the identifiers card the requirement, then the
+  task and the ADR that cite it, their citing line highlighted.
+- **Requirement refs**: RQ-WEB-018, RQ-WEB-003, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Acceptance Criteria**: RQ-WEB-018's amended criteria; Given the template, Then it still holds no text and no raw visual value.
+- **Dependencies**: TASK-WEB-008
+- **Assignee**: AI
+- **Verification**: 3 tests written first, failing before the code; then `agnos-meta-website/tests` 54 OK, 0 skipped: snippets in
+  the order requirement, task, ADR, `<mark>RQ-BKG-003</mark>` in the task and the ADR's range highlighted, both cards one column;
+  `agnos-meta-qa`: 0 open; build on the demo: 142 fields per language, the ADR's comment shown.
+- **Assumptions**: the demo's ADR-BKG-001 cites the range "RQ-BKG-001 to RQ-BKG-006", not RQ-BKG-003 by name, so the range is shown
+  and highlighted as it stands; a code block's `==part==` is highlighted, and comments inside a code block are shown, not removed.
