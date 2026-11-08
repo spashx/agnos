@@ -93,7 +93,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-005: A build on the demo, checked by the owner
 - **Tier**: S
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Build the site on the demo into a scratch folder, hand it to the owner for the visual check at 360 px and on desktop,
   in each theme, and remove `site.tmp/` once the owner accepts.
 - **Requirement refs**: RQ-WEB-008, RQ-WEB-009, RQ-WEB-014
@@ -102,7 +102,8 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-WEB-004
 - **Assignee**: Human (visual check), AI (build)
 - **Verification**: N/A (Tier S)
-- **Assumptions**:
+- **Assumptions**: the owner's visual check, "ok" on 2026-11-08, covers the build with all later retouches; `site.tmp/` removed
+  after it (six untracked files, all repeated in the skill's assets).
 
 ### TASK-WEB-006: The tagline becomes "Agentic efficiency by traceability"
 - **Tier**: S

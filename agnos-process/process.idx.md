@@ -935,15 +935,15 @@ TASK-TRC-105|30-41|Done|The RQ-TRC-119 citation of maintaining.md in a comment
 PLAN-TRC-018|1-39||The Perf Center's Headless-Browser Tests Fail
 TASK-TRC-106|18-39|Done|Find why the headless-browser tests read nothing, and fix it
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
-PLAN-WEB-001|1-202||The agnos-meta-website Skill
+PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks
 TASK-WEB-002|35-52|Done|The site's design system
 TASK-WEB-003|53-73|Done|The template, the content and the placeholder images
 TASK-WEB-004|74-93|Done|The demo page and the output folder
-TASK-WEB-005|94-106|In Progress|A build on the demo, checked by the owner
-TASK-WEB-006|107-119|Done|The tagline becomes "Agentic efficiency by traceability"
-TASK-WEB-007|120-138|Done|Three examples, enlarged on click
-TASK-WEB-008|139-154|Done|A third card, identifiers as keys
-TASK-WEB-009|155-170|Done|The blocks of two cards, top to bottom
-TASK-WEB-010|171-187|Done|Three of Roombook's button styles in the design-system card
-TASK-WEB-011|188-202|Done|The index's speed, a graph of the identifiers, two button styles
+TASK-WEB-005|94-107|Done|A build on the demo, checked by the owner
+TASK-WEB-006|108-120|Done|The tagline becomes "Agentic efficiency by traceability"
+TASK-WEB-007|121-139|Done|Three examples, enlarged on click
+TASK-WEB-008|140-155|Done|A third card, identifiers as keys
+TASK-WEB-009|156-171|Done|The blocks of two cards, top to bottom
+TASK-WEB-010|172-188|Done|Three of Roombook's button styles in the design-system card
+TASK-WEB-011|189-203|Done|The index's speed, a graph of the identifiers, two button styles
