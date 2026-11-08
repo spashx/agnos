@@ -127,7 +127,7 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**: RQ-WEB-017's criteria; Given the template, Then it still holds no text and no raw visual value.
 - **Dependencies**: TASK-WEB-006
 - **Assignee**: AI
-- **Verification**: tests written first (4 new, failing before the code), then `agnos-meta-website/tests` 50 OK, 0 skipped: three
+- **Verification**: 4 tests written before the code (not run before it), then `agnos-meta-website/tests` 50 OK, 0 skipped: three
   images after the Overview screenshot in the order requirement, ADR, plan, with captions; three columns, one under 640 px; a dialog
   with a labelled close button, opened by `showModal()`, closed by the button, the backdrop or Escape (native), focus returned; no
   text and no raw value in the template; 8 single-colour PNGs; `node --check` passed. `agnos-meta-qa`: 0 open. Real build on the
