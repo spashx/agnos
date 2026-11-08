@@ -116,7 +116,7 @@ class Fixture(unittest.TestCase):
     def page(self):
         """(page, errors) of a build of the fixture."""
         errors = []
-        result = site.build_page(self.assets, self.demo, errors, tokens_css="")
+        result = site.build_page(self.assets, self.demo, errors, tokens={tier: {} for tier in site.TIERS})
         return (result[0] if result else None), errors
 
     def french(self, page):

@@ -55,7 +55,7 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 SECTION = re.compile(r"^##\s+([a-z0-9-]+)\s*$")
 FIELD = re.compile(r"^###\s+([a-z0-9-]+)\s*$")
 FENCE = "```"
-LIST_ITEM = re.compile(r"^-\s+(.+)$")
+LIST_ITEM = re.compile(r"^-\s+(\S.*)$")
 SHOT = re.compile(r"^\[!\[([^\]]+)\]\(([^)\s]+)\)\]\(([^)\s]+)\)$")
 INLINE = re.compile(r"`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)")
 VARIABLE = re.compile(r"\{\{([a-z0-9.-]+)\}\}")
@@ -75,6 +75,17 @@ TAG = re.compile(r"<[^>]+>")
 FR_MARKER = "/*@FR@*/{}"
 LESS_THAN = "<"
 LESS_THAN_ESCAPE = "\\u003c"
+
+# RQ-WEB-015, DEC-WEB-005: the design system, the Performance Center's tokens and the site's layer
+PERF_CENTER_TOKENS = SKILL_DIR.parent / "agnos-perf-center" / "assets" / "tokens.json"
+SITE_TOKENS = ASSETS_DIR / "tokens.json"
+TIERS = ("global", "semantic", "component")
+GLOBAL, SEMANTIC, COMPONENT = TIERS
+THEMES = ("light", "dark")
+TOKENS_MARKER = "/*@TOKENS@*/"
+USED_TOKEN = re.compile(r"var\(--(?P<tier>[sc])-(?P<name>[a-z0-9-]+)\)")
+MEDIA_TOKEN = re.compile(r"\{\{t:([a-z0-9-]+)\}\}")
+SEMANTIC_PREFIX, COMPONENT_PREFIX = "s", "c"
 
 KIND_TEXT, KIND_LIST, KIND_SHOT, KIND_CODE = "text", "list", "shot", "code"
 REPORT = "agnos-meta-website: "
@@ -333,10 +344,99 @@ def french_dictionary(template, french):
     return json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace(LESS_THAN, LESS_THAN_ESCAPE)
 
 
-def build_page(assets, demo, errors, tokens_css=""):
+def load_json(path, errors):
+    """The JSON of a file, or None when it cannot be read. RQ-WEB-015"""
+    try:
+        return json.loads(read(path))
+    except (OSError, ValueError) as error:
+        errors.append(f"{Path(path).name}: {error}")
+        return None
+
+
+def merge_tokens(base, layer, errors):
+    """The Performance Center's tokens extended by the site's layer; a repeated name is reported. RQ-WEB-015,
+    DEC-WEB-005"""
+    merged = {tier: dict(base.get(tier, {})) for tier in TIERS}
+    for tier in TIERS:
+        for name, value in layer.get(tier, {}).items():
+            if name in merged[tier]:
+                errors.append(f"{SITE_TOKENS.name}: {tier} token {name} is already a Performance Center token")
+            merged[tier][name] = value
+    return merged
+
+
+def load_design_system(errors):
+    """The design system of the site: the Performance Center's tokens and the site's layer. RQ-WEB-015"""
+    base, layer = load_json(PERF_CENTER_TOKENS, errors), load_json(SITE_TOKENS, errors)
+    if base is None or layer is None:
+        return {tier: {} for tier in TIERS}
+    return merge_tokens(base, layer, errors)
+
+
+def theme_values(tokens, name, errors):
+    """(light, dark) values of a semantic token; a reference to no global token is reported. RQ-WEB-015"""
+    ref = tokens[SEMANTIC].get(name)
+    refs = ref if isinstance(ref, dict) else {theme: ref for theme in THEMES}
+    values = []
+    for theme in THEMES:
+        if refs.get(theme) not in tokens[GLOBAL]:
+            errors.append(f"design token {name} refers to {refs.get(theme)}, which is no global token")
+            values.append("")
+        else:
+            values.append(tokens[GLOBAL][refs[theme]])
+    return tuple(values)
+
+
+def tokens_css(tokens, semantic, component, errors):
+    """The custom properties of the given tokens, --s-<semantic> per theme and --c-<component>, in the Performance
+    Center's form. RQ-WEB-015, DEC-WEB-005"""
+    semantic = set(semantic)
+    for name in component:
+        if tokens[COMPONENT].get(name) not in tokens[SEMANTIC]:
+            errors.append(f"component token {name} refers to {tokens[COMPONENT].get(name)}, which is no semantic token")
+        else:
+            semantic.add(tokens[COMPONENT][name])
+    light, dark = [], []
+    for name in sorted(semantic):
+        light_value, dark_value = theme_values(tokens, name, errors)
+        light.append(f"  --{SEMANTIC_PREFIX}-{name}: {light_value};")
+        if dark_value != light_value:
+            dark.append(f"  --{SEMANTIC_PREFIX}-{name}: {dark_value};")
+    light += [f"  --{COMPONENT_PREFIX}-{name}: var(--{SEMANTIC_PREFIX}-{tokens[COMPONENT][name]});"
+              for name in sorted(component) if tokens[COMPONENT].get(name) in tokens[SEMANTIC]]
+    dark_block = ["  color-scheme: dark;", *dark]
+    return "\n".join([":root {", "  color-scheme: light;", *light, "}", "@media (prefers-color-scheme: dark) {",
+                      ':root:not([data-theme="light"]) {', *dark_block, "}", "}", ':root[data-theme="dark"] {',
+                      *dark_block, "}"])
+
+
+def apply_tokens(template, tokens, errors):
+    """The template with the CSS of the tokens it uses at its marker and its {{t:<name>}} values filled. RQ-WEB-015,
+    DEC-WEB-005"""
+    semantic, component = set(), set()
+    for match in USED_TOKEN.finditer(template):
+        tier, name = match.group("tier"), match.group("name")
+        known = tokens[SEMANTIC if tier == SEMANTIC_PREFIX else COMPONENT]
+        if name not in known:
+            errors.append(f"template: --{tier}-{name} is no design token")
+        else:
+            (semantic if tier == SEMANTIC_PREFIX else component).add(name)
+
+    def media_value(match):
+        if match.group(1) not in tokens[SEMANTIC]:
+            errors.append(f"template: {match.group(0)} is no design token")
+            return match.group(0)
+        return theme_values(tokens, match.group(1), errors)[0]
+
+    css = tokens_css(tokens, semantic, component, errors)
+    return MEDIA_TOKEN.sub(media_value, template).replace(TOKENS_MARKER, css)
+
+
+def build_page(assets, demo, errors, tokens=None):
     """(page, summary) built from the assets and the demo, or None when an error was found. RQ-WEB-003 to
-    RQ-WEB-007"""
-    template = read(Path(assets) / TEMPLATE)
+    RQ-WEB-007, RQ-WEB-015"""
+    tokens = load_design_system(errors) if tokens is None else tokens
+    template = apply_tokens(read(Path(assets) / TEMPLATE), tokens, errors)
     fields = read_content(assets, errors)
     documents, index = measure(demo)
     images, rendered = set(), {}

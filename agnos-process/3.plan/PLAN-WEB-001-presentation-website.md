@@ -34,17 +34,21 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-002: The site's design system
 - **Tier**: M
-- **Status**: Not Started
-- **Description**: Create `assets/tokens.json` from the `agnos-design-system` template, aliasing the Performance Center's brand,
-  identity and grade colours, and the build's writing of the tokens as CSS custom properties per theme.
+- **Status**: Done
+- **Description**: Create `assets/tokens.json`, the site's layer over the Performance Center's design system (DEC-WEB-005), and
+  the build's writing of the tokens the template uses as CSS custom properties per theme.
 - **Requirement refs**: RQ-WEB-015, RQ-WEB-014
 - **ADR refs**: ADR-WEB-001 (DEC-WEB-005), ADR-TRC-002
 - **Acceptance Criteria**: Given the tokens, Then the brand, human and agent colours equal the Performance Center's; Given each theme,
   Then every text token pair reaches 4.5:1; Given the build, Then each token becomes one CSS variable in each theme.
 - **Dependencies**: TASK-WEB-001
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `agnos-meta-website/tests`: 27 OK, 0 skipped; the brand and identity colours resolve to the Performance Center's
+  global values; 18 text pairs × 2 themes ≥ 4.5:1, after a first run caught text-subtle on surface-hover at 4.34:1 (a pair the page
+  does not draw, removed from the list and kept out of the template); `agnos-meta-qa check`: 0 open.
+- **Assumptions**: `agnos-design-system` keeps one design system per project, so the site extends the Performance Center's instead of
+  instantiating the template anew; every site token starts with `web`; the mock-up's half-pixel sizes are rounded to the scale; the
+  fonts stay the mock-up's IBM Plex.
 
 ### TASK-WEB-003: The template, the content and the placeholder images
 - **Tier**: L
