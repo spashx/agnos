@@ -163,7 +163,7 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-WEB-008
 - **Assignee**: AI
 - **Verification**: 3 tests written first, failing before the code; then `agnos-meta-website/tests` 54 OK, 0 skipped: snippets in
-  the order requirement, task, ADR, `<mark>RQ-BKG-003</mark>` in the task and the ADR's range highlighted, both cards one column;
+  the order requirement, task, ADR, `<mark>RQ-BKG-003</mark>` in the task and in ADR-BKG-002, both cards one column;
   `agnos-meta-qa`: 0 open; build on the demo: 142 fields per language, the ADR's comment shown.
-- **Assumptions**: the demo's ADR-BKG-001 cites the range "RQ-BKG-001 to RQ-BKG-006", not RQ-BKG-003 by name, so the range is shown
-  and highlighted as it stands; a code block's `==part==` is highlighted, and comments inside a code block are shown, not removed.
+- **Assumptions**: ADR-BKG-002, which cites RQ-BKG-003 by name (ADR-BKG-001 cites a range), is shown, although superseded by
+  ADR-BKG-003, owner's choice of 2026-11-08; a code block's `==part==` is highlighted, and comments inside a code block are shown, not removed.

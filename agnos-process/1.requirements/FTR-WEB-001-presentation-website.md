@@ -194,7 +194,7 @@ separate Performance Center feature: today its address selects an element only, 
 - **Priority**: Must
 - **Acceptance Criteria**: Given the section, Then its cards read index, identifiers, design system, in three columns above 640 px
   and stacked below; Given the identifiers card, Then it shows from top to bottom the requirement RQ-BKG-003 as the primary key, then
-  TASK-BKG-003 and ADR-BKG-001 as foreign keys, each with the line that cites it highlighted; Given the design-system card, Then its
+  TASK-BKG-003 and ADR-BKG-002 as foreign keys, each with the line that cites it highlighted; Given the design-system card, Then its
   three token tiers stand from top to bottom. <!-- amended by TASK-WEB-009 (owner, 2026-11-08): blocks top to bottom -->
 - **Dependencies**: RQ-WEB-003, RQ-WEB-009, RQ-WEB-015
 

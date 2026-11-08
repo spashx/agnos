@@ -414,9 +414,9 @@ Clé primaire
 
 ### adr
 ```
-# ADR-BKG-001: Layered architecture with ports
-<!-- Motivated by: ==RQ-BKG-001 to RQ-BKG-006== (FTR-BKG-001) -->
-### DEC-BKG-002: Reservation rules are separate, discovered objects
+# ADR-BKG-002: In-memory reservation storage
+<!-- Motivated by: RQ-BKG-002, ==RQ-BKG-003==, RQ-BKG-005 (FTR-BKG-001) -->
+### DEC-BKG-003: Keep reservations in a dictionary in memory
 ```
 
 ### semantic

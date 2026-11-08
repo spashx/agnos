@@ -148,7 +148,7 @@ class TestTheCards(unittest.TestCase):
         self.assertEqual([name for name, _ in snippets], ["requirement", "task", "adr"])
         self.assertIn("RQ-BKG-003", snippets[0][1])
         self.assertIn("<mark>RQ-BKG-003</mark>", snippets[1][1])
-        self.assertIn("<mark>RQ-BKG-001 to RQ-BKG-006</mark>", snippets[2][1])
+        self.assertIn("<mark>RQ-BKG-003</mark>", snippets[2][1])
         self.assertLess(card.index("Primary key"), card.index("Foreign key"))
 
     def test_given_the_style_then_the_blocks_of_both_cards_stand_top_to_bottom(self):
