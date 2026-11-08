@@ -1,0 +1,167 @@
+"""Tests of agnos-meta-website's page: the template, the content and the placeholder images of the assets (FTR-WEB-001:
+RQ-WEB-003, RQ-WEB-007 to RQ-WEB-015; ADR-WEB-001: DEC-WEB-003, DEC-WEB-004, DEC-WEB-005)."""
+import importlib.util
+import json
+import re
+import shutil
+import struct
+import subprocess
+import tempfile
+import unittest
+import zlib
+from pathlib import Path
+
+SKILL_DIR = Path(__file__).resolve().parents[1]
+_spec = importlib.util.spec_from_file_location("agnos_meta_website", SKILL_DIR / "scripts" / "build_site.py")
+site = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(site)
+
+TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
+VIEWS = ("overview", "graph", "quality", "history", "delivery")
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+SCREEN_RATIO = 16 / 10
+RGB_COLOUR_TYPE = 2
+FONT_HOSTS = ("https://fonts.googleapis.com", "https://fonts.gstatic.com")
+RAW_VALUE = re.compile(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|em|rem|vw|vh|s|ms)\b|"
+                       r"(?:font-weight|opacity|line-height|letter-spacing)\s*:\s*-?(?!(?:0|1)(?![.\d]))\.?\d")
+LETTERS = re.compile(r"[A-Za-zÀ-ɏ]")
+
+
+def build():
+    """The page built from the real assets on a small demo, and its errors."""
+    root = Path(tempfile.mkdtemp(prefix="agnos-meta-website-page-"))
+    try:
+        process = root / "agnos-process"
+        for folder in site.PROCESS_FOLDERS:
+            (process / folder).mkdir(parents=True)
+        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"x" * 69014)
+        (process / site.INDEX).write_bytes(b"x" * 5843)
+        errors = []
+        result = site.build_page(site.ASSETS_DIR, root, errors)
+        return (result[0] if result else ""), errors
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+PAGE, ERRORS = build()
+
+
+class TestTheTemplate(unittest.TestCase):
+    """RQ-WEB-003, RQ-WEB-015: a template without text and without raw visual values."""
+
+    def test_given_the_template_then_its_style_holds_no_raw_visual_value(self):
+        styles = "".join(re.findall(r"<style>(.*?)</style>", TEMPLATE, re.S))
+        attributes = "".join(re.findall(r'\sstyle="([^"]*)"', TEMPLATE))
+        self.assertTrue(styles)
+        self.assertEqual(RAW_VALUE.findall(styles + attributes), [])
+
+    def test_given_the_template_then_it_holds_no_text(self):
+        body = re.sub(r"<!--.*?-->|<style>.*?</style>|<script>.*?</script>|<svg\b.*?</svg>", "", TEMPLATE, flags=re.S)
+        text = re.sub(r"<[^>]+>", " ", body)
+        self.assertEqual(LETTERS.findall(text), [])
+        self.assertIsNone(re.search(r'\s(?:aria-label|alt|title)="', TEMPLATE))
+
+
+class TestTheBuiltPage(unittest.TestCase):
+    """RQ-WEB-007 to RQ-WEB-011, RQ-WEB-013: the page built from the real assets."""
+
+    def test_given_the_assets_then_the_page_builds_without_error(self):
+        self.assertEqual(ERRORS, [])
+
+    def test_given_the_page_without_script_then_it_reads_complete_in_english(self):
+        self.assertIsNone(site.SLOT.search(PAGE.split("<script>")[0]))
+        self.assertIn('<html lang="en">', PAGE)
+        self.assertIn("Is what we asked for actually built?", PAGE)
+
+    def test_given_the_page_then_french_holds_every_text(self):
+        french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))
+        self.assertEqual(set(french["html"]), set(site.ANY_SLOT.findall(TEMPLATE)))
+        self.assertEqual(set(french["attr"]), {m.group("key") for m in site.ATTRIBUTE_SLOT.finditer(TEMPLATE)})
+        self.assertIn("construit ?", french["html"]["stop-overview.question"])
+
+    def test_given_the_header_then_the_lockup_reads_agnos_and_its_tagline(self):
+        brand = re.search(r'<a class="brand".*?</a>', PAGE, re.S).group(0)
+        self.assertIn('<span class="brand-name" data-i18n="brand.name">AGNOS</span>', brand)
+        self.assertIn('<span class="brand-tagline" data-i18n="brand.tagline">Efficiency by traceability</span>', brand)
+        self.assertLess(brand.index("brand-name"), brand.index("brand-tagline"))
+        css = PAGE.split("</style>")[0]
+        self.assertIn(".brand-name{font-weight:var(--s-weight-bold)", css)
+        self.assertIn("letter-spacing:var(--s-tracking-tagline);color:var(--s-text-muted)", css)
+
+    def test_given_the_page_then_its_elements_stand_in_order(self):
+        markers = ['class="notice"', 'class="bar"', 'id="top"', 'class="chain-card"', 'id="tour"', 'id="overview"',
+                   'id="graph"', 'id="quality"', 'id="history"', 'id="delivery"', 'data-i18n="index-card.title"',
+                   'data-i18n="design-card.title"', 'id="start"', 'class="steps"', 'class="foot"']
+        positions = [PAGE.index(marker) for marker in markers]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("agent identities will be added", PAGE)
+
+    def test_given_the_chain_then_it_shows_both_modes(self):
+        chain = re.search(r'<div class="chain" data-mode="mixed">.*?<p class="chain-foot"', PAGE, re.S).group(0)
+        loop_in, loop_on = chain.split('<div class="loop loop-on">')
+        self.assertLess(loop_in.index("#icon-human"), loop_in.index("#icon-agent"))
+        self.assertIn('class="who when-on"><svg class="agent"', loop_in)
+        self.assertTrue(loop_on.split("#icon-")[1].startswith("agent"))
+        self.assertIn('data-chain="on"', PAGE)
+        self.assertIn('.chain[data-mode="on"] .loop-in', PAGE)
+
+    def test_given_the_tour_then_each_screenshot_opens_the_demo(self):
+        shots = re.findall(r'<a class="shot-link" href="([^"]+)"[^>]*><img src="([^"]+)"', PAGE)
+        self.assertEqual([src for _, src in shots], [f"screens/{view}.png" for view in VIEWS])
+        self.assertTrue(all(href.startswith(site.DEMO_LINK) for href, _ in shots))
+        self.assertIn(("demo/PERF-CENTER.html#RQ-BKG-003", "screens/graph.png"), shots)
+        self.assertEqual(PAGE.count('<span class="shot-open">Open in the demo'), len(VIEWS))
+        self.assertIn("@media (hover:none){.shot-open{opacity:1}}", PAGE)
+
+    def test_given_the_page_then_no_request_leaves_it_but_fonts(self):
+        sources = re.findall(r'\ssrc="([^"]+)"', PAGE)
+        stylesheets = re.findall(r'<link\b[^>]*\shref="([^"]+)"', PAGE)
+        self.assertTrue(all("://" not in source for source in sources), sources)
+        self.assertTrue(all(href.startswith(FONT_HOSTS) for href in stylesheets), stylesheets)
+        self.assertNotIn("<script src", PAGE)
+
+    def test_given_the_page_then_its_script_parses(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed: the script's syntax is not checked")
+        script = re.search(r"<script>(.*?)</script>", PAGE, re.S).group(1)
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as handle:
+            handle.write(script)
+        try:
+            result = subprocess.run([node, "--check", handle.name], capture_output=True, text=True, check=False)
+        finally:
+            Path(handle.name).unlink()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+
+def png_pixels(path):
+    """(width, height, colour type, the decompressed rows) of a PNG."""
+    data = path.read_bytes()
+    assert data.startswith(PNG_SIGNATURE)
+    position, idat, header = len(PNG_SIGNATURE), b"", None
+    while position < len(data):
+        length, kind = struct.unpack(">I4s", data[position:position + 8])
+        body = data[position + 8:position + 8 + length]
+        if kind == b"IHDR":
+            header = struct.unpack(">IIBBBBB", body)
+        elif kind == b"IDAT":
+            idat += body
+        position += 12 + length
+    return header[0], header[1], header[3], zlib.decompress(idat)
+
+
+class TestThePlaceholders(unittest.TestCase):
+    """RQ-WEB-012: one single-colour PNG per view, at 16:10."""
+
+    def test_given_the_assets_then_each_view_has_a_single_colour_placeholder(self):
+        for view in VIEWS:
+            width, height, colour_type, rows = png_pixels(site.ASSETS_DIR / "screens" / f"{view}.png")
+            self.assertAlmostEqual(width / height, SCREEN_RATIO, msg=view)
+            self.assertEqual(colour_type, RGB_COLOUR_TYPE, view)
+            row = 1 + 3 * width
+            first = rows[1:4]
+            self.assertTrue(all(rows[i * row + 1:(i + 1) * row] == first * width for i in range(height)), view)
+
+
+if __name__ == "__main__":
+    unittest.main()

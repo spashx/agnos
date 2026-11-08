@@ -52,7 +52,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-003: The template, the content and the placeholder images
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Move the mock-up's template into `assets/template.html` on the tokens only, with the header lockup and its tagline;
   move its content into `assets/content/en.md` and `fr.md`; write the five single-colour placeholders into `assets/screens/`.
 - **Requirement refs**: RQ-WEB-007, RQ-WEB-008, RQ-WEB-009, RQ-WEB-010, RQ-WEB-011, RQ-WEB-012, RQ-WEB-013, RQ-WEB-014, RQ-WEB-015
@@ -62,8 +62,14 @@ This plan implements the tasks in the format specified below.
   `demo/`, And no request other than fonts leaves the page; Given `assets/screens/`, Then the five PNGs are single-colour at 16:10.
 - **Dependencies**: TASK-WEB-002
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `agnos-meta-website/tests`: 39 OK, 0 skipped (`node --check` ran on the page's script); the template's style
+  and attributes hold no raw value and its markup no letter outside comments, style, script and symbols; the built page: no empty
+  slot, French for every slot and attribute, the lockup AGNOS / Efficiency by traceability, the 15 elements in order, both chain modes,
+  5 screenshots under `demo/` with their label, only font requests; 5 PNGs of one colour at 1600 × 1000; `agnos-meta-qa`: 0 open.
+- **Assumptions**: the page tests were written after porting the template, the template being a move of the approved mock-up; the
+  identifiers of the chain and of the design card, the language names and the aria labels became content fields, so that the template
+  holds no text; the mock-up notice now says the views come from the simulated demo; the bar hides its demo button under 640 px so
+  that the lockup fits at 360 px; no favicon, which would need a raw colour outside the tokens.
 
 ### TASK-WEB-004: The demo page and the output folder
 - **Tier**: M
