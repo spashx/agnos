@@ -148,7 +148,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .id-graph{display:block;width:100%;height:auto}
 .id-graph .edge{stroke:var(--s-graph-edge-strong);stroke-width:var(--s-web-border-2)}
 .node{stroke:var(--s-graph-node-border);stroke-width:var(--s-web-border-3)}
-.node-rq{fill:var(--s-type-rq)}.node-task{fill:var(--s-type-task)}.node-adr{fill:var(--s-type-adr)}
+.node-rq{fill:var(--s-type-rq)}.node-task{fill:var(--s-type-task)}.node-adr{fill:var(--s-type-adr)}.node-file{fill:var(--s-type-file)}
 .node-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text);text-anchor:middle}
 .edge-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text-subtle);text-anchor:middle}
 .node-title{font-family:var(--s-web-font-body);font-size:var(--s-web-text-11);fill:var(--s-text-muted);text-anchor:middle}
@@ -378,15 +378,20 @@ button{font:inherit;color:inherit;cursor:pointer}
           <defs><marker id="id-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow-head" d="M0 0 10 5 0 10z"></path></marker></defs>
           <line class="edge" x1="60.9" y1="131.3" x2="144.4" y2="64.5" marker-end="url(#id-arrow)"></line>
           <line class="edge" x1="268.7" y1="131.7" x2="176.1" y2="63.8" marker-end="url(#id-arrow)"></line>
+          <line class="edge" x1="278" y1="52" x2="177" y2="52" marker-end="url(#id-arrow)"></line>
           <circle class="node node-task" cx="50" cy="140" r="12"></circle>
           <circle class="node node-rq" cx="160" cy="52" r="15"></circle>
           <circle class="node node-adr" cx="280" cy="140" r="12"></circle>
+          <circle class="node node-file" cx="290" cy="52" r="12"></circle>
           <text class="node-label" x="160" y="14" data-i18n="id-card.requirement-id"></text>
           <text class="node-title" x="160" y="28" data-i18n="id-card.requirement-title"></text>
           <text class="node-label node-start" x="4" y="172" data-i18n="id-card.task-id"></text>
           <text class="node-title node-start" x="4" y="186" data-i18n="id-card.task-title"></text>
           <text class="node-label node-end" x="336" y="172" data-i18n="id-card.adr-id"></text>
           <text class="node-title node-end" x="336" y="186" data-i18n="id-card.adr-title"></text>
+          <text class="node-label node-end" x="336" y="14" data-i18n="id-card.file-id"></text>
+          <text class="node-title node-end" x="336" y="28" data-i18n="id-card.file-title"></text>
+          <text class="edge-label" x="228" y="45" data-i18n="id-card.cites"></text>
           <text class="edge-label node-end" x="94" y="90" data-i18n="id-card.cites"></text>
           <text class="edge-label node-start" x="226" y="90" data-i18n="id-card.cites"></text>
         </svg>

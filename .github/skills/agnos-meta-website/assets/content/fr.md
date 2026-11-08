@@ -438,7 +438,7 @@ class OverlapRule:
 ```
 
 ### graph
-TASK-BKG-003 et ADR-BKG-002 citent tous deux RQ-BKG-003
+TASK-BKG-003, ADR-BKG-002 et overlap_rule.py citent tous RQ-BKG-003
 
 ### task-id
 TASK-BKG-003
@@ -457,6 +457,12 @@ Overlap rule
 
 ### adr-title
 In-memory reservation storage
+
+### file-id
+overlap_rule.py
+
+### file-title
+OverlapRule
 
 
 ## design-card

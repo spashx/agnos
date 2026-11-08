@@ -196,8 +196,8 @@ separate Performance Center feature: today its address selects an element only, 
 - **Priority**: Must
 - **Acceptance Criteria**: Given the section, Then its cards read index, identifiers, design system, in three columns above 640 px
   and stacked below; Given the identifiers card, Then it shows from top to bottom the requirement RQ-BKG-003 as the primary key, then
-  TASK-BKG-003 and ADR-BKG-002 as foreign keys, each with the line that cites it highlighted, under a small graph linking the two to
-  the requirement in the Performance Center's type colours; Given the design-system card, Then it
+  TASK-BKG-003 and ADR-BKG-002 as foreign keys, each with the line that cites it highlighted, under a small graph linking the two, and the source file that implements it,
+  to the requirement in the Performance Center's type colours; Given the design-system card, Then it
   shows from top to bottom two of Roombook's button styles (primary, danger), each with its chain of tokens, the CSS
   that consumes them and a button rendered in that style, in the demo's colours. <!-- amended by TASK-WEB-009, TASK-WEB-010 and
   TASK-WEB-011 (owner, 2026-11-08): blocks top to bottom, button styles, graph, two styles -->
