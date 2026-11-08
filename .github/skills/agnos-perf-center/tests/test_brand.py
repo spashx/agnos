@@ -358,7 +358,7 @@ class LicencesTopicTest(unittest.TestCase):
 
 
 # RQ-TRC-116, DEC-TRC-059: the lockup of the retained design in the About topic, as the design states it
-LOCKUP_TAGLINE = "Efficiency by traceability"
+LOCKUP_TAGLINE = "Agentic efficiency by traceability"
 LOCKUP_NAME = "AGNOS v." + ".".join(tm.VERSION_PATH.read_text(encoding="utf-8").strip().split(".")[:2])   # DEC-TRC-061
 LOCKUP_TOKENS = {"text-wordmark": "30px", "tracking-wordmark": "0.12em", "tracking-tagline": "0.02em",
                  "line-display": "1.1", "line-snug": "1.3", "weight-bold": "700", "weight-medium": "500",
