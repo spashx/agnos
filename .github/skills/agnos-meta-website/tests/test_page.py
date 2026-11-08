@@ -217,7 +217,8 @@ class TestTheIndexAndGraph(unittest.TestCase):
         card = PAGE.split('data-i18n="id-card.title"')[1].split('data-i18n="design-card.title"')[0]
         graph = re.search(r'<svg class="id-graph".*?</svg>', card, re.S).group(0)
         self.assertEqual(re.findall(r'class="node node-([a-z]+)"', graph), ["task", "rq", "adr"])
-        self.assertEqual(len(re.findall(r'class="edge"', graph)), 2)
+        self.assertEqual(len(re.findall(r'class="edge"[^>]*marker-end="url\(#id-arrow\)"', graph)), 2)
+        self.assertIn(">No double booking</text>", graph)
         self.assertIn(".node-rq{fill:var(--s-type-rq)}", PAGE)
 
     def test_given_the_design_system_card_then_it_shows_two_styles(self):

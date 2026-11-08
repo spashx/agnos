@@ -150,6 +150,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .node-rq{fill:var(--s-type-rq)}.node-task{fill:var(--s-type-task)}.node-adr{fill:var(--s-type-adr)}
 .node-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text);text-anchor:middle}
 .edge-label{font-family:var(--s-web-font-mono);font-size:var(--s-web-text-11);fill:var(--s-text-subtle);text-anchor:middle}
+.node-title{font-family:var(--s-web-font-body);font-size:var(--s-web-text-11);fill:var(--s-text-muted);text-anchor:middle}
+.id-graph .node-start{text-anchor:start}.id-graph .node-end{text-anchor:end}
+.arrow-head{fill:var(--s-graph-edge-strong)}
 .key-arrow{font-size:var(--s-web-text-12);color:var(--s-text-subtle);padding-left:var(--s-web-space-10)}
 .matching{display:grid;gap:var(--s-web-space-4);list-style:none;margin:0;padding:0;font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .matching li{padding-left:var(--s-web-space-10);border-left:var(--s-web-border-3) solid var(--s-border-strong)}
@@ -370,17 +373,21 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="card">
         <h3 data-i18n="id-card.title"></h3>
         <p data-i18n="id-card.text"></p>
-        <svg class="id-graph" viewBox="0 0 300 120" role="img" data-i18n-attr="aria-label=id-card.graph">
-          <line class="edge" x1="62" y1="88" x2="150" y2="32"></line>
-          <line class="edge" x1="238" y1="88" x2="150" y2="32"></line>
-          <circle class="node node-task" cx="56" cy="92" r="12"></circle>
-          <circle class="node node-rq" cx="150" cy="28" r="15"></circle>
-          <circle class="node node-adr" cx="244" cy="92" r="12"></circle>
-          <text class="node-label" x="56" y="117" data-i18n="id-card.task-id"></text>
-          <text class="node-label" x="150" y="57" data-i18n="id-card.requirement-id"></text>
-          <text class="node-label" x="244" y="117" data-i18n="id-card.adr-id"></text>
-          <text class="edge-label" x="92" y="54" data-i18n="id-card.cites"></text>
-          <text class="edge-label" x="208" y="54" data-i18n="id-card.cites"></text>
+        <svg class="id-graph" viewBox="0 0 340 196" role="img" data-i18n-attr="aria-label=id-card.graph">
+          <defs><marker id="id-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow-head" d="M0 0 10 5 0 10z"></path></marker></defs>
+          <line class="edge" x1="60.9" y1="131.3" x2="144.4" y2="64.5" marker-end="url(#id-arrow)"></line>
+          <line class="edge" x1="268.7" y1="131.7" x2="176.1" y2="63.8" marker-end="url(#id-arrow)"></line>
+          <circle class="node node-task" cx="50" cy="140" r="12"></circle>
+          <circle class="node node-rq" cx="160" cy="52" r="15"></circle>
+          <circle class="node node-adr" cx="280" cy="140" r="12"></circle>
+          <text class="node-label" x="160" y="14" data-i18n="id-card.requirement-id"></text>
+          <text class="node-title" x="160" y="28" data-i18n="id-card.requirement-title"></text>
+          <text class="node-label node-start" x="4" y="172" data-i18n="id-card.task-id"></text>
+          <text class="node-title node-start" x="4" y="186" data-i18n="id-card.task-title"></text>
+          <text class="node-label node-end" x="336" y="172" data-i18n="id-card.adr-id"></text>
+          <text class="node-title node-end" x="336" y="186" data-i18n="id-card.adr-title"></text>
+          <text class="edge-label node-end" x="94" y="90" data-i18n="id-card.cites"></text>
+          <text class="edge-label node-start" x="226" y="90" data-i18n="id-card.cites"></text>
         </svg>
         <div class="stack">
           <div class="key"><span class="label" data-i18n="id-card.primary-key"></span><pre class="snippet" data-i18n="id-card.requirement"></pre></div>

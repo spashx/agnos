@@ -441,6 +441,15 @@ RQ-BKG-003
 ### adr-id
 ADR-BKG-002
 
+### requirement-title
+No double booking
+
+### task-title
+Overlap rule
+
+### adr-title
+In-memory reservation storage
+
 
 ## design-card
 
