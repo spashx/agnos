@@ -218,7 +218,7 @@ class TestTheIndexAndGraph(unittest.TestCase):
         graph = re.search(r'<svg class="id-graph".*?</svg>', card, re.S).group(0)
         self.assertEqual(re.findall(r'class="node node-([a-z]+)"', graph), ["task", "rq", "adr", "file"])
         self.assertEqual(len(re.findall(r'class="edge"[^>]*marker-end="url\(#id-arrow\)"', graph)), 3)
-        self.assertIn(">No double booking</text>", graph)
+        self.assertIn(">Double booking rejection</text>", graph)
         self.assertIn(">overlap_rule.py</text>", graph)
         self.assertIn(".node-file{fill:var(--s-type-file)}", PAGE)
         code = re.search(r'<pre class="excerpt" data-i18n="id-card.code">(.*?)</pre>', card, re.S).group(1)

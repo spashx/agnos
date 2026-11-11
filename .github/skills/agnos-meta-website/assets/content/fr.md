@@ -168,7 +168,7 @@ TASK-BKG-003
 OverlapRule.check
 
 ### commit-id
-3aec803
+12dc6e4
 
 ### measure
 Performance Center
@@ -272,7 +272,7 @@ Une seule grammaire d'identifiants, écrite en commentaire dans les documents, l
 [![La vue Graph du Performance Center, centrée sur l'exigence RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
 
 ### caption
-`RQ-BKG-003`, No double booking, et tout ce qui la cite.
+`RQ-BKG-003`, Double booking rejection, et tout ce qui la cite.
 
 ## stop-quality
 
@@ -379,9 +379,9 @@ Roombook : l'index fait environ {{index.ratio}} des documents qu'il décrit.
 ### excerpt
 ```
 @agnos-process/1.requirements/FTR-BKG-001-room-reservation.md
-RQ-BKG-003|42-56||No double booking
+RQ-BKG-003|42-56||Double booking rejection
 @agnos-process/3.plan/PLAN-BKG-001-core-booking.md
-TASK-BKG-003|50-66|Done|Overlap rule
+TASK-BKG-003|50-66|Done|Implement overlap rule
 ```
 
 ## id-card
@@ -403,21 +403,21 @@ Clé primaire
 
 ### requirement
 ```
-### RQ-BKG-003: No double booking
+### RQ-BKG-003: Double booking rejection
 ```
 
 ### task
 ```
-### TASK-BKG-003: Overlap rule
+### TASK-BKG-003: Implement overlap rule
 - Requirement refs: ==RQ-BKG-003==
 - ADR refs: ADR-BKG-001 (DEC-BKG-002)
 ```
 
 ### adr
 ```
-# ADR-BKG-002: In-memory reservation storage
-<!-- Motivated by: RQ-BKG-002, ==RQ-BKG-003==, RQ-BKG-005 (FTR-BKG-001) -->
-### DEC-BKG-003: Keep reservations in a dictionary in memory
+# ADR-BKG-002: Initial reservation storage
+Motivated by: RQ-BKG-002, ==RQ-BKG-003==, RQ-BKG-005 (FTR-BKG-001); builds on ADR-BKG-001.
+### DEC-BKG-003: In-memory dictionary for reservations
 ```
 
 ### semantic
@@ -450,13 +450,13 @@ RQ-BKG-003
 ADR-BKG-002
 
 ### requirement-title
-No double booking
+Double booking rejection
 
 ### task-title
-Overlap rule
+Implement overlap rule
 
 ### adr-title
-In-memory reservation storage
+Initial reservation storage
 
 ### file-id
 overlap_rule.py

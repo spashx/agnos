@@ -111,15 +111,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-060: Align website with renamed demo
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Update `en.md` and `fr.md` where they quote the demo's titles, excerpts and index lines, then rebuild the site; the owner checks it visually.
 - **Requirement refs**: RQ-WEB-003, RQ-WEB-005
 - **ADR refs**: ADR-WEB-001
 - **Acceptance Criteria**: Given the site's text, Then every demo title, excerpt and line range it quotes matches the rebuilt demo; Given `agnos-meta-website`, Then its content check passes.
 - **Dependencies**: TASK-PLG-059
 - **Assignee**: AI (text), Human (visual check)
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: In both languages: RQ-BKG-003, TASK-BKG-003, ADR-BKG-002 and DEC-BKG-003 titles, the ADR excerpt's citation as plain text, and the commit `3aec803` → `12dc6e4` (TASK-BKG-003's feat commit in the rebuilt demo); line ranges 42-56 and 50-66 unchanged. `test_page.py`'s expected graph title follows the new RQ title. Build into the scratchpad exit 0: 152 fields per language, 8 images, demo page generated. Website tests: 59 run, 59 OK, 0 skipped. Re-counted in the built `index.html`: "No double booking" 0, "Double booking rejection" 8, `3aec803` 0, `12dc6e4` 2. Visual check: the owner's.
+- **Assumptions**: The screenshots in `assets/screens/` were not re-captured: `graph.png` may still show the old title. `test_content.py`'s fixtures (a fake index) keep their old text, which they do not read from the demo.
 
 ### TASK-PLG-061: Rehearse 3.4.0 marketplace release
 - **Tier**: M
