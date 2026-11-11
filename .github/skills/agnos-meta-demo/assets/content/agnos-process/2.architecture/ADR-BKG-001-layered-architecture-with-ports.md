@@ -40,3 +40,41 @@ flowchart LR
   UC --> DOM[Domain]
   RULES --> DOM
 ```
+
+```mermaid
+classDiagram
+  class CreateReservation
+  class CancelReservation
+  class ReservationRule {
+    <<interface>>
+    +check(room, request, existing)
+  }
+  class ReservationRepository {
+    <<interface>>
+  }
+  ReservationRule <|.. OverlapRule
+  ReservationRule <|.. CapacityRule
+  ReservationRule <|.. RoomOpenRule
+  CreateReservation --> ReservationRule : runs in order
+  CreateReservation --> ReservationRepository
+  CancelReservation --> ReservationRepository
+  ReservationRepository --> Reservation
+  Reservation --> Room
+  CreateReservation ..> ReservationRequest
+```
+
+```mermaid
+sequenceDiagram
+  participant API as HTTP adapter
+  participant UC as CreateReservation
+  participant RULE as ReservationRule
+  participant REPO as ReservationRepository
+  API->>UC: create(request)
+  UC->>REPO: existing reservations of the room
+  loop each rule, in order
+    UC->>RULE: check(room, request, existing)
+    RULE-->>UC: passes, or raises a RoombookError
+  end
+  UC->>REPO: store the new reservation
+  UC-->>API: reservation
+```

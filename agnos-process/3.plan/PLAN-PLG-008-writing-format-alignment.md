@@ -87,15 +87,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-062: Add demo ADR diagrams
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Give each of the demo's 7 ADRs a `classDiagram` of its entities and a `sequenceDiagram` of their interactions, as the ADR template requires; added by the owner on 2026-11-11.
 - **Requirement refs**: RQ-DMO-005
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given each demo ADR, Then its `## Diagram` holds a `classDiagram` And a `sequenceDiagram`, scoped to the requirements it cites.
 - **Dependencies**: TASK-PLG-057
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: Count per ADR: 1 `classDiagram` and 1 `sequenceDiagram` in each of the 7. Class names taken from the demo's code (grep); the DSN sequence corrected after reading `server.ts:68` (stylesheet built at start), the factory named `create_repository` from `repository_factory.py:17`. Not checked: Mermaid rendering, no `mmdc` installed; the owner's visual check covers it.
+- **Assumptions**: The existing flowchart of each ADR is kept as an extra diagram. Sequence messages are descriptive where the method name was not read.
 
 ### TASK-PLG-059: Rebuild demo on version 3.4.0
 - **Tier**: M

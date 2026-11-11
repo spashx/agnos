@@ -41,3 +41,37 @@ flowchart LR
   SS -->|/styles.css| BR[Browser]
   TJ -.-> TST[Tests: tier chain, contrast, literal scan]
 ```
+
+```mermaid
+classDiagram
+  class tokens {
+    <<module>>
+    +loadTokens(source) TokenSet
+    +resolveToken(tokens, name) string
+    +tierViolations(tokens) string[]
+    +contrastViolations(tokens) string[]
+  }
+  class stylesheet {
+    <<module>>
+    +buildStylesheet(tokens) string
+  }
+  TokenSet o-- Pairing : declared pairings
+  tokens ..> TokenSet : loads
+  tokens ..> TokenError : raises
+  stylesheet ..> TokenSet : reads
+```
+
+```mermaid
+sequenceDiagram
+  participant BR as Browser
+  participant SRV as UI server
+  participant TK as tokens
+  participant SS as stylesheet
+  Note over SRV: at start
+  SRV->>TK: loadTokens(tokens.json)
+  TK-->>SRV: TokenSet
+  SRV->>SS: buildStylesheet(tokens)
+  SS-->>SRV: :root custom properties and var() rules
+  BR->>SRV: GET /styles.css
+  SRV-->>BR: the stylesheet built at start
+```

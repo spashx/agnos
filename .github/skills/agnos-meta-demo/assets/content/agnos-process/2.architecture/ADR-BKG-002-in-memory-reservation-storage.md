@@ -30,3 +30,26 @@ flowchart LR
   UC[Create and cancel use cases] --> PORT[Repository port]
   PORT --> MEM[(Dictionary in memory)]
 ```
+
+```mermaid
+classDiagram
+  class ReservationRepository {
+    <<interface>>
+  }
+  ReservationRepository <|.. InMemoryReservationRepository
+  InMemoryReservationRepository o-- Reservation : dictionary by identifier
+  CreateReservation --> ReservationRepository
+  CancelReservation --> ReservationRepository
+```
+
+```mermaid
+sequenceDiagram
+  participant CR as CreateReservation
+  participant CA as CancelReservation
+  participant MEM as InMemoryReservationRepository
+  CR->>MEM: store the new reservation
+  MEM->>MEM: dictionary[identifier] = reservation
+  CA->>MEM: reservation by identifier
+  MEM-->>CA: reservation, or ReservationNotFound
+  CA->>MEM: store it as Cancelled
+```

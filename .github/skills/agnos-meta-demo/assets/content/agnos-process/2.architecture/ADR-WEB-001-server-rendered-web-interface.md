@@ -44,3 +44,47 @@ flowchart LR
   VW -.-> CSS[Stylesheet from design tokens]
   SRV -->|/styles.css| CSS
 ```
+
+```mermaid
+classDiagram
+  class server {
+    <<module>>
+    +createUiServer(app) Server
+  }
+  class views {
+    <<module>>
+    +renderPage(model) string
+  }
+  class labels {
+    <<module>>
+  }
+  server --> BookingApp
+  BookingApp ..> UiRequest
+  BookingApp ..> UiResponse
+  BookingApp --> RoombookClient
+  BookingApp --> views
+  BookingApp --> labels
+  views ..> PageModel
+```
+
+```mermaid
+sequenceDiagram
+  participant BR as Browser
+  participant SRV as server
+  participant APP as BookingApp
+  participant CL as RoombookClient
+  participant VW as views
+  BR->>SRV: POST the booking form
+  SRV->>APP: UiRequest
+  APP->>CL: create a reservation
+  alt ServiceError
+    CL-->>APP: error code
+    APP->>APP: worded message from labels
+  else NetworkError
+    CL-->>APP: unreachable
+    APP->>APP: unavailable page
+  end
+  APP->>VW: renderPage(model)
+  APP-->>SRV: UiResponse
+  SRV-->>BR: full HTML page
+```

@@ -39,3 +39,43 @@ flowchart LR
   RET --> NOT[Notifier port]
   NOT --> CON[Console notifier]
 ```
+
+```mermaid
+classDiagram
+  class ReservationCreator {
+    <<interface>>
+  }
+  class Notifier {
+    <<interface>>
+  }
+  ReservationCreator <|.. PublishingCreateReservation
+  PublishingCreateReservation --> CreateReservation : wraps
+  PublishingCreateReservation --> EventBus
+  EventBus ..> ReservationCreated : publishes
+  ReminderScheduler --> ReservationRepository
+  ReminderScheduler --> Clock
+  ReminderScheduler --> Notifier
+  Notifier <|.. RetryingNotifier
+  Notifier <|.. ConsoleNotifier
+  RetryingNotifier --> Notifier : wraps
+```
+
+```mermaid
+sequenceDiagram
+  participant PUB as PublishingCreateReservation
+  participant UC as CreateReservation
+  participant BUS as EventBus
+  participant SCH as ReminderScheduler
+  participant RET as RetryingNotifier
+  participant CON as ConsoleNotifier
+  PUB->>UC: create(request)
+  UC-->>PUB: reservation
+  PUB->>BUS: publish ReservationCreated
+  Note over SCH: on a clock tick
+  SCH->>SCH: Confirmed reservations entering their lead time
+  SCH->>RET: send the reminder
+  loop up to 3 attempts
+    RET->>CON: send
+  end
+  RET-->>SCH: returns, the last failure logged, never raised
+```

@@ -33,3 +33,35 @@ flowchart LR
   FILE -->|write temp file| TMP[(reservations.json.tmp)]
   TMP -->|rename| DATA[(reservations.json)]
 ```
+
+```mermaid
+classDiagram
+  class ReservationRepository {
+    <<interface>>
+  }
+  class repository_factory {
+    <<module>>
+    +create_repository(environ) ReservationRepository
+  }
+  ReservationRepository <|.. InMemoryReservationRepository
+  ReservationRepository <|.. FileReservationRepository
+  repository_factory ..> ReservationRepository : selects by configuration
+  FileReservationRepository o-- Reservation
+  FileReservationRepository ..> StorageCorrupted : raises
+```
+
+```mermaid
+sequenceDiagram
+  participant F as repository_factory
+  participant FR as FileReservationRepository
+  participant D as Disk
+  participant UC as Use case
+  F->>FR: create_repository(environ) selects the file adapter
+  FR->>D: read reservations.json
+  alt file unreadable
+    FR-->>F: StorageCorrupted
+  end
+  UC->>FR: store a reservation
+  FR->>D: write reservations.json.tmp
+  FR->>D: rename it over reservations.json
+```

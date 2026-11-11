@@ -36,3 +36,44 @@ flowchart LR
   TR -->|HTTP JSON| API[HTTP adapter]
   API --> UC[Use cases]
 ```
+
+```mermaid
+classDiagram
+  class Transport {
+    <<interface>>
+  }
+  class cli {
+    <<module>>
+  }
+  ReservationApi --> CreateReservation
+  ReservationApi --> ReservationCanceller
+  ReservationApi ..> RoombookError : maps to code and message
+  Transport <|.. FetchTransport
+  FetchTransport ..> NetworkError : raises
+  RoombookClient --> Transport
+  RoombookClient ..> ServiceError : raises
+  cli --> RoombookClient
+```
+
+```mermaid
+sequenceDiagram
+  participant CLI as cli
+  participant CL as RoombookClient
+  participant TR as FetchTransport
+  participant API as ReservationApi
+  participant UC as CreateReservation
+  CLI->>CL: create a reservation
+  CL->>TR: POST /reservations, with a timeout
+  TR->>API: HTTP JSON
+  API->>UC: create(request)
+  alt rule refused
+    UC-->>API: ReservationConflict
+    API-->>TR: 409 {code, message}
+    TR-->>CL: response
+    CL-->>CLI: ServiceError
+  else accepted
+    API-->>TR: 201 reservation
+    CL-->>CLI: Reservation
+  end
+  CLI->>CLI: set the exit code
+```
