@@ -792,7 +792,7 @@ TASK-PLG-058|76-87|Done|Prepare version 3.4.0 release
 TASK-PLG-062|88-99|Done|Add demo ADR diagrams
 TASK-PLG-059|100-111|Done|Rebuild demo on version 3.4.0
 TASK-PLG-060|112-123|Done|Align website with renamed demo
-TASK-PLG-061|124-134|Not Started|Rehearse 3.4.0 marketplace release
+TASK-PLG-061|124-134|Done|Rehearse 3.4.0 marketplace release
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill

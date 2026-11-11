@@ -123,12 +123,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-061: Rehearse 3.4.0 marketplace release
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-release` on the 3.4.0 commit; nothing is published.
 - **Requirement refs**: RQ-PLG-012, RQ-PLG-031
 - **ADR refs**: ADR-PLG-002
 - **Acceptance Criteria**: Given the rehearsal, Then its manifests hold 3.4.0 And both checks are true And exit is 0.
 - **Dependencies**: TASK-PLG-058
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: Rehearsal of `94ef69f` into the scratchpad (Sonnet sub-agent): `exit=0, 70 files, 1571 IDs removed, 4 lines to read`; no `problems:`, no `idsOutsideComments:`, no `unreleased:` line. Re-read: `plugin.json` version 3.4.0; report checks `noIdLeft`, `manifests`, `sameBehaviour` all true. The 4 lines to read are lines whose ID comment was removed, reading well (e.g. "Every ADR File SHALL use the following structure exactly:"). Mentions: `agnos-meta-` in the changelog and 3 test names, as in earlier releases.
+- **Assumptions**: The `agnos-marketplace` folder (3.3.0) is replaced only on the owner's word.
