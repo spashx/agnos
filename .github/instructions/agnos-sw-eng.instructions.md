@@ -29,6 +29,7 @@ When the user asks to start a session, run these steps in order before any task:
 
 1. Read this file fully if it has not been loaded in context yet.
 2. Read any domain- or stack-specific instruction files present in the current project.
+   IF the project has no `agnos-process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
 3. **Resolve session state variables** (never write `session.yaml` yourself): <!-- RQ-INI-017 / DEC-INI-009 -->
    - a. **Ask the user** the session trigram `<TRI>` they HAVE to provide, and, with the built-in
      user-question tool (`askQuestion` on GitHub Copilot, `AskUserQuestion` on Claude Code), "Should
@@ -41,7 +42,6 @@ When the user asks to start a session, run these steps in order before any task:
      reload them with the `agnos-session` skill's `show` sub-command before applying any conditional guard.
 4. Invoke the `agnos-index` skill, then read `agnos-process/process.idx.md`: it is the primary source for
    steps 4 to 6, which open process documents only by the line ranges it gives. <!-- RQ-IDX-011 -->
-   IF the project has no `agnos-process/` folder, STOP and ask the user to call the `agnos-init` skill. <!-- RQ-INI-007 -->
    Scan `agnos-process/1.requirements/` for open or unimplemented requirement IDs.
 5. Scan `agnos-process/2.architecture/` for existing ADRs to avoid creating duplicates.
 6. Scan `agnos-process/3.plan/` for existing plans and tasks to avoid creating duplicates.
@@ -71,8 +71,8 @@ When the user asks to start a session, run these steps in order before any task:
 ## MANDATORY RULES FOR ALL ARTIFACTS
 
 ### MANDATORY UNIQUE IDENTIFIERS
-EVERY ARTIFACT SHALL have a unique identifier. Artifacts requiring IDs: features, requirements, ADRs and decisions, plans & tasks.
-Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NNN>` where:
+EVERY ARTIFACT SHALL have a unique identifier. Artifacts requiring IDs: features (FTR), requirements (RQ), Architecture Decisions Records (ADR) and Decisions (DEC), Plans (PLAN) & Tasks (TASK)
+The unique identifier shall be in the format: `<TYPE>-<TRI>-<NNN>` where:
   - `<TYPE>` is the type of the artifact (e.g. RQ for requirement, ADR for architecture decision, TASK for task, etc).
   - `<TRI>` is the feature or functional area trigram (3 letters uppercase) that the artifact belongs to (e.g. USR for user management, STM for state management, etc).
   - `<NNN>` is a zero-padded sequence number (e.g. 001, 002, etc) that is incremented for each new artifact of the same type and feature.
@@ -82,7 +82,27 @@ Features, requirements, ADRs and tasks SHALL be in the format: `<TYPE>-<TRI>-<NN
 - Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
 - The user SHALL be able to grep any requirement ID and find all related code and documentation.
 - An artifact with no traceable requirement ID is considered incomplete and SHALL NOT be delivered.
-- Always put traceability references into **commments** format , never as plain text.
+- ALWAYS put traceability references into comments, never as plain text, in every file outside agnos-process/; the artifact files of agnos-process/ hold their own IDs as plain text.
+
+### MANDATORY TITLE FORMAT
+- EVERY ARTIFACT title: 3-8 words. Noun phrase (head noun + complements), except TASK = one base-form action verb + its object.
+- Forbidden: modal, conjugated verb (TASK's leading verb excepted), leading article, final period, vague or subjective word (fast, robust, "management of"), "and"/"or" joining two concerns (split the artifact instead).
+- Never restate `<TRI>`, the artifact type, or another field's value (Category, NFR Type, Tier, Status, Priority).
+- FTR/RQ only: no figure, and no technology choice unless it is a stated constraint.
+- Title content by artifact:
+
+| Artifact | Title names | Example |
+|---|---|---|
+| FTR | overall capability | User authentication |
+| Functional RQ | verifiable behavior; head = action noun | Password reset by email |
+| Non-functional RQ | one measurable property of the NFR Type (ex: response time, availability rate) | Customer search response time |
+| ADR | architectural topic decided, not the solution | Session state persistence |
+| DEC | solution chosen; head = chosen mechanism | SQLite storage for session state |
+| PLAN | scope delivered when all tasks are done | MFA user authentication |
+| TASK | action to perform | Implement TOTP code verification |
+
+- Check every title rule before writing a title. On any failure, rewrite.
+
 
 ### MANDATORY INSTRUCTIONS-FILE LINE BUDGET
 - This file SHALL NOT exceed 400 lines. <!-- RQ-PLG-019 / DEC-PLG-014 -->
@@ -157,7 +177,7 @@ Requirements SHALL be clear, testable, and meet SMART criteria (Specific, Measur
 
 Every feature file in `agnos-process/1.requirements/` SHALL follow this structure:
 
-````markdown
+```
 # FTR-<TRI>-<NNN>: <Feature Title>
 
 ## Overview
@@ -194,20 +214,19 @@ Brief description of the feature's purpose and scope.
 - **Priority**: [Must | Should | Could — MoSCoW]
 - **Acceptance Criteria** (Gherkin; see [§1 format](#1-requirements-authoring))
 - **Dependencies**: [List of RQ/ADR IDs this depends on, or "None"]
-````
+```
 
-### Traceability in requirements
+### Traceability in Features and Requirements
 - The features and requirements filename, title, and body SHALL reference the requirement ID(s)
 - GUI, UX and user-workflow requirements SHALL express visual values (colors, spacing, sizes,
   typography) as design-system token references, not raw literals, and SHALL list the
   design-system RQ/ADR IDs in their **Dependencies** field.
 - Store features and requirements in `agnos-process/1.requirements/`.
 
-
 ## 2. ARCHITECTURE DECISIONS RECORDS (ADRs)
 
 - Create an ADR for EVERY cross-cutting architectural choice related to a requirement (state management, DI framework, navigation, storage, platform channel strategy, etc.).
-- Every ADR SHALL use the following structure exactly:
+- Every ADR File SHALL use the following structure exactly:
   ```
   # ADR-<TRI>-<NNN>: <Short Title>
   ## Status
@@ -216,7 +235,8 @@ Brief description of the feature's purpose and scope.
   What problem or force requires a decision?
   ## Decision
   ### DEC-<TRI>-<NNN>: <Decision title>
-  What was decided, and why? (one such heading per decision)
+  - **Statement**: What was decided, and why? one single choice, one sentence, active voice: "The <element> SHALL <use|apply|expose> <mechanism> for <purpose>".
+  - **Rationale**: the reason for the choice, plus the evidence it rests on (analysis, benchmark, spike, constraint), or "None".
   ## Consequences
   What becomes easier, harder, or constrained as a result?
   ## Alternatives Considered
@@ -231,7 +251,7 @@ Brief description of the feature's purpose and scope.
   Other diagrams MAY be added when they make the proposed technical solution easier to grasp.
 - The design system itself SHALL be captured as an ADR (token structure, tiers, generation/verification mechanism). Every subsequent UI-affecting ADR SHALL reference it.
 
-### Traceability in ADRs
+### Traceability in ADRs and DEC
 - The ADRs body SHALL reference the requirement ID(s) that motivated the decision.
 - Store ADRs in `agnos-process/2.architecture/`.
 
@@ -285,8 +305,8 @@ Tag every task with a tier before starting. The tier determines which steps are 
 
 | Tier | Criteria | Tests required | ADR required | Plan required |
 |------|----------|:-:|:-:|:-:|
-| **S - Small** | Edits <= 5 lines, no new files, no new public API | No | No | No |
-| **M - Medium** | New method or class, new file, contained to one module | Yes | No | No |
+| **S - Small** | Edits <= 5 lines, no new files, no new public API | No | No | Yes |
+| **M - Medium** | New method or class, new file, contained to one module | Yes | No | Yes |
 | **L - Large** | Cross-cutting change, new public API, or new dependency | Yes | Yes | Yes |
 
 - Default to **M** when uncertain.
@@ -298,8 +318,8 @@ Tag every task with a tier before starting. The tier determines which steps are 
 
 Every plan file in `agnos-process/3.plan/` SHALL follow this structure:
 
-````markdown
-# PLAN-<TRI>-<NNN>: <Plan Title>
+```
+# PLAN-<TRI>-<NNN>: <Short Title>
 
 ## Overview
 Brief description of the plan's purpose and scope.
@@ -324,7 +344,7 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: [Human | AI]
 - **Verification**: [Tool output evidencing each acceptance criterion, cited at closure; "N/A (Tier S)" for Tier S tasks]
 - **Assumptions**: [Any detail inferred under rule 4 "Infer and proceed" rather than explicitly given by the user, or "None"]
-````
+```
 
 
 ## 4. CODE IMPLEMENTATION AND QUALITY
