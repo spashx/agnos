@@ -29,7 +29,7 @@ requirements make it checkable, its sections 0 to 10 are the document designers 
   - **And** an unknown token name is refused with an error
 - **Dependencies**: None
 
-### RQ-DSN-002: Three-tier token chain
+### RQ-DSN-002: Tiered token chain
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The design system SHALL organise tokens in three tiers: global tokens hold the only raw
@@ -43,7 +43,7 @@ requirements make it checkable, its sections 0 to 10 are the document designers 
   - **And** every component token aliases a semantic token
 - **Dependencies**: RQ-DSN-001
 
-### RQ-DSN-003: Stylesheet generated from the tokens
+### RQ-DSN-003: Stylesheet generation from tokens
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN the web interface is served, the stylesheet it sends SHALL be generated from the token
@@ -61,7 +61,7 @@ requirements make it checkable, its sections 0 to 10 are the document designers 
 
 ## Non-Functional Requirements
 
-### RQ-DSN-004: Text contrast
+### RQ-DSN-004: Text contrast ratio
 - **Category**: Non-Functional
 - **NFR Type**: Accessibility
 - **EARS Type**: Unwanted-behavior
@@ -77,7 +77,7 @@ requirements make it checkable, its sections 0 to 10 are the document designers 
   - **And** the shipped token file reports no pairing
 - **Dependencies**: RQ-DSN-001
 
-### RQ-DSN-005: No raw visual literal in UI code
+### RQ-DSN-005: Raw visual literal exclusion
 - **Category**: Non-Functional
 - **NFR Type**: Maintainability
 - **EARS Type**: Unwanted-behavior

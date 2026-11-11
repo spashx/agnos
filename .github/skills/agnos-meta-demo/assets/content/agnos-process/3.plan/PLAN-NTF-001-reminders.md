@@ -13,7 +13,7 @@ This plan implements the tasks in the format specified below.
 
 ## Tasks
 
-### TASK-NTF-001: Event bus and publishing decorator
+### TASK-NTF-001: Implement reservation event publishing
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the in-process event bus, the reservation-created event and the decorator that
@@ -31,7 +31,7 @@ This plan implements the tasks in the format specified below.
   OK.
 - **Assumptions**: A subscriber that raises does not stop the other subscribers.
 
-### TASK-NTF-002: Notifier port and reminder scheduler
+### TASK-NTF-002: Implement reminder scheduling
 - **Tier**: L
 - **Status**: Done
 - **Description**: Add the notifier port with a console notifier and the scheduler that sends one reminder
@@ -50,7 +50,7 @@ This plan implements the tasks in the format specified below.
   Ran 8 tests, OK, including the 1000-reminder dispatch under 1 second.
 - **Assumptions**: A reminder is sent once per reservation (the scheduler remembers those sent).
 
-### TASK-NTF-003: Retrying notifier
+### TASK-NTF-003: Implement retrying notifier
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the decorator that retries a failing notification up to the maximum number of
@@ -67,7 +67,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `python -m unittest tests.test_retrying_notifier` (in `service/`): Ran 5 tests, OK.
 - **Assumptions**: No delay between attempts in this version.
 
-### TASK-NTF-004: Reminder lead time
+### TASK-NTF-004: Correct reminder lead time
 - **Tier**: S
 - **Status**: Done
 - **Description**: Set the reminder lead time constant to the 15 minutes required.

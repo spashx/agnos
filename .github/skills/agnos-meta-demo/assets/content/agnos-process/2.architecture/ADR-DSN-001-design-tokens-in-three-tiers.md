@@ -1,4 +1,4 @@
-# ADR-DSN-001: Design tokens in three tiers, generated as CSS custom properties
+# ADR-DSN-001: Design token structure
 
 Motivated by: RQ-DSN-001 to RQ-DSN-005 (FTR-DSN-001); design system required by MANDATORY DESIGN SYSTEM.
 
@@ -12,11 +12,11 @@ The stack is Node with erasable TypeScript and no runtime dependency.
 
 ## Decision
 
-### DEC-DSN-001: One JSON token file with three tiers, loaded and checked headlessly
+### DEC-DSN-001: Three-tier JSON token file
 - **Statement**: The interface SHALL use one file, `client/design/tokens.json`, in three tiers (global tokens hold the raw values, semantic tokens alias a global token, component tokens alias a semantic token), loaded by a TypeScript module with no browser that resolves the aliases, rejects a token breaking the tier chain and checks the contrast of the declared pairings, for holding every visual value (RQ-DSN-001, RQ-DSN-002, RQ-DSN-004).
 - **Rationale**: the tests read the tokens without a browser, so the chain and the contrast are checked by tests, not by review alone; the stack has no runtime dependency.
 
-### DEC-DSN-002: Stylesheet generated at serve time from `var()` references only
+### DEC-DSN-002: Serve-time stylesheet of `var()` references
 - **Statement**: The server SHALL expose a stylesheet generated from the tokens at serve time, a `:root` rule holding every token as a custom property with aliases kept as `var()` references and component rules using only `var()`, for styling the interface without a hand-written value (RQ-DSN-003).
 - **Rationale**: a unit test scans the interface sources for hexadecimal colours, colour functions and dimensions, so a raw literal fails the test run (RQ-DSN-005); the browser needs no build step.
 

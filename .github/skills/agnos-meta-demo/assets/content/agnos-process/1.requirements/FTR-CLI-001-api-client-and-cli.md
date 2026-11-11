@@ -1,4 +1,4 @@
-# FTR-CLI-001: HTTP API, typed client and command-line tool
+# FTR-CLI-001: Remote booking access
 
 ## Overview
 People and scripts use Roombook from outside the service. The service exposes its operations over HTTP/JSON,
@@ -38,7 +38,7 @@ and a TypeScript client and a command-line tool built on it make them easy to ca
   - **Then** a service error with code CONFLICT and status 409 is thrown
 - **Dependencies**: RQ-CLI-001
 
-### RQ-CLI-003: Command-line tool
+### RQ-CLI-003: Command-line booking
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The command-line tool SHALL provide the commands `rooms`, `book` and `cancel`, and SHALL
@@ -52,7 +52,7 @@ and a TypeScript client and a command-line tool built on it make them easy to ca
   - **And** a rejected request prints the error code and exits with a non-zero code
 - **Dependencies**: RQ-CLI-001, RQ-CLI-002
 
-### RQ-CLI-004: Unreachable service
+### RQ-CLI-004: Unreachable service report
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the service does not answer within 5 seconds, THEN the client SHALL abort the call and
@@ -65,7 +65,7 @@ and a TypeScript client and a command-line tool built on it make them easy to ca
   - **Then** the call is aborted after the timeout and a network error is thrown
 - **Dependencies**: RQ-CLI-001
 
-### RQ-CLI-005: HTTP/JSON API
+### RQ-CLI-005: Service access over HTTP
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The booking service SHALL expose room listing, reservation creation and reservation

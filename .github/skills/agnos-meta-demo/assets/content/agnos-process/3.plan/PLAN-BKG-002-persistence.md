@@ -13,7 +13,7 @@ This plan implements the tasks in the format specified below.
 
 ## Tasks
 
-### TASK-BKG-007: JSON file repository with atomic save
+### TASK-BKG-007: Implement JSON file repository
 - **Tier**: L
 - **Status**: Done
 - **Description**: Add the atomic file writer and the file-backed repository implementing the repository
@@ -32,7 +32,7 @@ This plan implements the tasks in the format specified below.
   Ran 10 tests, OK (restart, interrupted save, corrupted file).
 - **Assumptions**: Timestamps are stored as ISO 8601 text with their UTC offset.
 
-### TASK-BKG-008: Repository factory
+### TASK-BKG-008: Implement repository factory
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the factory that returns the file repository when the data-file setting is present

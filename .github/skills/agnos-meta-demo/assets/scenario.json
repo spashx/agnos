@@ -104,7 +104,7 @@
       "date": "2026-08-26",
       "time": "10:30",
       "by": "omar-arch",
-      "message": "docs(BKG): ADR-BKG-001 layered architecture with ports",
+      "message": "docs(BKG): ADR-BKG-001 service code structure, layered with ports",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"
       ],
@@ -130,7 +130,7 @@
       "date": "2026-08-27",
       "time": "09:55",
       "by": "omar-arch",
-      "message": "docs(BKG): ADR-BKG-002 in-memory reservation storage",
+      "message": "docs(BKG): ADR-BKG-002 initial reservation storage, in memory",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"
       ],
@@ -329,7 +329,7 @@
       "date": "2026-09-16",
       "time": "10:20",
       "by": "omar-arch",
-      "message": "docs(BKG): ADR-BKG-003 JSON file reservation storage",
+      "message": "docs(BKG): ADR-BKG-003 durable reservation storage, in a JSON file",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"
       ],
@@ -674,7 +674,7 @@
       "date": "2026-10-06",
       "time": "15:45",
       "by": "omar-arch",
-      "message": "docs(CLI): ADR-CLI-001 HTTP/JSON contract and typed client",
+      "message": "docs(CLI): ADR-CLI-001 service access contract, HTTP/JSON with a typed client",
       "add": [
         "agnos-process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"
       ],
@@ -865,7 +865,7 @@
       "date": "2026-10-06",
       "time": "11:05",
       "by": "omar-arch",
-      "message": "docs(DSN): ADR-DSN-001 design tokens in three tiers, generated as CSS custom properties",
+      "message": "docs(DSN): ADR-DSN-001 design token structure, three tiers generated as CSS custom properties",
       "add": [
         "agnos-process/2.architecture/ADR-DSN-001-design-tokens-in-three-tiers.md"
       ],
@@ -1069,7 +1069,7 @@
       "date": "2026-10-19",
       "time": "10:30",
       "by": "omar-arch",
-      "message": "docs(WEB): ADR-WEB-001 server-rendered web interface on the typed client",
+      "message": "docs(WEB): ADR-WEB-001 web interface rendering, server-side on the typed client",
       "add": [
         "agnos-process/2.architecture/ADR-WEB-001-server-rendered-web-interface.md"
       ],

@@ -1,4 +1,4 @@
-# ADR-BKG-002: In-memory reservation storage
+# ADR-BKG-002: Initial reservation storage
 
 Motivated by: RQ-BKG-002, RQ-BKG-003, RQ-BKG-005 (FTR-BKG-001); builds on ADR-BKG-001.
 
@@ -11,7 +11,7 @@ asks for durability yet.
 
 ## Decision
 
-### DEC-BKG-003: Keep reservations in a dictionary in memory
+### DEC-BKG-003: In-memory dictionary for reservations
 - **Statement**: The repository adapter SHALL use a dictionary in memory, keyed by identifier behind the repository port of DEC-BKG-001, for storing reservations.
 - **Rationale**: it is enough to deliver RQ-BKG-002, RQ-BKG-003 and RQ-BKG-005 and to test them; no requirement asks for durability yet.
 

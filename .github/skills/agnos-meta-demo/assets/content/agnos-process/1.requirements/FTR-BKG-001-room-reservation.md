@@ -13,7 +13,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
 
 ## Functional Requirements
 
-### RQ-BKG-001: Room catalog
+### RQ-BKG-001: Room catalog listing
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The booking service SHALL keep a catalog of rooms, each with an identifier, a name, a
@@ -26,7 +26,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
   - **Then** each room is returned with its identifier, name, capacity and open flag
 - **Dependencies**: None
 
-### RQ-BKG-002: Create a reservation
+### RQ-BKG-002: Reservation creation
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN a user requests a reservation of a room with an organizer, a start, an end and an
@@ -39,7 +39,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
   - **Then** a Confirmed reservation is stored and its identifier is returned
 - **Dependencies**: RQ-BKG-001
 
-### RQ-BKG-003: No double booking
+### RQ-BKG-003: Double booking rejection
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the requested interval overlaps a Confirmed reservation of the same room, THEN the
@@ -54,7 +54,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
   - **And** a reservation from 11:00 to 12:00 is accepted
 - **Dependencies**: RQ-BKG-002
 
-### RQ-BKG-004: Room capacity
+### RQ-BKG-004: Room capacity check
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the attendee count is greater than the capacity of the room, THEN the booking service
@@ -68,7 +68,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
   - **And** a reservation for 6 attendees is accepted
 - **Dependencies**: RQ-BKG-002
 
-### RQ-BKG-005: Cancel a reservation
+### RQ-BKG-005: Reservation cancellation
 - **Category**: Functional
 - **EARS Type**: Complex
 - **Statement**: WHEN a user cancels a Confirmed reservation, the booking service SHALL mark it Cancelled
@@ -83,7 +83,7 @@ of rooms, the creation and cancellation of reservations, and the rules that keep
   - **And** cancelling a reservation that has started raises an already-started error
 - **Dependencies**: RQ-BKG-002
 
-### RQ-BKG-006: Closed rooms
+### RQ-BKG-006: Closed room rejection
 - **Category**: Functional
 - **EARS Type**: State-driven
 - **Statement**: WHILE a room is flagged closed, the booking service SHALL reject new reservations for it

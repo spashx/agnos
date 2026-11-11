@@ -1,4 +1,4 @@
-# PLAN-CLI-001: HTTP API, typed client and command-line tool
+# PLAN-CLI-001: Remote booking access
 
 ## Overview
 Delivers the HTTP adapter of the service, then the transport, the typed client and the command-line tool
@@ -13,7 +13,7 @@ This plan implements the tasks in the format specified below.
 
 ## Tasks
 
-### TASK-CLI-001: HTTP adapter of the service
+### TASK-CLI-001: Implement service HTTP adapter
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the Python HTTP adapter that serves the three routes, runs the use cases and turns
@@ -30,7 +30,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `python -m unittest tests.test_api` (in `service/`): Ran 19 tests, OK.
 - **Assumptions**: Dates travel as ISO 8601 text with a UTC offset.
 
-### TASK-CLI-002: Transport, constants and errors
+### TASK-CLI-002: Implement client transport layer
 - **Tier**: M
 - **Status**: Done
 - **Description**: Create the TypeScript project, the HTTP transport with a timeout, and the network error
@@ -46,7 +46,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/transport.test.ts` (in `client/`): 7 passed, 0 failed.
 - **Assumptions**: Node 18 or later, using its built-in `fetch`.
 
-### TASK-CLI-003: Typed client
+### TASK-CLI-003: Implement typed client
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the response types and the client with its three functions, turning error bodies into
@@ -63,7 +63,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/client.test.ts` (in `client/`): 8 passed, 0 failed.
 - **Assumptions**: None
 
-### TASK-CLI-004: Command-line tool
+### TASK-CLI-004: Implement command-line tool
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the `rooms`, `book` and `cancel` commands on top of the client, with exit codes.
@@ -79,7 +79,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/cli.test.ts` (in `client/`): 9 passed, 0 failed.
 - **Assumptions**: Arguments are positional, no option parsing library.
 
-### TASK-CLI-005: Usage text
+### TASK-CLI-005: Correct usage text
 - **Tier**: S
 - **Status**: Done
 - **Description**: Correct the program name in the usage text.

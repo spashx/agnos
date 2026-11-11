@@ -1,4 +1,4 @@
-# ADR-WEB-001: Server-rendered web interface on the typed client
+# ADR-WEB-001: Web interface rendering
 
 Motivated by: RQ-WEB-001 to RQ-WEB-006 (FTR-WEB-001); builds on ADR-CLI-001 and on the design system ADR-DSN-001 (DEC-DSN-001, DEC-DSN-002).
 
@@ -12,11 +12,11 @@ one page with three cards and the project avoids heavy dependencies.
 
 ## Decision
 
-### DEC-WEB-001: Server-rendered HTML pages from a thin Node HTTP server
+### DEC-WEB-001: Server-rendered HTML on Node `http`
 - **Statement**: The interface SHALL use pure view functions returning HTML strings, served by a Node `http` server that only translates HTTP to a request object and back, with URL-encoded form posts answered by a full page and no browser script, for rendering the pages; every visible class name is declared once and styled by the stylesheet of DEC-DSN-002.
 - **Rationale**: three forms do not justify a framework or a browser build chain, and the views hold no visual value.
 
-### DEC-WEB-002: Application logic as a function of the typed client
+### DEC-WEB-002: Booking application over the typed client
 - **Statement**: A `BookingApp` SHALL apply the `RoombookClient` to a request object, mapping form values to a reservation request, service error codes to worded messages of one labels module and a network error to an unavailable page, for keeping the server and the views ignorant of the service contract; times typed carry no zone and are booked in UTC.
 - **Rationale**: the logic is testable without a browser or a socket, and no requirement asks for time zones yet.
 

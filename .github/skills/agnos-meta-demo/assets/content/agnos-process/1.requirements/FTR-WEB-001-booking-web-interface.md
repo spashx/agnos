@@ -14,7 +14,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
 
 ## Functional Requirements
 
-### RQ-WEB-001: Rooms overview
+### RQ-WEB-001: Room overview display
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The web interface SHALL display the rooms known to the booking service with their name,
@@ -28,7 +28,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
   - **And** the page links the stylesheet generated from the design-system tokens
 - **Dependencies**: RQ-CLI-001, RQ-DSN-001, RQ-DSN-003, RQ-DSN-005, ADR-DSN-001
 
-### RQ-WEB-002: Book a room
+### RQ-WEB-002: Room booking
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN a visitor submits the booking form with a room, an organizer, a start, an end and a
@@ -43,7 +43,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
   - **And** an incomplete form is refused without calling the service
 - **Dependencies**: RQ-CLI-001, RQ-BKG-002, RQ-DSN-003
 
-### RQ-WEB-003: Refusals explained
+### RQ-WEB-003: Refusal explanation
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN the service refuses a request, the web interface SHALL show an error message worded
@@ -58,7 +58,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
   - **And** the organizer typed in the form is still in the form
 - **Dependencies**: RQ-CLI-002, RQ-DSN-003
 
-### RQ-WEB-004: Cancel a reservation
+### RQ-WEB-004: In-page reservation cancellation
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN a visitor submits a reservation identifier, or uses the cancel button of a booking
@@ -72,7 +72,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
   - **And** an unknown identifier shows the not-found wording
 - **Dependencies**: RQ-CLI-001, RQ-BKG-005, RQ-DSN-003
 
-### RQ-WEB-005: Service unavailable
+### RQ-WEB-005: Unavailable service notice
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the booking service does not answer, THEN the web interface SHALL show a warning banner
@@ -89,7 +89,7 @@ screens comes from the design system of FTR-DSN-001, never from a literal.
 
 ## Non-Functional Requirements
 
-### RQ-WEB-006: Labelled controls and statuses in words
+### RQ-WEB-006: Accessible control labelling
 - **Category**: Non-Functional
 - **NFR Type**: Accessibility
 - **EARS Type**: Ubiquitous

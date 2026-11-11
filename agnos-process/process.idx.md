@@ -787,7 +787,7 @@ TASK-PLG-053|16-27|Done|Record artifact writing-format requirements
 TASK-PLG-054|28-39|Done|Correct title word range
 TASK-PLG-055|40-51|Done|Restructure demo decisions
 TASK-PLG-056|52-63|Done|Move demo ADR citations to plain text
-TASK-PLG-057|64-75|Not Started|Retitle demo artifacts
+TASK-PLG-057|64-75|Done|Retitle demo artifacts
 TASK-PLG-058|76-87|Not Started|Prepare version 3.4.0 release
 TASK-PLG-059|88-99|Not Started|Rebuild demo on version 3.4.0
 TASK-PLG-060|100-111|Not Started|Align website with renamed demo

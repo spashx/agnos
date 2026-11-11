@@ -1,4 +1,4 @@
-# ADR-BKG-003: JSON file reservation storage
+# ADR-BKG-003: Durable reservation storage
 
 Motivated by: RQ-BKG-007 (FTR-BKG-002); supersedes ADR-BKG-002.
 
@@ -12,7 +12,7 @@ reservations per month.
 
 ## Decision
 
-### DEC-BKG-004: Persist reservations in a JSON file written atomically
+### DEC-BKG-004: Atomic JSON file for reservations
 - **Statement**: A second repository adapter, selected by a configuration value, SHALL use one JSON file, read at start and rewritten on every change through a temporary file renamed over it, for storing reservations; it replaces DEC-BKG-003.
 - **Rationale**: the rename leaves the previous file intact when a save is interrupted; one service process and fewer than 1000 reservations per month need no database server.
 

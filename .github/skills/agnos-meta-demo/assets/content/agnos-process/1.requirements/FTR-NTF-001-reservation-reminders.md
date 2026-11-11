@@ -13,7 +13,7 @@ because a notification failed.
 
 ## Functional Requirements
 
-### RQ-NTF-001: Creation event
+### RQ-NTF-001: Creation event publication
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN a reservation is created, the booking service SHALL publish a reservation-created
@@ -26,7 +26,7 @@ because a notification failed.
   - **Then** the subscriber receives one reservation-created event with that reservation
 - **Dependencies**: RQ-BKG-002
 
-### RQ-NTF-002: Reminder before the meeting
+### RQ-NTF-002: Reminder dispatch before meetings
 - **Category**: Functional
 - **EARS Type**: State-driven
 - **Statement**: WHILE a reservation is Confirmed, the booking service SHALL send a reminder to its
@@ -40,7 +40,7 @@ because a notification failed.
   - **And** a Cancelled reservation never produces a reminder
 - **Dependencies**: RQ-NTF-001, RQ-BKG-005
 
-### RQ-NTF-003: Notification failures
+### RQ-NTF-003: Failed notification retry
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF a notification attempt fails, THEN the booking service SHALL retry until 3 attempts have

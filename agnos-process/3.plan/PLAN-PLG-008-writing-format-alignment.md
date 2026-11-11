@@ -63,15 +63,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-057: Retitle demo artifacts
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Retitle the demo's FTR, RQ, ADR, DEC, PLAN and TASK per RQ-PLG-039, keeping their IDs; a title joining two concerns becomes one covering title; the drafts and the scenario follow.
 - **Requirement refs**: RQ-PLG-039, RQ-DMO-005
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given every demo artifact title, Then it complies with MANDATORY TITLE FORMAT; Given the scenario's `edits` and commit messages, Then they match the new text.
 - **Dependencies**: TASK-PLG-055, TASK-PLG-056
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: One-off script (scratchpad) on headings only: 68 IDs retitled of 68, none missing, 23 files (19 process documents, 4 drafts), 84 lines changed. No scenario `edits` targets a title. 6 `docs` commit messages restating an ADR title updated; `scenario.json` parses. No demo code quotes a title. Rebuild in TASK-PLG-059.
+- **Assumptions**: 12 titles kept as compliant (FTR-BKG-001/002, FTR-NTF/DSN/WEB-001, RQ-CLI-001/002, RQ-DSN-001, RQ-NTF-004, PLAN-BKG-001/002, PLAN-NTF/DSN/WEB-001). Commit messages are descriptions, kept unless they restate an ADR title. File names unchanged.
 
 ### TASK-PLG-058: Prepare version 3.4.0 release
 - **Tier**: M

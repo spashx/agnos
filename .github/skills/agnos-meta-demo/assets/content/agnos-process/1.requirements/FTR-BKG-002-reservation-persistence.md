@@ -18,7 +18,7 @@ None in this feature; the behavior of reservations is defined by FTR-BKG-001.
 
 ## Non-Functional Requirements
 
-### RQ-BKG-007: Reservations survive a restart
+### RQ-BKG-007: Reservation retention across restarts
 - **Category**: Non-Functional
 - **NFR Type**: Reliability
 - **EARS Type**: Ubiquitous

@@ -14,7 +14,7 @@ This plan implements the tasks in the format specified below.
 
 ## Tasks
 
-### TASK-WEB-001: Labels and views
+### TASK-WEB-001: Implement page views
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the wording of the interface in one module, the routes and form field names, and the view
@@ -33,7 +33,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/views.test.ts` (in `client/`): 13 passed, 0 failed.
 - **Assumptions**: The status symbols are the Unicode check mark and cross, as section 2.5 of FTR-DSN-001 decides.
 
-### TASK-WEB-002: Booking application
+### TASK-WEB-002: Implement booking application
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the application that routes a request to the page, the booking or the cancellation
@@ -51,7 +51,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/app.test.ts` (in `client/`): 15 passed, 0 failed.
 - **Assumptions**: Local times typed in the form are booked in UTC (+00:00) until time zones are required.
 
-### TASK-WEB-003: HTTP server and entry point
+### TASK-WEB-003: Implement web server
 - **Tier**: L
 - **Status**: Done
 - **Description**: Add the Node HTTP server that translates requests to the application, serves the page and the
@@ -69,7 +69,7 @@ This plan implements the tasks in the format specified below.
   cancellation checked by hand against a running service.
 - **Assumptions**: The server listens on 127.0.0.1, port 3000 unless `ROOMBOOK_UI_PORT` is set.
 
-### TASK-WEB-004: Booking button wording
+### TASK-WEB-004: Correct booking button wording
 - **Tier**: S
 - **Status**: Done
 - **Description**: After the UX review, rename the booking button from Submit to Book this room.

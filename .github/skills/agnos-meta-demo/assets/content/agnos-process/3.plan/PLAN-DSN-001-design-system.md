@@ -14,7 +14,7 @@ This plan implements the tasks in the format specified below.
 
 ## Tasks
 
-### TASK-DSN-001: Token module
+### TASK-DSN-001: Implement token module
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the module that loads the token file, resolves alias chains, rejects a token that
@@ -31,7 +31,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/tokens.test.ts` (in `client/`): 15 passed, 0 failed.
 - **Assumptions**: Contrast is the WCAG 2.x ratio on colours written as `#rrggbb`.
 
-### TASK-DSN-002: Stylesheet generator
+### TASK-DSN-002: Implement stylesheet generator
 - **Tier**: M
 - **Status**: Done
 - **Description**: Add the generator that exposes every token as a CSS custom property and writes the
@@ -48,7 +48,7 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `node --test tests/stylesheet.test.ts` (in `client/`): 9 passed, 0 failed.
 - **Assumptions**: The component rules are generated in TypeScript and sent by the server; no CSS file is stored.
 
-### TASK-DSN-003: Warning text contrast
+### TASK-DSN-003: Raise warning text contrast
 - **Tier**: S
 - **Status**: Done
 - **Description**: The contrast test failed on the warning text (amber 600 on amber 50, 3.07:1). Add amber 800
