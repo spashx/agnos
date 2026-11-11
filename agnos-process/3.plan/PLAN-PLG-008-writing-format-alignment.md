@@ -27,15 +27,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-054: Correct title word range
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Replace "3-8 words" by "2-8 words" in MANDATORY TITLE FORMAT and cite RQ-PLG-039 to RQ-PLG-041 in comments.
 - **Requirement refs**: RQ-PLG-039, RQ-PLG-040, RQ-PLG-041
 - **ADR refs**: None
 - **Acceptance Criteria**: Given the instructions file, Then it states 2-8 words And stays within 400 lines.
 - **Dependencies**: TASK-PLG-053
 - **Assignee**: AI
-- **Verification**: N/A (Tier S)
-- **Assumptions**: 
+- **Verification**: N/A (Tier S); post-edit line count 396 (≤ 400).
+- **Assumptions**: None
 
 ### TASK-PLG-055: Restructure demo decisions
 - **Tier**: M

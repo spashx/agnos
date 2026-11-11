@@ -82,10 +82,10 @@ The unique identifier shall be in the format: `<TYPE>-<TRI>-<NNN>` where:
 - Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
 - The user SHALL be able to grep any requirement ID and find all related code and documentation.
 - An artifact with no traceable requirement ID is considered incomplete and SHALL NOT be delivered.
-- ALWAYS put traceability references into comments, never as plain text, in every file outside agnos-process/; the artifact files of agnos-process/ hold their own IDs as plain text.
+- ALWAYS put traceability references into comments, never as plain text, in every file outside agnos-process/; the artifact files of agnos-process/ hold their own IDs as plain text. <!-- RQ-PLG-041 -->
 
 ### MANDATORY TITLE FORMAT
-- EVERY ARTIFACT title: 3-8 words. Noun phrase (head noun + complements), except TASK = one base-form action verb + its object.
+- EVERY ARTIFACT title: 2-8 words. Noun phrase (head noun + complements), except TASK = one base-form action verb + its object. <!-- RQ-PLG-039 -->
 - Forbidden: modal, conjugated verb (TASK's leading verb excepted), leading article, final period, vague or subjective word (fast, robust, "management of"), "and"/"or" joining two concerns (split the artifact instead).
 - Never restate `<TRI>`, the artifact type, or another field's value (Category, NFR Type, Tier, Status, Priority).
 - FTR/RQ only: no figure, and no technology choice unless it is a stated constraint.
@@ -226,7 +226,7 @@ Brief description of the feature's purpose and scope.
 ## 2. ARCHITECTURE DECISIONS RECORDS (ADRs)
 
 - Create an ADR for EVERY cross-cutting architectural choice related to a requirement (state management, DI framework, navigation, storage, platform channel strategy, etc.).
-- Every ADR File SHALL use the following structure exactly:
+- Every ADR File SHALL use the following structure exactly: <!-- RQ-PLG-040 -->
   ```
   # ADR-<TRI>-<NNN>: <Short Title>
   ## Status
