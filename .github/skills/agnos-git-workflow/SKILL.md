@@ -61,10 +61,9 @@ given, otherwise `<type>(<TRI>): <TASK-ID> <description>`, where:
 - `<TRI>` is the trigram parsed out of `<TASK-ID>`.
 - **During a RECURSIVE SELF-IMPROVEMENT SESSION**: append an `Iteration: <k>/<N>` trailer, e.g.
   `docs(USR): ADR-USR-001/TASK-USR-001 <description>` with trailer `Iteration: 1/5`.
-- **When an agent commits**: append one single `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer, in place of
-  the tool's own attribution, e.g. `Co-Authored-By: Claude Code/Claude Opus 5.5 <noreply@anthropic.com>`. Take the
-  harness name, the model and the e-mail as your tool gives them, without normalising; write `auto` as `<Model>` when
-  the model is chosen dynamically and you cannot see it. <!-- RQ-HST-030 -->
+- **When an agent commits**: one single `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer, in place of the tool's
+  own attribution, e.g. `Co-Authored-By: Claude Code/Claude Opus 5.5 <noreply@anthropic.com>`. The `<commit-task>`
+  script writes it, and the message, from your arguments (step 6). <!-- RQ-HST-030 / DEC-HST-013 -->
 
 **Procedure:**
 
@@ -82,16 +81,22 @@ given, otherwise `<type>(<TRI>): <TASK-ID> <description>`, where:
 4. Refresh the process index by invoking the `agnos-index` skill. <!-- RQ-IDX-012 -->
    If exit code ≠ 0: report the error or duplicates and STOP. Do NOT commit.
 
-5. Determine `<type>` and build the commit message per the format above.
+5. Determine `<type>`, then stage the task's files by name with `git add <paths>`, never `git add .`, which would take
+   the user's unrelated changes.
 
-6. Confirm the computed commit message with the user:
+6. Never write the message yourself, nor run `git commit` directly: the `<commit-task>` script builds it.
+   <!-- RQ-HST-030 / DEC-HST-013 --> Run it with `-DryRun`:
+
+   | `session.platform` | Command |
+   |---|---|
+   | `windows` | `powershell -NoProfile -File <skill-folder>/scripts/commit-task.ps1 <arguments> -DryRun` |
+   | `linux` / `macos` | `bash <skill-folder>/scripts/commit-task.sh <arguments> -DryRun` |
+
+   `<arguments>`: `-Task <TASK-ID> [-Adr <ADR-ID>] -Type <type> -Description "<description>" -Harness "<harness>"
+   -Model "<model>" -Email "<e-mail>" [-Iteration <k>/<N>]`. Harness, model and e-mail are yours, as your tool gives
+   them; `auto` when the model is chosen dynamically. Then confirm the printed message with the user:
    > "About to commit: `<message>`. Proceed?"
    Wait for confirmation.
 
-7. Execute:
-   ```
-   git add .
-   git commit -m "<message>"
-   ```
-   `<message>` holds its trailers after a blank line, the co-author trailer included. <!-- RQ-HST-030 -->
-   Confirm the commit hash to the user.
+7. Run the same command without `-DryRun`: it commits the staged files and prints the hash. Confirm the hash to the
+   user. Exit code 1: report its error and STOP.
