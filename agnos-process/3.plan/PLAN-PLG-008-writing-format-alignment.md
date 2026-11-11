@@ -51,15 +51,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-056: Move demo ADR citations to plain text
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Turn the `<!-- Motivated by: … -->` comments of the demo's ADRs into plain text.
 - **Requirement refs**: RQ-PLG-041, RQ-DMO-008
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given the demo's `agnos-process/`, Then no artifact file holds an ID in an HTML comment.
 - **Dependencies**: TASK-PLG-053
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: 7 comments turned into a plain "Motivated by: …." line; grep `<!--` in the demo's `agnos-process/`: 0 matches. Only the demo's own IDs, no AGNOS ID.
+- **Assumptions**: `client/design/SCREENS.md`, outside `agnos-process/`, keeps its comment.
 
 ### TASK-PLG-057: Retitle demo artifacts
 - **Tier**: M

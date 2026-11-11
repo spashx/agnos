@@ -1,6 +1,6 @@
 # ADR-NTF-001: In-process events and a notifier port
 
-<!-- Motivated by: RQ-NTF-001, RQ-NTF-002, RQ-NTF-003, RQ-NTF-004 (FTR-NTF-001); builds on ADR-BKG-001 -->
+Motivated by: RQ-NTF-001, RQ-NTF-002, RQ-NTF-003, RQ-NTF-004 (FTR-NTF-001); builds on ADR-BKG-001.
 
 ## Status
 Accepted

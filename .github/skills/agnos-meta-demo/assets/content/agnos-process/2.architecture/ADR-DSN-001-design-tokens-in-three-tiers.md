@@ -1,6 +1,6 @@
 # ADR-DSN-001: Design tokens in three tiers, generated as CSS custom properties
 
-<!-- Motivated by: RQ-DSN-001 to RQ-DSN-005 (FTR-DSN-001); design system required by MANDATORY DESIGN SYSTEM -->
+Motivated by: RQ-DSN-001 to RQ-DSN-005 (FTR-DSN-001); design system required by MANDATORY DESIGN SYSTEM.
 
 ## Status
 Accepted

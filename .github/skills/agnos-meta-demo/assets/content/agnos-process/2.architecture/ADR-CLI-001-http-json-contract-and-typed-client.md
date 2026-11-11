@@ -1,6 +1,6 @@
 # ADR-CLI-001: HTTP/JSON contract and typed client
 
-<!-- Motivated by: RQ-CLI-001 to RQ-CLI-005 (FTR-CLI-001); builds on ADR-BKG-001 -->
+Motivated by: RQ-CLI-001 to RQ-CLI-005 (FTR-CLI-001); builds on ADR-BKG-001.
 
 ## Status
 Accepted

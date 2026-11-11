@@ -1,6 +1,6 @@
 # ADR-BKG-001: Layered architecture with ports
 
-<!-- Motivated by: RQ-BKG-001 to RQ-BKG-006 (FTR-BKG-001) -->
+Motivated by: RQ-BKG-001 to RQ-BKG-006 (FTR-BKG-001).
 
 ## Status
 Accepted

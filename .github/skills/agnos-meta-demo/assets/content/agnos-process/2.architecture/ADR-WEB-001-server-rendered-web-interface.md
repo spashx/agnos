@@ -1,6 +1,6 @@
 # ADR-WEB-001: Server-rendered web interface on the typed client
 
-<!-- Motivated by: RQ-WEB-001 to RQ-WEB-006 (FTR-WEB-001); builds on ADR-CLI-001 and on the design system ADR-DSN-001 (DEC-DSN-001, DEC-DSN-002) -->
+Motivated by: RQ-WEB-001 to RQ-WEB-006 (FTR-WEB-001); builds on ADR-CLI-001 and on the design system ADR-DSN-001 (DEC-DSN-001, DEC-DSN-002).
 
 ## Status
 Accepted

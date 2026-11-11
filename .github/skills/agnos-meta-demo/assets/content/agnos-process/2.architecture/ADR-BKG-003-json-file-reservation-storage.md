@@ -1,6 +1,6 @@
 # ADR-BKG-003: JSON file reservation storage
 
-<!-- Motivated by: RQ-BKG-007 (FTR-BKG-002); supersedes ADR-BKG-002 -->
+Motivated by: RQ-BKG-007 (FTR-BKG-002); supersedes ADR-BKG-002.
 
 ## Status
 Accepted

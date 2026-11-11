@@ -1,6 +1,6 @@
 # ADR-BKG-002: In-memory reservation storage
 
-<!-- Motivated by: RQ-BKG-002, RQ-BKG-003, RQ-BKG-005 (FTR-BKG-001); builds on ADR-BKG-001 -->
+Motivated by: RQ-BKG-002, RQ-BKG-003, RQ-BKG-005 (FTR-BKG-001); builds on ADR-BKG-001.
 
 ## Status
 Superseded by ADR-BKG-003
