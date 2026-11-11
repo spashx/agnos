@@ -4,6 +4,24 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.4.0]
+
+### Added
+- `MANDATORY TITLE FORMAT` in the instructions: every artifact title is 2 to 8 words and a noun phrase, and a TASK title is one base-form action verb and its object; each title is checked against these rules before it is written <!-- RQ-PLG-039, TASK-PLG-053, TASK-PLG-054 -->
+- `agnos-meta-website` maintainer skill: builds the AGNOS presentation website, a guided tour of the demo's Performance Center for CIOs, in English and French, from its Markdown text, design tokens and images; the build writes its folder only when every check passed <!-- ADR-WEB-001, FTR-WEB-001, TASK-WEB-001 to TASK-WEB-004, RQ-WEB-001 to RQ-WEB-016 -->
+- `agnos-meta-website` site: three examples under the Overview (a requirement, an ADR and a plan), enlarged on click <!-- ADR-WEB-001, TASK-WEB-007, RQ-WEB-017 -->
+- `agnos-meta-website` site: a third card on unique identifiers as keys, a design-system card with the demo's buttons, and the index card's measured speed per 100 artifacts <!-- ADR-WEB-001, TASK-WEB-008 to TASK-WEB-011, RQ-WEB-005, RQ-WEB-018 -->
+
+### Changed
+- `agnos-session` runs its `session.sh` with `bash`, as the other skills do, when `powershell` is not found <!-- ADR-INI-002, TASK-INI-012 -->
+- `agnos-perf-center` About topic: the tagline reads "Agentic efficiency by traceability", on the site too <!-- TASK-WEB-006, RQ-TRC-116, RQ-WEB-008 -->
+- START SESSION step 2 stops and asks for `agnos-init` when `agnos-process/` is missing, before the session variables are asked <!-- RQ-INI-007 -->
+- A written plan is required for Tier S and Tier M tasks too, as it already was for Tier L
+- Every decision of an ADR is written as a `Statement` (one sentence, active voice) and a `Rationale` (the reason and its evidence) <!-- RQ-PLG-040, TASK-PLG-055 -->
+- The `## Diagram` section of an ADR holds at least two Mermaid diagrams: a class diagram of the entities and a sequence diagram of their interactions
+- Traceability references are comments in every file outside `agnos-process/`; the artifacts of `agnos-process/` hold their own IDs as plain text <!-- RQ-PLG-041, TASK-PLG-056 -->
+- `agnos-meta-demo` demo: its 12 decisions are written as Statement and Rationale, its ADRs cite their requirements as plain text, and its 68 artifact titles follow the title format <!-- ADR-DMO-001, TASK-PLG-055 to TASK-PLG-057, RQ-PLG-039 to RQ-PLG-041 -->
+
 ## [3.3.0]
 
 ### Added

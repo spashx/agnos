@@ -75,12 +75,24 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-058: Prepare version 3.4.0 release
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-release-prep`: repository checks, docs-sync, changelog, version 3.4.0 approved by the owner, commit.
 - **Requirement refs**: RQ-PLG-027 to RQ-PLG-033
 - **ADR refs**: ADR-PLG-005
 - **Acceptance Criteria**: Given `VERSION.txt`, Then it holds 3.4.0; Given the changelog, Then a 3.4.0 section lists this plan's changes.
 - **Dependencies**: TASK-PLG-054, TASK-PLG-057
+- **Assignee**: AI
+- **Verification**: `check` exit 0 (open: TASK-PLG-007 and this plan's tasks, continued). docs-sync changed `CHANGELOG.md` and the guide template only; `review`: no unexpected file, proposed 3.4.0, approved by the owner (2026-11-11). `set-version 3.4.0` exit 0: `VERSION.txt` reads 3.4.0, `## [3.4.0]` above `## [3.3.0]`. No code: tests N/A.
+- **Assumptions**: docs-sync left two flags for later: the guide's Stage 8 still says the guide is at the project's root, and AGENTS.md section 2 says "in comments" for every artifact (RQ-PLG-041).
+
+### TASK-PLG-062: Add demo ADR diagrams
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Give each of the demo's 7 ADRs a `classDiagram` of its entities and a `sequenceDiagram` of their interactions, as the ADR template requires; added by the owner on 2026-11-11.
+- **Requirement refs**: RQ-DMO-005
+- **ADR refs**: ADR-DMO-001
+- **Acceptance Criteria**: Given each demo ADR, Then its `## Diagram` holds a `classDiagram` And a `sequenceDiagram`, scoped to the requirements it cites.
+- **Dependencies**: TASK-PLG-057
 - **Assignee**: AI
 - **Verification**: 
 - **Assumptions**: 
@@ -92,7 +104,7 @@ This plan implements the tasks in the format specified below.
 - **Requirement refs**: RQ-DMO-005, RQ-DMO-008, RQ-DMO-021
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given the rebuilt demo, When `verify` runs, Then every requirement is PASS; Given the generator's tests, Then they pass.
-- **Dependencies**: TASK-PLG-058
+- **Dependencies**: TASK-PLG-058, TASK-PLG-062
 - **Assignee**: AI
 - **Verification**: 
 - **Assumptions**: 

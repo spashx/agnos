@@ -47,12 +47,12 @@ Everything the agent writes for the process lives under `agnos-process/`, and ev
 | Phase | Location | Artifacts | Format |
 |---|---|---|---|
 | Requirements | `agnos-process/1.requirements/` | `FTR-*` features, `RQ-*` requirements | EARS statements, Gherkin acceptance criteria |
-| Architecture | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions | Context, Decision, Consequences, Alternatives, Mermaid diagram |
+| Architecture | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions | Context, Decision, Consequences, Alternatives, Mermaid diagrams |
 | Planning | `agnos-process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks | Tier, Gherkin criteria, Verification, Assumptions |
 | Session state | `agnos-process/_sessionstate/` | `session.yaml`, `METRICS_LOG.md` | `session.yaml` is not version-controlled; `METRICS_LOG.md` is |
 
 Every identifier follows `<TYPE>-<TRI>-<NNN>`, where `<TRI>` is a three-letter uppercase trigram for the functional area.
-Identifiers appear, as comments, in every related document, source file, test name and commit message.
+Identifiers appear as plain text in every related process document, and as comments in source files and tests; a commit message carries them in its subject.
 
 ## Two steps before the first session
 
@@ -160,7 +160,7 @@ size the system can hold.
 
 ## Functional Requirements
 
-### RQ-EXP-001: Export the filtered order list as CSV
+### RQ-EXP-001: Filtered order list CSV export
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN an authenticated operations user requests an export of the order list, the
@@ -180,7 +180,7 @@ size the system can hold.
 
 ## Non-Functional Requirements
 
-### RQ-EXP-002: Bounded memory during export
+### RQ-EXP-002: Export peak memory
 - **Category**: Non-Functional
 - **NFR Type**: Performance
 - **EARS Type**: State-driven
@@ -238,8 +238,6 @@ job with a download link.
 ````markdown
 # ADR-EXP-001: CSV generation strategy for order export
 
-<!-- Motivated by: RQ-EXP-001, RQ-EXP-002 -->
-
 ## Status
 Accepted
 
@@ -251,15 +249,13 @@ repository already exposes cursor-based pagination over orders.
 
 ## Decision
 
-### DEC-EXP-001: Stream the CSV, never materialise it
-The exporter returns a `Readable` that pulls orders from the repository in bounded batches and
-pushes encoded rows downstream. Peak memory is one batch plus the socket buffer, independent of
-result-set size. The HTTP layer pipes that stream directly to the response with
-`Content-Type: text/csv` and `Content-Disposition: attachment`.
+### DEC-EXP-001: Streaming CSV generation
+- **Statement**: The exporter SHALL stream the CSV document through a `Readable`, for memory independent of the result size.
+- **Rationale**: A materialised 1,000,000-row CSV is about 120 MB, six times the RQ-EXP-002 budget; the repository already exposes cursor-based pagination, which a stream consumes batch by batch.
 
-### DEC-EXP-002: Batch size 500, declared as a named constant
-Chosen as the smallest batch that keeps the database round-trip count off the critical path at
-1,000,000 rows. It is a tuning knob, so it is a named constant, not a literal at a call site.
+### DEC-EXP-002: Batched repository fetching
+- **Statement**: The exporter SHALL fetch orders from the repository in batches of 500 rows.
+- **Rationale**: 500 is the smallest batch that keeps the database round-trip count off the critical path at 1,000,000 rows; as a tuning knob it is a named constant, not a literal at a call site.
 
 ## Consequences
 
@@ -284,6 +280,25 @@ new ADR.
 | **Background job + emailed download link** | Handles unbounded sizes and survives client disconnects. Rejected as disproportionate: it adds a queue, a worker and a notification path for a report that streams in ~8 s. |
 
 ## Diagram
+
+```mermaid
+classDiagram
+    class OrderCsvExporter {
+        +export(filter) Readable
+    }
+    class OrderRepository {
+        <<interface>>
+        +findBatch(filter, cursor, size)
+    }
+    class Order {
+        +id
+        +customerName
+        +totalEur
+        +placedAt
+    }
+    OrderCsvExporter --> OrderRepository : reads batches through
+    OrderRepository ..> Order : returns
+```
 
 ```mermaid
 sequenceDiagram
@@ -343,7 +358,7 @@ Implements the streaming CSV exporter and exposes it on the orders API.
 
 ## Tasks
 
-### TASK-EXP-001: Streaming CSV exporter
+### TASK-EXP-001: Implement streaming CSV exporter
 - **Tier**: M
 - **Status**: Not Started
 - **Description**: Add `OrderCsvExporter`, which streams RFC 4180 CSV rows pulled from the order
@@ -382,9 +397,11 @@ Implements the streaming CSV exporter and exposes it on the orders API.
 
 | Tier | When | Tests | ADR | Written plan |
 |---|---|:-:|:-:|:-:|
-| **S** | ≤ 5 lines changed, no new file, no new public API | No | No | No |
-| **M** | New method, class or file, contained to one module | Yes | No | No |
+| **S** | ≤ 5 lines changed, no new file, no new public API | No | No | Yes |
+| **M** | New method, class or file, contained to one module | Yes | No | Yes |
 | **L** | Cross-cutting, new public API, or new dependency | Yes | Yes | Yes |
+
+Every tier gets a written plan, which is why TASK-EXP-002, a Tier S task, sits in `PLAN-EXP-001` above.
 
 When in doubt the agent defaults to **M**. A Tier S task that turns out to need a new file must be re-tiered before
 it continues: that rule exists to stop "just a quick fix" from silently skipping tests.
@@ -422,8 +439,8 @@ Implement TASK-EXP-001.
 
 ```typescript
 // Implements: RQ-EXP-001 (CSV content), RQ-EXP-002 (bounded memory)
-// Architecture: ADR-EXP-001 / DEC-EXP-001 (stream, never materialise),
-//               ADR-EXP-001 / DEC-EXP-002 (batch size)
+// Architecture: ADR-EXP-001 / DEC-EXP-001 (streaming CSV generation),
+//               ADR-EXP-001 / DEC-EXP-002 (batched repository fetching)
 // Task: TASK-EXP-001
 
 import { Readable } from 'node:stream';
@@ -512,14 +529,15 @@ function encodeField(value: string): string {
 > Illustrates the process sections **4. Testing** and **Error Recovery Protocol**.
 
 TASK-EXP-001 is Tier M, and `session.tests = true`, so tests are mandatory. Test names are written in Gherkin
-and carry the requirement ID: the test suite doubles as the traceability report.
+and the requirement ID sits in a comment above each group, so the test suite doubles as the traceability report.
 
 **What comes back — `tests/export/orderCsvExporter.spec.ts`:**
 
 ```typescript
 // Verifies: RQ-EXP-001, RQ-EXP-002 — TASK-EXP-001
 
-describe('RQ-EXP-001 — order list CSV export', () => {
+// RQ-EXP-001 — order list CSV export
+describe('Order list CSV export', () => {
   it('Given a filter matching 3 orders, When the export is consumed, Then 1 header row and 3 data rows are emitted', async () => {
     const exporter = new OrderCsvExporter(fakeRepositoryWith(3));
 
@@ -538,7 +556,8 @@ describe('RQ-EXP-001 — order list CSV export', () => {
   });
 });
 
-describe('RQ-EXP-002 — bounded memory', () => {
+// RQ-EXP-002 — export peak memory
+describe('Export peak memory', () => {
   it('Given 1200 matching orders, When the export is consumed, Then the repository is queried in batches of at most 500', async () => {
     const repository = recordingRepositoryWith(1200);
 
@@ -713,16 +732,16 @@ End of session.
 Session summary — feature/EXP
 
 Requirements addressed
-  RQ-EXP-001  Export filtered order list as CSV      — implemented, verified
-  RQ-EXP-002  Bounded memory during export           — implemented, verified (batch-size test)
+  RQ-EXP-001  Filtered order list CSV export         — implemented, verified
+  RQ-EXP-002  Export peak memory                     — implemented, verified (batch-size test)
 
 ADRs
   ADR-EXP-001  CSV generation strategy for order export  (Accepted)
-               DEC-EXP-001 stream, never materialise
-               DEC-EXP-002 batch size 500 as named constant
+               DEC-EXP-001 Streaming CSV generation
+               DEC-EXP-002 Batched repository fetching
 
 Tasks completed
-  TASK-EXP-001  Streaming CSV exporter          Tier M  Done
+  TASK-EXP-001  Implement streaming CSV exporter  Tier M  Done
   TASK-EXP-002  Expose GET /orders/export       Tier S  Not started — deferred by user
 
 Blockers
