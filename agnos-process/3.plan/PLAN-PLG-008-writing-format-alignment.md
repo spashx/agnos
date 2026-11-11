@@ -99,15 +99,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-059: Rebuild demo on version 3.4.0
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-demo build -Verify` and the generator's tests.
 - **Requirement refs**: RQ-DMO-005, RQ-DMO-008, RQ-DMO-021
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given the rebuilt demo, When `verify` runs, Then every requirement is PASS; Given the generator's tests, Then they pass.
 - **Dependencies**: TASK-PLG-058, TASK-PLG-062
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `build.ps1 -Verify` exit 0 (Sonnet sub-agent): 84 commits, HEAD `c95238e`, "23 passed, 0 failed" (RQ-DMO-005: 7 ADRs with DEC and diagram; RQ-DMO-008: uncovered 0; RQ-DMO-021: second build same HEAD). Generator tests: 12 run, 12 OK, 0 skipped. Re-read in the demo: HEAD `c95238e`; index `RQ-BKG-003|42-56||Double booking rejection`, `TASK-BKG-003|50-66|Done|Implement overlap rule`; TASK-BKG-003's feat commit `12dc6e4`.
+- **Assumptions**: None
 
 ### TASK-PLG-060: Align website with renamed demo
 - **Tier**: M

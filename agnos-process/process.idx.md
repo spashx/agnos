@@ -790,7 +790,7 @@ TASK-PLG-056|52-63|Done|Move demo ADR citations to plain text
 TASK-PLG-057|64-75|Done|Retitle demo artifacts
 TASK-PLG-058|76-87|Done|Prepare version 3.4.0 release
 TASK-PLG-062|88-99|Done|Add demo ADR diagrams
-TASK-PLG-059|100-111|Not Started|Rebuild demo on version 3.4.0
+TASK-PLG-059|100-111|Done|Rebuild demo on version 3.4.0
 TASK-PLG-060|112-123|Not Started|Align website with renamed demo
 TASK-PLG-061|124-134|Not Started|Rehearse 3.4.0 marketplace release
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
