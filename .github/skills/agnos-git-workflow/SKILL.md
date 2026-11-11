@@ -61,6 +61,10 @@ given, otherwise `<type>(<TRI>): <TASK-ID> <description>`, where:
 - `<TRI>` is the trigram parsed out of `<TASK-ID>`.
 - **During a RECURSIVE SELF-IMPROVEMENT SESSION**: append an `Iteration: <k>/<N>` trailer, e.g.
   `docs(USR): ADR-USR-001/TASK-USR-001 <description>` with trailer `Iteration: 1/5`.
+- **When an agent commits**: append one single `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer, in place of
+  the tool's own attribution, e.g. `Co-Authored-By: Claude Code/Claude Opus 5.5 <noreply@anthropic.com>`. Take the
+  harness name, the model and the e-mail as your tool gives them, without normalising; write `auto` as `<Model>` when
+  the model is chosen dynamically and you cannot see it. <!-- RQ-HST-030 -->
 
 **Procedure:**
 
@@ -89,4 +93,5 @@ given, otherwise `<type>(<TRI>): <TASK-ID> <description>`, where:
    git add .
    git commit -m "<message>"
    ```
+   `<message>` holds its trailers after a blank line, the co-author trailer included. <!-- RQ-HST-030 -->
    Confirm the commit hash to the user.

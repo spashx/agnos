@@ -124,6 +124,22 @@ of FTR-TRC-003.
   patterns file changed, Then the classification follows with no change of code.
 - **Dependencies**: RQ-HST-004
 
+### RQ-HST-030: Harness and model in the agent co-author
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN an agent commits a task, the `agnos-git-workflow` skill SHALL add one single
+  `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer, the harness name and e-mail as the agent's tool gives them,
+  `<Model>` being `auto` when the model is chosen dynamically and not visible to the agent, in place of the tool's own
+  attribution.
+- **Rationale**: the history tells which tool and which model made each change, beside the human who committed it.
+- **Priority**: Must
+- **Acceptance Criteria**: Given a commit by an agent, When `commit-task` builds the message, Then it holds one single
+  `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer; Given a model the agent cannot see, Then `<Model>` is `auto`;
+  Given commits with "Claude Code/Claude Opus 5.5 <noreply@anthropic.com>" and "Copilot SDK in VS Code/auto
+  <223556219+Copilot@users.noreply.github.com>", When the history is built, Then each commit is "together" and the two
+  are two agent identities.
+- **Dependencies**: RQ-HST-005
+
 ### RQ-HST-006: History data in the data file
 - **Category**: Functional
 - **EARS Type**: State-driven

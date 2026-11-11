@@ -38,6 +38,8 @@ AGENT = "agent"
 TOGETHER = "together"
 SPASHX_MAIL = "25369377+spashx@users.noreply.github.com"
 CLAUDE = "Claude Opus 5.5 <noreply@anthropic.com>"
+CLAUDE_CODE = "Claude Code/Claude Opus 5.5 <noreply@anthropic.com>"  # RQ-HST-030
+COPILOT_AUTO = "Copilot SDK in VS Code/auto <223556219+Copilot@users.noreply.github.com>"  # RQ-HST-030
 DAY = "2026-10-{:02d}T10:00:00+00:00"
 
 
@@ -225,6 +227,14 @@ class AgentTest(RepoTestCase):
         agents = {p["name"]: p for p in people if p["kind"] == AGENT}
         self.assertEqual(["Claude Opus 5.5", "Claude Sonnet 5.5"], sorted(agents))
         self.assertEqual(2, agents["Claude Opus 5.5"]["coCommits"])
+
+    def test_RQ_HST_030_given_harness_and_model_co_authors_then_each_commit_is_together_with_two_agents(self):
+        self.repo.commit({"a.txt": "1\n"}, author=f"spashx <{SPASHX_MAIL}>", co_authors=[CLAUDE_CODE])
+        self.repo.commit({"a.txt": "2\n"}, author=f"spashx <{SPASHX_MAIL}>", co_authors=[COPILOT_AUTO])
+        people, commits = self.people()
+        agents = sorted(p["name"] for p in people if p["kind"] == AGENT)
+        self.assertEqual(["Claude Code/Claude Opus 5.5", "Copilot SDK in VS Code/auto"], agents)
+        self.assertEqual([TOGETHER, TOGETHER], [c["kind"] for c in commits])
 
     def test_RQ_HST_005_given_a_lower_case_trailer_then_the_co_author_is_read(self):
         self.repo.commit({"a.txt": "1\n"}, message="x\n\nco-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>")
