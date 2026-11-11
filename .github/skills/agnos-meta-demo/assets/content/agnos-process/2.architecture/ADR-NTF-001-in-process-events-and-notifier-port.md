@@ -13,14 +13,12 @@ break a booking.
 ## Decision
 
 ### DEC-NTF-001: A small in-process event bus and a decorator on the create use case
-Reservation creation is announced on an in-process event bus. A decorator wraps the create-reservation
-use case and publishes the reservation-created event after the wrapped call succeeds, leaving the use case
-unchanged.
+- **Statement**: A decorator of the create-reservation use case SHALL publish the reservation-created event on an in-process event bus, after the wrapped call succeeds, for announcing reservations without changing the use case.
+- **Rationale**: the booking code must not know about notifications; one process needs no broker.
 
 ### DEC-NTF-002: A notifier port with a retrying decorator
-Delivery goes through a notifier port. A retrying decorator calls the real notifier up to 3 times, logs the
-final failure and never raises to the caller. The reminder scheduler reads the repository on a clock tick
-and sends one reminder per Confirmed reservation entering its lead time.
+- **Statement**: The reminder scheduler SHALL use a notifier port, wrapped by a retrying decorator that calls the real notifier up to 3 times, logs the final failure and never raises, for sending one reminder per Confirmed reservation entering its lead time, read from the repository on a clock tick.
+- **Rationale**: the delivery channel (console today, mail later) must be replaceable, and a failed delivery must not break a booking (RQ-NTF-003).
 
 ## Consequences
 - Booking code is untouched by this feature (DEC-BKG-002 spirit).

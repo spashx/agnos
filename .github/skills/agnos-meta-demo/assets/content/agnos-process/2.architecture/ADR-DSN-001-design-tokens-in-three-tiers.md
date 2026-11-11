@@ -13,16 +13,12 @@ The stack is Node with erasable TypeScript and no runtime dependency.
 ## Decision
 
 ### DEC-DSN-001: One JSON token file with three tiers, loaded and checked headlessly
-All visual values live in `client/design/tokens.json`: global tokens hold the raw values, semantic tokens
-alias a global token, component tokens alias a semantic token (RQ-DSN-001, RQ-DSN-002). A TypeScript module
-loads the file with no window or browser, resolves alias chains, rejects a token that breaks the tier chain
-and checks the contrast ratio of the text and background pairings declared in the file (RQ-DSN-004).
+- **Statement**: The interface SHALL use one file, `client/design/tokens.json`, in three tiers (global tokens hold the raw values, semantic tokens alias a global token, component tokens alias a semantic token), loaded by a TypeScript module with no browser that resolves the aliases, rejects a token breaking the tier chain and checks the contrast of the declared pairings, for holding every visual value (RQ-DSN-001, RQ-DSN-002, RQ-DSN-004).
+- **Rationale**: the tests read the tokens without a browser, so the chain and the contrast are checked by tests, not by review alone; the stack has no runtime dependency.
 
 ### DEC-DSN-002: Stylesheet generated at serve time from `var()` references only
-The stylesheet is generated from the tokens, never written by hand: a `:root` rule exposes every token as a
-custom property, aliases kept as `var()` references to the tier below, then the component rules use only
-`var()` (RQ-DSN-003). A unit test scans the interface sources for hexadecimal colours, colour functions and
-dimensions, so a raw literal fails the test run (RQ-DSN-005).
+- **Statement**: The server SHALL expose a stylesheet generated from the tokens at serve time, a `:root` rule holding every token as a custom property with aliases kept as `var()` references and component rules using only `var()`, for styling the interface without a hand-written value (RQ-DSN-003).
+- **Rationale**: a unit test scans the interface sources for hexadecimal colours, colour functions and dimensions, so a raw literal fails the test run (RQ-DSN-005); the browser needs no build step.
 
 ## Consequences
 - A value changes in one place; the generated stylesheet and every test read the same file.

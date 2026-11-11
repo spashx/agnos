@@ -785,7 +785,7 @@ TASK-PLG-051|15-25|Done|Rename `VERSION` to `VERSION.txt`
 PLAN-PLG-008|1-122||Writing-format alignment of the demo
 TASK-PLG-053|16-27|Done|Record artifact writing-format requirements
 TASK-PLG-054|28-39|Done|Correct title word range
-TASK-PLG-055|40-51|Not Started|Restructure demo decisions
+TASK-PLG-055|40-51|Done|Restructure demo decisions
 TASK-PLG-056|52-63|Not Started|Move demo ADR citations to plain text
 TASK-PLG-057|64-75|Not Started|Retitle demo artifacts
 TASK-PLG-058|76-87|Not Started|Prepare version 3.4.0 release

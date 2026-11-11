@@ -13,16 +13,12 @@ one page with three cards and the project avoids heavy dependencies.
 ## Decision
 
 ### DEC-WEB-001: Server-rendered HTML pages from a thin Node HTTP server
-Pages are HTML strings produced by pure view functions and served by a Node `http` server that only
-translates HTTP to a request object and back. Forms post classic URL-encoded bodies and the server answers a
-full page; there is no browser script. Every visible class name is declared once and is styled by the
-stylesheet generated from the design-system tokens (DEC-DSN-002), so the views contain no visual value.
+- **Statement**: The interface SHALL use pure view functions returning HTML strings, served by a Node `http` server that only translates HTTP to a request object and back, with URL-encoded form posts answered by a full page and no browser script, for rendering the pages; every visible class name is declared once and styled by the stylesheet of DEC-DSN-002.
+- **Rationale**: three forms do not justify a framework or a browser build chain, and the views hold no visual value.
 
 ### DEC-WEB-002: Application logic as a function of the typed client
-A `BookingApp` receives a request object and the `RoombookClient` and returns a response object. It maps
-form values to a reservation request, service error codes to worded messages held in one labels module, and
-a network error to an unavailable page. The server and the views know nothing of the service contract.
-Times typed in the form carry no zone and are booked in UTC.
+- **Statement**: A `BookingApp` SHALL apply the `RoombookClient` to a request object, mapping form values to a reservation request, service error codes to worded messages of one labels module and a network error to an unavailable page, for keeping the server and the views ignorant of the service contract; times typed carry no zone and are booked in UTC.
+- **Rationale**: the logic is testable without a browser or a socket, and no requirement asks for time zones yet.
 
 ## Consequences
 - Logic, views and server are testable without a browser or a socket, except one test of the server itself.

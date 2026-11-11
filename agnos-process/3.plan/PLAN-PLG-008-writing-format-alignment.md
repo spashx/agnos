@@ -39,15 +39,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-055: Restructure demo decisions
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rewrite each DEC of the demo's ADRs as a one-sentence Statement and a Rationale, in `agnos-meta-demo/assets/content/`.
 - **Requirement refs**: RQ-PLG-040, RQ-DMO-005
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given each demo ADR, Then each DEC holds a Statement "The … SHALL …" And a Rationale; Given the scenario's `edits`, Then each still finds its text.
 - **Dependencies**: TASK-PLG-053
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: Re-count on the 7 ADRs: 12 `### DEC-`, 12 `- **Statement**: … SHALL …`, 12 `- **Rationale**:`. The scenario's ADR `edits` target `## Status` lines only, unchanged; "amber 50, 600" is in FTR-DSN-001, untouched. Rebuild check in TASK-PLG-059.
+- **Assumptions**: Details the old prose held (routes, statuses, tiers) stay in the one-sentence Statement; the reasons move to the Rationale.
 
 ### TASK-PLG-056: Move demo ADR citations to plain text
 - **Tier**: M

@@ -13,14 +13,12 @@ The domain code must not depend on either.
 ## Decision
 
 ### DEC-BKG-001: Domain, use cases and ports
-The domain objects (room, reservation, errors) know nothing of storage or transport. Use cases depend on
-small interfaces (ports), such as the reservation repository, which adapters implement. This keeps each
-module to one responsibility and lets storage be replaced without touching the use cases.
+- **Statement**: The service SHALL apply a layering of domain, use cases and ports for keeping the domain objects (room, reservation, errors) free of storage and transport, use cases depending only on small interfaces, such as the reservation repository, that adapters implement.
+- **Rationale**: each module keeps one responsibility, and the storage, which the project expects to change, is replaced without touching the use cases.
 
 ### DEC-BKG-002: Reservation rules are separate, discovered objects
-Each validity rule (overlap, capacity, closed room) is its own module implementing one `check` method.
-The create-reservation use case receives the list of rules and runs them in order; new rules are added by
-adding a module, not by editing the use case (open for extension, closed for modification).
+- **Statement**: The create-reservation use case SHALL apply a list of rule objects, one module per validity rule (overlap, capacity, closed room) with one `check` method, run in order, for adding a rule without editing the use case.
+- **Rationale**: the rules will grow during the project (open for extension, closed for modification); each rule's test stays small.
 
 ## Consequences
 - Adding a rule or an adapter adds a file and leaves existing files unchanged.

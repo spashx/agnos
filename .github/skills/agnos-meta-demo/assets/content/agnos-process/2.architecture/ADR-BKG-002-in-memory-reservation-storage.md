@@ -12,8 +12,8 @@ asks for durability yet.
 ## Decision
 
 ### DEC-BKG-003: Keep reservations in a dictionary in memory
-The repository adapter stores reservations in a dictionary keyed by identifier, behind the repository port
-of DEC-BKG-001. It is enough to deliver RQ-BKG-002, RQ-BKG-003 and RQ-BKG-005 and to test them.
+- **Statement**: The repository adapter SHALL use a dictionary in memory, keyed by identifier behind the repository port of DEC-BKG-001, for storing reservations.
+- **Rationale**: it is enough to deliver RQ-BKG-002, RQ-BKG-003 and RQ-BKG-005 and to test them; no requirement asks for durability yet.
 
 ## Consequences
 - No file or database code, so the first increments are fast.
