@@ -48,6 +48,7 @@ function answeringFetch(status: number, bodyText: string | null, recorded: Recor
   };
 }
 
+// RQ-CLI-004
 test("given a server that never answers, when a call is made through the transport, then it is aborted after the timeout and a network error is thrown", async () => {
   // Given
   const signals: AbortSignal[] = [];
@@ -59,6 +60,7 @@ test("given a server that never answers, when a call is made through the transpo
   assert.equal(signals[0]?.aborted, true);
 });
 
+// RQ-CLI-004
 test("given a fetch that ignores the abort signal, when a call is made, then the timeout still ends the call with a network error", async () => {
   // Given
   const transport = new FetchTransport(DEFAULT_BASE_URL, TEST_TIMEOUT_MS, () => new Promise<Response>(() => undefined));
@@ -68,6 +70,7 @@ test("given a fetch that ignores the abort signal, when a call is made, then the
   await assert.rejects(call, NetworkError);
 });
 
+// RQ-CLI-004
 test("given a network failure, when a call is made, then a network error is thrown", async () => {
   // Given
   const failingFetch: FetchLike = () => Promise.reject(new Error(NETWORK_FAILURE_REASON));
@@ -78,6 +81,7 @@ test("given a network failure, when a call is made, then a network error is thro
   await assert.rejects(call, NetworkError);
 });
 
+// RQ-CLI-004
 test("given a server answering 200 with a JSON body, when a GET is sent, then the status and the parsed body are returned", async () => {
   // Given
   const recorded: RecordedRequest[] = [];
@@ -90,6 +94,7 @@ test("given a server answering 200 with a JSON body, when a GET is sent, then th
   assert.equal(recorded[0]?.url, DEFAULT_BASE_URL + ROOMS_PATH);
 });
 
+// RQ-CLI-004
 test("given a server answering 204 with no body, when a DELETE is sent, then the body is null", async () => {
   // Given
   const recorded: RecordedRequest[] = [];
@@ -102,6 +107,7 @@ test("given a server answering 204 with no body, when a DELETE is sent, then the
   assert.equal(recorded[0]?.init.method, HTTP_DELETE);
 });
 
+// RQ-CLI-004
 test("given a body to send, when a POST is sent, then the request carries the method and the JSON body", async () => {
   // Given
   const recorded: RecordedRequest[] = [];
@@ -114,6 +120,7 @@ test("given a body to send, when a POST is sent, then the request carries the me
   assert.deepEqual(JSON.parse(String(sent?.init.body)), NEW_RESERVATION_BODY);
 });
 
+// RQ-CLI-004
 test("given no timeout argument, when a transport is created, then the timeout is REQUEST_TIMEOUT_MS", () => {
   // Given
   const transport = new FetchTransport(DEFAULT_BASE_URL);

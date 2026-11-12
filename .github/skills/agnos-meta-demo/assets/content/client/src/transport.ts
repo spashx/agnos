@@ -33,6 +33,7 @@ export class FetchTransport implements Transport {
     this.fetchImpl = fetchImpl;
   }
 
+  // RQ-CLI-004
   async send(method: string, path: string, body?: unknown): Promise<HttpResponse> {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;

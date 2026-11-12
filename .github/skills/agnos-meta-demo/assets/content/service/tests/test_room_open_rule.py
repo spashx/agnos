@@ -35,6 +35,7 @@ def make_request() -> ReservationRequest:
 class RoomOpenRuleTest(unittest.TestCase):
     """Tests of RoomOpenRule (RQ-BKG-006)."""
 
+    # RQ-BKG-006
     def test_given_room_flagged_closed_when_reservation_requested_then_room_closed_is_raised(self) -> None:
         # Given
         closed_room = Room(id=ROOM_ID, name=ROOM_NAME, capacity=ROOM_CAPACITY, open=CLOSED_FLAG)
@@ -44,6 +45,7 @@ class RoomOpenRuleTest(unittest.TestCase):
         # Then
         self.assertEqual(context.exception.code, ROOM_CLOSED)
 
+    # RQ-BKG-006
     def test_given_open_room_when_reservation_requested_then_no_error(self) -> None:
         # Given
         open_room = Room(id=ROOM_ID, name=ROOM_NAME, capacity=ROOM_CAPACITY)

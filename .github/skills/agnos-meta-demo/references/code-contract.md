@@ -15,8 +15,10 @@ Contract given to the code-generating sub-agents. The demo's process documents a
   (`UPPER_SNAKE_CASE`) declared once, close to its use.
 - Traceability: the first line of each file is a comment listing the requirement and decision IDs it
   implements, for example `# RQ-BKG-003, DEC-BKG-002 (ADR-BKG-001)` or `// RQ-CLI-004, DEC-CLI-002`. Cite
-  only IDs defined in `assets/content/agnos-process/`. Each public class or function has a one-line docstring or
-  comment with the requirement it serves.
+  only IDs defined in `assets/content/agnos-process/`. Each public class has a one-line docstring or comment with the
+  requirement it serves. Each public function, method and test function cites its requirement ID (`RQ-...`,
+  optionally `DEC-...`) in its docstring or in the comment just above it; private helpers, special methods and
+  one-line accessors are excepted. <!-- RQ-DMO-026 / TASK-DMO-017 -->
 - Tests are named in Gherkin: `test_given_<state>_when_<action>_then_<result>` (Python) or
   `test("given <state>, when <action>, then <result>", ...)` (TypeScript), with `# Given`, `# When`,
   `# Then` comments. At least one test per public function or method. A test never repeats the literal of

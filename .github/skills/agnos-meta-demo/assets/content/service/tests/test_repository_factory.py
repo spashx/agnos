@@ -39,13 +39,16 @@ def make_reservation() -> Reservation:
 class CreateRepositoryTest(unittest.TestCase):
     """Tests of create_repository (RQ-BKG-007, DEC-BKG-004)."""
 
+    # RQ-BKG-007
     def setUp(self) -> None:
         self._directory = tempfile.TemporaryDirectory()
         self.path = Path(self._directory.name) / DATA_FILE_NAME
 
+    # RQ-BKG-007
     def tearDown(self) -> None:
         self._directory.cleanup()
 
+    # RQ-BKG-007
     def test_given_data_file_setting_when_factory_called_then_file_repository_on_that_path_is_returned(self) -> None:
         # Given
         environ = {DATA_FILE_ENV: str(self.path)}
@@ -56,6 +59,7 @@ class CreateRepositoryTest(unittest.TestCase):
         self.assertIsInstance(repository, FileReservationRepository)
         self.assertTrue(self.path.exists())
 
+    # RQ-BKG-007
     def test_given_no_data_file_setting_when_factory_called_then_in_memory_repository_is_returned(self) -> None:
         # Given
         environ: dict[str, str] = {}
@@ -64,6 +68,7 @@ class CreateRepositoryTest(unittest.TestCase):
         # Then
         self.assertIsInstance(repository, InMemoryReservationRepository)
 
+    # RQ-BKG-007
     def test_given_empty_data_file_setting_when_factory_called_then_in_memory_repository_is_returned(self) -> None:
         # Given
         environ = {DATA_FILE_ENV: EMPTY_SETTING}

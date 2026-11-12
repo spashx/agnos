@@ -15,6 +15,7 @@ MESSAGE = "your meeting starts soon"
 class ConsoleNotifierTest(unittest.TestCase):
     """Tests for ConsoleNotifier (RQ-NTF-002, DEC-NTF-002)."""
 
+    # RQ-NTF-002
     def test_given_console_notifier_when_send_then_writes_recipient_and_message_on_one_line(self) -> None:
         # Given
         stream = io.StringIO()
@@ -24,6 +25,7 @@ class ConsoleNotifierTest(unittest.TestCase):
         # Then
         self.assertEqual(stream.getvalue(), f"{RECIPIENT}{RECIPIENT_SEPARATOR}{MESSAGE}{LINE_END}")
 
+    # RQ-NTF-002
     def test_given_console_notifier_when_send_twice_then_each_message_has_its_own_line(self) -> None:
         # Given
         stream = io.StringIO()

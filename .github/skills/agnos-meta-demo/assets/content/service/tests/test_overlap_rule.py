@@ -51,6 +51,7 @@ def make_request(start: datetime, end: datetime) -> ReservationRequest:
 class OverlapRuleTest(unittest.TestCase):
     """Tests of OverlapRule (RQ-BKG-003)."""
 
+    # RQ-BKG-003
     def test_given_reservation_from_ten_to_eleven_when_request_overlaps_then_conflict_names_it(self) -> None:
         # Given
         request = make_request(FIRST_START + HALF_HOUR, FIRST_END + HALF_HOUR)
@@ -61,6 +62,7 @@ class OverlapRuleTest(unittest.TestCase):
         self.assertEqual(context.exception.conflicting_id, EXISTING_ID)
         self.assertEqual(context.exception.code, CONFLICT)
 
+    # RQ-BKG-003
     def test_given_reservation_from_ten_to_eleven_when_request_starts_at_its_end_then_no_error(self) -> None:
         # Given
         request = make_request(FIRST_END, FIRST_END + ONE_HOUR)
@@ -69,6 +71,7 @@ class OverlapRuleTest(unittest.TestCase):
         # Then
         # no exception is raised: back-to-back intervals do not conflict
 
+    # RQ-BKG-003
     def test_given_reservation_from_ten_to_eleven_when_request_ends_at_its_start_then_no_error(self) -> None:
         # Given
         request = make_request(BASE_TIME, FIRST_START)
@@ -77,6 +80,7 @@ class OverlapRuleTest(unittest.TestCase):
         # Then
         # no exception is raised: the request ends when the reservation starts
 
+    # RQ-BKG-003
     def test_given_no_existing_reservation_when_request_checked_then_no_error(self) -> None:
         # Given
         request = make_request(FIRST_START, FIRST_END)
@@ -85,6 +89,7 @@ class OverlapRuleTest(unittest.TestCase):
         # Then
         # no exception is raised: the room is free
 
+    # RQ-BKG-003
     def test_given_packaged_rules_when_loaded_then_overlap_rule_is_among_them(self) -> None:
         # Given
         # the rule modules of the rules package

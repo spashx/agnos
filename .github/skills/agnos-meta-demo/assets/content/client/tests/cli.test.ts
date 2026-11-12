@@ -32,10 +32,12 @@ class MemoryOutput implements Output {
   readonly lines: string[] = [];
   readonly errors: string[] = [];
 
+  // RQ-CLI-003
   log(text: string): void {
     this.lines.push(text);
   }
 
+  // RQ-CLI-003
   error(text: string): void {
     this.errors.push(text);
   }
@@ -50,6 +52,7 @@ class FakeTransport implements Transport {
     this.reply = reply;
   }
 
+  // RQ-CLI-003
   send(method: string, path: string): Promise<HttpResponse> {
     this.calls.push(method + " " + path);
     return this.reply();
@@ -61,6 +64,7 @@ function clientAnswering(status: number, body: unknown): { client: RoombookClien
   return { client: new RoombookClient(transport), transport };
 }
 
+// RQ-CLI-003
 test("given a service that accepts the booking, when book is run, then the reservation identifier is printed and the exit code is 0", async () => {
   // Given
   const { client, transport } = clientAnswering(HTTP_STATUS_CREATED, { id: RESERVATION_ID, roomId: ROOM_ID, organizer: ORGANIZER, start: START, end: END, attendees: Number(ATTENDEES), status: "CONFIRMED" });
@@ -73,6 +77,7 @@ test("given a service that accepts the booking, when book is run, then the reser
   assert.deepEqual(transport.calls, [HTTP_POST + " " + RESERVATIONS_PATH]);
 });
 
+// RQ-CLI-003
 test("given a service rejecting the booking with CONFLICT, when book is run, then the error code is printed and the exit code is non-zero", async () => {
   // Given
   const { client } = clientAnswering(HTTP_STATUS_CONFLICT, { code: CONFLICT_CODE, message: CONFLICT_MESSAGE });
@@ -84,6 +89,7 @@ test("given a service rejecting the booking with CONFLICT, when book is run, the
   assert.ok(output.errors.join("\n").includes(CONFLICT_CODE));
 });
 
+// RQ-CLI-003
 test("given a service listing rooms, when rooms is run, then one line per room is printed and the exit code is 0", async () => {
   // Given
   const { client, transport } = clientAnswering(HTTP_STATUS_OK, [{ id: ROOM_ID, name: ROOM_NAME, capacity: Number(ROOM_CAPACITY), open: true }]);
@@ -97,6 +103,7 @@ test("given a service listing rooms, when rooms is run, then one line per room i
   assert.deepEqual(transport.calls, [HTTP_GET + " " + ROOMS_PATH]);
 });
 
+// RQ-CLI-003
 test("given a service accepting the cancellation, when cancel is run, then the exit code is 0 and DELETE is sent", async () => {
   // Given
   const { client, transport } = clientAnswering(HTTP_STATUS_NO_CONTENT, null);
@@ -108,6 +115,7 @@ test("given a service accepting the cancellation, when cancel is run, then the e
   assert.deepEqual(transport.calls, [HTTP_DELETE + " " + RESERVATIONS_PATH + "/" + RESERVATION_ID]);
 });
 
+// RQ-CLI-003
 test("given a service that cannot be reached, when rooms is run, then the exit code is non-zero and a message is printed", async () => {
   // Given
   const client = new RoombookClient(new FakeTransport(async () => {
@@ -121,6 +129,7 @@ test("given a service that cannot be reached, when rooms is run, then the exit c
   assert.equal(output.errors.length, 1);
 });
 
+// RQ-CLI-003
 test("given book without all its arguments, when run, then the usage text is printed and the exit code is non-zero", async () => {
   // Given
   const { client } = clientAnswering(HTTP_STATUS_CREATED, {});
@@ -132,6 +141,7 @@ test("given book without all its arguments, when run, then the usage text is pri
   assert.deepEqual(output.errors, [CLI_USAGE]);
 });
 
+// RQ-CLI-003
 test("given book with a non-numeric attendee count, when run, then the usage text is printed and the exit code is non-zero", async () => {
   // Given
   const { client } = clientAnswering(HTTP_STATUS_CREATED, {});
@@ -143,6 +153,7 @@ test("given book with a non-numeric attendee count, when run, then the usage tex
   assert.deepEqual(output.errors, [CLI_USAGE]);
 });
 
+// RQ-CLI-003
 test("given cancel without a reservation identifier, when run, then the usage text is printed and the exit code is non-zero", async () => {
   // Given
   const { client } = clientAnswering(HTTP_STATUS_NO_CONTENT, null);
@@ -154,6 +165,7 @@ test("given cancel without a reservation identifier, when run, then the usage te
   assert.deepEqual(output.errors, [CLI_USAGE]);
 });
 
+// RQ-CLI-003
 test("given an unknown command, when run, then the usage text is printed and the exit code is non-zero", async () => {
   // Given
   const { client } = clientAnswering(HTTP_STATUS_OK, []);

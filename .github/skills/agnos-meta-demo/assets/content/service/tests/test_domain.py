@@ -50,6 +50,7 @@ def make_reservation() -> Reservation:
 class RoomTest(unittest.TestCase):
     """Tests of Room (RQ-BKG-001)."""
 
+    # RQ-BKG-001
     def test_given_minimum_capacity_when_room_created_then_capacity_is_kept(self) -> None:
         # Given
         capacity = MIN_CAPACITY
@@ -58,6 +59,7 @@ class RoomTest(unittest.TestCase):
         # Then
         self.assertEqual(room.capacity, MIN_CAPACITY)
 
+    # RQ-BKG-001
     def test_given_capacity_below_minimum_when_room_created_then_value_error_is_raised(self) -> None:
         # Given
         capacity = BELOW_MINIMUM_CAPACITY
@@ -67,6 +69,7 @@ class RoomTest(unittest.TestCase):
         # Then
         # the ValueError above is the expected outcome
 
+    # RQ-BKG-001
     def test_given_room_created_without_flag_when_read_then_room_is_open(self) -> None:
         # Given
         room = Room(id=ROOM_ID, name=ROOM_NAME, capacity=ROOM_CAPACITY)
@@ -79,6 +82,7 @@ class RoomTest(unittest.TestCase):
 class ReservationRequestTest(unittest.TestCase):
     """Tests of ReservationRequest (RQ-BKG-002)."""
 
+    # RQ-BKG-002
     def test_given_end_before_start_when_request_created_then_value_error_is_raised(self) -> None:
         # Given
         start = FIRST_END
@@ -89,6 +93,7 @@ class ReservationRequestTest(unittest.TestCase):
         # Then
         # the ValueError above is the expected outcome
 
+    # RQ-BKG-002
     def test_given_end_equal_to_start_when_request_created_then_value_error_is_raised(self) -> None:
         # Given
         start = FIRST_START
@@ -103,6 +108,7 @@ class ReservationRequestTest(unittest.TestCase):
 class ReservationTest(unittest.TestCase):
     """Tests of Reservation overlap and cancellation (RQ-BKG-003, RQ-BKG-005)."""
 
+    # RQ-BKG-003
     def test_given_reservation_when_interval_overlaps_then_overlaps_is_true(self) -> None:
         # Given
         reservation = make_reservation()
@@ -113,6 +119,7 @@ class ReservationTest(unittest.TestCase):
         # Then
         self.assertTrue(result)
 
+    # RQ-BKG-003
     def test_given_reservation_when_interval_contains_it_then_overlaps_is_true(self) -> None:
         # Given
         reservation = make_reservation()
@@ -121,6 +128,7 @@ class ReservationTest(unittest.TestCase):
         # Then
         self.assertTrue(result)
 
+    # RQ-BKG-003
     def test_given_reservation_when_interval_starts_at_its_end_then_overlaps_is_false(self) -> None:
         # Given
         reservation = make_reservation()
@@ -129,6 +137,7 @@ class ReservationTest(unittest.TestCase):
         # Then
         self.assertFalse(result)
 
+    # RQ-BKG-003
     def test_given_reservation_when_interval_ends_at_its_start_then_overlaps_is_false(self) -> None:
         # Given
         reservation = make_reservation()
@@ -137,6 +146,7 @@ class ReservationTest(unittest.TestCase):
         # Then
         self.assertFalse(result)
 
+    # RQ-BKG-005
     def test_given_confirmed_reservation_when_cancelled_then_status_is_cancelled_and_original_is_unchanged(
         self,
     ) -> None:

@@ -39,6 +39,7 @@ def make_request(attendees: int) -> ReservationRequest:
 class CapacityRuleTest(unittest.TestCase):
     """Tests of CapacityRule (RQ-BKG-004)."""
 
+    # RQ-BKG-003
     def test_given_room_of_capacity_six_when_seven_attendees_requested_then_capacity_exceeded_is_raised(self) -> None:
         # Given
         request = make_request(OVER_CAPACITY)
@@ -48,6 +49,7 @@ class CapacityRuleTest(unittest.TestCase):
         # Then
         self.assertEqual(context.exception.code, CAPACITY_EXCEEDED)
 
+    # RQ-BKG-003
     def test_given_room_of_capacity_six_when_six_attendees_requested_then_no_error(self) -> None:
         # Given
         request = make_request(ROOM_CAPACITY)
@@ -56,6 +58,7 @@ class CapacityRuleTest(unittest.TestCase):
         # Then
         # no exception is raised: the attendees fit in the room
 
+    # RQ-BKG-003
     def test_given_packaged_rules_when_loaded_then_they_are_sorted_by_rule_order(self) -> None:
         # Given
         # the rule modules of the rules package

@@ -48,13 +48,16 @@ def make_reservation(reservation_id: str, status: ReservationStatus = Reservatio
 class FileReservationRepositoryTest(unittest.TestCase):
     """Tests of FileReservationRepository (RQ-BKG-007, DEC-BKG-004)."""
 
+    # RQ-BKG-002
     def setUp(self) -> None:
         self._directory = tempfile.TemporaryDirectory()
         self.path = Path(self._directory.name) / DATA_FILE_NAME
 
+    # RQ-BKG-002
     def tearDown(self) -> None:
         self._directory.cleanup()
 
+    # RQ-BKG-002
     def test_given_three_confirmed_and_one_cancelled_when_reopened_then_the_same_four_are_returned(self) -> None:
         # Given
         repository = FileReservationRepository(self.path)
@@ -67,6 +70,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         self.assertCountEqual(reopened.list_all(), repository.list_all())
         self.assertEqual(len(reopened.list_all()), len(CONFIRMED_IDS) + 1)
 
+    # RQ-BKG-005
     def test_given_reservation_cancelled_when_reopened_then_cancelled_status_is_kept(self) -> None:
         # Given
         repository = FileReservationRepository(self.path)
@@ -77,6 +81,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         # Then
         self.assertEqual(reopened.get(CANCELLED_ID).status, ReservationStatus.CANCELLED)
 
+    # RQ-BKG-002
     def test_given_save_interrupted_when_reservation_added_then_reopened_file_keeps_previous_reservations(self) -> None:
         # Given
         repository = FileReservationRepository(self.path)
@@ -89,6 +94,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         reopened = FileReservationRepository(self.path)
         self.assertEqual([item.id for item in reopened.list_all()], [CONFIRMED_IDS[0]])
 
+    # RQ-BKG-002
     def test_given_no_data_file_when_opened_then_no_reservation_is_returned(self) -> None:
         # Given
         # no data file exists
@@ -97,6 +103,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         # Then
         self.assertEqual(repository.list_all(), [])
 
+    # RQ-BKG-002
     def test_given_corrupted_json_when_opened_then_storage_corrupted_is_raised(self) -> None:
         # Given
         self.path.write_text(CORRUPTED_TEXT, encoding="utf-8")
@@ -106,6 +113,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         # Then
         self.assertEqual(context.exception.code, STORAGE_CORRUPTED)
 
+    # RQ-BKG-002
     def test_given_file_of_wrong_shape_when_opened_then_storage_corrupted_is_raised(self) -> None:
         # Given
         self.path.write_text(WRONG_SHAPE_TEXT, encoding="utf-8")
@@ -115,6 +123,7 @@ class FileReservationRepositoryTest(unittest.TestCase):
         # Then
         self.assertEqual(context.exception.code, STORAGE_CORRUPTED)
 
+    # RQ-BKG-002
     def test_given_unknown_identifier_when_get_then_reservation_not_found_is_raised(self) -> None:
         # Given
         repository = FileReservationRepository(self.path)

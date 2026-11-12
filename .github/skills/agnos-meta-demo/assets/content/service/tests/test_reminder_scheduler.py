@@ -29,6 +29,7 @@ class _FixedClock:
     def __init__(self, moment: datetime) -> None:
         self.moment = moment
 
+    # RQ-NTF-002
     def now(self) -> datetime:
         return self.moment
 
@@ -39,6 +40,7 @@ class _RecordingNotifier:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
 
+    # RQ-NTF-002
     def send(self, recipient: str, message: str) -> None:
         self.sent.append((recipient, message))
 
@@ -57,6 +59,7 @@ def _reservation(reservation_id: str, start: datetime = START) -> Reservation:
 class ReminderSchedulerTest(unittest.TestCase):
     """Tests for ReminderScheduler.dispatch_due (RQ-NTF-002, RQ-NTF-004)."""
 
+    # RQ-NTF-002
     def test_given_confirmed_reservation_when_clock_reaches_lead_time_then_one_reminder_is_sent_to_organizer(
         self,
     ) -> None:
@@ -72,6 +75,7 @@ class ReminderSchedulerTest(unittest.TestCase):
         self.assertEqual(len(notifier.sent), 1)
         self.assertEqual(notifier.sent[0][0], ORGANIZER)
 
+    # RQ-NTF-002
     def test_given_reminder_already_sent_when_dispatch_again_then_no_second_reminder_is_sent(self) -> None:
         # Given
         repository = InMemoryReservationRepository()
@@ -85,6 +89,7 @@ class ReminderSchedulerTest(unittest.TestCase):
         self.assertEqual(sent, 0)
         self.assertEqual(len(notifier.sent), 1)
 
+    # RQ-NTF-002
     def test_given_clock_before_lead_time_when_dispatch_then_no_reminder_is_sent(self) -> None:
         # Given
         repository = InMemoryReservationRepository()
@@ -97,6 +102,7 @@ class ReminderSchedulerTest(unittest.TestCase):
         self.assertEqual(sent, 0)
         self.assertEqual(notifier.sent, [])
 
+    # RQ-NTF-002
     def test_given_clock_at_start_when_dispatch_then_no_reminder_is_sent(self) -> None:
         # Given
         repository = InMemoryReservationRepository()
@@ -108,6 +114,7 @@ class ReminderSchedulerTest(unittest.TestCase):
         # Then
         self.assertEqual(sent, 0)
 
+    # RQ-NTF-002
     def test_given_cancelled_reservation_when_lead_time_reached_then_no_reminder_is_sent(self) -> None:
         # Given
         repository = InMemoryReservationRepository()
@@ -120,6 +127,7 @@ class ReminderSchedulerTest(unittest.TestCase):
         self.assertEqual(sent, 0)
         self.assertEqual(notifier.sent, [])
 
+    # RQ-NTF-004
     def test_given_1000_due_reminders_when_dispatched_then_elapsed_time_is_below_limit(self) -> None:
         # Given
         repository = InMemoryReservationRepository()

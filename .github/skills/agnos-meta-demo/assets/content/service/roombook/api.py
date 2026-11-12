@@ -115,6 +115,7 @@ class ReservationApi:
             status = ERROR_STATUS.get(error.code, STATUS_INTERNAL_ERROR)
             return status, {FIELD_CODE: error.code, FIELD_MESSAGE: str(error)}
 
+    # RQ-CLI-005
     def _route(self, method: str, segments: list[str], body: object) -> tuple[int, JsonValue]:
         if method == METHOD_GET and segments == [SEGMENT_ROOMS]:
             return STATUS_OK, [_room_json(room) for room in self._catalog.list()]
@@ -133,14 +134,17 @@ def _segments(path: str) -> list[str]:
     return [segment for segment in bare.split(PATH_SEPARATOR) if segment]
 
 
+# RQ-CLI-005
 def _is_reservation_path(segments: list[str]) -> bool:
     return len(segments) == RESERVATION_PATH_LENGTH and segments[0] == SEGMENT_RESERVATIONS
 
 
+# RQ-CLI-005
 def _room_json(room: Room) -> dict[str, Any]:
     return {FIELD_ID: room.id, FIELD_NAME: room.name, FIELD_CAPACITY: room.capacity, FIELD_OPEN: room.open}
 
 
+# RQ-CLI-005
 def _reservation_json(reservation: Reservation) -> dict[str, Any]:
     return {
         FIELD_ID: reservation.id,
@@ -169,12 +173,14 @@ def _parse_request(body: object) -> ReservationRequest:
         raise BadRequest(MESSAGE_BAD_REQUEST) from error
 
 
+# RQ-CLI-005
 def _field(body: dict[str, Any], key: str) -> Any:
     if key not in body:
         raise BadRequest(MESSAGE_BAD_REQUEST)
     return body[key]
 
 
+# RQ-CLI-005
 def _text(body: dict[str, Any], key: str) -> str:
     value = _field(body, key)
     if not isinstance(value, str):
@@ -182,6 +188,7 @@ def _text(body: dict[str, Any], key: str) -> str:
     return value
 
 
+# RQ-CLI-005
 def _count(body: dict[str, Any], key: str) -> int:
     value = _field(body, key)
     if not isinstance(value, int) or isinstance(value, bool):
@@ -207,15 +214,19 @@ def _make_handler(api: ReservationApi) -> type[BaseHTTPRequestHandler]:
     class _RoombookHandler(BaseHTTPRequestHandler):
         """Translates HTTP to ReservationApi.handle and back, JSON in and JSON out (RQ-CLI-005)."""
 
+        # RQ-CLI-005
         def do_GET(self) -> None:
             self._respond(METHOD_GET)
 
+        # RQ-CLI-005
         def do_POST(self) -> None:
             self._respond(METHOD_POST)
 
+        # RQ-CLI-005
         def do_DELETE(self) -> None:
             self._respond(METHOD_DELETE)
 
+        # RQ-CLI-005
         def _respond(self, method: str) -> None:
             status, payload = api.handle(method, self.path, self._read_json())
             raw = b"" if payload is None else json.dumps(payload).encode(ENCODING)
@@ -226,6 +237,7 @@ def _make_handler(api: ReservationApi) -> type[BaseHTTPRequestHandler]:
             if raw:
                 self.wfile.write(raw)
 
+        # RQ-CLI-005
         def _read_json(self) -> object:
             length = int(self.headers.get(HEADER_CONTENT_LENGTH, EMPTY_LENGTH))
             raw = self.rfile.read(length) if length else b""

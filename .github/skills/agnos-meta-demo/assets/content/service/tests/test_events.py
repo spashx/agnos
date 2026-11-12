@@ -31,6 +31,7 @@ def _reservation() -> Reservation:
 class EventBusTest(unittest.TestCase):
     """Tests for EventBus (RQ-NTF-001, DEC-NTF-001)."""
 
+    # RQ-NTF-001
     def test_given_subscriber_when_event_published_then_subscriber_receives_one_event_with_reservation(self) -> None:
         # Given
         bus = EventBus()
@@ -44,6 +45,7 @@ class EventBusTest(unittest.TestCase):
         self.assertIsInstance(received[0], ReservationCreated)
         self.assertIs(received[0].reservation, reservation)
 
+    # RQ-NTF-001
     def test_given_no_subscriber_when_event_published_then_nothing_fails(self) -> None:
         # Given
         bus = EventBus()
@@ -52,11 +54,13 @@ class EventBusTest(unittest.TestCase):
         # Then
         # no exception reaches the test: publishing without subscribers is a no-op
 
+    # RQ-NTF-001
     def test_given_failing_subscriber_when_event_published_then_other_subscribers_still_receive_it(self) -> None:
         # Given
         bus = EventBus()
         received: list[object] = []
 
+        # RQ-NTF-001
         def failing(event: object) -> None:
             raise RuntimeError(ORGANIZER)
 
@@ -68,10 +72,12 @@ class EventBusTest(unittest.TestCase):
         # Then
         self.assertEqual(len(received), 1)
 
+    # RQ-NTF-001
     def test_given_failing_subscriber_when_event_published_then_failure_is_logged(self) -> None:
         # Given
         bus = EventBus()
 
+        # RQ-NTF-001
         def failing(event: object) -> None:
             raise RuntimeError(ORGANIZER)
 

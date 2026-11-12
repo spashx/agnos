@@ -17,6 +17,7 @@ const TYPED_ORGANIZER = "ada";
 const FOUND_NONE = 0;
 const CONTROL_PATTERN = /<(?:input|select)\b[^>]*\bid="([^"]+)"/g;
 
+// RQ-WEB-001
 test("given text with markup characters, when it is escaped, then no tag or quote survives", () => {
   // Given a script tag and an ampersand with quotes
   // When they are escaped
@@ -28,6 +29,7 @@ test("given text with markup characters, when it is escaped, then no tag or quot
   assert.ok(escaped.includes("&amp;"));
 });
 
+// RQ-WEB-003
 test("given open and closed rooms, when the table is rendered, then each room shows its name, capacity and a status word", () => {
   // Given an open and a closed room
   // When the table is rendered
@@ -38,6 +40,7 @@ test("given open and closed rooms, when the table is rendered, then each room sh
   assert.ok(html.includes(LABEL.statusClosed) && html.includes(CLASS.badgeClosed));
 });
 
+// RQ-WEB-001
 test("given no room, when the table is rendered, then the empty message replaces it", () => {
   // Given an empty room list
   // When the table is rendered
@@ -47,6 +50,7 @@ test("given no room, when the table is rendered, then the empty message replaces
   assert.ok(!html.includes("<table"));
 });
 
+// RQ-WEB-001
 test("given a room name with markup, when the table is rendered, then the name is escaped", () => {
   // Given a room whose name is a script tag
   // When the table is rendered
@@ -55,6 +59,7 @@ test("given a room name with markup, when the table is rendered, then the name i
   assert.ok(!html.includes(SCRIPT_TEXT));
 });
 
+// RQ-WEB-002
 test("given rooms and typed values, when the booking form is rendered, then it posts to the book route and keeps the values", () => {
   // Given two rooms and values typed before a refusal
   const values = { ...EMPTY_VALUES, roomId: OPEN_ROOM.id, organizer: TYPED_ORGANIZER };
@@ -67,6 +72,7 @@ test("given rooms and typed values, when the booking form is rendered, then it p
   assert.ok(html.includes(LABEL.bookButton) && html.includes(CLASS.buttonPrimary));
 });
 
+// RQ-WEB-003
 test("given a closed room, when the booking form is rendered, then the room is listed but disabled and marked closed", () => {
   // Given a closed room
   // When the form is rendered
@@ -76,6 +82,7 @@ test("given a closed room, when the booking form is rendered, then the room is l
   assert.ok(html.includes(LABEL.closedSuffix));
 });
 
+// RQ-WEB-006
 test("given the booking and cancel forms, when their controls are listed, then each control has a label bound to it", () => {
   // Given both forms
   const html = renderBookingForm([OPEN_ROOM], EMPTY_VALUES) + renderCancelForm();
@@ -88,6 +95,7 @@ test("given the booking and cancel forms, when their controls are listed, then e
   }
 });
 
+// RQ-WEB-004
 test("given the cancel form, when it is rendered, then it posts to the cancel route with a secondary button", () => {
   // Given the cancel form
   // When it is rendered
@@ -98,6 +106,7 @@ test("given the cancel form, when it is rendered, then it posts to the cancel ro
   assert.ok(html.includes(CLASS.buttonSecondary));
 });
 
+// RQ-WEB-006
 test("given each banner kind, when it is rendered, then its modifier class and ARIA role match", () => {
   // Given the three kinds
   // When each is rendered
@@ -108,6 +117,7 @@ test("given each banner kind, when it is rendered, then its modifier class and A
   assert.ok(renderBanner({ kind: "warning", text: BANNER_TEXT }).includes(CLASS.bannerWarning));
 });
 
+// RQ-WEB-004
 test("given a success banner with a reservation, when it is rendered, then it offers a one-click cancel of that reservation", () => {
   // Given a confirmation carrying a reservation identifier
   // When the banner is rendered
@@ -118,6 +128,7 @@ test("given a success banner with a reservation, when it is rendered, then it of
   assert.ok(html.includes(CLASS.buttonDanger) && html.includes(LABEL.cancelThisButton));
 });
 
+// RQ-WEB-002
 test("given a page model with forms enabled, when the page is rendered, then it links the stylesheet and shows the three cards", () => {
   // Given rooms and enabled forms
   // When the page is rendered
@@ -129,6 +140,7 @@ test("given a page model with forms enabled, when the page is rendered, then it 
   }
 });
 
+// RQ-WEB-003
 test("given a page model with forms disabled, when the page is rendered, then only the banner and the title remain", () => {
   // Given a service that does not answer
   // When the page is rendered with a warning
@@ -138,6 +150,7 @@ test("given a page model with forms disabled, when the page is rendered, then on
   assert.ok(!html.includes("<form"));
 });
 
+// RQ-WEB-002
 test("given an unknown route, when the not-found page is rendered, then it says so without forms", () => {
   // Given the not-found page
   // When it is rendered

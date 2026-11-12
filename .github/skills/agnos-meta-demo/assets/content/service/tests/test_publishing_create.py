@@ -26,6 +26,7 @@ class _FakeCreator:
         self._fail = fail
         self.calls = 0
 
+    # RQ-NTF-001
     def execute(self, request: ReservationRequest) -> Reservation:
         self.calls += 1
         if self._fail:
@@ -53,6 +54,7 @@ def _request() -> ReservationRequest:
 class PublishingCreateReservationTest(unittest.TestCase):
     """Tests for PublishingCreateReservation (RQ-NTF-001, DEC-NTF-001)."""
 
+    # RQ-NTF-001
     def test_given_subscriber_when_reservation_created_then_subscriber_receives_one_event_with_result(self) -> None:
         # Given
         received: list[object] = []
@@ -66,6 +68,7 @@ class PublishingCreateReservationTest(unittest.TestCase):
         self.assertIsInstance(received[0], ReservationCreated)
         self.assertIs(received[0].reservation, result)
 
+    # RQ-NTF-001
     def test_given_subscriber_when_reservation_created_then_result_is_returned_unchanged(self) -> None:
         # Given
         inner = _FakeCreator(fail=False)
@@ -76,6 +79,7 @@ class PublishingCreateReservationTest(unittest.TestCase):
         self.assertEqual(inner.calls, 1)
         self.assertEqual(result.id, RESERVATION_ID)
 
+    # RQ-NTF-001
     def test_given_subscriber_when_request_rejected_then_nothing_is_published(self) -> None:
         # Given
         received: list[object] = []

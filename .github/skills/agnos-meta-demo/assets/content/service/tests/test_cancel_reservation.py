@@ -51,9 +51,11 @@ def make_reservation(status: ReservationStatus = ReservationStatus.CONFIRMED) ->
 class CancelReservationTest(unittest.TestCase):
     """Tests of CancelReservation (RQ-BKG-005)."""
 
+    # RQ-BKG-005
     def setUp(self) -> None:
         self.repository = InMemoryReservationRepository()
 
+    # RQ-BKG-005
     def test_given_confirmed_reservation_not_started_when_cancelled_then_status_is_cancelled(self) -> None:
         # Given
         self.repository.add(make_reservation())
@@ -64,6 +66,7 @@ class CancelReservationTest(unittest.TestCase):
         self.assertEqual(result.status, ReservationStatus.CANCELLED)
         self.assertEqual(self.repository.get(RESERVATION_ID).status, ReservationStatus.CANCELLED)
 
+    # RQ-BKG-005
     def test_given_confirmed_reservation_already_started_when_cancelled_then_already_started_is_raised(self) -> None:
         # Given
         self.repository.add(make_reservation())
@@ -75,6 +78,7 @@ class CancelReservationTest(unittest.TestCase):
         self.assertEqual(context.exception.code, ALREADY_STARTED)
         self.assertEqual(self.repository.get(RESERVATION_ID).status, ReservationStatus.CONFIRMED)
 
+    # RQ-BKG-005
     def test_given_already_cancelled_reservation_when_cancelled_again_then_it_is_returned_unchanged(self) -> None:
         # Given
         self.repository.add(make_reservation(status=ReservationStatus.CANCELLED))
@@ -84,6 +88,7 @@ class CancelReservationTest(unittest.TestCase):
         # Then
         self.assertEqual(result.status, ReservationStatus.CANCELLED)
 
+    # RQ-BKG-005
     def test_given_unknown_identifier_when_cancelled_then_reservation_not_found_is_raised(self) -> None:
         # Given
         use_case = CancelReservation(self.repository, FixedClock(BEFORE_START))
@@ -97,6 +102,7 @@ class CancelReservationTest(unittest.TestCase):
 class SystemClockTest(unittest.TestCase):
     """Tests of SystemClock (RQ-BKG-005)."""
 
+    # RQ-BKG-005
     def test_given_system_clock_when_now_then_a_timezone_aware_utc_time_is_returned(self) -> None:
         # Given
         clock = SystemClock()

@@ -30,6 +30,7 @@ function sampleTokens(overrides: Partial<TokenSet> = {}): TokenSet {
   };
 }
 
+// RQ-DSN-002
 test("given the shipped token source, when it is loaded, then the three tiers and the pairings are present", () => {
   // Given the file the design system ships
   // When it is loaded
@@ -41,6 +42,7 @@ test("given the shipped token source, when it is loaded, then the three tiers an
   assert.ok(tokens.pairings.length > 0);
 });
 
+// RQ-DSN-002
 test("given a token name, when its tier is asked, then the defining tier is returned", () => {
   // Given a sample set
   const tokens = sampleTokens();
@@ -52,6 +54,7 @@ test("given a token name, when its tier is asked, then the defining tier is retu
   assert.equal(tierOf(tokens, MISSING_NAME), undefined);
 });
 
+// RQ-DSN-002
 test("given values with and without braces, when the alias target is read, then only an alias gives a name", () => {
   // Given an alias and a raw value
   // When the target is read
@@ -60,6 +63,7 @@ test("given values with and without braces, when the alias target is read, then 
   assert.equal(aliasTarget(WHITE), undefined);
 });
 
+// RQ-DSN-002
 test("given a component token, when it is resolved, then the chain ends on the raw value of the global tier", () => {
   // Given a component aliasing a semantic token aliasing a global token
   const tokens = sampleTokens();
@@ -69,6 +73,7 @@ test("given a component token, when it is resolved, then the chain ends on the r
   assert.equal(value, BLACK);
 });
 
+// RQ-DSN-002
 test("given an unknown or circular token, when it is resolved, then a TokenError is thrown", () => {
   // Given an unknown name and two semantic tokens aliasing each other
   const tokens = sampleTokens({ semantic: { [CIRCULAR_ONE]: `{${CIRCULAR_TWO}}`, [CIRCULAR_TWO]: `{${CIRCULAR_ONE}}` } });
@@ -78,6 +83,7 @@ test("given an unknown or circular token, when it is resolved, then a TokenError
   assert.throws(() => resolveToken(tokens, CIRCULAR_ONE), TokenError);
 });
 
+// RQ-DSN-002
 test("given a valid three-tier set, when the tiers are validated, then no violation is reported", () => {
   // Given a set where each tier aliases the tier below
   // When it is validated
@@ -85,6 +91,7 @@ test("given a valid three-tier set, when the tiers are validated, then no violat
   assert.deepEqual(tierViolations(sampleTokens()), []);
 });
 
+// RQ-DSN-002
 test("given a component holding a raw value or a global aliasing a token, when the tiers are validated, then each is reported", () => {
   // Given a component token with a raw value and a global token that is an alias
   const tokens = sampleTokens({ component: { [COMPONENT_NAME]: WHITE }, global: { [GLOBAL_NAME]: "{colour.paper}", "colour.paper": WHITE } });
@@ -95,6 +102,7 @@ test("given a component holding a raw value or a global aliasing a token, when t
   assert.ok(problems.some((problem) => problem.startsWith(GLOBAL_NAME)));
 });
 
+// RQ-DSN-002
 test("given a component aliasing a global token directly, when the tiers are validated, then the skipped tier is reported", () => {
   // Given a component that skips the semantic tier
   const tokens = sampleTokens({ component: { [COMPONENT_NAME]: ALIAS_TEXT } });
@@ -103,6 +111,7 @@ test("given a component aliasing a global token directly, when the tiers are val
   assert.ok(tierViolations(tokens).some((problem) => problem.startsWith(COMPONENT_NAME)));
 });
 
+// RQ-DSN-002
 test("given the shipped token source, when its tiers are validated, then no violation is reported", () => {
   // Given the file the design system ships
   // When its tiers are validated
@@ -110,6 +119,7 @@ test("given the shipped token source, when its tiers are validated, then no viol
   assert.deepEqual(tierViolations(loadTokens()), []);
 });
 
+// RQ-DSN-004
 test("given white and black, when the relative luminance is computed, then it is 1 and 0", () => {
   // Given the two extreme colours
   // When their luminance is computed
@@ -118,6 +128,7 @@ test("given white and black, when the relative luminance is computed, then it is
   assert.equal(relativeLuminance(BLACK), 0);
 });
 
+// RQ-DSN-004
 test("given a text that is not a #rrggbb colour, when the luminance is computed, then a TokenError is thrown", () => {
   // Given a colour name
   // When the luminance is computed
@@ -125,6 +136,7 @@ test("given a text that is not a #rrggbb colour, when the luminance is computed,
   assert.throws(() => relativeLuminance(NOT_A_COLOUR), TokenError);
 });
 
+// RQ-DSN-004
 test("given black on white, when the contrast is computed, then it is the maximum and does not depend on the order", () => {
   // Given the two extreme colours
   // When the contrast is computed in both orders
@@ -133,6 +145,7 @@ test("given black on white, when the contrast is computed, then it is the maximu
   assert.equal(contrastRatio(WHITE, BLACK), contrastRatio(BLACK, WHITE));
 });
 
+// RQ-DSN-004
 test("given a mid grey on white, when the contrast is computed, then it is just under 4.5", () => {
   // Given #777777 on white
   // When the contrast is computed
@@ -140,6 +153,7 @@ test("given a mid grey on white, when the contrast is computed, then it is just 
   assert.ok(Math.abs(contrastRatio(GREY, WHITE) - GREY_ON_WHITE) < CONTRAST_TOLERANCE);
 });
 
+// RQ-DSN-004
 test("given a pairing below its minimum, when the contrast is checked, then the pairing is reported", () => {
   // Given a text token whose colour is mid grey on a white surface
   const tokens = sampleTokens({ global: { [GLOBAL_NAME]: GREY, "colour.paper": WHITE } });
@@ -150,6 +164,7 @@ test("given a pairing below its minimum, when the contrast is checked, then the 
   assert.ok(problems[0].startsWith(SEMANTIC_NAME));
 });
 
+// RQ-DSN-004
 test("given a pairing above its minimum, when the contrast is checked, then nothing is reported", () => {
   // Given black text on a white surface
   // When the pairings are checked

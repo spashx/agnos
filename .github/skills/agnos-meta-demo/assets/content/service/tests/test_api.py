@@ -80,6 +80,7 @@ class _FixedClock:
     def __init__(self, moment: datetime) -> None:
         self.moment = moment
 
+    # RQ-CLI-005
     def now(self) -> datetime:
         return self.moment
 
@@ -122,6 +123,7 @@ def _book(wiring: _Wiring) -> dict[str, Any]:
 class ListRoomsTest(unittest.TestCase):
     """Tests for GET /rooms (RQ-CLI-005)."""
 
+    # RQ-CLI-005
     def test_given_catalog_when_get_rooms_then_answers_ok_with_rooms_sorted_by_id(self) -> None:
         # Given
         wiring = _Wiring()
@@ -132,6 +134,7 @@ class ListRoomsTest(unittest.TestCase):
         assert isinstance(body, list)
         self.assertEqual([room[FIELD_ID] for room in body], sorted([ROOM_ID, CLOSED_ROOM_ID]))
 
+    # RQ-CLI-005
     def test_given_closed_room_when_get_rooms_then_room_is_reported_as_not_open(self) -> None:
         # Given
         wiring = _Wiring()
@@ -144,6 +147,7 @@ class ListRoomsTest(unittest.TestCase):
         self.assertEqual(closed[FIELD_CAPACITY], CLOSED_CAPACITY)
         self.assertFalse(closed[FIELD_OPEN])
 
+    # RQ-CLI-005
     def test_given_query_string_when_get_rooms_then_query_is_ignored(self) -> None:
         # Given
         wiring = _Wiring()
@@ -156,6 +160,7 @@ class ListRoomsTest(unittest.TestCase):
 class CreateReservationRouteTest(unittest.TestCase):
     """Tests for POST /reservations (RQ-CLI-005)."""
 
+    # RQ-CLI-005
     def test_given_valid_body_when_post_reservation_then_answers_created_with_confirmed_reservation(self) -> None:
         # Given
         wiring = _Wiring()
@@ -168,6 +173,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         self.assertEqual(body[FIELD_ORGANIZER], ORGANIZER)
         self.assertEqual(body[FIELD_STATUS], ReservationStatus.CONFIRMED.value)
 
+    # RQ-CLI-005
     def test_given_valid_body_when_post_reservation_then_times_are_iso_text_with_offset(self) -> None:
         # Given
         wiring = _Wiring()
@@ -177,6 +183,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         self.assertEqual(datetime.fromisoformat(body[FIELD_START]), START)
         self.assertEqual(datetime.fromisoformat(body[FIELD_END]), START + DURATION)
 
+    # RQ-CLI-005
     def test_given_existing_reservation_when_post_overlapping_then_answers_conflict(self) -> None:
         # Given
         wiring = _Wiring()
@@ -188,6 +195,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CONFLICT)
 
+    # RQ-CLI-005
     def test_given_attendees_above_capacity_when_post_then_answers_unprocessable_capacity_exceeded(self) -> None:
         # Given
         wiring = _Wiring()
@@ -198,6 +206,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CAPACITY_EXCEEDED)
 
+    # RQ-CLI-005
     def test_given_closed_room_when_post_then_answers_unprocessable_room_closed(self) -> None:
         # Given
         wiring = _Wiring()
@@ -212,6 +221,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], ROOM_CLOSED)
 
+    # RQ-CLI-005
     def test_given_unknown_room_when_post_then_answers_not_found_room_not_found(self) -> None:
         # Given
         wiring = _Wiring()
@@ -222,6 +232,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], ROOM_NOT_FOUND)
 
+    # RQ-CLI-005
     def test_given_missing_field_when_post_then_answers_bad_request(self) -> None:
         # Given
         wiring = _Wiring()
@@ -234,6 +245,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CODE_BAD_REQUEST)
 
+    # RQ-CLI-005
     def test_given_no_json_body_when_post_then_answers_bad_request(self) -> None:
         # Given
         wiring = _Wiring()
@@ -244,6 +256,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CODE_BAD_REQUEST)
 
+    # RQ-CLI-005
     def test_given_naive_time_when_post_then_answers_bad_request(self) -> None:
         # Given
         wiring = _Wiring()
@@ -258,6 +271,7 @@ class CreateReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CODE_BAD_REQUEST)
 
+    # RQ-CLI-005
     def test_given_boolean_attendees_when_post_then_answers_bad_request(self) -> None:
         # Given
         wiring = _Wiring()
@@ -272,6 +286,7 @@ class CreateReservationRouteTest(unittest.TestCase):
 class CancelReservationRouteTest(unittest.TestCase):
     """Tests for DELETE /reservations/{id} (RQ-CLI-005)."""
 
+    # RQ-CLI-005
     def test_given_confirmed_reservation_when_delete_then_answers_no_content(self) -> None:
         # Given
         wiring = _Wiring()
@@ -282,6 +297,7 @@ class CancelReservationRouteTest(unittest.TestCase):
         self.assertEqual(status, STATUS_NO_CONTENT)
         self.assertIsNone(body)
 
+    # RQ-CLI-005
     def test_given_unknown_id_when_delete_then_answers_not_found_reservation_not_found(self) -> None:
         # Given
         wiring = _Wiring()
@@ -292,6 +308,7 @@ class CancelReservationRouteTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], RESERVATION_NOT_FOUND)
 
+    # RQ-CLI-005
     def test_given_started_reservation_when_delete_then_answers_conflict_already_started(self) -> None:
         # Given
         wiring = _Wiring()
@@ -308,6 +325,7 @@ class CancelReservationRouteTest(unittest.TestCase):
 class RoutingTest(unittest.TestCase):
     """Tests for unknown routes (RQ-CLI-005)."""
 
+    # RQ-CLI-005
     def test_given_unknown_path_when_get_then_answers_not_found_not_found(self) -> None:
         # Given
         wiring = _Wiring()
@@ -318,6 +336,7 @@ class RoutingTest(unittest.TestCase):
         assert isinstance(body, dict)
         self.assertEqual(body[FIELD_CODE], CODE_NOT_FOUND)
 
+    # RQ-CLI-005
     def test_given_wrong_method_when_called_then_answers_not_found(self) -> None:
         # Given
         wiring = _Wiring()
@@ -332,6 +351,7 @@ class RoutingTest(unittest.TestCase):
 class ServeTest(unittest.TestCase):
     """Tests for serve, with the HTTP server replaced by a mock so that no socket is opened (RQ-CLI-005)."""
 
+    # RQ-CLI-005
     def test_given_api_when_serve_then_server_listens_on_host_and_port_and_serves_forever(self) -> None:
         # Given
         api = _Wiring().api

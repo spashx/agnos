@@ -31,6 +31,7 @@ async function withServer(run: (base: string) => Promise<void>): Promise<void> {
   }
 }
 
+// RQ-WEB-001
 test("given a started server, when the home page is fetched, then it answers 200 HTML listing the rooms", async () => {
   await withServer(async (base) => {
     // Given a started server over a fake service
@@ -43,6 +44,7 @@ test("given a started server, when the home page is fetched, then it answers 200
   });
 });
 
+// RQ-DSN-003
 test("given a started server, when the stylesheet is fetched, then it is CSS generated from the tokens", async () => {
   await withServer(async (base) => {
     // Given a started server
@@ -54,6 +56,7 @@ test("given a started server, when the stylesheet is fetched, then it is CSS gen
   });
 });
 
+// RQ-WEB-002
 test("given a started server, when a booking form is posted, then the reservation is confirmed on the page", async () => {
   await withServer(async (base) => {
     // Given a started server
@@ -72,6 +75,7 @@ test("given a started server, when a booking form is posted, then the reservatio
   });
 });
 
+// RQ-WEB-001
 test("given a started server, when a body larger than the limit is posted, then the answer is 413", async () => {
   await withServer(async (base) => {
     // Given a started server
@@ -82,6 +86,7 @@ test("given a started server, when a body larger than the limit is posted, then 
   });
 });
 
+// RQ-WEB-001
 test("given a started server, when an unknown path is fetched, then the answer is 404", async () => {
   await withServer(async (base) => {
     // Given a started server

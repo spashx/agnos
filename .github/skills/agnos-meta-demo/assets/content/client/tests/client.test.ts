@@ -39,6 +39,7 @@ class FakeTransport implements Transport {
     this.reply = reply;
   }
 
+  // RQ-CLI-001
   send(method: string, path: string, body?: unknown): Promise<HttpResponse> {
     this.calls.push({ method, path, body });
     return this.reply();
@@ -49,6 +50,7 @@ function answering(status: number, body: unknown): FakeTransport {
   return new FakeTransport(async () => ({ status, body }));
 }
 
+// RQ-CLI-001
 test("given a service listing one room, when listRooms is called, then the typed rooms are returned from GET /rooms", async () => {
   // Given
   const transport = answering(HTTP_STATUS_OK, [{ id: ROOM_ID, name: ROOM_NAME, capacity: ROOM_CAPACITY, open: true }]);
@@ -61,6 +63,7 @@ test("given a service listing one room, when listRooms is called, then the typed
   assert.equal(transport.calls[0]?.path, ROOMS_PATH);
 });
 
+// RQ-CLI-001
 test("given a service accepting a reservation, when createReservation is called, then the typed reservation is returned from POST /reservations", async () => {
   // Given
   const transport = answering(HTTP_STATUS_CREATED, CREATED_RESERVATION);
@@ -74,6 +77,7 @@ test("given a service accepting a reservation, when createReservation is called,
   assert.deepEqual(transport.calls[0]?.body, NEW_RESERVATION);
 });
 
+// RQ-CLI-001
 test("given a service answering 204, when cancelReservation is called, then the call resolves and sends DELETE on the reservation", async () => {
   // Given
   const transport = answering(HTTP_STATUS_NO_CONTENT, null);
@@ -85,6 +89,7 @@ test("given a service answering 204, when cancelReservation is called, then the 
   assert.equal(transport.calls[0]?.path, RESERVATIONS_PATH + "/" + RESERVATION_ID);
 });
 
+// RQ-CLI-002
 test("given a service answering 409 with code CONFLICT, when a reservation is created, then a service error with code CONFLICT and status 409 is thrown", async () => {
   // Given
   const client = new RoombookClient(answering(HTTP_STATUS_CONFLICT, { code: CONFLICT_CODE, message: CONFLICT_MESSAGE }));
@@ -94,6 +99,7 @@ test("given a service answering 409 with code CONFLICT, when a reservation is cr
   await assert.rejects(call, (error: unknown) => error instanceof ServiceError && error.code === CONFLICT_CODE && error.status === HTTP_STATUS_CONFLICT);
 });
 
+// RQ-CLI-002
 test("given a service answering 404 with a code, when rooms are listed, then a service error carries that code and status", async () => {
   // Given
   const client = new RoombookClient(answering(HTTP_STATUS_NOT_FOUND, { code: NOT_FOUND_CODE, message: SERVICE_ERROR_MESSAGE }));
@@ -103,6 +109,7 @@ test("given a service answering 404 with a code, when rooms are listed, then a s
   await assert.rejects(call, (error: unknown) => error instanceof ServiceError && error.code === NOT_FOUND_CODE && error.status === HTTP_STATUS_NOT_FOUND);
 });
 
+// RQ-CLI-002
 test("given an error status with no error body, when a call is made, then a service error with the unknown code is thrown", async () => {
   // Given
   const client = new RoombookClient(answering(HTTP_STATUS_INTERNAL_ERROR, null));
@@ -112,6 +119,7 @@ test("given an error status with no error body, when a call is made, then a serv
   await assert.rejects(call, (error: unknown) => error instanceof ServiceError && error.code === UNKNOWN_ERROR_CODE && error.status === HTTP_STATUS_INTERNAL_ERROR);
 });
 
+// RQ-CLI-002
 test("given a transport that throws a network error, when a call is made, then the network error propagates", async () => {
   // Given
   const transport = new FakeTransport(async () => {
@@ -124,6 +132,7 @@ test("given a transport that throws a network error, when a call is made, then t
   await assert.rejects(call, NetworkError);
 });
 
+// RQ-CLI-002
 test("given a service error, when it is built, then it exposes the code, the status and is an Error", () => {
   // Given
   const error = new ServiceError(CONFLICT_CODE, SERVICE_ERROR_MESSAGE, HTTP_STATUS_CONFLICT);

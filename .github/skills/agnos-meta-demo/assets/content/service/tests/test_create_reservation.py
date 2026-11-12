@@ -47,6 +47,7 @@ class RecordingRule:
 class CreateReservationTest(unittest.TestCase):
     """Tests of CreateReservation (RQ-BKG-002)."""
 
+    # RQ-BKG-002
     def setUp(self) -> None:
         self.catalog = RoomCatalog()
         self.catalog.add(Room(id=ROOM_ID, name=ROOM_NAME, capacity=ROOM_CAPACITY))
@@ -59,6 +60,7 @@ class CreateReservationTest(unittest.TestCase):
             attendees=ATTENDEES,
         )
 
+    # RQ-BKG-002
     def test_given_open_room_without_reservation_when_valid_request_then_confirmed_reservation_is_stored(self) -> None:
         # Given
         use_case = CreateReservation(self.catalog, self.repository, [], id_factory=lambda: NEW_RESERVATION_ID)
@@ -68,6 +70,7 @@ class CreateReservationTest(unittest.TestCase):
         self.assertEqual(reservation.id, NEW_RESERVATION_ID)
         self.assertEqual(self.repository.get(NEW_RESERVATION_ID).status, ReservationStatus.CONFIRMED)
 
+    # RQ-BKG-002
     def test_given_unknown_room_when_request_executed_then_room_not_found_is_raised(self) -> None:
         # Given
         use_case = CreateReservation(self.catalog, self.repository, [])
@@ -84,6 +87,7 @@ class CreateReservationTest(unittest.TestCase):
         # Then
         self.assertEqual(context.exception.code, ROOM_NOT_FOUND)
 
+    # RQ-BKG-002
     def test_given_rule_that_refuses_when_request_executed_then_nothing_is_stored(self) -> None:
         # Given
         calls: list[str] = []
@@ -95,6 +99,7 @@ class CreateReservationTest(unittest.TestCase):
         # Then
         self.assertEqual(self.repository.list_all(), [])
 
+    # RQ-BKG-002
     def test_given_several_rules_when_request_executed_then_rules_run_in_given_order(self) -> None:
         # Given
         calls: list[str] = []
@@ -105,6 +110,7 @@ class CreateReservationTest(unittest.TestCase):
         # Then
         self.assertEqual(calls, ["first", "second"])
 
+    # RQ-BKG-002
     def test_given_confirmed_reservation_of_room_when_request_executed_then_rules_receive_it_as_existing(self) -> None:
         # Given
         existing = Reservation(
@@ -127,6 +133,7 @@ class CreateReservationTest(unittest.TestCase):
 class UuidIdFactoryTest(unittest.TestCase):
     """Tests of uuid_id_factory (RQ-BKG-002)."""
 
+    # RQ-BKG-002
     def test_given_default_factory_when_called_twice_then_two_distinct_uuids_are_returned(self) -> None:
         # Given
         # the default identifier factory

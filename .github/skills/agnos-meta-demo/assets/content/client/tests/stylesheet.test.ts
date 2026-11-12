@@ -33,6 +33,7 @@ function declarationValues(css: string): string[] {
   return [...css.matchAll(DECLARATION)].map((match) => match[2]);
 }
 
+// RQ-DSN-003
 test("given a dotted token name, when its custom property is built, then dots become hyphens behind a double dash", () => {
   // Given a token name
   // When the custom property is built
@@ -40,6 +41,7 @@ test("given a dotted token name, when its custom property is built, then dots be
   assert.equal(toCustomProperty(TOKEN_NAME), TOKEN_PROPERTY);
 });
 
+// RQ-DSN-003
 test("given a token name, when a CSS reference is built, then it is a var() on its custom property", () => {
   // Given a token name
   // When the reference is built
@@ -47,6 +49,7 @@ test("given a token name, when a CSS reference is built, then it is a var() on i
   assert.equal(cssVar(TOKEN_NAME), `var(${TOKEN_PROPERTY})`);
 });
 
+// RQ-DSN-003
 test("given a three-tier set, when the custom properties are generated, then every token is declared and aliases stay var() references", () => {
   // Given one token per tier
   // When the :root rule is generated
@@ -58,6 +61,7 @@ test("given a three-tier set, when the custom properties are generated, then eve
   assert.ok(css.includes(`${toCustomProperty("page.background")}: ${cssVar(TOKEN_NAME)};`));
 });
 
+// RQ-DSN-003
 test("given the shipped tokens, when the custom properties are generated, then every token of every tier is declared", () => {
   // Given the shipped token source
   const tokens = loadTokens();
@@ -71,6 +75,7 @@ test("given the shipped tokens, when the custom properties are generated, then e
   }
 });
 
+// RQ-DSN-003
 test("given the component rules, when their selectors are listed, then every class of the catalogue has a rule", () => {
   // Given the class names shared with the views
   // When the component rules are generated
@@ -81,6 +86,7 @@ test("given the component rules, when their selectors are listed, then every cla
   }
 });
 
+// RQ-DSN-003
 test("given the component rules, when their declaration values are read, then each is a var(), a keyword or zero", () => {
   // Given the generated component rules
   // When every declaration value is read
@@ -93,6 +99,7 @@ test("given the component rules, when their declaration values are read, then ea
   }
 });
 
+// RQ-DSN-003
 test("given the shipped tokens, when the whole stylesheet is built, then the custom properties come before the component rules", () => {
   // Given the shipped token source
   const tokens = loadTokens();
@@ -102,6 +109,7 @@ test("given the shipped tokens, when the whole stylesheet is built, then the cus
   assert.equal(css, toCss(tokens) + componentCss());
 });
 
+// RQ-DSN-004
 test("given the shipped tokens, when every text and background pairing is checked, then none is below its minimum contrast", () => {
   // Given the shipped token source
   // When its declared pairings are checked
@@ -109,6 +117,7 @@ test("given the shipped tokens, when every text and background pairing is checke
   assert.deepEqual(contrastViolations(loadTokens()), []);
 });
 
+// RQ-DSN-005
 test("given the sources of the interface, when they are scanned for raw visual literals, then none is found", () => {
   // Given every TypeScript source under src/ui
   const files = readdirSync(UI_SOURCE_DIR).filter((name) => name.endsWith(".ts"));

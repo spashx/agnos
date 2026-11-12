@@ -36,6 +36,7 @@ function post(path: string, form: Record<string, string>) {
   return { method: HTTP_POST, path, form };
 }
 
+// RQ-WEB-001
 test("given a service with rooms, when the home page is requested, then the rooms are listed with status 200", async () => {
   // Given a service with an open and a closed room
   const service = new FakeService();
@@ -46,6 +47,7 @@ test("given a service with rooms, when the home page is requested, then the room
   assert.ok(response.body.includes(ROOM_OPEN.name));
 });
 
+// RQ-WEB-001
 test("given the stylesheet route, when it is requested, then the generated stylesheet is returned as CSS", async () => {
   // Given an app holding a stylesheet
   // When the stylesheet route is requested
@@ -55,6 +57,7 @@ test("given the stylesheet route, when it is requested, then the generated style
   assert.ok(response.contentType.startsWith("text/css"));
 });
 
+// RQ-WEB-001
 test("given an unknown route, when it is requested, then the answer is 404", async () => {
   // Given an app
   // When an unknown path is requested
@@ -63,6 +66,7 @@ test("given an unknown route, when it is requested, then the answer is 404", asy
   assert.equal(response.status, HTTP_STATUS_NOT_FOUND);
 });
 
+// RQ-WEB-002
 test("given a valid booking form, when it is submitted, then the reservation is created and its identifier is confirmed", async () => {
   // Given a service that accepts the booking
   const service = new FakeService();
@@ -75,6 +79,7 @@ test("given a valid booking form, when it is submitted, then the reservation is 
   assert.equal(sent.start, toIsoWithOffset(LOCAL_START));
 });
 
+// RQ-WEB-003
 test("given a service answering a conflict, when a booking is submitted, then the conflict wording is shown and the values are kept", async () => {
   // Given a service that answers 409 with code CONFLICT
   const service = new FakeService();
@@ -87,6 +92,7 @@ test("given a service answering a conflict, when a booking is submitted, then th
   assert.ok(response.body.includes(`value="${ORGANIZER}"`));
 });
 
+// RQ-WEB-002
 test("given a service answering a code without wording, when a booking is submitted, then the fallback wording names the code", async () => {
   // Given a service that answers 422 with an unknown code
   const service = new FakeService();
@@ -97,6 +103,7 @@ test("given a service answering a code without wording, when a booking is submit
   assert.ok(response.body.includes(fallbackErrorText(UNKNOWN_CODE)));
 });
 
+// RQ-WEB-003
 test("given an incomplete booking form, when it is submitted, then the service is not called and the form is refused", async () => {
   // Given a form without organizer
   const service = new FakeService();
@@ -109,6 +116,7 @@ test("given an incomplete booking form, when it is submitted, then the service i
   assert.equal(service.count(HTTP_POST), 0);
 });
 
+// RQ-WEB-005
 test("given a service that does not answer, when the home page is requested, then the unavailable page is shown without forms", async () => {
   // Given a service that fails every call
   const service = new FakeService();
@@ -121,6 +129,7 @@ test("given a service that does not answer, when the home page is requested, the
   assert.ok(!response.body.includes("<form"));
 });
 
+// RQ-WEB-005
 test("given a service that fails while booking, when the form is submitted, then the unavailable page is shown", async () => {
   // Given a service whose creation call fails
   const service = new FakeService();
@@ -132,6 +141,7 @@ test("given a service that fails while booking, when the form is submitted, then
   assert.ok(response.body.includes(UNAVAILABLE_TEXT));
 });
 
+// RQ-WEB-004
 test("given an existing reservation, when its cancel form is submitted, then the cancellation is confirmed", async () => {
   // Given a service that accepts the cancellation
   const service = new FakeService();
@@ -143,6 +153,7 @@ test("given an existing reservation, when its cancel form is submitted, then the
   assert.equal(service.count(HTTP_DELETE), 1);
 });
 
+// RQ-WEB-004
 test("given an unknown reservation, when its cancel form is submitted, then the not-found wording is shown", async () => {
   // Given a service answering 404 for the identifier
   const service = new FakeService();
@@ -154,6 +165,7 @@ test("given an unknown reservation, when its cancel form is submitted, then the 
   assert.ok(response.body.includes(ERROR_TEXT[SERVICE_CODE.reservationNotFound]));
 });
 
+// RQ-WEB-004
 test("given a cancel form without identifier, when it is submitted, then the form is refused without calling the service", async () => {
   // Given an empty identifier
   const service = new FakeService();
@@ -164,6 +176,7 @@ test("given a cancel form without identifier, when it is submitted, then the for
   assert.equal(service.count(HTTP_DELETE), 0);
 });
 
+// RQ-WEB-002
 test("given a posted form with spaces and a missing field, when the values are read, then values are trimmed and a missing field is empty", () => {
   // Given a form with a padded organizer and no attendees
   const form = { [FORM_FIELD.organizer]: `  ${ORGANIZER} `, [FORM_FIELD.roomId]: ROOM_OPEN.id };
@@ -174,6 +187,7 @@ test("given a posted form with spaces and a missing field, when the values are r
   assert.equal(values.attendees, EMPTY_VALUES.attendees);
 });
 
+// RQ-WEB-003
 test("given local date and time texts, when they are converted, then minutes get seconds and the UTC offset, and other texts are refused", () => {
   // Given a local time to the minute, one with seconds and a text that is not a date
   // When each is converted
@@ -183,6 +197,7 @@ test("given local date and time texts, when they are converted, then minutes get
   assert.equal(toIsoWithOffset(NOT_A_DATE), undefined);
 });
 
+// RQ-WEB-002
 test("given form values, when the reservation request is built, then a valid form gives a request and an invalid one gives nothing", () => {
   // Given complete values, and the same values with zero attendees
   const complete = readValues(BOOKING_FORM);

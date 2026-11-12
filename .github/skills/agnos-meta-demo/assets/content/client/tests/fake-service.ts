@@ -24,15 +24,18 @@ export class FakeService implements Transport {
   }
 
   /** Scripts the answer to `method path`. */
+  // RQ-WEB-001
   replyTo(method: string, path: string, reply: Reply): void {
     this.replies.set(method + " " + path, reply);
   }
 
   /** Counts the recorded calls to `method` on any path. */
+  // RQ-WEB-001
   count(method: string): number {
     return this.calls.filter((call) => call.method === method).length;
   }
 
+  // RQ-WEB-001
   async send(method: string, path: string, body?: unknown): Promise<HttpResponse> {
     this.calls.push({ method, path, body });
     const reply = this.replies.get(method + " " + path);
@@ -44,11 +47,13 @@ export class FakeService implements Transport {
 }
 
 /** A Confirmed reservation with this identifier, as the service answers a creation. */
+// RQ-WEB-001
 export function reservation(id: string): Reservation {
   return { id, roomId: ROOM_OPEN.id, organizer: "ada", start: "2030-01-01T10:00:00+00:00", end: "2030-01-01T11:00:00+00:00", attendees: 4, status: "CONFIRMED" };
 }
 
 /** A typed client over a fake service. */
+// RQ-WEB-001
 export function clientOver(service: FakeService): RoombookClient {
   return new RoombookClient(service);
 }
