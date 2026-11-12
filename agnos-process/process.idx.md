@@ -1005,6 +1005,6 @@ PLAN-WEB-002|1-48||Screenshot frames at the capture ratio
 TASK-WEB-012|16-35|Done|Frame screenshots at the capture ratio
 TASK-WEB-013|36-48|Done|Rebuild the site from the new demo
 @agnos-process/3.plan/PLAN-WEB-004-matrix-stop.md
-PLAN-WEB-004|1-49||Matrix stop of the tour
+PLAN-WEB-004|1-50||Matrix stop of the tour
 TASK-WEB-015|16-36|Done|Rename the tour sections after their views
-TASK-WEB-016|37-49|Not Started|Rebuild the site with the Matrix stop
+TASK-WEB-016|37-50|Done|Rebuild the site with the Matrix stop

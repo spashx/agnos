@@ -36,13 +36,14 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-016: Rebuild the site with the Matrix stop
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Regenerate the demo's Performance Center with `--call-graph --history` and run `agnos-meta-website build` on the
   demo into `C:\dev\repos\spashx\website`.
 - **Requirement refs**: RQ-WEB-001, RQ-WEB-002
 - **ADR refs**: ADR-WEB-001 (DEC-WEB-002, DEC-WEB-006)
 - **Acceptance Criteria** (Gherkin): Given TASK-TRC-108 and TASK-WEB-015 done, When `build` runs, Then it exits 0 and its summary
-  line is recorded here.
+  line is recorded here: `agnos-meta-website: 152 fields in each language, 8 images, index 1/14, demo page generated;
+  C:\dev\repos\spashx\website written`.
 - **Dependencies**: TASK-WEB-015
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
