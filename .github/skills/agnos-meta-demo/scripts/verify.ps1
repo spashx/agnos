@@ -34,14 +34,17 @@ $BLOCK_END = '<!-- AGNOS:END -->'
 $INDEX_SCRIPT = '.github/skills/agnos-index/scripts/build-index.ps1'
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 $FIELD_SEPARATOR = [string][char]0x1f
-$ROLE_PATTERN = '^[a-z]+-(po|arch|dev|qa|ux)$'      # RQ-DMO-011 as amended: ux, the UX designer (DEC-DMO-007)
+$ROLE_PATTERN = '^[a-z]+-(pm|ux|tech)$'             # RQ-DMO-011 as amended on 2026-11-12: the Acme team (DEC-DMO-003)
+$HUMAN_MAIL_DOMAIN = '@acme.example'                 # RQ-DMO-011, DEC-DMO-003
+$EXPECTED_ROLES = [ordered]@{ pm = 1; ux = 1; tech = 2 }   # RQ-DMO-011: one pm, one ux, two tech
+$FILTER_ROLE = 'tech'                                # RQ-DMO-009, RQ-DMO-011: the README's filter example
 $ID_PATTERN = '\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}\b'
 $DEFINITION_PATTERN = '^\+#{1,3} ((?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}):'
 $TOOLKIT_TRIGRAMS = 'TRC|IDX|DSY|AGT|FIX|DMO|MTA|INI|QLT'
 $TASK_COMMIT_PATTERN = '^(feat|fix|docs|refactor|test|chore|perf|build|ci|style)\([A-Z]{3}\): (ADR-[A-Z]{3}-\d{3}/)?TASK-[A-Z]{3}-\d{3} .+$'
 $MIN_FEATURES = 3; $MIN_REQUIREMENTS = 12; $MIN_ADRS = 3; $MIN_PLANS = 3; $MIN_SOURCES = 4
 $MIN_COMMITS = 50; $MIN_SPAN_DAYS = 56; $MAX_SPAN_DAYS = 64; $MIN_ACTIVE_DAYS = 5; $MAX_ACTIVE_RATIO = 0.8
-$MIN_IDENTITIES = 5; $MIN_DEV = 2; $MIN_SESSIONS = 3; $MIN_HOLIDAYS = 2
+$MIN_SESSIONS = 3; $MIN_HOLIDAYS = 2
 $LITERAL_REPEAT_LIMIT = 3; $LITERAL_MIN_LENGTH = 8
 $REBUILD_FOLDER_PREFIX = 'agnos-demo-verify-'
 $FULL_SCORE = '10.0'; $NO_SCORE = 'n/a'
@@ -51,20 +54,22 @@ $TRAILER_FORMAT = '%(trailers:key=Co-Authored-By,valueonly,separator=%x1d)'
 $TRAILER_SEPARATOR = [string][char]0x1d
 $CLAUDE_HARNESS = 'Claude Code/'; $COPILOT_HARNESS = 'Copilot SDK in VS Code/'
 $CLAUDE_OPUS = 'Claude Code/Claude Opus 5.5'; $CLAUDE_SONNET = 'Claude Code/Claude Sonnet 5.5'; $CLAUDE_HAIKU = 'Claude Code/Claude Haiku 5.5'
-$MIN_TOGETHER_RATIO = 0.4; $MAX_TOGETHER_RATIO = 0.7; $MIN_HUMAN_RATIO = 0.2
+$MIN_TOGETHER_RATIO = 0.55; $MAX_TOGETHER_RATIO = 0.8; $MIN_HUMAN_RATIO = 0.2   # RQ-DMO-023 as amended on 2026-11-12
+$MIN_PERSON_AGENT_RATIO = 0.6                        # RQ-DMO-023: each human works mostly with an agent (DEC-DMO-009)
 $MIN_HARNESS_COMMITS = 5; $MIN_MAIN_MODEL_COMMITS = 3; $MIN_HAIKU_COMMITS = 1; $MAX_HAIKU_COMMITS = 2
 $MIN_AGENT_ONLY = 3; $MAX_AGENT_ONLY = 6; $EXPECTED_AGENTS = 4
 $MIN_FUNCTION_SCORE = 8.5; $MAX_FUNCTION_SCORE = 10.0; $FUNCTION_CHECK = 'functions-traced'
 $HISTORY_SUMMARY_PATTERN = 'history: (\d+) commits, (\d+) humans, (\d+) agents'
 $UI_ARTIFACTS = @('FTR-DSN-001', 'ADR-DSN-001', 'PLAN-DSN-001', 'FTR-WEB-001', 'ADR-WEB-001', 'PLAN-WEB-001')   # RQ-DMO-022
 $ROLE_BY_PATH = @(
-  @{ Pattern = "^$PF/1\.requirements/FTR-"; Role = 'po' }
-  @{ Pattern = "^$PF/2\.architecture/ADR-"; Role = 'arch' }
-  @{ Pattern = "^$PF/3\.plan/PLAN-"; Role = 'dev' }
-  @{ Pattern = '^service/roombook/.+\.py$'; Role = 'dev' }
-  @{ Pattern = '^client/src/.+\.ts$'; Role = 'dev' }
-  @{ Pattern = '^service/tests/test_.+\.py$'; Role = 'qa' }
-  @{ Pattern = '^client/tests/.+\.test\.ts$'; Role = 'qa' }
+  # RQ-DMO-012 as amended on 2026-11-12 (DEC-DMO-003)
+  @{ Pattern = "^$PF/1\.requirements/FTR-"; Role = 'pm' }
+  @{ Pattern = "^$PF/2\.architecture/ADR-"; Role = 'tech' }
+  @{ Pattern = "^$PF/3\.plan/PLAN-"; Role = 'tech' }
+  @{ Pattern = '^service/roombook/.+\.py$'; Role = 'tech' }
+  @{ Pattern = '^client/src/.+\.ts$'; Role = 'tech' }
+  @{ Pattern = '^service/tests/test_.+\.py$'; Role = 'tech' }
+  @{ Pattern = '^client/tests/.+\.test\.ts$'; Role = 'tech' }
   @{ Pattern = '^client/design/'; Role = 'ux' }               # DEC-DMO-007
 )
 
@@ -190,7 +195,7 @@ Report 'RQ-DMO-008' $traceOk ("agnos-perf-center: " + $(if ($gaps.Success) { "un
 
 # RQ-DMO-009
 $readme = if ($demoFiles -contains 'README.md') { (Demo-Git @('show', 'HEAD:README.md')) } else { @() }
-Report 'RQ-DMO-009' ((($readme | Select-Object -First 12) -join ' ') -match 'simulated' -and ($readme -join "`n") -match 'git log --author=-qa') 'README opens with the simulation notice and gives the filter command'
+Report 'RQ-DMO-009' ((($readme | Select-Object -First 12) -join ' ') -match 'simulated' -and ($readme -join "`n") -match "git log --author=-$FILTER_ROLE") 'README opens with the simulation notice and gives the filter command'
 
 # RQ-DMO-010
 $remotes = @(Demo-Git @('remote'))
@@ -206,12 +211,14 @@ Report 'RQ-DMO-010' (($remotes.Count -eq 0) -and $globalOk -and ($outside.Count 
 # RQ-DMO-011
 $names = @($humanCommits | ForEach-Object { $_.AuthorName; $_.CommitterName } | Sort-Object -Unique)    # amended: agents exempt
 $badNames = @($names | Where-Object { $_ -notmatch $ROLE_PATTERN })
-$badMails = @($humanCommits | Where-Object { -not $_.AuthorEmail.StartsWith($_.AuthorName + '@') })
+$badMails = @($humanCommits | Where-Object { $_.AuthorEmail -ne ($_.AuthorName + $HUMAN_MAIL_DOMAIN) } | ForEach-Object { $_.AuthorEmail } | Sort-Object -Unique)
 $byRole = $names | Where-Object { $_ -match $ROLE_PATTERN } | Group-Object { $_ -replace '^[a-z]+-', '' }
 $roleCount = @{}; foreach ($g in $byRole) { $roleCount[$g.Name] = $g.Count }
-$qaLog = @(Demo-Git @('log', '--all', '--author=-qa', '--format=%an') | Sort-Object -Unique)
-$qaOk = ($qaLog.Count -gt 0) -and (@($qaLog | Where-Object { $_ -notmatch '-qa$' }).Count -eq 0)
-Report 'RQ-DMO-011' (($names.Count -ge $MIN_IDENTITIES) -and ($badNames.Count -eq 0) -and ($badMails.Count -eq 0) -and ($roleCount['po'] -ge 1) -and ($roleCount['arch'] -ge 1) -and ($roleCount['qa'] -ge 1) -and ($roleCount['dev'] -ge $MIN_DEV) -and $qaOk) "identities $($names.Count) ($(($names) -join ', ')); badly named: $($badNames.Count); --author=-qa returns only qa: $qaOk"
+$wrongRoles = @($EXPECTED_ROLES.Keys | Where-Object { [int]$roleCount[$_] -ne $EXPECTED_ROLES[$_] } | ForEach-Object { "$_=$([int]$roleCount[$_]) (expected $($EXPECTED_ROLES[$_]))" })
+$expectedCount = ($EXPECTED_ROLES.Values | Measure-Object -Sum).Sum
+$roleLog = @(Demo-Git @('log', '--all', "--author=-$FILTER_ROLE", '--format=%an') | Sort-Object -Unique)
+$roleLogOk = ($roleLog.Count -gt 0) -and (@($roleLog | Where-Object { $_ -notmatch "-$FILTER_ROLE`$" }).Count -eq 0)
+Report 'RQ-DMO-011' (($names.Count -eq $expectedCount) -and ($badNames.Count -eq 0) -and ($badMails.Count -eq 0) -and ($wrongRoles.Count -eq 0) -and $roleLogOk) "human identities $($names.Count) of $expectedCount ($(($names) -join ', ')); badly named: $($badNames.Count); e-mails not $HUMAN_MAIL_DOMAIN`: $($badMails.Count); roles off: $(if ($wrongRoles.Count) { $wrongRoles -join ', ' } else { 'none' }); --author=-$FILTER_ROLE returns only $FILTER_ROLE`: $roleLogOk"
 
 # RQ-DMO-012
 $firstAuthor = @{}
@@ -309,7 +316,12 @@ $plainTotal = [math]::Max(1, $plainCommits.Count)
 $togetherRatio = $together.Count / $plainTotal; $humanRatio = $humanAlone.Count / $plainTotal
 $summary = [regex]::Match($historyOut, $HISTORY_SUMMARY_PATTERN)
 $agentsSeen = if ($summary.Success) { [int]$summary.Groups[3].Value } else { -1 }
-Report 'RQ-DMO-023' (($togetherRatio -ge $MIN_TOGETHER_RATIO) -and ($togetherRatio -le $MAX_TOGETHER_RATIO) -and ($humanRatio -ge $MIN_HUMAN_RATIO) -and ($claudeCount -ge $MIN_HARNESS_COMMITS) -and ($copilotCount -ge $MIN_HARNESS_COMMITS) -and ($opusCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($sonnetCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($haikuCount -ge $MIN_HAIKU_COMMITS) -and ($haikuCount -le $MAX_HAIKU_COMMITS) -and ($agentOnly.Count -ge $MIN_AGENT_ONLY) -and ($agentOnly.Count -le $MAX_AGENT_ONLY) -and ($mergesWithCoAuthor.Count -eq 0) -and ($agentsSeen -eq $EXPECTED_AGENTS)) ("of {0} non-merge commits: together {1} ({2:P0}), human alone {3} ({4:P0}), agent alone {5}; Claude Code {6} (Opus {7}, Sonnet {8}, Haiku {9}), Copilot {10}; merges with an agent: {11}; agents counted by agnos-perf-center: {12}" -f $plainCommits.Count, $together.Count, $togetherRatio, $humanAlone.Count, $humanRatio, $agentOnly.Count, $claudeCount, $opusCount, $sonnetCount, $haikuCount, $copilotCount, $mergesWithCoAuthor.Count, $agentsSeen)
+# RQ-DMO-023 as amended on 2026-11-12: each human makes most of its own non-merge commits with an agent
+$personShares = @($plainCommits | Where-Object { $agentNames -notcontains $_.AuthorName } | Group-Object AuthorName | ForEach-Object {
+  [pscustomobject]@{ Name = $_.Name; Ratio = @($_.Group | Where-Object { $_.CoAuthors.Count -gt 0 }).Count / $_.Count } })
+$lowShares = @($personShares | Where-Object { $_.Ratio -lt $MIN_PERSON_AGENT_RATIO })
+$sharesText = ($personShares | ForEach-Object { '{0} {1:P0}' -f $_.Name, $_.Ratio }) -join ', '
+Report 'RQ-DMO-023' (($lowShares.Count -eq 0) -and ($togetherRatio -ge $MIN_TOGETHER_RATIO) -and ($togetherRatio -le $MAX_TOGETHER_RATIO) -and ($humanRatio -ge $MIN_HUMAN_RATIO) -and ($claudeCount -ge $MIN_HARNESS_COMMITS) -and ($copilotCount -ge $MIN_HARNESS_COMMITS) -and ($opusCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($sonnetCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($haikuCount -ge $MIN_HAIKU_COMMITS) -and ($haikuCount -le $MAX_HAIKU_COMMITS) -and ($agentOnly.Count -ge $MIN_AGENT_ONLY) -and ($agentOnly.Count -le $MAX_AGENT_ONLY) -and ($mergesWithCoAuthor.Count -eq 0) -and ($agentsSeen -eq $EXPECTED_AGENTS)) ("of {0} non-merge commits: together {1} ({2:P0}), human alone {3} ({4:P0}), agent alone {5}; Claude Code {6} (Opus {7}, Sonnet {8}, Haiku {9}), Copilot {10}; merges with an agent: {11}; agents counted by agnos-perf-center: {12}; with an agent per human: {13}" -f $plainCommits.Count, $together.Count, $togetherRatio, $humanAlone.Count, $humanRatio, $agentOnly.Count, $claudeCount, $opusCount, $sonnetCount, $haikuCount, $copilotCount, $mergesWithCoAuthor.Count, $agentsSeen, $sharesText)
 
 # RQ-DMO-024: one trailer at most, one of the scenario's agents
 $manyTrailers = @($commits | Where-Object { $_.CoAuthors.Count -gt 1 })

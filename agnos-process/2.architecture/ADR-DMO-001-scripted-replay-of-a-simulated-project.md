@@ -35,15 +35,17 @@ after checking that the target is the demo it created. The index is therefore al
 Fulfils RQ-DMO-001, RQ-DMO-002, RQ-DMO-007, RQ-DMO-010, RQ-DMO-013, RQ-DMO-017, RQ-DMO-018.
 
 ### DEC-DMO-003: Cast, calendar and sessions
-Six identities with a role suffix: `linda-po`, `omar-arch`, `nina-dev`, `paul-dev`, `john-qa`, `sara-qa`,
-with e-mails `<identity>@agnos-demo.example`. Period Monday 2026-08-24 to Friday 2026-10-23 (60 days), time
+Four human identities of the fictitious company Acme, with a role suffix (amended by the owner on 2026-11-12):
+`linda-pm` (requirements), `john-ux` (design, DEC-DMO-007), `andy-tech` and `sachin-tech` (architecture,
+development and tests), with e-mails `<identity>@acme.example`; `andy-tech` takes the steps first written for the
+architect, one developer and one tester, `sachin-tech` those of the other developer and tester. Period Monday 2026-08-24 to Friday 2026-10-23 (60 days), time
 zone Europe/Paris, offset +02:00 throughout, commits between 09:00 and 18:00. Two fictitious public
 holidays, Monday 2026-09-14 and Monday 2026-10-12, declared in `docs/WORKING_CALENDAR.md`. A root commit
 that starts the project is made on the default branch (it imported the AGNOS toolkit until DEC-MTA-006);
 then three sessions on `feature/<TRI>` branches, each merged with a merge commit: BKG
 (2026-08-24 to 2026-09-18), NTF (2026-09-21 to 2026-10-02), CLI (2026-10-05 to 2026-10-23). Authors by
-role: requirements by `po`, ADRs by `arch`, plans and production code by `dev`, tests by `qa`, committed
-before the code they check. The session BKG contains a decision that changes in the middle of the session,
+role: requirements by `pm`, `client/design/` by `ux`, ADRs, plans, production code and tests by `tech`, the tests
+committed before the code they check. The session BKG contains a decision that changes in the middle of the session,
 so one ADR is shown as Superseded. The traceability is run on the demo's `process/` folder and the folders
 of its own source code.
 Fulfils RQ-DMO-011, RQ-DMO-012, RQ-DMO-014, RQ-DMO-015, RQ-DMO-016, RQ-DMO-008.
@@ -76,7 +78,7 @@ capability means extending the scenario and the content. A build on an unchanged
 Fulfils RQ-DMO-020, RQ-DMO-021, RQ-DMO-010.
 
 ### DEC-DMO-007: Two parallel sessions for the design system and the interface, and the engine keys they need
-Owner request of 2026-10-24 (RQ-DMO-022). The cast gains `rob-ux` (`rob-ux@agnos-demo.example`, role `ux`), active
+Owner request of 2026-10-24 (RQ-DMO-022). The cast gains the UX designer, `john-ux` (`john-ux@acme.example`, role `ux`, renamed by the owner on 2026-11-12), active
 on five days of October. Two sessions are added to the scenario after NTF: DSN (design system) on `feature/DSN`,
 forked after the NTF merge, and WEB (the booking interface) on `feature/WEB`, forked from the CLI session's typed
 client, which merges `feature/DSN` first and is merged into the default branch on 2026-10-23 after CLI. The replay

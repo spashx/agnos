@@ -3,7 +3,8 @@
 <!-- Motivated by: RQ-DMO-023, RQ-DMO-024, RQ-DMO-025, amended RQ-DMO-011 and RQ-DMO-014 (FTR-DMO-002); RQ-HST-005, RQ-HST-030 -->
 
 ## Status
-Accepted — approved by the owner on 2026-11-12 (owner request of the same day).
+Accepted — approved by the owner on 2026-11-12 (owner request of the same day); DEC-DMO-009 amended the same day for
+the team of four (RQ-DMO-011, RQ-DMO-023 amended).
 
 ## Context
 The demo's history (ADR-DMO-001) shows seven human identities and no agent, so the History view of the Performance
@@ -29,14 +30,15 @@ co-author, and `verify.ps1` rejects a name without a role suffix (RQ-DMO-011).
   The engine refuses `with` on a merge step, `with` naming a human, and an agent `by` on a step that adds a file.
 
 ### DEC-DMO-009: Who works with which agent
-- **Statement**: The scenario SHALL assign Claude Code as co-author to part of the commits of `omar-arch` (Claude
-  Opus 5.5), `nina-dev` (Claude Opus 5.5 or Claude Sonnet 5.5, Claude Haiku 5.5 on 1 or 2 small commits) and `rob-ux`
-  (Claude Sonnet 5.5), `Copilot SDK in VS Code/auto` to part of those of `paul-dev` and `john-qa`,
-  leave `linda-po`, `sara-qa` and every merge alone, and give `Copilot SDK in VS Code/auto` alone 3 to 6 small edits of
-  committed files.
-- **Rationale**: Each person keeps one habitual tool, as in a real team, which makes the History filters readable;
-  the proportions of RQ-DMO-023 hold with about half of the non-merge commits made together; `verify.ps1` gains one
-  check per RQ-DMO-023 to RQ-DMO-025 and leaves agent identities out of RQ-DMO-011 and RQ-DMO-014.
+- **Statement**: The scenario SHALL assign Claude Code as co-author to most commits of `andy-tech` (Claude Opus 5.5
+  or Claude Sonnet 5.5, Claude Haiku 5.5 on 1 or 2 small commits), `linda-pm` (Claude Opus 5.5) and `john-ux` (Claude
+  Sonnet 5.5), `Copilot SDK in VS Code/auto` to most commits of `sachin-tech`, leave every merge alone, and give
+  `Copilot SDK in VS Code/auto` alone 3 to 6 small edits of committed files (amended by the owner on 2026-11-12).
+- **Rationale**: Each person keeps one habitual tool, as in a real team, which makes the History filters readable,
+  and the two technical people show the two tools side by side; every person works mostly with an agent, as the owner
+  asked on 2026-11-12, so at least 60% of each one's commits and about two thirds of all non-merge commits are made
+  together (RQ-DMO-023); `verify.ps1` gains one check per RQ-DMO-023 to RQ-DMO-025 and leaves agent identities out of
+  RQ-DMO-011 and RQ-DMO-014.
 
 ## Consequences
 - The History view of the demo shows humans, agents and "together" marks, and its kind filter has something to filter.

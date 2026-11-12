@@ -4,8 +4,8 @@
 The history of the demo repository (FTR-DMO-001) shows several people working over about two months, with AI agents
 as co-authors of part of their commits or committing alone (RQ-DMO-023 to RQ-DMO-025, added by the owner on
 2026-11-12). The
-people are fictitious. Each one has a role (product owner, architect, developer, tester/QA, and a UX designer for
-the interface, amended by the owner on 2026-10-24) readable in
+people are fictitious, four of them at the company "Acme": each one has a role (product manager, UX designer, and two
+technical people for architecture, development and tests; amended by the owner on 2026-11-12) readable in
 their identity, so the history can be filtered by role. Dates follow human working time: no weekend, no
 public holiday, working hours. As the history is simulated, the public holidays MAY be fictitious but
 SHALL be declared in the demo.
@@ -21,27 +21,28 @@ SHALL be declared in the demo.
 ### RQ-DMO-011: Identities encode the role
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The demo history SHALL use at least 5 distinct identities named `<firstname>-<role>`, in
-  lowercase, where `<role>` is `po` (product owner), `arch` (architect), `dev` (developer), `qa` (tester) or
-  `ux` (UX designer, amended by the owner on 2026-10-24), with at least one identity per role among `po`, `arch`,
-  `dev` and `qa`, and at least two `dev`; the e-mail of each identity SHALL start with the same
-  `<firstname>-<role>`. The rule applies to human identities; an agent identity (RQ-DMO-025) is named as its tool
-  names it (amended by the owner on 2026-11-12).
-- **Rationale**: A fixed suffix lets anyone find the role of a person by filtering, with no other file.
+- **Statement**: The demo history SHALL use exactly 4 human identities named `<firstname>-<role>`, in lowercase,
+  where `<role>` is `pm` (product manager), `ux` (UX designer) or `tech` (architecture, development and tests), with
+  one `pm`, one `ux` and two `tech`; the e-mail of each identity SHALL be `<firstname>-<role>@acme.example` (amended
+  by the owner on 2026-11-12). The rule applies to human identities; an agent identity (RQ-DMO-025) is named as its
+  tool names it (amended by the owner on 2026-11-12).
+- **Rationale**: A fixed suffix lets anyone find the role of a person by filtering, with no other file; a small
+  team of one fictitious company reads as a real project.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo history
   - **When** `git log --format=%an` is listed without duplicates, the agent identities of RQ-DMO-025 left out
-  - **Then** every name matches `^[a-z]+-(po|arch|dev|qa|ux)$`
-  - **And** `git log --author=-qa` returns only commits of `qa` identities
+  - **Then** there are 4 names, each matching `^[a-z]+-(pm|ux|tech)$`, one `pm`, one `ux` and two `tech`
+  - **And** each e-mail is the name followed by `@acme.example`
+  - **And** `git log --author=-tech` returns only commits of `tech` identities
 - **Dependencies**: RQ-DMO-001
 
 ### RQ-DMO-012: Each role authors its own artifacts
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN an artifact is first committed, the demo history SHALL attribute it to the matching
-  role: features and requirements to `po`, ADRs to `arch`, plans and production code to `dev`, and unit
-  tests to `qa`; for each Tier M or L task, the commit of its tests SHALL precede the commit of its
+  role: features and requirements to `pm`, the design-system files of `client/design/` to `ux`, and ADRs,
+  plans, production code and unit tests to `tech` (amended by the owner on 2026-11-12); for each Tier M or L task, the commit of its tests SHALL precede the commit of its
   production code.
 - **Rationale**: The history then shows who does what and the test-first rule of the instructions.
 - **Priority**: Should
@@ -145,7 +146,8 @@ SHALL be declared in the demo.
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo history SHALL mix four kinds of non-merge commits: by a human alone, by a human with
   Claude Code as co-author, by a human with GitHub Copilot as co-author, and by an agent alone; of the non-merge
-  commits, those made together SHALL be 40% to 70%, those by a human alone at least 20%, Claude Code and GitHub
+  commits, those made together SHALL be 55% to 80%, those by a human alone at least 20%, each human identity SHALL
+  make at least 60% of its own non-merge commits with an agent (amended by the owner on 2026-11-12), Claude Code and GitHub
   Copilot SHALL each co-author at least 5 commits, Claude Code with three models (Claude Opus 5.5 and Claude Sonnet
   5.5 on at least 3 commits each, Claude Haiku 5.5 on 1 or 2), and the agent-alone commits SHALL be 3 to 6; every
   merge commit SHALL be by a human alone.
@@ -156,7 +158,8 @@ SHALL be declared in the demo.
   - **Given** the demo history
   - **When** `agnos-perf-center --history` runs on the demo
   - **Then** its summary line counts 4 agents (three Claude Code models and Copilot)
-  - **And** the non-merge commits marked "together" are 40% to 70%, "human" at least 20%, "agent" 3 to 6
+  - **And** the non-merge commits marked "together" are 55% to 80%, "human" at least 20%, "agent" 3 to 6
+  - **And** each human identity has at least 60% of its non-merge commits marked "together"
   - **And** Claude Code and GitHub Copilot each co-author at least 5 commits, Opus and Sonnet at least 3 each, Haiku
     1 or 2, and no merge commit has a co-author
 - **Dependencies**: RQ-DMO-011, RQ-HST-005, RQ-HST-030
