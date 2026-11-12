@@ -17,7 +17,7 @@ site = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(site)
 
 TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
-VIEWS = ("overview", "graph", "quality", "history", "delivery")
+VIEWS = ("matrix", "graph", "quality", "history", "delivery")
 EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PLACEHOLDER_SIZE = (1936, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
@@ -72,13 +72,13 @@ class TestTheBuiltPage(unittest.TestCase):
     def test_given_the_page_without_script_then_it_reads_complete_in_english(self):
         self.assertIsNone(site.SLOT.search(PAGE.split("<script>")[0]))
         self.assertIn('<html lang="en">', PAGE)
-        self.assertIn("Is what we asked for actually built?", PAGE)
+        self.assertIn("Is what was asked for really built?", PAGE)
 
     def test_given_the_page_then_french_holds_every_text(self):
         french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))
         self.assertEqual(set(french["html"]), set(site.ANY_SLOT.findall(TEMPLATE)))
         self.assertEqual(set(french["attr"]), {m.group("key") for m in site.ATTRIBUTE_SLOT.finditer(TEMPLATE)})
-        self.assertIn("construit ?", french["html"]["stop-overview.question"])
+        self.assertIn("construit ?", french["html"]["matrix.question"])
 
     def test_given_the_header_then_the_lockup_reads_agnos_and_its_tagline(self):
         brand = re.search(r'<a class="brand".*?</a>', PAGE, re.S).group(0)
@@ -91,12 +91,12 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertIn("letter-spacing:var(--s-tracking-tagline);color:var(--s-text-muted)", css)
 
     def test_given_the_page_then_its_elements_stand_in_order(self):
-        markers = ['class="notice"', 'class="bar"', 'id="top"', 'class="chain-card"', 'id="tour"', 'id="overview"',
+        markers = ['class="notice"', 'class="bar"', 'id="top"', 'class="chain-card"', 'id="tour"', 'id="matrix"',
                    'id="graph"', 'id="quality"', 'id="history"', 'id="delivery"', 'data-i18n="index-card.title"',
                    'data-i18n="design-card.title"', 'id="start"', 'class="steps"', 'class="foot"']
         positions = [PAGE.index(marker) for marker in markers]
         self.assertEqual(positions, sorted(positions))
-        self.assertIn("agent identities will be added", PAGE)
+        self.assertIn("can be traced through a requirement view", PAGE)
 
     def test_given_the_chain_then_it_shows_both_modes(self):
         chain = re.search(r'<div class="chain" data-mode="mixed">.*?<p class="chain-foot"', PAGE, re.S).group(0)
@@ -112,6 +112,7 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertEqual([src for _, src in shots], [f"screens/{view}.png" for view in VIEWS])
         self.assertTrue(all(href.startswith(site.DEMO_LINK) for href, _ in shots))
         self.assertIn(("demo/PERF-CENTER.html#RQ-BKG-003", "screens/graph.png"), shots)
+        self.assertIn(("demo/PERF-CENTER.html#view=matrix", "screens/matrix.png"), shots)   # RQ-WEB-011, RQ-TRC-121
         self.assertEqual(PAGE.count('<span class="shot-open">Open in the demo'), len(VIEWS))
         self.assertIn("@media (hover:none){.shot-open{opacity:1}}", PAGE)
 
@@ -232,10 +233,10 @@ class TestTheIndexAndGraph(unittest.TestCase):
 
 
 class TestTheExamples(unittest.TestCase):
-    """RQ-WEB-017: three examples under the Overview stop, enlarged on click."""
+    """RQ-WEB-017: three examples under the Matrix stop, enlarged on click."""
 
-    def test_given_the_overview_stop_then_three_examples_follow_its_screenshot(self):
-        stop = re.search(r'<section class="stop" id="overview">.*?</section>', PAGE, re.S).group(0)
+    def test_given_the_matrix_stop_then_three_examples_follow_its_screenshot(self):
+        stop = re.search(r'<section class="stop" id="matrix">.*?</section>', PAGE, re.S).group(0)
         examples = re.findall(r'<button type="button" class="example-open"[^>]*><img src="([^"]+)" alt="([^"]+)"', stop)
         self.assertEqual([src for src, _ in examples], [f"screens/{name}.png" for name in EXAMPLES])
         self.assertTrue(all(alt for _, alt in examples))

@@ -70,7 +70,7 @@ Les agents IA écrivent le code, ou bien plus.\
 *Vous gardez le contrôle.*
 
 ### text
-AGNOS est un processus léger, outillé, pour les équipe de développement AI-native (pods de quelques personnes ou solo). Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet, en tant réel grâce à l'application intégrée Agnos Performance Center.
+AGNOS est un processus léger, outillé, pour les équipes de développement AI-native (pods de quelques personnes ou solo). Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet, en temps réel grâce à l'application intégrée AGNOS Performance Center.
 
 ### cta-demo
 Ouvrir le Performance Center de démo
@@ -185,7 +185,7 @@ Tour d'horizon
 Le Performance Center, centre de contrôle de vos développements agentiques
 
 ### text
-Les cinq vue du Performance Center répondent au besoin fondamental de monitoring de vos développements.
+Les cinq vues du Performance Center répondent au besoin fondamental de monitoring de vos développements.
 Chaque exemple de vue ci-dessous est une capture du Performance Center sur Roombook, le projet de démonstration d'AGNOS. Cliquez sur l'une d'elles pour l'ouvrir, en direct, dans la démo.
 
 ## labels
@@ -199,7 +199,7 @@ Ce qui le rend possible
 ### open
 Ouvrir dans la démo
 
-## stop-overview
+## matrix
 
 ### view
 Matrix
@@ -208,10 +208,10 @@ Matrix
 Ce qui a été demandé est-il vraiment construit ?
 
 ### see
-La matrice de traçabilité de bout en bout, des capacité fonctionelles au code, sur une page unique, exportable directement.
+La matrice de traçabilité de bout en bout, des capacités fonctionnelles au code, sur une page unique, exportable directement.
 
 ### why
-Chaque élément du process est identifié de manière unique, de la capacité fonctionnelle au commit. la spécification et les tests, exprimés dans des syntaxes testables (EARS, Gherkin), réduisent au minimum l'interprétation agentique à l'implémentation.
+Chaque élément du process est identifié de manière unique, de la capacité fonctionnelle au commit. La spécification et les tests, exprimés dans des syntaxes testables (EARS, Gherkin), réduisent au minimum l'interprétation agentique à l'implémentation.
 
 ### tags
 - EARS
@@ -219,10 +219,10 @@ Chaque élément du process est identifié de manière unique, de la capacité f
 - Identifiants dans le code
 
 ### shot
-[![La vue Matrix du Performance Center sur Roombook](screens/matrix.png)](demo/PERF-CENTER.html)
+[![La vue Matrix du Performance Center sur Roombook](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
-Roombook : Matrice de traçabilité de bout en bout.
+Roombook : matrice de traçabilité de bout en bout.
 
 ## examples
 
@@ -250,7 +250,7 @@ Exemple agrandi
 ### close
 Fermer
 
-## stop-graph
+## graph
 
 ### view
 Graph
@@ -275,7 +275,7 @@ Une seule grammaire d'identifiants, écrite en commentaire dans les documents, l
 ### caption
 `RQ-BKG-003`, Double booking rejection, et tout ce qui la cite.
 
-## stop-quality
+## quality
 
 ### view
 Quality
@@ -284,7 +284,7 @@ Quality
 Peut-on se fier à la façon dont le processus a été appliqué ?
 
 ### see
-Des KPIs de A à E, calculée à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
+Des KPIs de A à E, calculés à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
 
 ### why
 Des portes que l'agent ne peut pas contourner. Une tâche ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, S, M ou L, proportionne le formalisme au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
@@ -300,7 +300,7 @@ Des portes que l'agent ne peut pas contourner. Une tâche ne démarre qu'une foi
 ### caption
 Le bulletin de Roombook, et les contrôles derrière sa note.
 
-## stop-history
+## history
 
 ### view
 History
@@ -322,12 +322,12 @@ Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et
 [![La vue History du Performance Center sur Roombook](screens/history.png)](demo/PERF-CENTER.html)
 
 ### caption
-Deux mois d'historique  de développement de l'application Roombook.
+Deux mois d'historique de développement de l'application Roombook.
 
 ### note
-Chaque commit, humain, agentique ou collaboratif est traceable par une vue exigence ou une vue implémentation.
+Chaque commit, humain, agentique ou collaboratif, est traçable par une vue exigence ou une vue implémentation.
 
-## stop-delivery
+## delivery
 
 ### view
 Delivery

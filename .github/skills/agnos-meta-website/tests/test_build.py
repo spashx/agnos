@@ -16,7 +16,7 @@ _spec = importlib.util.spec_from_file_location("agnos_meta_website", SKILL_DIR /
 site = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(site)
 
-VIEWS = ("overview", "graph", "quality", "history", "delivery", "example-requirement", "example-adr", "example-plan")
+VIEWS = ("matrix", "graph", "quality", "history", "delivery", "example-requirement", "example-adr", "example-plan")
 GIVEN_PAGE = b"<html>given demo page</html>"
 GIVEN_JSON = b'{"given": true}'
 GIVEN_SCRIPT = b"window.DATA = {};"
@@ -89,11 +89,11 @@ class TestTheScreenSize(Fixture):
     """RQ-WEB-019, DEC-WEB-007: an image at the capture ratio and at least 1291 px wide, or nothing is written."""
 
     def build_with_screen(self, width, height):
-        """(code, stdout, stderr, snapshot before) of a build whose overview.png has the given size."""
+        """(code, stdout, stderr, snapshot before) of a build whose matrix.png has the given size."""
         broken = self.root / "assets-screen"
         shutil.rmtree(broken, ignore_errors=True)
         shutil.copytree(site.ASSETS_DIR, broken)
-        (broken / "screens" / "overview.png").write_bytes(png_of_size(width, height))
+        (broken / "screens" / "matrix.png").write_bytes(png_of_size(width, height))
         before = self.snapshot()
         saved, site.ASSETS_DIR = site.ASSETS_DIR, broken
         try:
@@ -121,7 +121,7 @@ class TestTheScreenSize(Fixture):
                 code, out, err, before = self.build_with_screen(width, height)
                 # Then it fails naming the file, its size and the expected ratio, and writes nothing
                 self.assertEqual((code, out), (1, ""))
-                self.assertIn(f"overview.png: {width}x{height}", err)
+                self.assertIn(f"matrix.png: {width}x{height}", err)
                 self.assertIn("1291:720", err)
                 self.assertEqual(self.snapshot(), before)
 

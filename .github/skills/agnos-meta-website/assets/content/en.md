@@ -14,10 +14,10 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 ## page
 
 ### title
-AGNOS · Agentic efficiency by traceability
+AGNOS - Agentic efficiency by traceability
 
 ### description
-AGNOS, a lightweight engineering process for teams that build software with AI agents.
+AGNOS, a lightweight engineering process for AI-native development teams.
 
 ## notice
 
@@ -64,20 +64,20 @@ FR
 Engineering process for agentic AI
 
 ### title
-AI agents write the code.\
+AI agents write the code, or much more.\
 *You keep control.*
 
 ### text
-AGNOS is a lightweight process, with its tools, for teams that build software with AI agents. Requirements, decisions, tasks, code and commits carry the same identifiers: the work stays explainable, and the process can be measured on every project.
+AGNOS is a lightweight, tooled process for AI-native development teams (pods of a few people, or solo). Requirements, decisions, tasks, code and commits carry the same identifiers: the work stays explainable, and the process is measured on every project, in real time, with the built-in AGNOS Performance Center application.
 
 ### cta-demo
 Open the demo Performance Center
 
 ### cta-tour
-Take the tour
+The tour
 
 ### tools
-Works with Claude Code, GitHub Copilot and OpenAI Codex. Its artifacts are plain Markdown, versioned in git.
+Works with Claude Code and GitHub Copilot (Codex support coming soon). Its artifacts are in Markdown, versioned in git, to maximise operational efficiency.
 
 ## chain
 
@@ -88,7 +88,7 @@ One requirement, followed from need to commit
 Mixed
 
 ### mode-on
-On the loop throughout
+End-to-end supervision
 
 ### in-loop
 Human in the loop
@@ -100,10 +100,10 @@ The agent drafts; you decide and approve each step.
 Human on the loop
 
 ### on-loop-text
-The agent carries out the approved task; you supervise it, and step in when needed.
+The agent carries out the approved task; you supervise, and step in if needed.
 
 ### on-loop-draft-text
-Told to work in full autonomy, the agent drafts and takes the decisions; you supervise it, and step in when needed.
+Asked to work in full autonomy, the agent drafts and takes the decisions; you supervise, and step in if needed.
 
 ### approve-on
 Decisions delegated to the agent
@@ -112,19 +112,19 @@ Decisions delegated to the agent
 Requirement
 
 ### requirement-text
-What must be true, written to be tested
+The expression of the need, formalised to be testable
 
 ### decision
-Decision
+Architecture and decision
 
 ### decision-text
-Why this design, and what was rejected
+Why this design, and what was ruled out
 
 ### task
 Task
 
 ### task-text
-Sized by risk, approved before it starts
+Sized to the risk, approved before it starts
 
 ### approve
 You approve
@@ -145,10 +145,10 @@ Commit
 One per task, its identifiers checked by a script
 
 ### measure-text
-Measures the whole chain, on every project
+End-to-end supervision of the process, across the whole project
 
 ### foot
-Work runs in sessions: one functional area, one branch, ten tasks at most.
+Work is done in sessions: one functional area, one branch, ten tasks at most, for optimal context management
 
 ### supervision
 Supervision
@@ -180,10 +180,11 @@ Roombook
 The tour
 
 ### title
-Five views of the Performance Center, five questions a CIO asks
+The Performance Center, the control centre for your agentic development
 
 ### text
-Each view is a screenshot of the page AGNOS generated on Roombook, its demo project. Click one to open it, live, in the demo.
+The five views of the Performance Center meet the fundamental need to monitor your development.
+Each example view below is a screenshot of the Performance Center on Roombook, the AGNOS demo project. Click one of them to open it, live, in the demo.
 
 ## labels
 
@@ -196,47 +197,47 @@ What makes it possible
 ### open
 Open in the demo
 
-## stop-overview
+## matrix
 
 ### view
-Overview
+Matrix
 
 ### question
-Is what we asked for actually built?
+Is what was asked for really built?
 
 ### see
-For each functional area, the requirements that the code cites directly, only through a task or a decision, or not at all, with the grade of the whole project.
+The end-to-end traceability matrix, from functional capabilities to code, on a single page, directly exportable.
 
 ### why
-Requirements are written as testable sentences (EARS) with acceptance criteria (Gherkin). Every source file names, in a comment, the requirements it implements.
+Every element of the process is uniquely identified, from the functional capability to the commit. The specification and the tests, expressed in testable syntaxes (EARS, Gherkin), keep the agent's interpretation at implementation to a minimum.
 
 ### tags
 - EARS
 - Gherkin
-- IDs in the code
+- Identifiers in the code
 
 ### shot
-[![The Overview view of the Performance Center on Roombook](screens/overview.png)](demo/PERF-CENTER.html)
+[![The Matrix view of the Performance Center on Roombook](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
-Roombook: every requirement is cited by the code that implements it.
+Roombook: end-to-end traceability matrix.
 
 ## examples
 
 ### requirement
-![A requirement of Roombook, in EARS with its Gherkin criteria](screens/example-requirement.png)
+![A Roombook requirement, in EARS with its Gherkin criteria](screens/example-requirement.png)
 
 ### requirement-caption
 Requirement RQ-BKG-003
 
 ### adr
-![An architecture decision record of Roombook, with its diagram](screens/example-adr.png)
+![A Roombook architecture decision, with its diagram](screens/example-adr.png)
 
 ### adr-caption
 ADR-BKG-001 and its diagram
 
 ### plan
-![A plan of Roombook, with one of its tasks](screens/example-plan.png)
+![A Roombook plan, with one of its tasks](screens/example-plan.png)
 
 ### plan-caption
 PLAN-BKG-001 and TASK-BKG-003
@@ -247,7 +248,7 @@ Enlarged example
 ### close
 Close
 
-## stop-graph
+## graph
 
 ### view
 Graph
@@ -256,15 +257,15 @@ Graph
 Why does this code exist, and what would a change touch?
 
 ### see
-One requirement with everything linked to it: its feature, the decisions that shaped it, the tasks that delivered it, the files and functions that implement it.
+A requirement and everything attached to it: its feature, the decisions that shaped it, the tasks that delivered it, the files and functions that implement it.
 
 ### why
-A single identifier grammar, written as comments in documents, code, tests and commit messages. Each architecture decision has its own identifier, so the code cites the exact decision it applies.
+A single identifier grammar, written as comments in the documents, code, tests and commit messages. Each architecture decision has its own identifier: the code cites the exact decision it applies.
 
 ### tags
-- Decision records (ADR)
+- Architecture decisions (ADR)
 - One identifier grammar
-- IDs in comments
+- Identifiers in comments
 
 ### shot
 [![The Graph view of the Performance Center, centred on requirement RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
@@ -272,19 +273,19 @@ A single identifier grammar, written as comments in documents, code, tests and c
 ### caption
 `RQ-BKG-003`, Double booking rejection, and everything that cites it.
 
-## stop-quality
+## quality
 
 ### view
 Quality
 
 ### question
-Can we trust how the process was applied?
+Can we trust the way the process was applied?
 
 ### see
-A grade from A to E, computed from checks weighted by risk. Each finding points to the element to fix: on Roombook, functions that do not cite a requirement yet.
+KPIs from A to E, computed from risk-weighted checks. Each gap points to the element to fix: on Roombook, functions that do not cite a requirement yet.
 
 ### why
-Gates the agent cannot skip. A task starts only once approved (Definition of Ready) and closes only once its checklist passes (Definition of Done). Its tier, S, M or L, scales the ceremony to the risk of the change. A failing check gets one fix, then the agent stops and reports.
+Gates the agent cannot bypass. A task starts only once approved (Definition of Ready) and closes only once its checklist is passed (Definition of Done). Its tier, S, M or L, scales the formality to the risk of the change. A failing check is allowed one fix, then the agent stops and reports.
 
 ### tags
 - Definition of Ready
@@ -295,9 +296,9 @@ Gates the agent cannot skip. A task starts only once approved (Definition of Rea
 [![The Quality view of the Performance Center on Roombook](screens/quality.png)](demo/PERF-CENTER.html)
 
 ### caption
-The report card of Roombook, and the checks behind its grade.
+Roombook's report card, and the checks behind its grade.
 
-## stop-history
+## history
 
 ### view
 History
@@ -306,10 +307,10 @@ History
 Who changed what, and when?
 
 ### see
-Every change to a requirement, a decision, a file or a function, credited to its authors from git. Each identity is classed as a human or an AI agent, and each commit as human, agent, or both together.
+Every change to a requirement, a decision, a file or a function, credited to its authors from git. Each identity is classed as human or AI agent, and each commit as human, agent or both together.
 
 ### why
-One commit per task, made through a skill that writes the task and ADR identifiers into its message. Git stays the single system of record.
+One commit per task, made by a skill that writes the task and ADR identifiers into its message. Git remains the single system of record, independent of any infrastructure.
 
 ### tags
 - One commit per task
@@ -319,24 +320,24 @@ One commit per task, made through a skill that writes the task and ADR identifie
 [![The History view of the Performance Center on Roombook](screens/history.png)](demo/PERF-CENTER.html)
 
 ### caption
-Two months of Roombook's history.
+Two months of development history of the Roombook application.
 
 ### note
-Roombook's simulated team is human only for now: AI agent identities will be added to the demo.
+Every commit, whether human, agentic or collaborative, can be traced through a requirement view or an implementation view.
 
-## stop-delivery
+## delivery
 
 ### view
 Delivery
 
 ### question
-What was delivered, and is the process improving?
+What was delivered, and are we keeping potential agentic drift under control?
 
 ### see
 The tasks delivered over time, weighted by their tier, and the friction of each session: questions the agent had to ask, error recoveries, re-tiered tasks, discrepancies caught at verification.
 
 ### why
-Work runs in sessions of ten tasks at most, so the agent's context stays clear. Each session closes on its friction counters; when one is not zero, a self-improvement step proposes rules for the project, applied once approved and within a line budget.
+Work is done in sessions of ten tasks at most, for optimal use of the context. Each session closes on its friction counters; if one of them is not zero, a self-improvement step proposes rules for the project, applied once approved and within a defined budget.
 
 ### tags
 - Sessions
@@ -355,15 +356,15 @@ What Roombook delivered, period by period.
 Behind the views
 
 ### title
-Three more reasons it holds at scale
+Three more reasons why it holds at scale
 
 ## index-card
 
 ### title
-Built for agents: the index
+Designed for agents: the index
 
 ### text
-A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the lines it needs. It takes the next free identifier from it, so none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge. The index is rebuilt automatically, at session start and before every commit, by a deterministic skill, in about {{index.speed}} per 100 artifacts on Roombook.
+A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the useful lines. It takes the next free identifier from it: none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge. The index is recomputed automatically, at the start of every session and before every commit, by a deterministic skill, in about {{index.speed}} per 100 artifacts on Roombook.
 
 ### documents
 Process documents, {{index.documents}}
@@ -385,10 +386,10 @@ TASK-BKG-003|50-66|Done|Implement overlap rule
 ## id-card
 
 ### title
-Exact links, not resemblance
+Exact links, not resemblances
 
 ### text
-Every requirement, decision, task and function carries a unique identifier, and each element cites the ones it depends on, like a primary key and its foreign keys in a database. The agent follows exact links instead of guessing, by semantic closeness, which text relates to which. The same inputs give the same links: the agent's work becomes more deterministic, and verifiable.
+Every requirement, decision, task and function carries a unique identifier, and each element cites those it depends on, like a primary key and its foreign keys in a database. The agent therefore follows exact links instead of guessing, by semantic proximity, which text relates to what. The same inputs give the same links: the agent's work becomes more deterministic, and verifiable.
 
 ### foreign-key
 Foreign key
@@ -469,7 +470,7 @@ OverlapRule
 Interfaces under the same control
 
 ### text
-A project with a user interface defines its design system before its first screen, as a requirement and an architecture decision. Screens cite it, and the code reads every colour and size from a token. On Roombook, a test rejects any raw value.
+A project with an interface defines its design system before its first screen, as a requirement and an architecture decision. The screens cite it, and the code reads every colour and every size from a token. On Roombook, a test rejects any raw value.
 
 ### primary-name
 Primary
@@ -514,7 +515,7 @@ button.danger.background
 Cancel this reservation
 
 ### caption
-A button's background, from Roombook's tokens: `FTR-DSN-001` and `ADR-DSN-001`.
+A button's background, in Roombook's tokens: `FTR-DSN-001` and `ADR-DSN-001`.
 
 ## close
 
@@ -522,7 +523,7 @@ A button's background, from Roombook's tokens: `FTR-DSN-001` and `ADR-DSN-001`.
 See it on a real project
 
 ### text
-The demo page holds every view, every link and every commit of Roombook's two simulated months.
+The demo page contains all the views, all the links and all the commits of Roombook's two simulated months.
 
 ### address
 Generated by agnos-perf-center on Roombook, and published with this site.
@@ -539,13 +540,13 @@ Three steps to the first session
 Install the plugin
 
 ### step1-text
-One marketplace for Claude Code, GitHub Copilot and OpenAI Codex.
+A single marketplace for Claude Code, GitHub Copilot and OpenAI Codex.
 
 ### step2-title
 Add AGNOS to a project
 
 ### step2-text
-One call to `agnos-init`. Your own files stay as they are.
+One call to `agnos-init`. Your own files remain intact.
 
 ### step3-title
 Start a session
