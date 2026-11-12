@@ -305,7 +305,7 @@ Tag every task with a tier before starting. The tier determines which steps are 
 
 | Tier | Criteria | Tests required | ADR required | Plan required |
 |------|----------|:-:|:-:|:-:|
-| **S - Small** | Edits <= 5 lines, no new files, no new public API | No | No | Yes |
+| **S - Small** | Edits <= 5 lines, no new files, no new public API | No | No | No |
 | **M - Medium** | New method or class, new file, contained to one module | Yes | No | Yes |
 | **L - Large** | Cross-cutting change, new public API, or new dependency | Yes | Yes | Yes |
 

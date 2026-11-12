@@ -615,7 +615,6 @@ DEC-WEB-003|26-31||Content in `assets/content/`, images in `assets/screens/`, a 
 DEC-WEB-004|32-36||Screenshots, not redrawn views
 DEC-WEB-005|37-45||The site's design system extends the Performance Center's
 DEC-WEB-006|46-49||The build writes a folder; publishing stays with the owner
-@agnos-process/3.plan/CHECKPOINT-PLG-2026-11-01.md
 @agnos-process/3.plan/CHECKPOINT-PLG-2026-11-06.md
 @agnos-process/3.plan/PLAN-AGT-001-agent-entry-points.md
 PLAN-AGT-001|1-79||Agent entry points
