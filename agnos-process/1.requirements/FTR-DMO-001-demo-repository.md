@@ -240,3 +240,22 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **When** `build` is run twice
   - **Then** both runs end on the same HEAD commit ID
 - **Dependencies**: RQ-DMO-020, RQ-DMO-013
+
+### RQ-DMO-026: Function citation rate
+- **Category**: Non-Functional
+- **NFR Type**: Maintainability
+- **EARS Type**: Ubiquitous
+- **Statement**: The demo's source code SHALL make the "Functions traced" check of `agnos-perf-center --call-graph`
+  score at least 8.5 and less than 10.0, the functions left without a cited ID being only private helpers,
+  special methods or one-line accessors.
+- **Metric**: "Functions traced" score of the demo between 8.5 inclusive and 10.0 exclusive (score 3.0, 154
+  functions of 219 uncited, on 2026-11-12).
+- **Measurement Method**: `agnos-perf-center` on the demo with `--history --call-graph`, as `agnos-meta-demo verify`
+  runs it; the `functions-traced` check of `PERF-CENTER.json`.
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo rebuilt by `build`
+  - **When** `agnos-perf-center --call-graph` runs on it
+  - **Then** the "Functions traced" score is at least 8.5 and below 10.0
+  - **And** every function it lists as uncited is private, special or a one-line accessor
+- **Dependencies**: RQ-DMO-004, RQ-DMO-008, RQ-PLG-025

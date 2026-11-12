@@ -1,7 +1,9 @@
 # FTR-DMO-002: Simulated team and history
 
 ## Overview
-The history of the demo repository (FTR-DMO-001) shows several people working over about two months. The
+The history of the demo repository (FTR-DMO-001) shows several people working over about two months, with AI agents
+as co-authors of part of their commits or committing alone (RQ-DMO-023 to RQ-DMO-025, added by the owner on
+2026-11-12). The
 people are fictitious. Each one has a role (product owner, architect, developer, tester/QA, and a UX designer for
 the interface, amended by the owner on 2026-10-24) readable in
 their identity, so the history can be filtered by role. Dates follow human working time: no weekend, no
@@ -23,12 +25,13 @@ SHALL be declared in the demo.
   lowercase, where `<role>` is `po` (product owner), `arch` (architect), `dev` (developer), `qa` (tester) or
   `ux` (UX designer, amended by the owner on 2026-10-24), with at least one identity per role among `po`, `arch`,
   `dev` and `qa`, and at least two `dev`; the e-mail of each identity SHALL start with the same
-  `<firstname>-<role>`.
+  `<firstname>-<role>`. The rule applies to human identities; an agent identity (RQ-DMO-025) is named as its tool
+  names it (amended by the owner on 2026-11-12).
 - **Rationale**: A fixed suffix lets anyone find the role of a person by filtering, with no other file.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo history
-  - **When** `git log --format=%an` is listed without duplicates
+  - **When** `git log --format=%an` is listed without duplicates, the agent identities of RQ-DMO-025 left out
   - **Then** every name matches `^[a-z]+-(po|arch|dev|qa|ux)$`
   - **And** `git log --author=-qa` returns only commits of `qa` identities
 - **Dependencies**: RQ-DMO-001
@@ -66,8 +69,9 @@ SHALL be declared in the demo.
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The demo history SHALL span 56 to 64 days between its first and last commit, contain at
-  least 50 commits, and not show every identity on every working day: each identity SHALL commit on at
-  least 5 days and on no more than 80% of the working days of the period.
+  least 50 commits, and not show every identity on every working day: each human identity SHALL commit on at
+  least 5 days and on no more than 80% of the working days of the period (agent identities exempt, amended by the
+  owner on 2026-11-12).
 - **Rationale**: Real teams are not all active every day; a flat pattern looks generated.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
@@ -135,6 +139,63 @@ SHALL be declared in the demo.
   - **Then** every task commit message matches the format of the skill
   - **And** at least 3 `feature/<TRI>` branches are merged into the default branch
 - **Dependencies**: RQ-DMO-005
+
+### RQ-DMO-023: Contribution kinds in the history
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The demo history SHALL mix four kinds of non-merge commits: by a human alone, by a human with
+  Claude Code as co-author, by a human with GitHub Copilot as co-author, and by an agent alone; of the non-merge
+  commits, those made together SHALL be 40% to 70%, those by a human alone at least 20%, Claude Code and GitHub
+  Copilot SHALL each co-author at least 5 commits, Claude Code with three models (Claude Opus 5.5 and Claude Sonnet
+  5.5 on at least 3 commits each, Claude Haiku 5.5 on 1 or 2), and the agent-alone commits SHALL be 3 to 6; every
+  merge commit SHALL be by a human alone.
+- **Rationale**: On an AGNOS project humans and agents work side by side; the demo shows that collaboration,
+  as the History view of the Performance Center classes it (owner request of 2026-11-12).
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo history
+  - **When** `agnos-perf-center --history` runs on the demo
+  - **Then** its summary line counts 4 agents (three Claude Code models and Copilot)
+  - **And** the non-merge commits marked "together" are 40% to 70%, "human" at least 20%, "agent" 3 to 6
+  - **And** Claude Code and GitHub Copilot each co-author at least 5 commits, Opus and Sonnet at least 3 each, Haiku
+    1 or 2, and no merge commit has a co-author
+- **Dependencies**: RQ-DMO-011, RQ-HST-005, RQ-HST-030
+
+### RQ-DMO-024: Agent co-author trailers
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN a demo commit is made by a human with an agent, its message SHALL end with one single
+  `Co-Authored-By: <Harness>/<Model> <e-mail>` trailer in the format of RQ-HST-030, one of
+  `Claude Code/Claude Opus 5.5 <noreply@anthropic.com>`, `Claude Code/Claude Sonnet 5.5 <noreply@anthropic.com>`,
+  `Claude Code/Claude Haiku 5.5 <noreply@anthropic.com>` or
+  `Copilot SDK in VS Code/auto <223556219+Copilot@users.noreply.github.com>`, its subject keeping the format of
+  RQ-DMO-018.
+- **Rationale**: The demo shows the trailer that `commit-task` writes, the one the Performance Center reads.
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo history
+  - **When** the `Co-Authored-By` trailers of each commit are read
+  - **Then** no commit holds more than one, and each one is one of the four trailers of the statement
+  - **And** the subject of each commit holding one still matches the format of RQ-DMO-018
+- **Dependencies**: RQ-DMO-018, RQ-HST-030
+
+### RQ-DMO-025: Agent-only commits
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF a demo commit is made by an agent alone, THEN its author and committer SHALL be the agent
+  identity of RQ-DMO-024's Copilot trailer, named `<Harness>/<Model>` as `commit-task` names an agent (RQ-HST-030):
+  `Copilot SDK in VS Code/auto <223556219+Copilot@users.noreply.github.com>`; it SHALL hold no `Co-Authored-By`
+  trailer, it SHALL only change files already committed, and it SHALL NOT be a merge commit.
+- **Rationale**: An agent working alone on an assigned change is part of the collaboration; it must not take a
+  role's first authorship (RQ-DMO-012) nor merge a session.
+- **Priority**: Should
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo history
+  - **When** the commits whose author is `Copilot SDK in VS Code/auto` are read
+  - **Then** each has the same identity as committer, no trailer and one parent
+  - **And** `agnos-perf-center --history` merges that author and the Copilot co-author into one agent identity
+  - **And** each changes only paths that exist in its parent
+- **Dependencies**: RQ-DMO-012, RQ-DMO-013, RQ-DMO-023
 
 ---
 

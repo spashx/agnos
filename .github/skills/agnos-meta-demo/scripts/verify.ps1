@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
-  Checks the demo repository against the requirements RQ-DMO-001 to RQ-DMO-021.
+  Checks the demo repository against the requirements RQ-DMO-001 to RQ-DMO-026.
 .DESCRIPTION
-  RQ-DMO-020, RQ-DMO-019, RQ-DMO-008, RQ-DMO-001 / ADR-DMO-001 (DEC-DMO-005, DEC-DMO-006).
+  RQ-DMO-020, RQ-DMO-019, RQ-DMO-008, RQ-DMO-001 / ADR-DMO-001 (DEC-DMO-005, DEC-DMO-006);
+  RQ-DMO-023 to RQ-DMO-026 / ADR-DMO-002 (DEC-DMO-008, DEC-DMO-009).
   Prints one PASS or FAIL line per requirement and exits with 0 when all pass, 1 otherwise.
 .PARAMETER Demo         Folder of the demo repository (default: sibling of the toolkit).
 .PARAMETER Toolkit      Working tree of the AGNOS repository (default: the one holding this script).
@@ -44,6 +45,17 @@ $MIN_IDENTITIES = 5; $MIN_DEV = 2; $MIN_SESSIONS = 3; $MIN_HOLIDAYS = 2
 $LITERAL_REPEAT_LIMIT = 3; $LITERAL_MIN_LENGTH = 8
 $REBUILD_FOLDER_PREFIX = 'agnos-demo-verify-'
 $FULL_SCORE = '10.0'; $NO_SCORE = 'n/a'
+# RQ-DMO-023 to RQ-DMO-026 / ADR-DMO-002 (DEC-DMO-008, DEC-DMO-009)
+$AGENT_KIND = 'agent'
+$TRAILER_FORMAT = '%(trailers:key=Co-Authored-By,valueonly,separator=%x1d)'
+$TRAILER_SEPARATOR = [string][char]0x1d
+$CLAUDE_HARNESS = 'Claude Code/'; $COPILOT_HARNESS = 'Copilot SDK in VS Code/'
+$CLAUDE_OPUS = 'Claude Code/Claude Opus 5.5'; $CLAUDE_SONNET = 'Claude Code/Claude Sonnet 5.5'; $CLAUDE_HAIKU = 'Claude Code/Claude Haiku 5.5'
+$MIN_TOGETHER_RATIO = 0.4; $MAX_TOGETHER_RATIO = 0.7; $MIN_HUMAN_RATIO = 0.2
+$MIN_HARNESS_COMMITS = 5; $MIN_MAIN_MODEL_COMMITS = 3; $MIN_HAIKU_COMMITS = 1; $MAX_HAIKU_COMMITS = 2
+$MIN_AGENT_ONLY = 3; $MAX_AGENT_ONLY = 6; $EXPECTED_AGENTS = 4
+$MIN_FUNCTION_SCORE = 8.5; $MAX_FUNCTION_SCORE = 10.0; $FUNCTION_CHECK = 'functions-traced'
+$HISTORY_SUMMARY_PATTERN = 'history: (\d+) commits, (\d+) humans, (\d+) agents'
 $UI_ARTIFACTS = @('FTR-DSN-001', 'ADR-DSN-001', 'PLAN-DSN-001', 'FTR-WEB-001', 'ADR-WEB-001', 'PLAN-WEB-001')   # RQ-DMO-022
 $ROLE_BY_PATH = @(
   @{ Pattern = "^$PF/1\.requirements/FTR-"; Role = 'po' }
@@ -74,14 +86,19 @@ function Get-Tracked([string]$Repo) { return @(& git -C $Repo -c core.quotepath=
 function Show-Failures([string[]]$Problems) { return ($Problems | Select-Object -First 5) -join '; ' }
 
 # --- history of the demo -------------------------------------------------------------------------------
-$logFormat = (@('%H', '%P', '%an', '%ae', '%cn', '%ce', '%aI', '%cI', '%ct', '%s') -join '%x1f')
+$logFormat = (@('%H', '%P', '%an', '%ae', '%cn', '%ce', '%aI', '%cI', '%ct', '%s', $TRAILER_FORMAT) -join '%x1f')
 $commits = @(Demo-Git @('log', '--all', '--reverse', '--topo-order', "--format=$logFormat") | ForEach-Object {
   $f = $_ -split $FIELD_SEPARATOR
   [pscustomobject]@{ Hash = $f[0]; Parents = @($f[1] -split ' ' | Where-Object { $_ }); AuthorName = $f[2]; AuthorEmail = $f[3]
     CommitterName = $f[4]; CommitterEmail = $f[5]; AuthorDate = $f[6]; CommitterDate = $f[7]; Epoch = [long]$f[8]; Subject = $f[9]
+    CoAuthors = @($f[10] -split $TRAILER_SEPARATOR | Where-Object { $_ })                                  # RQ-DMO-024
     Day = [datetime]::ParseExact($f[6].Substring(0, 10), 'yyyy-MM-dd', $null); Time = $f[6].Substring(11, 5); Offset = $f[6].Substring(19) }
 })
 $plainCommits = @($commits | Where-Object { $_.Parents.Count -le 1 })
+# RQ-DMO-023 to RQ-DMO-025 / DEC-DMO-008: the agents are the scenario's identities of kind agent
+$agentNames = @($plan.identities.PSObject.Properties | Where-Object { $_.Value.kind -eq $AGENT_KIND } | ForEach-Object { $_.Name })
+$agentTrailers = @($plan.identities.PSObject.Properties | Where-Object { $_.Value.kind -eq $AGENT_KIND } | ForEach-Object { "$($_.Name) <$($_.Value.email)>" })
+$humanCommits = @($commits | Where-Object { $agentNames -notcontains $_.AuthorName })
 $holidayDates = @($plan.holidays | ForEach-Object { $_.date })
 $periodStart = [datetime]::ParseExact($plan.period.start, 'yyyy-MM-dd', $null)
 $periodEnd = [datetime]::ParseExact($plan.period.end, 'yyyy-MM-dd', $null)
@@ -187,9 +204,9 @@ if ($BaseRef) {
 Report 'RQ-DMO-010' (($remotes.Count -eq 0) -and $globalOk -and ($outside.Count -eq 0)) "remotes: $($remotes.Count); global git configuration unchanged by the build: $globalOk; toolkit files changed outside DMO and the skill: $($outside.Count)"
 
 # RQ-DMO-011
-$names = @($commits | ForEach-Object { $_.AuthorName; $_.CommitterName } | Sort-Object -Unique)
+$names = @($humanCommits | ForEach-Object { $_.AuthorName; $_.CommitterName } | Sort-Object -Unique)    # amended: agents exempt
 $badNames = @($names | Where-Object { $_ -notmatch $ROLE_PATTERN })
-$badMails = @($commits | Where-Object { -not $_.AuthorEmail.StartsWith($_.AuthorName + '@') })
+$badMails = @($humanCommits | Where-Object { -not $_.AuthorEmail.StartsWith($_.AuthorName + '@') })
 $byRole = $names | Where-Object { $_ -match $ROLE_PATTERN } | Group-Object { $_ -replace '^[a-z]+-', '' }
 $roleCount = @{}; foreach ($g in $byRole) { $roleCount[$g.Name] = $g.Count }
 $qaLog = @(Demo-Git @('log', '--all', '--author=-qa', '--format=%an') | Sort-Object -Unique)
@@ -222,7 +239,8 @@ Report 'RQ-DMO-013' ($dateProblems.Count -eq 0) "commits where author and commit
 
 # RQ-DMO-014
 $span = ($commits[-1].Day - $commits[0].Day).Days
-$activity = $commits | Group-Object AuthorName | ForEach-Object { [pscustomobject]@{ Name = $_.Name; Days = @($_.Group | ForEach-Object { $_.Day.ToString('yyyy-MM-dd') } | Sort-Object -Unique).Count } }
+# RQ-DMO-014 as amended: the agents are exempt from the activity rule
+$activity = $humanCommits | Group-Object AuthorName | ForEach-Object { [pscustomobject]@{ Name = $_.Name; Days = @($_.Group | ForEach-Object { $_.Day.ToString('yyyy-MM-dd') } | Sort-Object -Unique).Count } }
 $flat = @($activity | Where-Object { $_.Days -lt $MIN_ACTIVE_DAYS -or $_.Days -gt ($MAX_ACTIVE_RATIO * $workingDays.Count) })
 Report 'RQ-DMO-014' (($span -ge $MIN_SPAN_DAYS) -and ($span -le $MAX_SPAN_DAYS) -and ($commits.Count -ge $MIN_COMMITS) -and ($flat.Count -eq 0)) "span $span days, $($commits.Count) commits, active days: $(($activity | ForEach-Object { $_.Name + '=' + $_.Days }) -join ', ') of $($workingDays.Count) working days"
 
@@ -267,6 +285,55 @@ $future = @($commits | Where-Object { $_.Day -gt (Get-Date).Date })
 $epochByHash = @{}; foreach ($c in $commits) { $epochByHash[$c.Hash] = $c.Epoch }
 $olderThanParent = @($commits | Where-Object { $c = $_; @($c.Parents | Where-Object { $epochByHash[$_] -gt $c.Epoch }).Count -gt 0 })
 Report 'RQ-DMO-019' ($fsckOk -and ($future.Count -eq 0) -and ($olderThanParent.Count -eq 0)) "git fsck --strict ok: $fsckOk; commits in the future: $($future.Count); commits older than a parent: $($olderThanParent.Count)"
+
+# RQ-DMO-023 to RQ-DMO-026: one run of the Performance Center with the history and the call graph
+$historyDir = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + 'history-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $historyDir | Out-Null
+$historyOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --history --call-graph --out (Join-Path $historyDir 'trace.html') | Out-String)
+$historyJson = Join-Path $historyDir 'trace.json'
+$historyData = if (Test-Path -LiteralPath $historyJson) { [System.IO.File]::ReadAllText($historyJson) | ConvertFrom-Json } else { $null }
+Remove-Item -LiteralPath $historyDir -Recurse -Force
+
+# RQ-DMO-023: the four kinds of commits and their proportions
+$agentOnly = @($plainCommits | Where-Object { $agentNames -contains $_.AuthorName })
+$together = @($plainCommits | Where-Object { $_.CoAuthors.Count -gt 0 })
+$humanAlone = @($plainCommits | Where-Object { $agentNames -notcontains $_.AuthorName -and $_.CoAuthors.Count -eq 0 })
+$coAuthorNames = @($together | ForEach-Object { $_.CoAuthors } | ForEach-Object { ($_ -replace ' <[^>]*>$', '') })
+$claudeCount = @($coAuthorNames | Where-Object { $_.StartsWith($CLAUDE_HARNESS) }).Count
+$copilotCount = @($coAuthorNames | Where-Object { $_.StartsWith($COPILOT_HARNESS) }).Count
+$opusCount = @($coAuthorNames | Where-Object { $_ -eq $CLAUDE_OPUS }).Count
+$sonnetCount = @($coAuthorNames | Where-Object { $_ -eq $CLAUDE_SONNET }).Count
+$haikuCount = @($coAuthorNames | Where-Object { $_ -eq $CLAUDE_HAIKU }).Count
+$mergesWithCoAuthor = @($commits | Where-Object { $_.Parents.Count -gt 1 -and ($_.CoAuthors.Count -gt 0 -or $agentNames -contains $_.AuthorName) })
+$plainTotal = [math]::Max(1, $plainCommits.Count)
+$togetherRatio = $together.Count / $plainTotal; $humanRatio = $humanAlone.Count / $plainTotal
+$summary = [regex]::Match($historyOut, $HISTORY_SUMMARY_PATTERN)
+$agentsSeen = if ($summary.Success) { [int]$summary.Groups[3].Value } else { -1 }
+Report 'RQ-DMO-023' (($togetherRatio -ge $MIN_TOGETHER_RATIO) -and ($togetherRatio -le $MAX_TOGETHER_RATIO) -and ($humanRatio -ge $MIN_HUMAN_RATIO) -and ($claudeCount -ge $MIN_HARNESS_COMMITS) -and ($copilotCount -ge $MIN_HARNESS_COMMITS) -and ($opusCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($sonnetCount -ge $MIN_MAIN_MODEL_COMMITS) -and ($haikuCount -ge $MIN_HAIKU_COMMITS) -and ($haikuCount -le $MAX_HAIKU_COMMITS) -and ($agentOnly.Count -ge $MIN_AGENT_ONLY) -and ($agentOnly.Count -le $MAX_AGENT_ONLY) -and ($mergesWithCoAuthor.Count -eq 0) -and ($agentsSeen -eq $EXPECTED_AGENTS)) ("of {0} non-merge commits: together {1} ({2:P0}), human alone {3} ({4:P0}), agent alone {5}; Claude Code {6} (Opus {7}, Sonnet {8}, Haiku {9}), Copilot {10}; merges with an agent: {11}; agents counted by agnos-perf-center: {12}" -f $plainCommits.Count, $together.Count, $togetherRatio, $humanAlone.Count, $humanRatio, $agentOnly.Count, $claudeCount, $opusCount, $sonnetCount, $haikuCount, $copilotCount, $mergesWithCoAuthor.Count, $agentsSeen)
+
+# RQ-DMO-024: one trailer at most, one of the scenario's agents
+$manyTrailers = @($commits | Where-Object { $_.CoAuthors.Count -gt 1 })
+$unknownTrailers = @($commits | ForEach-Object { $_.CoAuthors } | Where-Object { $agentTrailers -notcontains $_ } | Sort-Object -Unique)
+Report 'RQ-DMO-024' (($manyTrailers.Count -eq 0) -and ($unknownTrailers.Count -eq 0)) "commits with more than one trailer: $($manyTrailers.Count); trailers not of a scenario agent: $(if ($unknownTrailers.Count) { $unknownTrailers -join ', ' } else { 'none' })"
+
+# RQ-DMO-025: an agent alone is its own committer, holds no trailer, has one parent and adds no file
+$agentProblems = New-Object System.Collections.ArrayList
+foreach ($c in @($commits | Where-Object { $agentNames -contains $_.AuthorName })) {
+  if ($c.CommitterName -ne $c.AuthorName -or $c.CommitterEmail -ne $c.AuthorEmail) { [void]$agentProblems.Add("$($c.Subject): committer differs") }
+  if ($c.CoAuthors.Count -gt 0) { [void]$agentProblems.Add("$($c.Subject): holds a trailer") }
+  if ($c.Parents.Count -ne 1) { [void]$agentProblems.Add("$($c.Subject): $($c.Parents.Count) parents") }
+  $addedFiles = @(Demo-Git @('diff-tree', '--no-commit-id', '-r', '--diff-filter=A', '--name-only', $c.Hash) | Where-Object { $_ })
+  if ($addedFiles.Count) { [void]$agentProblems.Add("$($c.Subject): adds $($addedFiles -join ', ')") }
+}
+$mergedAgents = @($historyData.history.people | Where-Object { $_.kind -eq $AGENT_KIND -and $_.commits -gt 0 -and $_.coCommits -gt 0 })
+$aloneAuthors = @($agentOnly | ForEach-Object { $_.AuthorName } | Sort-Object -Unique)
+Report 'RQ-DMO-025' (($agentProblems.Count -eq 0) -and ($mergedAgents.Count -ge $aloneAuthors.Count)) $(if ($agentProblems.Count) { Show-Failures $agentProblems } else { "$($agentOnly.Count) agent-only commits, each its own committer, without trailer, one parent, no file added; agents both author and co-author, merged into one identity: $($mergedAgents.Count)" })
+
+# RQ-DMO-026: the "Functions traced" check of the Performance Center
+$functionCheck = @($historyData.quality.checks | Where-Object { $_.key -eq $FUNCTION_CHECK }) | Select-Object -First 1
+$functionScore = if ($functionCheck) { [double]$functionCheck.score } else { -1 }
+$uncitedCount = if ($functionCheck) { @($functionCheck.findings).Count } else { -1 }
+Report 'RQ-DMO-026' (($functionScore -ge $MIN_FUNCTION_SCORE) -and ($functionScore -lt $MAX_FUNCTION_SCORE)) $(if ($functionCheck) { "Functions traced $functionScore ($uncitedCount uncited of $($functionCheck.population))" } else { 'no functions-traced check (call-graph packages missing?)' })
 
 # RQ-DMO-022: the design system and the interface made on it, the UX designer's work, the client's tests
 $indexText = if (Test-Path -LiteralPath (Join-Path $Demo "$AGNOS_FOLDER/$AGNOS_INDEX")) { [System.IO.File]::ReadAllText((Join-Path $Demo "$AGNOS_FOLDER/$AGNOS_INDEX")) } else { '' }

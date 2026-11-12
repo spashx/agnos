@@ -24,10 +24,11 @@ working days and hours only.
 |---|---|
 | `scripts/replay.ps1` | The engine: replays a scenario into a new git repository |
 | `scripts/build.ps1` | Runs the engine on this skill's scenario and content, records the build |
-| `scripts/verify.ps1` | One PASS/FAIL line per requirement <!-- RQ-DMO-001 to RQ-DMO-021 --> |
-| `assets/scenario.json` | Cast, calendar, and the ordered commits (date, time, identity, files) |
+| `scripts/verify.ps1` | One PASS/FAIL line per requirement <!-- RQ-DMO-001 to RQ-DMO-026 --> |
+| `assets/scenario.json` | Cast (humans and agents), calendar, and the ordered commits (date, time, identity, co-author, files) |
 | `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar, and `project/` for its git files, named so they do not apply here |
 | `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion <!-- RQ-MTA-001, RQ-MTA-002 --> |
+| `tests/test_replay_agents.py` | The tests of the agent identities and co-authors of the engine <!-- RQ-DMO-023 to RQ-DMO-025 --> |
 | `references/code-contract.md` | The contract given to the sub-agents that generate the code |
 
 ## Sub-commands
@@ -56,7 +57,7 @@ A build on an unchanged working tree always ends on the same HEAD commit ID.
 powershell -NoProfile -File .github/skills/agnos-meta-demo/scripts/verify.ps1 [-BaseRef <ref>] [-SkipRebuild]
 ```
 
-Checks the demo against its 21 requirements and prints `PASS` or `FAIL` for each (exit 1 if any fails).
+Checks the demo against its requirements and prints `PASS` or `FAIL` for each (exit 1 if any fails).
 It runs this repository's `agnos-index` and `agnos-perf-center` against the demo, so it doubles as a regression
 test of AGNOS. `-BaseRef` also checks that this repository changed only under `agnos-process/` and the skill
 folders since that ref. A failure is fixed in the scenario or the content, then the demo is rebuilt; the
@@ -80,3 +81,7 @@ demo's history is never edited by hand.
   exact marked lines present, tests pass (`python -m unittest discover -s tests -t .` in `service/`,
   `node --test "tests/*.test.ts"` in `client/`).
 - Verification outputs written in the plans are illustrative; the README says so.
+- Agents <!-- RQ-DMO-023 to RQ-DMO-025 / DEC-DMO-008 -->: an identity of `"kind": "agent"` is named `<Harness>/<Model>`
+  as `commit-task` names it, with its tool's e-mail. A step's `"with": "<agent>"` ends its message with that agent's
+  `Co-Authored-By` trailer; a step `by` an agent is a commit by the agent alone. The engine refuses `with` on a merge,
+  `with` naming a human, and an agent alone that merges, has a co-author, adds a file or runs `init`.
