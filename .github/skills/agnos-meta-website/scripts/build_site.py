@@ -16,6 +16,7 @@ import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -65,6 +66,14 @@ SPEED_ITEMS = 100
 SPEED_FORMAT = "{:.1f}"
 SECONDS = {"en": " s", "fr": NBSP + "s"}
 PERCENT = 100
+
+# RQ-WEB-019, DEC-WEB-007: the capture ratio of the screens and its tolerance
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+PNG_HEADER = struct.Struct(">II")        # width, height: the first 8 bytes of the IHDR chunk
+PNG_HEADER_OFFSET = len(PNG_SIGNATURE) + 8   # after the signature, the chunk length and its type
+SHOT_WIDTH = 1291
+SHOT_HEIGHT = 720
+SHOT_TOLERANCE = 0.005
 
 # RQ-WEB-006: French typography
 APOSTROPHE = "'"
@@ -558,9 +567,33 @@ def generated_demo_page(demo, errors):
         return {path.name: path.read_bytes() for path in Path(folder).iterdir() if path.is_file()}
 
 
-def screen_files(assets):
-    """{name: bytes} of the images of the assets. RQ-WEB-003, RQ-WEB-012"""
-    return {path.name: path.read_bytes() for path in sorted((Path(assets) / SCREENS).iterdir()) if path.is_file()}
+def png_size(data):
+    """(width, height) of a PNG read from its IHDR chunk, or None when the data is no PNG. RQ-WEB-019, DEC-WEB-007"""
+    if not data.startswith(PNG_SIGNATURE) or len(data) < PNG_HEADER_OFFSET + PNG_HEADER.size:
+        return None
+    return PNG_HEADER.unpack_from(data, PNG_HEADER_OFFSET)
+
+
+def screen_size_error(name, data):
+    """The error of an image that is not at the capture ratio or is too narrow, or None. RQ-WEB-019, DEC-WEB-007"""
+    size = png_size(data)
+    expected = f"{SHOT_WIDTH}:{SHOT_HEIGHT}"
+    if size is None:
+        return f"screens/{name}: not a PNG image, expected ratio {expected}"
+    width, height = size
+    if height == 0 or abs(width / height - SHOT_WIDTH / SHOT_HEIGHT) > SHOT_TOLERANCE * SHOT_WIDTH / SHOT_HEIGHT:
+        return f"screens/{name}: {width}x{height} is not at the ratio {expected} (tolerance {SHOT_TOLERANCE:.1%})"
+    if width < SHOT_WIDTH:
+        return f"screens/{name}: {width}x{height} is narrower than {SHOT_WIDTH} px (ratio {expected})"
+    return None
+
+
+def screen_files(assets, errors):
+    """{name: bytes} of the images of the assets, each checked at the capture ratio. RQ-WEB-003, RQ-WEB-012,
+    RQ-WEB-019, DEC-WEB-007"""
+    files = {path.name: path.read_bytes() for path in sorted((Path(assets) / SCREENS).iterdir()) if path.is_file()}
+    errors.extend(error for error in (screen_size_error(name, data) for name, data in files.items()) if error)
+    return files
 
 
 def write_site(out, page, screens, demo_files):
@@ -593,12 +626,13 @@ def main(argv=None):
         demo_files = given_demo_page(args.demo_page, errors)
     elif not errors:
         demo_files = generated_demo_page(args.demo, errors)
+    screens = screen_files(ASSETS_DIR, errors)
     if result is None or errors:
         for error in errors:
             print(REPORT + error, file=sys.stderr)
         return 1
     page, summary = result
-    write_site(args.out, page, screen_files(ASSETS_DIR), demo_files)
+    write_site(args.out, page, screens, demo_files)
     origin = DEMO_COPIED if args.demo_page else DEMO_GENERATED
     print(f"{REPORT}{summary}, demo page {origin}; {args.out} written")
     return 0

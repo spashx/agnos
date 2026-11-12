@@ -1,7 +1,7 @@
 # ADR-WEB-001: A Maintainer Skill That Assembles the Site From Markdown, Images and the Demo Page
 
 ## Status
-Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions.
+Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions. DEC-WEB-007 approved by the owner on 2026-11-12 for RQ-WEB-019.
 
 ## Context
 The presentation website must follow AGNOS's evolutions, in English and French, with visuals continuous with the Performance Center.
@@ -46,6 +46,12 @@ RQ-WEB-008, RQ-WEB-014, RQ-WEB-015.
 ### DEC-WEB-006: The build writes a folder; publishing stays with the owner
 `--out` is typically the owner's working copy of `spashx/agnos.site`. The build replaces `index.html`, `screens/` and `demo/` there and
 touches nothing else; it never commits nor pushes. Fulfils RQ-WEB-001, RQ-WEB-013.
+
+### DEC-WEB-007: A ratio token for the screenshot frames, checked at build
+Added on 2026-11-12 for RQ-WEB-019. The site's `assets/tokens.json` gains `web.ratio-shot`, `1291 / 720`, consumed by the tour and
+example frames in place of the literal `16/10`. `build_site.py` reads each PNG's width and height from its `IHDR` header (standard
+library), and fails when the ratio is off by more than 0.5% or the width is below 1291 px; the placeholders of DEC-WEB-004 are
+rewritten at 1936 × 1080. Fulfils RQ-WEB-019, RQ-WEB-012.
 
 ## Consequences
 - The owner edits text and images in `assets/` and rebuilds; no page code to touch.

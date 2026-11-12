@@ -20,7 +20,7 @@ TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
 VIEWS = ("overview", "graph", "quality", "history", "delivery")
 EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-SCREEN_RATIO = 16 / 10
+PLACEHOLDER_SIZE = (1936, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
 RGB_COLOUR_TYPE = 2
 FONT_HOSTS = ("https://fonts.googleapis.com", "https://fonts.gstatic.com")
 RAW_VALUE = re.compile(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|em|rem|vw|vh|s|ms)\b|"
@@ -273,13 +273,28 @@ def png_pixels(path):
     return header[0], header[1], header[3], zlib.decompress(idat)
 
 
+class TestTheFrames(unittest.TestCase):
+    """RQ-WEB-019, DEC-WEB-007: every image framed at the capture ratio through a design-system token."""
+
+    def test_given_the_template_when_framing_images_then_the_ratio_is_the_token_and_no_16_10_remains(self):
+        """RQ-WEB-019, DEC-WEB-007."""
+        # Given the template
+        # When looking for the aspect ratio of the frames
+        ratios = re.findall(r"aspect-ratio:([^;}]+)", TEMPLATE)
+        # Then each one is the token, and 16/10 is gone
+        self.assertTrue(ratios)
+        self.assertEqual(set(ratios), {"var(--s-web-ratio-shot)"})
+        self.assertNotIn("16/10", TEMPLATE)
+        self.assertIn("--s-web-ratio-shot: 1291 / 720;", PAGE)
+
+
 class TestThePlaceholders(unittest.TestCase):
-    """RQ-WEB-012: one single-colour PNG per view, at 16:10."""
+    """RQ-WEB-012, RQ-WEB-019: one single-colour PNG per view, 1936x1080 (the capture ratio)."""
 
     def test_given_the_assets_then_each_view_has_a_single_colour_placeholder(self):
         for view in VIEWS + EXAMPLES:
             width, height, colour_type, rows = png_pixels(site.ASSETS_DIR / "screens" / f"{view}.png")
-            self.assertAlmostEqual(width / height, SCREEN_RATIO, msg=view)
+            self.assertEqual((width, height), PLACEHOLDER_SIZE, view)
             self.assertEqual(colour_type, RGB_COLOUR_TYPE, view)
             row = 1 + 3 * width
             first = rows[1:4]

@@ -112,7 +112,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* screenshots: the real views, a click opens the demo (RQ-WEB-011, DEC-WEB-004) */
 .shot{margin:0}
 .shot-link{display:block;position:relative;border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-10);overflow:hidden;background:var(--s-surface-raised);color:inherit;text-decoration:none;box-shadow:var(--s-web-shadow-shot)}
-.shot-link img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
+.shot-link img{display:block;width:100%;height:auto;aspect-ratio:var(--s-web-ratio-shot);object-fit:cover}
 .shot-open{position:absolute;right:var(--s-web-space-14);bottom:var(--s-web-space-14);background:var(--s-text);color:var(--s-surface-subtle);font-size:var(--s-web-text-13);font-weight:var(--s-weight-strong);padding:var(--s-web-space-5) var(--s-web-space-12);border-radius:var(--s-web-radius-pill);opacity:0;transition:opacity var(--s-web-duration-fast)}
 .shot-link:hover .shot-open,.shot-link:focus-visible .shot-open{opacity:1}
 @media (hover:none){.shot-open{opacity:1}}
@@ -182,7 +182,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .examples{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-web-space-20)}
 .example{margin:0}
 .example-open{display:block;width:100%;padding:0;border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-8);overflow:hidden;background:var(--s-surface-raised);cursor:zoom-in;box-shadow:var(--s-web-shadow-shot)}
-.example-open img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
+.example-open img{display:block;width:100%;height:auto;aspect-ratio:var(--s-web-ratio-shot);object-fit:cover}
 .example figcaption{margin-top:var(--s-web-space-8);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 .zoom{padding:0;border:none;border-radius:var(--s-web-radius-10);background:var(--s-surface-raised);max-width:var(--s-web-size-zoom-width);max-height:var(--s-web-size-zoom-height);overflow:hidden}
 .zoom::backdrop{background:var(--s-web-zoom-backdrop)}

@@ -166,10 +166,11 @@ separate Performance Center feature: today its address selects an element only, 
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: `assets/screens/` SHALL hold one PNG per tour view, named after it (`overview.png`, `graph.png`, `quality.png`,
-  `history.png`, `delivery.png`), filled with a single colour at the 16:10 ratio, which the owner replaces by a screenshot of the same name.
+  `history.png`, `delivery.png`), filled with a single colour at the screenshot ratio of RQ-WEB-019 and 1936 × 1080 px (16:10 until
+  amended by the owner on 2026-11-12), which the owner replaces by a screenshot of the same name.
 - **Rationale**: the page is complete and checkable before the screenshots exist (owner request of 2026-11-08).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG of one colour at 16:10; Given one replaced by
+- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG of one colour at 1936 × 1080; Given one replaced by
   another PNG, When `build` runs, Then the site shows it with no other change.
 - **Dependencies**: RQ-WEB-003
 
@@ -202,6 +203,20 @@ separate Performance Center feature: today its address selects an element only, 
   that consumes them and a button rendered in that style, in the demo's colours. <!-- amended by TASK-WEB-009, TASK-WEB-010 and
   TASK-WEB-011 (owner, 2026-11-08): blocks top to bottom, button styles, graph, two styles -->
 - **Dependencies**: RQ-WEB-003, RQ-WEB-009, RQ-WEB-015
+
+### RQ-WEB-019: Screenshot ratio check
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: The page SHALL frame every image of `assets/screens/` at the ratio 1291:720 of the owner's screen captures
+  (2582 × 1440), given by a token of the site's design system; IF an image's ratio differs from it by more than 0.5% or its width is
+  below 1291 px, THEN `build` SHALL fail naming the file, its size and the expected ratio.
+- **Rationale**: a capture framed at another ratio is cropped; the owner reduces captures to any size of that ratio (owner request
+  of 2026-11-12).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the template, Then every screenshot and example frame takes its ratio from the token; Given images
+  of 1291 × 720, 1936 × 1080 and 2582 × 1440, When `build` runs, Then it succeeds; Given an image of 1600 × 1000 or of 1000 × 558,
+  When `build` runs, Then it fails naming that file and writes nothing.
+- **Dependencies**: RQ-WEB-003, RQ-WEB-012, RQ-WEB-015
 
 ---
 
