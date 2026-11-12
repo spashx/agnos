@@ -4574,6 +4574,16 @@
     return isKey(raw) ? raw : null;
   }
 
+  // TASK-TRC-108: RQ-TRC-121 (DEC-TRC-066): "#view=<name>" names a tab the page shows; no list of names, so a new view is linkable
+  const VIEW_FRAGMENT = "view=";
+  function hashView() {
+    const raw = decodeURIComponent(location.hash.slice(1));
+    if (!raw.startsWith(VIEW_FRAGMENT)) return null;
+    const name = raw.slice(VIEW_FRAGMENT.length);
+    const tab = [...document.querySelectorAll(".tab")].find((candidate) => candidate.dataset.view === name);
+    return tab && !tab.hidden ? name : null;
+  }
+
   function select(key, options) {
     if (!isKey(key)) return;
     const fromHistory = options?.fromHistory;
@@ -4622,6 +4632,8 @@
   });
 
   function followHash() {
+    const view = hashView();   // RQ-TRC-121
+    if (view) { showView(view); return; }
     const key = hashKey();
     if (key) select(key, { fromHistory: true });
   }
@@ -4732,6 +4744,8 @@
 
   // ---- start --------------------------------------------------------------------------------------------------
   function openInitialView() {
+    const view = hashView();   // RQ-TRC-121: a named view first, else the element of RQ-TRC-016, else the default view
+    if (view) { showView(view); return; }
     const initial = hashKey();
     if (initial) { select(initial, { fromHistory: true }); showView("graph"); } else showView("overview");
   }

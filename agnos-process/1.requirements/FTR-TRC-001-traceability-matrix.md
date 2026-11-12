@@ -225,6 +225,20 @@ ADR-TRC-003).
 - **Acceptance Criteria**: Given `PERF-CENTER.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012
 
+### RQ-TRC-121: Deep link to a view
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the page opens with, or its URL fragment changes to, `#view=<name>`, the page SHALL show the view whose tab
+  has that name, any tab the page shows being accepted with no list of names in the code; IF no shown tab has that name, THEN
+  the page SHALL open on its default view as it does with no fragment.
+- **Rationale**: a presentation or a message can send its reader straight to one view, such as the matrix, and a view added
+  later is linkable as is (owner request of 2026-11-12).
+- **Priority**: Should
+- **Acceptance Criteria**: Given `PERF-CENTER.html#view=matrix`, When it is opened, Then the Matrix tab is selected and its view
+  shown; Given each tab the page shows, Then `#view=<its name>` opens it; Given `#view=history` on a page built without
+  `--history`, or `#view=unknown`, Then the Overview opens; Given `#RQ-X-002`, Then RQ-TRC-016 applies unchanged.
+- **Dependencies**: RQ-TRC-016
+
 ### RQ-TRC-017: Skill procedure
 - **Category**: Functional
 - **EARS Type**: Ubiquitous

@@ -475,6 +475,34 @@ class PageViewsTest(unittest.TestCase):
         import re
         self.assertEqual([], re.findall(r">\s*(?:null|undefined)\s*<", dom))
 
+    # TASK-TRC-108: RQ-TRC-121 (DEC-TRC-066), the view named in the fragment
+    TAB_TAG = re.compile(r'<button class="tab"[^>]*>')
+    VIEW_OF_TAB = re.compile(r'data-view="([\w-]+)"')
+
+    def opened_view(self, dom):
+        """The data-view of the selected tab, and whether its section is shown. RQ-TRC-121"""
+        selected = [self.VIEW_OF_TAB.search(tag).group(1) for tag in self.TAB_TAG.findall(dom) if 'aria-selected="true"' in tag]
+        self.assertEqual(1, len(selected), selected)
+        section = re.search(rf'<section class="view[^"]*" id="view-{selected[0]}"[^>]*>', dom).group(0)
+        return selected[0], " hidden" not in section
+
+    def test_RQ_TRC_121_given_view_matrix_in_the_fragment_when_the_page_opens_then_the_matrix_is_shown(self):
+        dom = rendered_dom(self.path, "#view=matrix")
+        self.assertIn('data-ready="true"', dom)
+        self.assertEqual(("matrix", True), self.opened_view(dom))
+
+    def test_RQ_TRC_121_given_each_shown_tab_when_its_view_is_in_the_fragment_then_it_opens(self):
+        shown = [self.VIEW_OF_TAB.search(tag).group(1) for tag in self.TAB_TAG.findall(rendered_dom(self.path)) if " hidden" not in tag]
+        self.assertGreaterEqual(len(shown), 4, shown)
+        for view in shown:
+            with self.subTest(view=view):
+                self.assertEqual((view, True), self.opened_view(rendered_dom(self.path, f"#view={view}")))
+
+    def test_RQ_TRC_121_given_a_hidden_or_unknown_view_when_the_page_opens_then_the_overview_opens(self):
+        for fragment in ("#view=history", "#view=unknown", "#view="):
+            with self.subTest(fragment=fragment):
+                self.assertEqual(("overview", True), self.opened_view(rendered_dom(self.path, fragment)))
+
     def test_RQ_TRC_015_given_the_fixture_when_the_page_opens_then_the_overview_shows_its_coverage(self):
         dom = rendered_dom(self.path)
         self.assertIn('<span class="kpi-value">20 %</span>', dom)

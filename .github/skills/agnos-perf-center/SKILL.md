@@ -27,7 +27,9 @@ project. Run it; do not read the scripts. `<skill-folder>` is the folder holding
 | `--history-since <date or duration>`, `--history-depth <n>` | Limit the history read (`6.months`, `2026-01-01`); only with `--history` |
 
 **Outputs:** the page, `<page>.json` and `<page>.data.js` beside it: generated, never edit them; the project decides whether to commit or ignore
-them; share the three together. The page loads its libraries from cdnjs, so it needs the network once.
+them; share the three together. The page loads its libraries from cdnjs, so it needs the network once. A link can open it
+on an element, `<page>#RQ-XXX-001`, or on a view, `<page>#view=<tab>` (`matrix`, `graph`, `quality`…, any tab the page shows).
+<!-- RQ-TRC-016, RQ-TRC-121 / DEC-TRC-066 -->
 
 **Exit codes:**
 - `0`: written. The last line reads `agnos-perf-center: <n> elements, <n> files; RQ <n>: covered <n>, indirect <n>, uncovered <n>;
