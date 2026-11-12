@@ -16,10 +16,10 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 ## page
 
 ### title
-AGNOS · Agentic efficiency by traceability
+AGNOS - Agentic efficiency by traceability
 
 ### description
-AGNOS, un processus d'ingénierie léger pour les équipes qui développent avec des agents IA.
+AGNOS, un processus d'ingénierie léger pour les équipes de développement AI-native.
 
 ## notice
 
@@ -40,7 +40,7 @@ Agentic efficiency by traceability
 ## nav
 
 ### tour
-La visite
+Tour d'horizon
 
 ### start
 Démarrer
@@ -66,20 +66,20 @@ FR
 Processus d'ingénierie pour l'IA agentique
 
 ### title
-Les agents IA écrivent le code.\
+Les agents IA écrivent le code, ou bien plus.\
 *Vous gardez le contrôle.*
 
 ### text
-AGNOS est un processus léger, outillé, pour les équipes qui développent avec des agents IA. Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet.
+AGNOS est un processus léger, outillé, pour les équipe de développement AI-native (pods de quelques personnes ou solo). Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet, en tant réel grâce à l'application intégrée Agnos Performance Center.
 
 ### cta-demo
 Ouvrir le Performance Center de démo
 
 ### cta-tour
-Suivre la visite
+Tour d'horizon
 
 ### tools
-Fonctionne avec Claude Code, GitHub Copilot et OpenAI Codex. Ses artefacts sont en Markdown, versionnés dans git.
+Fonctionne avec Claude Code, GitHub Copilot (support Codex à venir). Ses artefacts sont en Markdown, versionnés dans git, afin de maximiser l'efficacité opérationnelle.
 
 ## chain
 
@@ -114,10 +114,10 @@ Décisions déléguées à l'agent
 Exigence
 
 ### requirement-text
-Ce qui doit être vrai, écrit pour être testé
+L'expression du besoin, formalisé pour être testable
 
 ### decision
-Décision
+Architecture et décision
 
 ### decision-text
 Pourquoi cette conception, et ce qui a été écarté
@@ -147,10 +147,10 @@ Commit
 Un par tâche, ses identifiants vérifiés par un script
 
 ### measure-text
-Mesure toute la chaîne, sur chaque projet
+Supervision end-to-end du process, sur l'ensemble du projet
 
 ### foot
-Le travail se fait en sessions : un domaine fonctionnel, une branche, dix tâches au plus.
+Le travail se fait en sessions : un domaine fonctionnel, une branche, dix tâches au plus, pour une gestion optimale du contexte
 
 ### supervision
 Supervision
@@ -179,13 +179,14 @@ Roombook
 ## tour
 
 ### eyebrow
-La visite
+Tour d'horizon
 
 ### title
-Cinq vues du Performance Center, cinq questions que se pose une DSI
+Le Performance Center, centre de contrôle de vos développements agentiques
 
 ### text
-Chaque vue est une capture de la page générée par AGNOS sur Roombook, son projet de démonstration. Cliquez sur l'une d'elles pour l'ouvrir, en direct, dans la démo.
+Les cinq vue du Performance Center répondent au besoin fondamental de monitoring de vos développements.
+Chaque exemple de vue ci-dessous est une capture du Performance Center sur Roombook, le projet de démonstration d'AGNOS. Cliquez sur l'une d'elles pour l'ouvrir, en direct, dans la démo.
 
 ## labels
 
@@ -201,16 +202,16 @@ Ouvrir dans la démo
 ## stop-overview
 
 ### view
-Overview
+Matrix
 
 ### question
 Ce qui a été demandé est-il vraiment construit ?
 
 ### see
-Pour chaque domaine fonctionnel, les exigences que le code cite directement, seulement via une tâche ou une décision, ou pas du tout, avec la note de l'ensemble du projet.
+La matrice de traçabilité de bout en bout, des capacité fonctionelles au code, sur une page unique, exportable directement.
 
 ### why
-Les exigences sont écrites comme des phrases testables (EARS), avec des critères d'acceptation (Gherkin). Chaque fichier source nomme, en commentaire, les exigences qu'il implémente.
+Chaque élément du process est identifié de manière unique, de la capacité fonctionnelle au commit. la spécification et les tests, exprimés dans des syntaxes testables (EARS, Gherkin), réduisent au minimum l'interprétation agentique à l'implémentation.
 
 ### tags
 - EARS
@@ -218,10 +219,10 @@ Les exigences sont écrites comme des phrases testables (EARS), avec des critèr
 - Identifiants dans le code
 
 ### shot
-[![La vue Overview du Performance Center sur Roombook](screens/overview.png)](demo/PERF-CENTER.html)
+[![La vue Matrix du Performance Center sur Roombook](screens/matrix.png)](demo/PERF-CENTER.html)
 
 ### caption
-Roombook : chaque exigence est citée par le code qui l'implémente.
+Roombook : Matrice de traçabilité de bout en bout.
 
 ## examples
 
@@ -283,7 +284,7 @@ Quality
 Peut-on se fier à la façon dont le processus a été appliqué ?
 
 ### see
-Une note de A à E, calculée à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
+Des KPIs de A à E, calculée à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
 
 ### why
 Des portes que l'agent ne peut pas contourner. Une tâche ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, S, M ou L, proportionne le formalisme au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
@@ -311,7 +312,7 @@ Qui a modifié quoi, et quand ?
 Chaque modification d'une exigence, d'une décision, d'un fichier ou d'une fonction, attribuée à ses auteurs depuis git. Chaque identité est classée humaine ou agent IA, et chaque commit humain, agent ou les deux ensemble.
 
 ### why
-Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message. Git reste l'unique système de référence.
+Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message. Git reste l'unique système de référence, indépendant de toute infrastructure.
 
 ### tags
 - Un commit par tâche
@@ -321,10 +322,10 @@ Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et
 [![La vue History du Performance Center sur Roombook](screens/history.png)](demo/PERF-CENTER.html)
 
 ### caption
-Deux mois d'historique de Roombook.
+Deux mois d'historique  de développement de l'application Roombook.
 
 ### note
-L'équipe simulée de Roombook n'est pour l'instant qu'humaine : des identités d'agent IA seront ajoutées à la démo.
+Chaque commit, humain, agentique ou collaboratif est traceable par une vue exigence ou une vue implémentation.
 
 ## stop-delivery
 
@@ -332,13 +333,13 @@ L'équipe simulée de Roombook n'est pour l'instant qu'humaine : des identités 
 Delivery
 
 ### question
-Qu'est-ce qui a été livré, et le processus s'améliore-t-il ?
+Qu'est-ce qui a été livré, et maitrisons-nous la dérive agentique potentielle ?
 
 ### see
 Les tâches livrées au fil du temps, pondérées par leur niveau, et la friction de chaque session : questions que l'agent a dû poser, reprises sur erreur, tâches recalibrées, écarts détectés à la vérification.
 
 ### why
-Le travail se fait en sessions de dix tâches au plus, pour que le contexte de l'agent reste net. Chaque session se clôt sur ses compteurs de friction ; si l'un d'eux n'est pas nul, une étape d'auto-amélioration propose des règles pour le projet, appliquées une fois approuvées et dans un budget de lignes.
+Le travail se fait en sessions de dix tâches au plus, pour une utilisation optimale du contexte. Chaque session se clôt sur ses compteurs de friction ; si l'un d'eux n'est pas nul, une étape d'auto-amélioration propose des règles pour le projet, appliquées une fois approuvées et dans un budget défini.
 
 ### tags
 - Sessions
