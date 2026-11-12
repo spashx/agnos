@@ -35,13 +35,14 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-013: Rebuild the site from the new demo
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-website build` on the rebuilt demo into `C:\dev\repos\spashx`, and record its summary.
 - **Requirement refs**: RQ-WEB-001, RQ-WEB-002
 - **ADR refs**: ADR-WEB-001 (DEC-WEB-002, DEC-WEB-006)
 - **Acceptance Criteria** (Gherkin): Given the rebuilt demo, When `build` runs, Then it exits 0 and its summary line
-  is recorded here.
+  is recorded here: `agnos-meta-website: 152 fields in each language, 8 images, index 1/14, demo page generated;
+  C:\dev\repos\spashx written`.
 - **Dependencies**: TASK-WEB-012, TASK-DMO-018
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
-- **Assumptions**: 
+- **Assumptions**: None
