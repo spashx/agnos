@@ -654,9 +654,9 @@ PLAN-DMO-003|1-60||Agent collaboration in the demo history
 TASK-DMO-015|17-39|Done|Support agent identities in the replay engine
 TASK-DMO-016|40-60|Done|Assign agents in the demo scenario
 @agnos-process/3.plan/PLAN-DMO-004-function-citations.md
-PLAN-DMO-004|1-51||Function citations in the demo code
+PLAN-DMO-004|1-54||Function citations in the demo code
 TASK-DMO-017|17-37|Done|Cite requirements in demo functions
-TASK-DMO-018|38-51|Not Started|Rebuild the demo with agents
+TASK-DMO-018|38-54|Done|Rebuild the demo with agents
 @agnos-process/3.plan/PLAN-DOC-001-documentation-sync.md
 PLAN-DOC-001|1-72||Documentation Sync Sub-Agent
 TASK-DOC-001|16-32|Done|Report of the changes since each document's last change
@@ -990,6 +990,6 @@ TASK-WEB-009|156-171|Done|The blocks of two cards, top to bottom
 TASK-WEB-010|172-188|Done|Three of Roombook's button styles in the design-system card
 TASK-WEB-011|189-203|Done|The index's speed, a graph of the identifiers, two button styles
 @agnos-process/3.plan/PLAN-WEB-002-screenshot-ratio.md
-PLAN-WEB-002|1-47||Screenshot frames at the capture ratio
+PLAN-WEB-002|1-48||Screenshot frames at the capture ratio
 TASK-WEB-012|16-35|Done|Frame screenshots at the capture ratio
-TASK-WEB-013|36-47|Not Started|Rebuild the site from the new demo
+TASK-WEB-013|36-48|Done|Rebuild the site from the new demo

@@ -37,7 +37,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DMO-018: Rebuild the demo with agents
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-demo build` twice and `verify` on the demo, and record the Performance Center's
   history and "Functions traced" figures.
 - **Requirement refs**: RQ-DMO-023, RQ-DMO-024, RQ-DMO-025, RQ-DMO-026, RQ-DMO-021, RQ-DMO-020
@@ -47,5 +47,8 @@ This plan implements the tasks in the format specified below.
   --history` on the demo, Then its summary counts 4 agents.
 - **Dependencies**: TASK-DMO-016, TASK-DMO-017
 - **Assignee**: AI
-- **Verification**: 
-- **Assumptions**: 
+- **Verification**: `build.ps1 -Verify`: replay 88 commits, HEAD `fc6e6f1`; verify 27 passed, 0 failed, RQ-DMO-023 to
+  RQ-DMO-026 included (4 agents counted by `agnos-perf-center`, Functions traced 8.6); RQ-DMO-021: second build exit 0,
+  same HEAD.
+- **Assumptions**: the 7 checkpoint commits of 2026-11-11 left in the demo by an agent host session are erased by the
+  rebuild, as the owner approved on 2026-11-12.
