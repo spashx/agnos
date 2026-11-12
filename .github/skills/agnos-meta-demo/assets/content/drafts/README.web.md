@@ -2,7 +2,8 @@
 
 > **This history is simulated.** The people, their commits, the dates, the public holidays, the
 > Verification outputs written in the plans and the friction metrics are made up to show how the AGNOS
-> process looks when a team has used it for two months. Nothing here was really done by these people.
+> process looks when a team has used it for two months, with AI agents (Claude Code and GitHub Copilot) as co-authors
+> of part of the commits or committing alone. Nothing here was really done by these people or these agents.
 
 This repository holds the development of a small product, **Roombook**, following the process. AGNOS itself
 is not stored here: `agnos-init` added it, so `CLAUDE.md` and `AGENTS.md` hold only a block naming the process skill of the

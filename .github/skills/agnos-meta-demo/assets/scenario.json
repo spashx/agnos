@@ -45,6 +45,22 @@
     "rob-ux": {
       "email": "rob-ux@agnos-demo.example",
       "role": "ux"
+    },
+    "Claude Code/Claude Opus 5.5": {
+      "email": "noreply@anthropic.com",
+      "kind": "agent"
+    },
+    "Claude Code/Claude Sonnet 5.5": {
+      "email": "noreply@anthropic.com",
+      "kind": "agent"
+    },
+    "Claude Code/Claude Haiku 5.5": {
+      "email": "noreply@anthropic.com",
+      "kind": "agent"
+    },
+    "Copilot SDK in VS Code/auto": {
+      "email": "223556219+Copilot@users.noreply.github.com",
+      "kind": "agent"
     }
   },
   "steps": [
@@ -104,6 +120,7 @@
       "date": "2026-08-26",
       "time": "10:30",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): ADR-BKG-001 service code structure, layered with ports",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-001-layered-architecture-with-ports.md"
@@ -159,6 +176,7 @@
       "date": "2026-08-31",
       "time": "09:40",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-001 tests for the domain and the room catalog",
       "add": [
         "service/tests/__init__.py",
@@ -171,6 +189,7 @@
       "date": "2026-08-31",
       "time": "15:25",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-001 domain model and room catalog",
       "add": [
         "service/pyproject.toml",
@@ -207,6 +226,7 @@
       "date": "2026-09-02",
       "time": "14:30",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-002/TASK-BKG-002 repository port, in-memory adapter and create use case",
       "add": [
         "service/roombook/ports.py",
@@ -228,6 +248,13 @@
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-003 tests for the overlap rule",
       "add": [
         "service/tests/test_overlap_rule.py"
+      ],
+      "edits": [
+        {
+          "path": "service/tests/test_overlap_rule.py",
+          "find": "    # RQ-BKG-003\n    def test_given_reservation_from_ten_to_eleven_when_request_overlaps_then_conflict_names_it(",
+          "replace": "    def test_given_reservation_from_ten_to_eleven_when_request_overlaps_then_conflict_names_it("
+        }
       ]
     },
     {
@@ -235,6 +262,7 @@
       "date": "2026-09-03",
       "time": "16:40",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-003 overlap rule",
       "add": [
         "service/roombook/rules/overlap_rule.py"
@@ -243,6 +271,20 @@
         "TASK-BKG-003"
       ],
       "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-04",
+      "time": "11:05",
+      "by": "Copilot SDK in VS Code/auto",
+      "message": "test(BKG): TASK-BKG-003 overlap test cites RQ-BKG-003",
+      "edits": [
+        {
+          "path": "service/tests/test_overlap_rule.py",
+          "find": "\n    def test_given_reservation_from_ten_to_eleven_when_request_overlaps_then_conflict_names_it(",
+          "replace": "\n    # RQ-BKG-003\n    def test_given_reservation_from_ten_to_eleven_when_request_overlaps_then_conflict_names_it("
+        }
+      ]
     },
     {
       "op": "commit",
@@ -260,6 +302,7 @@
       "date": "2026-09-08",
       "time": "11:50",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-004 capacity and closed-room rules",
       "add": [
         "service/roombook/rules/capacity_rule.py",
@@ -275,6 +318,7 @@
       "date": "2026-09-09",
       "time": "09:35",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-005 tests for the cancel use case",
       "add": [
         "service/tests/test_cancel_reservation.py"
@@ -285,6 +329,7 @@
       "date": "2026-09-10",
       "time": "15:05",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-005 cancel use case and system clock",
       "add": [
         "service/roombook/clock.py",
@@ -329,6 +374,7 @@
       "date": "2026-09-16",
       "time": "10:20",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): ADR-BKG-003 durable reservation storage, in a JSON file",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-003-json-file-reservation-storage.md"
@@ -377,6 +423,7 @@
       "date": "2026-09-17",
       "time": "15:40",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-003/TASK-BKG-007 JSON file repository with atomic save",
       "add": [
         "service/roombook/atomic_file.py",
@@ -402,6 +449,7 @@
       "date": "2026-09-18",
       "time": "13:15",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(BKG): ADR-BKG-003/TASK-BKG-008 repository factory",
       "add": [
         "service/roombook/repository_factory.py"
@@ -490,6 +538,7 @@
       "date": "2026-09-22",
       "time": "15:20",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(NTF): ADR-NTF-001 in-process events and notifier port",
       "add": [
         "agnos-process/2.architecture/ADR-NTF-001-in-process-events-and-notifier-port.md"
@@ -512,6 +561,7 @@
       "date": "2026-09-23",
       "time": "14:10",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(NTF): ADR-NTF-001/TASK-NTF-001 tests for the event bus and the publishing decorator",
       "add": [
         "service/tests/test_events.py",
@@ -523,6 +573,7 @@
       "date": "2026-09-24",
       "time": "11:00",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-001 event bus and publishing decorator",
       "add": [
         "service/roombook/events.py",
@@ -549,6 +600,7 @@
       "date": "2026-09-28",
       "time": "10:30",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-002 notifier port and reminder scheduler",
       "add": [
         "service/roombook/notifier.py",
@@ -574,6 +626,13 @@
       "message": "test(NTF): ADR-NTF-001/TASK-NTF-003 tests for the retrying notifier",
       "add": [
         "service/tests/test_retrying_notifier.py"
+      ],
+      "edits": [
+        {
+          "path": "service/tests/test_retrying_notifier.py",
+          "find": "    # RQ-NTF-003\n    def test_given_notifier_failing_every_time_when_send_then_max_attempts_are_made(",
+          "replace": "    def test_given_notifier_failing_every_time_when_send_then_max_attempts_are_made("
+        }
       ]
     },
     {
@@ -581,6 +640,7 @@
       "date": "2026-09-29",
       "time": "16:35",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-003 retrying notifier",
       "add": [
         "service/roombook/retrying_notifier.py"
@@ -589,6 +649,20 @@
         "TASK-NTF-003"
       ],
       "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-09-30",
+      "time": "09:40",
+      "by": "Copilot SDK in VS Code/auto",
+      "message": "test(NTF): TASK-NTF-003 retry test cites RQ-NTF-003",
+      "edits": [
+        {
+          "path": "service/tests/test_retrying_notifier.py",
+          "find": "\n    def test_given_notifier_failing_every_time_when_send_then_max_attempts_are_made(",
+          "replace": "\n    # RQ-NTF-003\n    def test_given_notifier_failing_every_time_when_send_then_max_attempts_are_made("
+        }
+      ]
     },
     {
       "op": "commit",
@@ -613,6 +687,7 @@
       "date": "2026-10-02",
       "time": "14:30",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Haiku 5.5",
       "message": "docs(NTF): session NTF friction metrics",
       "appendLines": [
         {
@@ -674,6 +749,7 @@
       "date": "2026-10-06",
       "time": "15:45",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(CLI): ADR-CLI-001 service access contract, HTTP/JSON with a typed client",
       "add": [
         "agnos-process/2.architecture/ADR-CLI-001-http-json-contract-and-typed-client.md"
@@ -699,6 +775,13 @@
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-001 tests for the HTTP adapter",
       "add": [
         "service/tests/test_api.py"
+      ],
+      "edits": [
+        {
+          "path": "service/tests/test_api.py",
+          "find": "    # RQ-CLI-005\n    def test_given_catalog_when_get_rooms_then_answers_ok_with_rooms_sorted_by_id(",
+          "replace": "    def test_given_catalog_when_get_rooms_then_answers_ok_with_rooms_sorted_by_id("
+        }
       ]
     },
     {
@@ -706,6 +789,7 @@
       "date": "2026-10-08",
       "time": "10:50",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-001 HTTP adapter of the service",
       "add": [
         "service/roombook/api.py"
@@ -717,9 +801,24 @@
     },
     {
       "op": "commit",
+      "date": "2026-10-08",
+      "time": "15:15",
+      "by": "Copilot SDK in VS Code/auto",
+      "message": "test(CLI): TASK-CLI-001 API test cites RQ-CLI-005",
+      "edits": [
+        {
+          "path": "service/tests/test_api.py",
+          "find": "\n    def test_given_catalog_when_get_rooms_then_answers_ok_with_rooms_sorted_by_id(",
+          "replace": "\n    # RQ-CLI-005\n    def test_given_catalog_when_get_rooms_then_answers_ok_with_rooms_sorted_by_id("
+        }
+      ]
+    },
+    {
+      "op": "commit",
       "date": "2026-10-09",
       "time": "09:30",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-002 tests for the transport",
       "add": [
         "client/tests/transport.test.ts"
@@ -730,6 +829,7 @@
       "date": "2026-10-13",
       "time": "10:20",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-002 TypeScript project, transport with timeout and errors",
       "add": [
         "client/package.json",
@@ -758,6 +858,7 @@
       "date": "2026-10-15",
       "time": "14:15",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-003 typed client",
       "add": [
         "client/src/types.ts",
@@ -784,6 +885,7 @@
       "date": "2026-10-19",
       "time": "11:35",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-004 command-line tool",
       "add": [
         "client/src/cli.ts"
@@ -823,6 +925,7 @@
       "date": "2026-10-23",
       "time": "11:10",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Haiku 5.5",
       "message": "docs(CLI): session CLI friction metrics",
       "appendLines": [
         {
@@ -865,6 +968,7 @@
       "date": "2026-10-06",
       "time": "11:05",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(DSN): ADR-DSN-001 design token structure, three tiers generated as CSS custom properties",
       "add": [
         "agnos-process/2.architecture/ADR-DSN-001-design-tokens-in-three-tiers.md"
@@ -890,6 +994,7 @@
       "date": "2026-10-07",
       "time": "15:40",
       "by": "rob-ux",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(DSN): FTR-DSN-001 foundations of the design system, first tokens.json",
       "add": [
         {
@@ -933,6 +1038,7 @@
       "date": "2026-10-08",
       "time": "16:10",
       "by": "rob-ux",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(DSN): FTR-DSN-001 interaction states, component catalogue and governance",
       "add": [
         {
@@ -947,6 +1053,7 @@
       "date": "2026-10-09",
       "time": "14:30",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(DSN): ADR-DSN-001/TASK-DSN-001 tests for the token module",
       "add": [
         "client/tests/tokens.test.ts"
@@ -957,6 +1064,7 @@
       "date": "2026-10-13",
       "time": "11:45",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(DSN): ADR-DSN-001/TASK-DSN-001 token module",
       "add": [
         "client/src/ui/tokens.ts"
@@ -1014,6 +1122,7 @@
       "date": "2026-10-14",
       "time": "17:05",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(DSN): ADR-DSN-001/TASK-DSN-002 stylesheet generator and shared class names",
       "add": [
         "client/src/ui/classes.ts",
@@ -1069,6 +1178,7 @@
       "date": "2026-10-19",
       "time": "10:30",
       "by": "omar-arch",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(WEB): ADR-WEB-001 web interface rendering, server-side on the typed client",
       "add": [
         "agnos-process/2.architecture/ADR-WEB-001-server-rendered-web-interface.md"
@@ -1080,6 +1190,7 @@
       "date": "2026-10-19",
       "time": "15:45",
       "by": "rob-ux",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(WEB): screens, flows and states of the booking interface",
       "add": [
         "client/design/SCREENS.md"
@@ -1112,9 +1223,17 @@
       "date": "2026-10-20",
       "time": "15:00",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(WEB): ADR-WEB-001/TASK-WEB-001 tests for the labels and views",
       "add": [
         "client/tests/views.test.ts"
+      ],
+      "edits": [
+        {
+          "path": "client/tests/views.test.ts",
+          "find": "// RQ-WEB-001\ntest(\"given text with markup characters, when it is escaped, then no tag or quote survives\"",
+          "replace": "test(\"given text with markup characters, when it is escaped, then no tag or quote survives\""
+        }
       ]
     },
     {
@@ -1122,6 +1241,7 @@
       "date": "2026-10-21",
       "time": "11:15",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-001 labels, routes and views",
       "add": [
         "client/src/ui/labels.ts",
@@ -1156,6 +1276,7 @@
       "date": "2026-10-22",
       "time": "10:40",
       "by": "paul-dev",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-002 booking application on the typed client",
       "add": [
         "client/src/ui/app.ts"
@@ -1170,6 +1291,7 @@
       "date": "2026-10-22",
       "time": "14:15",
       "by": "john-qa",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "test(WEB): ADR-WEB-001/TASK-WEB-003 tests for the HTTP server",
       "add": [
         "client/tests/server.test.ts"
@@ -1180,6 +1302,7 @@
       "date": "2026-10-22",
       "time": "17:20",
       "by": "nina-dev",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-003 HTTP server and entry point",
       "add": [
         "client/src/ui/server.ts"
@@ -1198,9 +1321,24 @@
     },
     {
       "op": "commit",
+      "date": "2026-10-22",
+      "time": "17:50",
+      "by": "Copilot SDK in VS Code/auto",
+      "message": "test(WEB): TASK-WEB-001 escape test cites RQ-WEB-001",
+      "edits": [
+        {
+          "path": "client/tests/views.test.ts",
+          "find": "\ntest(\"given text with markup characters, when it is escaped, then no tag or quote survives\"",
+          "replace": "\n// RQ-WEB-001\ntest(\"given text with markup characters, when it is escaped, then no tag or quote survives\""
+        }
+      ]
+    },
+    {
+      "op": "commit",
       "date": "2026-10-23",
       "time": "09:35",
       "by": "rob-ux",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "fix(WEB): TASK-WEB-004 booking button reads Book this room",
       "edits": [
         {
