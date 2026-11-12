@@ -18,33 +18,21 @@
     }
   ],
   "identities": {
-    "linda-po": {
-      "email": "linda-po@agnos-demo.example",
-      "role": "po"
+    "linda-pm": {
+      "email": "linda-pm@acme.example",
+      "role": "pm"
     },
-    "omar-arch": {
-      "email": "omar-arch@agnos-demo.example",
-      "role": "arch"
-    },
-    "nina-dev": {
-      "email": "nina-dev@agnos-demo.example",
-      "role": "dev"
-    },
-    "paul-dev": {
-      "email": "paul-dev@agnos-demo.example",
-      "role": "dev"
-    },
-    "john-qa": {
-      "email": "john-qa@agnos-demo.example",
-      "role": "qa"
-    },
-    "sara-qa": {
-      "email": "sara-qa@agnos-demo.example",
-      "role": "qa"
-    },
-    "rob-ux": {
-      "email": "rob-ux@agnos-demo.example",
+    "john-ux": {
+      "email": "john-ux@acme.example",
       "role": "ux"
+    },
+    "andy-tech": {
+      "email": "andy-tech@acme.example",
+      "role": "tech"
+    },
+    "sachin-tech": {
+      "email": "sachin-tech@acme.example",
+      "role": "tech"
     },
     "Claude Code/Claude Opus 5.5": {
       "email": "noreply@anthropic.com",
@@ -68,7 +56,7 @@
       "op": "commit",
       "date": "2026-08-24",
       "time": "09:17",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "message": "chore: start the project",
       "init": true,
       "add": [
@@ -86,7 +74,7 @@
       "op": "commit",
       "date": "2026-08-24",
       "time": "11:42",
-      "by": "linda-po",
+      "by": "linda-pm",
       "message": "docs: add the demo README and the working calendar",
       "add": [
         "README.md",
@@ -101,7 +89,8 @@
       "op": "commit",
       "date": "2026-08-25",
       "time": "14:05",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): FTR-BKG-001 room reservation, RQ-BKG-001 to RQ-BKG-006",
       "add": [
         "agnos-process/1.requirements/FTR-BKG-001-room-reservation.md"
@@ -119,7 +108,7 @@
       "op": "commit",
       "date": "2026-08-26",
       "time": "10:30",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): ADR-BKG-001 service code structure, layered with ports",
       "add": [
@@ -131,7 +120,7 @@
       "op": "commit",
       "date": "2026-08-26",
       "time": "16:10",
-      "by": "linda-po",
+      "by": "linda-pm",
       "message": "docs(BKG): RQ-BKG-004 raised to Must after review with the office",
       "edits": [
         {
@@ -146,7 +135,8 @@
       "op": "commit",
       "date": "2026-08-27",
       "time": "09:55",
-      "by": "omar-arch",
+      "by": "andy-tech",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): ADR-BKG-002 initial reservation storage, in memory",
       "add": [
         "agnos-process/2.architecture/ADR-BKG-002-in-memory-reservation-storage.md"
@@ -164,7 +154,8 @@
       "op": "commit",
       "date": "2026-08-28",
       "time": "11:20",
-      "by": "nina-dev",
+      "by": "andy-tech",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(BKG): PLAN-BKG-001 core booking",
       "add": [
         "agnos-process/3.plan/PLAN-BKG-001-core-booking.md"
@@ -175,7 +166,7 @@
       "op": "commit",
       "date": "2026-08-31",
       "time": "09:40",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-001 tests for the domain and the room catalog",
       "add": [
@@ -188,7 +179,7 @@
       "op": "commit",
       "date": "2026-08-31",
       "time": "15:25",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-001 domain model and room catalog",
       "add": [
@@ -214,7 +205,7 @@
       "op": "commit",
       "date": "2026-09-01",
       "time": "10:05",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(BKG): ADR-BKG-002/TASK-BKG-002 tests for the repository and the create use case",
       "add": [
         "service/tests/test_memory_repository.py",
@@ -225,7 +216,7 @@
       "op": "commit",
       "date": "2026-09-02",
       "time": "14:30",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-002/TASK-BKG-002 repository port, in-memory adapter and create use case",
       "add": [
@@ -244,7 +235,7 @@
       "op": "commit",
       "date": "2026-09-03",
       "time": "09:25",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-003 tests for the overlap rule",
       "add": [
         "service/tests/test_overlap_rule.py"
@@ -261,7 +252,7 @@
       "op": "commit",
       "date": "2026-09-03",
       "time": "16:40",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-003 overlap rule",
       "add": [
@@ -290,7 +281,7 @@
       "op": "commit",
       "date": "2026-09-07",
       "time": "10:15",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-004 tests for the capacity and closed-room rules",
       "add": [
         "service/tests/test_capacity_rule.py",
@@ -301,7 +292,7 @@
       "op": "commit",
       "date": "2026-09-08",
       "time": "11:50",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-004 capacity and closed-room rules",
       "add": [
@@ -317,7 +308,7 @@
       "op": "commit",
       "date": "2026-09-09",
       "time": "09:35",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(BKG): ADR-BKG-001/TASK-BKG-005 tests for the cancel use case",
       "add": [
@@ -328,7 +319,7 @@
       "op": "commit",
       "date": "2026-09-10",
       "time": "15:05",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(BKG): ADR-BKG-001/TASK-BKG-005 cancel use case and system clock",
       "add": [
@@ -344,7 +335,7 @@
       "op": "commit",
       "date": "2026-09-11",
       "time": "10:45",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "message": "fix(BKG): TASK-BKG-006 name the existing reservation in the conflict message",
       "edits": [
         {
@@ -362,7 +353,8 @@
       "op": "commit",
       "date": "2026-09-15",
       "time": "09:30",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): FTR-BKG-002 reservations survive a restart, RQ-BKG-007",
       "add": [
         "agnos-process/1.requirements/FTR-BKG-002-reservation-persistence.md"
@@ -373,7 +365,7 @@
       "op": "commit",
       "date": "2026-09-16",
       "time": "10:20",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(BKG): ADR-BKG-003 durable reservation storage, in a JSON file",
       "add": [
@@ -385,7 +377,7 @@
       "op": "commit",
       "date": "2026-09-16",
       "time": "14:55",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "message": "docs(BKG): ADR-BKG-002 superseded by ADR-BKG-003",
       "edits": [
         {
@@ -400,7 +392,7 @@
       "op": "commit",
       "date": "2026-09-16",
       "time": "16:30",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "message": "docs(BKG): PLAN-BKG-002 durable reservations",
       "add": [
         "agnos-process/3.plan/PLAN-BKG-002-persistence.md"
@@ -411,7 +403,7 @@
       "op": "commit",
       "date": "2026-09-17",
       "time": "09:20",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(BKG): ADR-BKG-003/TASK-BKG-007 tests for the atomic writer and the file repository",
       "add": [
         "service/tests/test_atomic_file.py",
@@ -422,7 +414,7 @@
       "op": "commit",
       "date": "2026-09-17",
       "time": "15:40",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(BKG): ADR-BKG-003/TASK-BKG-007 JSON file repository with atomic save",
       "add": [
@@ -438,7 +430,7 @@
       "op": "commit",
       "date": "2026-09-18",
       "time": "09:50",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "message": "test(BKG): ADR-BKG-003/TASK-BKG-008 tests for the repository factory",
       "add": [
         "service/tests/test_repository_factory.py"
@@ -448,7 +440,7 @@
       "op": "commit",
       "date": "2026-09-18",
       "time": "13:15",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(BKG): ADR-BKG-003/TASK-BKG-008 repository factory",
       "add": [
@@ -463,7 +455,7 @@
       "op": "commit",
       "date": "2026-09-18",
       "time": "16:20",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "message": "docs(BKG): session BKG friction metrics",
       "appendLines": [
         {
@@ -482,7 +474,7 @@
       "op": "merge",
       "date": "2026-09-18",
       "time": "17:10",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "branch": "feature/BKG",
       "message": "Merge branch 'feature/BKG'"
     },
@@ -494,7 +486,8 @@
       "op": "commit",
       "date": "2026-09-21",
       "time": "09:35",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(NTF): FTR-NTF-001 reservation reminders, RQ-NTF-001 to RQ-NTF-004",
       "add": [
         "agnos-process/1.requirements/FTR-NTF-001-reservation-reminders.md"
@@ -517,7 +510,8 @@
       "op": "commit",
       "date": "2026-09-22",
       "time": "10:10",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(NTF): RQ-NTF-003 retry count raised to 3 attempts",
       "edits": [
         {
@@ -537,7 +531,7 @@
       "op": "commit",
       "date": "2026-09-22",
       "time": "15:20",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(NTF): ADR-NTF-001 in-process events and notifier port",
       "add": [
@@ -549,7 +543,8 @@
       "op": "commit",
       "date": "2026-09-23",
       "time": "09:30",
-      "by": "paul-dev",
+      "by": "sachin-tech",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "docs(NTF): PLAN-NTF-001 reminders",
       "add": [
         "agnos-process/3.plan/PLAN-NTF-001-reminders.md"
@@ -560,7 +555,7 @@
       "op": "commit",
       "date": "2026-09-23",
       "time": "14:10",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(NTF): ADR-NTF-001/TASK-NTF-001 tests for the event bus and the publishing decorator",
       "add": [
@@ -572,7 +567,7 @@
       "op": "commit",
       "date": "2026-09-24",
       "time": "11:00",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-001 event bus and publishing decorator",
       "add": [
@@ -588,7 +583,7 @@
       "op": "commit",
       "date": "2026-09-25",
       "time": "09:45",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(NTF): ADR-NTF-001/TASK-NTF-002 tests for the notifier and the reminder scheduler",
       "add": [
         "service/tests/test_notifier.py",
@@ -599,7 +594,7 @@
       "op": "commit",
       "date": "2026-09-28",
       "time": "10:30",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-002 notifier port and reminder scheduler",
       "add": [
@@ -622,7 +617,7 @@
       "op": "commit",
       "date": "2026-09-29",
       "time": "09:15",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "message": "test(NTF): ADR-NTF-001/TASK-NTF-003 tests for the retrying notifier",
       "add": [
         "service/tests/test_retrying_notifier.py"
@@ -639,7 +634,7 @@
       "op": "commit",
       "date": "2026-09-29",
       "time": "16:35",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(NTF): ADR-NTF-001/TASK-NTF-003 retrying notifier",
       "add": [
@@ -668,7 +663,7 @@
       "op": "commit",
       "date": "2026-09-30",
       "time": "11:25",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "message": "fix(NTF): TASK-NTF-004 reminder lead time set to the 15 minutes required",
       "edits": [
         {
@@ -686,7 +681,7 @@
       "op": "commit",
       "date": "2026-10-02",
       "time": "14:30",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Haiku 5.5",
       "message": "docs(NTF): session NTF friction metrics",
       "appendLines": [
@@ -702,7 +697,7 @@
       "op": "merge",
       "date": "2026-10-02",
       "time": "16:45",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "branch": "feature/NTF",
       "message": "Merge branch 'feature/NTF'",
       "label": "ntf-merged"
@@ -715,7 +710,8 @@
       "op": "commit",
       "date": "2026-10-05",
       "time": "10:00",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-005",
       "add": [
         "agnos-process/1.requirements/FTR-CLI-001-api-client-and-cli.md"
@@ -733,7 +729,7 @@
       "op": "commit",
       "date": "2026-10-06",
       "time": "11:30",
-      "by": "linda-po",
+      "by": "linda-pm",
       "message": "docs(CLI): RQ-CLI-004 timeout lowered to 5 seconds",
       "edits": [
         {
@@ -748,7 +744,7 @@
       "op": "commit",
       "date": "2026-10-06",
       "time": "15:45",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(CLI): ADR-CLI-001 service access contract, HTTP/JSON with a typed client",
       "add": [
@@ -760,7 +756,8 @@
       "op": "commit",
       "date": "2026-10-07",
       "time": "09:40",
-      "by": "nina-dev",
+      "by": "andy-tech",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(CLI): PLAN-CLI-001 HTTP API, client and command line",
       "add": [
         "agnos-process/3.plan/PLAN-CLI-001-http-api-client-cli.md"
@@ -771,7 +768,7 @@
       "op": "commit",
       "date": "2026-10-07",
       "time": "14:20",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-001 tests for the HTTP adapter",
       "add": [
         "service/tests/test_api.py"
@@ -788,7 +785,7 @@
       "op": "commit",
       "date": "2026-10-08",
       "time": "10:50",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-001 HTTP adapter of the service",
       "add": [
@@ -817,7 +814,7 @@
       "op": "commit",
       "date": "2026-10-09",
       "time": "09:30",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-002 tests for the transport",
       "add": [
@@ -828,7 +825,7 @@
       "op": "commit",
       "date": "2026-10-13",
       "time": "10:20",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-002 TypeScript project, transport with timeout and errors",
       "add": [
@@ -847,7 +844,7 @@
       "op": "commit",
       "date": "2026-10-14",
       "time": "09:50",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-003 tests for the typed client",
       "add": [
         "client/tests/client.test.ts"
@@ -857,7 +854,7 @@
       "op": "commit",
       "date": "2026-10-15",
       "time": "14:15",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-003 typed client",
       "add": [
@@ -874,7 +871,7 @@
       "op": "commit",
       "date": "2026-10-16",
       "time": "10:05",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "message": "test(CLI): ADR-CLI-001/TASK-CLI-004 tests for the command-line tool",
       "add": [
         "client/tests/cli.test.ts"
@@ -884,7 +881,7 @@
       "op": "commit",
       "date": "2026-10-19",
       "time": "11:35",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(CLI): ADR-CLI-001/TASK-CLI-004 command-line tool",
       "add": [
@@ -906,7 +903,7 @@
       "op": "commit",
       "date": "2026-10-20",
       "time": "09:55",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "message": "fix(CLI): TASK-CLI-005 usage text names the program roombook",
       "edits": [
         {
@@ -924,7 +921,7 @@
       "op": "commit",
       "date": "2026-10-23",
       "time": "11:10",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Haiku 5.5",
       "message": "docs(CLI): session CLI friction metrics",
       "appendLines": [
@@ -940,7 +937,7 @@
       "op": "merge",
       "date": "2026-10-23",
       "time": "15:30",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "branch": "feature/CLI",
       "message": "Merge branch 'feature/CLI'"
     },
@@ -953,7 +950,8 @@
       "op": "commit",
       "date": "2026-10-05",
       "time": "10:20",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(DSN): FTR-DSN-001 design system, RQ-DSN-001 to RQ-DSN-005",
       "add": [
         {
@@ -967,7 +965,7 @@
       "op": "commit",
       "date": "2026-10-06",
       "time": "11:05",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(DSN): ADR-DSN-001 design token structure, three tiers generated as CSS custom properties",
       "add": [
@@ -979,7 +977,8 @@
       "op": "commit",
       "date": "2026-10-06",
       "time": "16:30",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(DSN): RQ-DSN-004 contrast threshold raised to 4.5:1 after review with the UX designer",
       "add": [
         {
@@ -993,7 +992,7 @@
       "op": "commit",
       "date": "2026-10-07",
       "time": "15:40",
-      "by": "rob-ux",
+      "by": "john-ux",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(DSN): FTR-DSN-001 foundations of the design system, first tokens.json",
       "add": [
@@ -1026,7 +1025,8 @@
       "op": "commit",
       "date": "2026-10-08",
       "time": "10:15",
-      "by": "nina-dev",
+      "by": "andy-tech",
+      "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(DSN): PLAN-DSN-001 design system tokens and stylesheet",
       "add": [
         "agnos-process/3.plan/PLAN-DSN-001-design-system.md"
@@ -1037,7 +1037,7 @@
       "op": "commit",
       "date": "2026-10-08",
       "time": "16:10",
-      "by": "rob-ux",
+      "by": "john-ux",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(DSN): FTR-DSN-001 interaction states, component catalogue and governance",
       "add": [
@@ -1052,7 +1052,7 @@
       "op": "commit",
       "date": "2026-10-09",
       "time": "14:30",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(DSN): ADR-DSN-001/TASK-DSN-001 tests for the token module",
       "add": [
@@ -1063,7 +1063,7 @@
       "op": "commit",
       "date": "2026-10-13",
       "time": "11:45",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(DSN): ADR-DSN-001/TASK-DSN-001 token module",
       "add": [
@@ -1078,7 +1078,7 @@
       "op": "commit",
       "date": "2026-10-14",
       "time": "09:50",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(DSN): ADR-DSN-001/TASK-DSN-002 tests for the stylesheet generator and the literal check",
       "add": [
         "client/tests/stylesheet.test.ts"
@@ -1088,7 +1088,7 @@
       "op": "commit",
       "date": "2026-10-14",
       "time": "15:10",
-      "by": "rob-ux",
+      "by": "john-ux",
       "message": "fix(DSN): TASK-DSN-003 warning text darkened to reach the 4.5:1 contrast",
       "edits": [
         {
@@ -1121,7 +1121,7 @@
       "op": "commit",
       "date": "2026-10-14",
       "time": "17:05",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(DSN): ADR-DSN-001/TASK-DSN-002 stylesheet generator and shared class names",
       "add": [
@@ -1137,7 +1137,7 @@
       "op": "commit",
       "date": "2026-10-15",
       "time": "11:20",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "message": "docs(DSN): session DSN friction metrics",
       "appendLines": [
         {
@@ -1157,7 +1157,7 @@
       "op": "merge",
       "date": "2026-10-16",
       "time": "09:30",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "into": "feature/WEB",
       "branch": "feature/DSN",
       "message": "Merge branch 'feature/DSN' into feature/WEB"
@@ -1166,7 +1166,8 @@
       "op": "commit",
       "date": "2026-10-16",
       "time": "14:10",
-      "by": "linda-po",
+      "by": "linda-pm",
+      "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(WEB): FTR-WEB-001 booking web interface, RQ-WEB-001 to RQ-WEB-006",
       "add": [
         "agnos-process/1.requirements/FTR-WEB-001-booking-web-interface.md"
@@ -1177,7 +1178,7 @@
       "op": "commit",
       "date": "2026-10-19",
       "time": "10:30",
-      "by": "omar-arch",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "docs(WEB): ADR-WEB-001 web interface rendering, server-side on the typed client",
       "add": [
@@ -1189,7 +1190,7 @@
       "op": "commit",
       "date": "2026-10-19",
       "time": "15:45",
-      "by": "rob-ux",
+      "by": "john-ux",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "docs(WEB): screens, flows and states of the booking interface",
       "add": [
@@ -1200,7 +1201,7 @@
       "op": "commit",
       "date": "2026-10-19",
       "time": "16:20",
-      "by": "rob-ux",
+      "by": "john-ux",
       "message": "docs(DSN): FTR-DSN-001 component catalogue names the requirement that owns each behaviour",
       "add": [
         "agnos-process/1.requirements/FTR-DSN-001-design-system.md"
@@ -1211,7 +1212,8 @@
       "op": "commit",
       "date": "2026-10-20",
       "time": "10:20",
-      "by": "paul-dev",
+      "by": "sachin-tech",
+      "with": "Copilot SDK in VS Code/auto",
       "message": "docs(WEB): PLAN-WEB-001 booking interface",
       "add": [
         "agnos-process/3.plan/PLAN-WEB-001-booking-interface.md"
@@ -1222,7 +1224,7 @@
       "op": "commit",
       "date": "2026-10-20",
       "time": "15:00",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(WEB): ADR-WEB-001/TASK-WEB-001 tests for the labels and views",
       "add": [
@@ -1240,7 +1242,7 @@
       "op": "commit",
       "date": "2026-10-21",
       "time": "11:15",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Opus 5.5",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-001 labels, routes and views",
       "add": [
@@ -1264,7 +1266,7 @@
       "op": "commit",
       "date": "2026-10-21",
       "time": "16:30",
-      "by": "sara-qa",
+      "by": "andy-tech",
       "message": "test(WEB): ADR-WEB-001/TASK-WEB-002 tests for the booking application",
       "add": [
         "client/tests/fake-service.ts",
@@ -1275,7 +1277,7 @@
       "op": "commit",
       "date": "2026-10-22",
       "time": "10:40",
-      "by": "paul-dev",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-002 booking application on the typed client",
       "add": [
@@ -1290,7 +1292,7 @@
       "op": "commit",
       "date": "2026-10-22",
       "time": "14:15",
-      "by": "john-qa",
+      "by": "sachin-tech",
       "with": "Copilot SDK in VS Code/auto",
       "message": "test(WEB): ADR-WEB-001/TASK-WEB-003 tests for the HTTP server",
       "add": [
@@ -1301,7 +1303,7 @@
       "op": "commit",
       "date": "2026-10-22",
       "time": "17:20",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "feat(WEB): ADR-WEB-001/TASK-WEB-003 HTTP server and entry point",
       "add": [
@@ -1337,7 +1339,7 @@
       "op": "commit",
       "date": "2026-10-23",
       "time": "09:35",
-      "by": "rob-ux",
+      "by": "john-ux",
       "with": "Claude Code/Claude Sonnet 5.5",
       "message": "fix(WEB): TASK-WEB-004 booking button reads Book this room",
       "edits": [
@@ -1356,7 +1358,7 @@
       "op": "commit",
       "date": "2026-10-23",
       "time": "11:50",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "message": "docs(WEB): session WEB friction metrics",
       "appendLines": [
         {
@@ -1371,7 +1373,7 @@
       "op": "commit",
       "date": "2026-10-23",
       "time": "14:20",
-      "by": "linda-po",
+      "by": "linda-pm",
       "message": "docs: README presents the web interface, the design system and the UX designer",
       "add": [
         {
@@ -1384,7 +1386,7 @@
       "op": "merge",
       "date": "2026-10-23",
       "time": "16:40",
-      "by": "nina-dev",
+      "by": "andy-tech",
       "into": "main",
       "branch": "feature/WEB",
       "message": "Merge branch 'feature/WEB'",

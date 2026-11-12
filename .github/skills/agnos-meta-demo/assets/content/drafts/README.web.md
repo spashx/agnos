@@ -30,15 +30,14 @@ cites them in comments, and the AGNOS traceability skill can show the links.
 
 ## The team
 
-The role is the suffix of the identity, so the history can be filtered by role.
+Four people of Acme, a fictitious company. The role is the suffix of the identity, so the history can be filtered by
+role. Each one works mostly with an AI agent, named as a co-author of the commit.
 
-| Role | Suffix | Identities | Authors of |
-|---|---|---|---|
-| Product owner | `-po` | linda-po | features and requirements |
-| Architect | `-arch` | omar-arch | ADRs, the project's start |
-| Developer | `-dev` | nina-dev, paul-dev | plans, production code, session closing |
-| Tester / QA | `-qa` | john-qa, sara-qa | unit tests, written before the code they check |
-| UX designer | `-ux` | rob-ux | the design system (tokens, component catalogue), the screens, design fixes |
+| Role | Suffix | Identities | Authors of | Usual agent |
+|---|---|---|---|---|
+| Product manager | `-pm` | linda-pm | features and requirements | Claude Code (Opus) |
+| Technical | `-tech` | andy-tech, sachin-tech | ADRs, plans, production code, unit tests written before the code they check, session closing | Claude Code (andy), GitHub Copilot (sachin) |
+| UX designer | `-ux` | john-ux | the design system (tokens, component catalogue), the screens, design fixes | Claude Code (Sonnet) |
 
 ## Timeline
 
@@ -52,8 +51,8 @@ into `main` on 10-23.
 ## Explore
 
 ```
-git log --author=-qa --format="%h %ad %an %s" --date=short     # everything done by testers
-git log --author=-po --format="%h %ad %an %s" --date=short     # everything done by product owners
+git log --author=-tech --format="%h %ad %an %s" --date=short   # everything done by the technical people
+git log --author=-pm --format="%h %ad %an %s" --date=short     # everything done by the product manager
 git log --author=-ux --format="%h %ad %an %s" --date=short     # everything done by the UX designer
 git log --grep=TASK-BKG-007 --format="%h %an %s"               # the commits of one task
 git log --graph --oneline --all                                 # the sessions and their merges
