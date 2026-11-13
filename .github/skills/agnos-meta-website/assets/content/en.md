@@ -75,7 +75,7 @@ Open the demo Performance Center
 The tour
 
 ### tools
-Works with Claude Code and GitHub Copilot (Codex support coming soon). Its artifacts are in Markdown, versioned in git, to maximise operational efficiency.
+Works with Claude Code and GitHub Copilot (OpenAI Codex support coming soon). Its artifacts are in Markdown, versioned in git, to maximise operational efficiency.
 
 ## chain
 
@@ -195,7 +195,7 @@ Open in the demo
 ## matrix
 
 ### view
-Matrix
+Matrix view
 
 ### question
 Is what was asked for really built?
@@ -204,7 +204,7 @@ Is what was asked for really built?
 The end-to-end traceability matrix, from functional capabilities to code, on a single page, directly exportable.
 
 ### why
-Every element of the process is uniquely identified, from the functional capability to the commit. The specification and the tests, expressed in testable syntaxes (EARS, Gherkin), keep the agent's interpretation at implementation to a minimum.
+Every element of the process is uniquely identified, from the functional capability to the commit. The specification and the tests, expressed in testable syntaxes (*EARS*, *Gherkin*), keep the agent's interpretation at implementation to a minimum.
 
 ### tags
 - EARS
@@ -212,7 +212,7 @@ Every element of the process is uniquely identified, from the functional capabil
 - Identifiers in the code
 
 ### shot
-[![The Matrix view of the Performance Center on Roombook](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
+[![Matrix view](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
 Roombook: end-to-end traceability matrix.
@@ -220,22 +220,22 @@ Roombook: end-to-end traceability matrix.
 ## examples
 
 ### requirement
-![A Roombook requirement, in EARS with its Gherkin criteria](screens/example-requirement.png)
+![A requirement](screens/example-requirement.png)
 
 ### requirement-caption
-Requirement RQ-BKG-003
+A requirement
 
 ### adr
-![A Roombook architecture decision, with its diagram](screens/example-adr.png)
+![Architecture Decision Record, and auto-generated diagrams](screens/example-adr.png)
 
 ### adr-caption
-ADR-BKG-001 and its diagram
+Architecture Decision Record, and auto-generated diagrams
 
 ### plan
-![A Roombook plan, with one of its tasks](screens/example-plan.png)
+![Execution plan and implementation task](screens/example-plan.png)
 
 ### plan-caption
-PLAN-BKG-001 and TASK-BKG-003
+Execution plan and implementation task
 
 ### zoom
 Enlarged example
@@ -246,21 +246,21 @@ Close
 ## graph
 
 ### view
-Graph
+Graph view
 
 ### question
 Why does this code exist, and what would a change touch?
 
 ### see
-A requirement and everything attached to it: its feature, the decisions that shaped it, the tasks that delivered it, the files and functions that implement it.
+The dependency tree of a selected element: its feature, the decisions that shaped it, the tasks that delivered it, the files and functions that implement it.
 
 ### why
-A single identifier grammar, written as comments in the documents, code, tests and commit messages. Each architecture decision has its own identifier: the code cites the exact decision it applies.
+The synergy of the implementation's abstract syntax tree (*AST*) and of the single identifier grammar guarantees a holistic, explorable view of the relations between artifacts.
 
 ### tags
-- Architecture decisions (ADR)
-- One identifier grammar
-- Identifiers in comments
+- Abstract Syntax Tree
+- Identifier grammar
+- Explorable graph
 
 ### shot
 [![The Graph view of the Performance Center, centred on requirement RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
@@ -271,16 +271,16 @@ A single identifier grammar, written as comments in the documents, code, tests a
 ## quality
 
 ### view
-Quality
+Quality view
 
 ### question
-Can we trust the way the process was applied?
+Is traceability guaranteed, per functional area?
 
 ### see
-KPIs from A to E, computed from risk-weighted checks. Each gap points to the element to fix: on Roombook, functions that do not cite a requirement yet.
+Easy-to-read KPIs from A to E, computed from risk-weighted checks. Each gap points to the element to fix: on Roombook, functions that do not cite a requirement yet.
 
 ### why
-Gates the agent cannot bypass. A task starts only once approved (Definition of Ready) and closes only once its checklist is passed (Definition of Done). Its tier, S, M or L, scales the formality to the risk of the change. A failing check is allowed one fix, then the agent stops and reports.
+Gates the agent cannot bypass. Each task answers a need, starts only once approved (Definition of Ready) and closes only once its checklist is passed (Definition of Done). Its tier, (S)mall, (M)edium or (L)arge, scales the ceremony to the risk of the change. A failing check is allowed one fix, then the agent stops and reports.
 
 ### tags
 - Definition of Ready
@@ -288,34 +288,35 @@ Gates the agent cannot bypass. A task starts only once approved (Definition of R
 - Tiers S, M, L
 
 ### shot
-[![The Quality view of the Performance Center on Roombook](screens/quality.png)](demo/PERF-CENTER.html)
+[![The Quality view of the Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
 
 ### caption
-Roombook's report card, and the checks behind its grade.
+The Quality view of the Performance Center
 
 ## history
 
 ### view
-History
+History view
 
 ### question
-Who changed what, and when?
+Who changed what, and when? Agent, human, or both?
 
 ### see
 Every change to a requirement, a decision, a file or a function, credited to its authors from git. Each identity is classed as human or AI agent, and each commit as human, agent or both together.
 
 ### why
-One commit per task, made by a skill that writes the task and ADR identifiers into its message. Git remains the single system of record, independent of any infrastructure.
+One commit per task, made by a skill that writes the task and ADR identifiers into its message, following the *Conventional Commits* standard. Git remains the single system of record, independent of any infrastructure.
 
 ### tags
+- Chronological view
 - One commit per task
 - Human or agent
 
 ### shot
-[![The History view of the Performance Center on Roombook](screens/history.png)](demo/PERF-CENTER.html)
+[![The History view of the Performance Center](screens/history.png)](demo/PERF-CENTER.html)
 
 ### caption
-Two months of development history of the Roombook application.
+The History view of the Performance Center
 
 ### note
 Every commit, whether human, agentic or collaborative, can be traced through a requirement view or an implementation view.
@@ -323,10 +324,10 @@ Every commit, whether human, agentic or collaborative, can be traced through a r
 ## delivery
 
 ### view
-Delivery
+Delivery view
 
 ### question
-What was delivered, and are we keeping potential agentic drift under control?
+What was delivered, and how fast? Is agentic velocity under control?
 
 ### see
 The tasks delivered over time, weighted by their tier, and the friction of each session: questions the agent had to ask, error recoveries, re-tiered tasks, discrepancies caught at verification.
@@ -340,10 +341,10 @@ Work is done in sessions of ten tasks at most, for optimal use of the context. E
 - Self-improvement
 
 ### shot
-[![The Delivery view of the Performance Center on Roombook](screens/delivery.png)](demo/PERF-CENTER.html)
+[![The Delivery view of the Performance Center](screens/delivery.png)](demo/PERF-CENTER.html)
 
 ### caption
-What Roombook delivered, period by period.
+The Delivery view of the Performance Center
 
 ## more
 
@@ -529,7 +530,7 @@ Three steps to the first session
 Install the plugin
 
 ### step1-text
-A single marketplace for Claude Code, GitHub Copilot and OpenAI Codex.
+A single marketplace for Claude Code and GitHub Copilot (OpenAI Codex support coming soon).
 
 ### step1-command
 ```
@@ -562,7 +563,7 @@ Start a new AGNOS session, trigram EXP.
 ## footer
 
 ### developers
-[For your developers: the documentation on GitHub](https://github.com/spashx/agnos-lightweight-process)
+[TODO LIEN GETTING STARTED DU PLUG For your developers: the documentation on GitHub](https://github.com/spashx/agnos-lightweight-process)
 
 ### license
 AGNOS is distributed under the GNU Affero General Public License v3.

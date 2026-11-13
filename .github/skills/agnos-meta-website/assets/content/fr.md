@@ -77,7 +77,7 @@ Ouvrir le Performance Center de démo
 Tour d'horizon
 
 ### tools
-Fonctionne avec Claude Code, GitHub Copilot (support Codex à venir). Ses artefacts sont en Markdown, versionnés dans git, afin de maximiser l'efficacité opérationnelle.
+Fonctionne avec Claude Code, GitHub Copilot (support OpenAI Codex à venir). Ses artefacts sont en Markdown, versionnés dans git, afin de maximiser l'efficacité opérationnelle.
 
 ## chain
 
@@ -257,7 +257,7 @@ Pourquoi ce code existe-t-il, et que toucherait une modification ?
 L'arbre de dépendance d'un élément sélectionné: sa fonctionnalité, les décisions qui l'ont façonnée, les tâches qui l'ont livrée, les fichiers et fonctions qui l'implémentent.
 
 ### why
-La synergie de l'abre syntaxique d'implémention (arbre *AST*) et de la grammaire unique d'identification garantissent une vision holistique et explorable des relations entre artefacts.
+La synergie de l'arbre syntaxique d'implémentation (arbre *AST*) et de la grammaire unique d'identification garantissent une vision holistique et explorable des relations entre artefacts.
 
 ### tags
 - Abstract Syntax Tree
@@ -287,7 +287,7 @@ Chaque modification d'une exigence, d'une décision, d'un fichier ou d'une fonct
 Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message au standard *Conventional Commits*. Git reste l'unique système de référence, indépendant de toute infrastructure.
 
 ### tags
-- Vu chronologique
+- Vue chronologique
 - Un commit par tâche
 - Humain ou agent
 
@@ -334,10 +334,10 @@ Vue Quality
 La traçabilité est-elle garantie, par domaine fonctionnel ?
 
 ### see
-Des KPIs simple à comprendre de A à E, calculés à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
+Des KPIs simples à comprendre de A à E, calculés à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
 
 ### why
-Des portes que l'agent ne peut pas contourner. Chaque tâche répond à un besoin, ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, (S)mall, (M)edium ou (L)arge, proportionne la cérémonique au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
+Des portes que l'agent ne peut pas contourner. Chaque tâche répond à un besoin, ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, (S)mall, (M)edium ou (L)arge, proportionne la cérémonie au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
 
 ### tags
 - Definition of Ready
@@ -534,7 +534,7 @@ Trois étapes jusqu'à la première session
 Installer le plugin
 
 ### step1-text
-Une seule marketplace pour Claude Code, GitHub Copilot et OpenAI Codex.
+Une seule marketplace pour Claude Code et GitHub Copilot (support OpenAI Codex à venir).
 
 ### step1-command
 ```
