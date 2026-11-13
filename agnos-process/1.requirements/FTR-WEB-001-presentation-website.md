@@ -131,7 +131,8 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
   the link to the demo Performance Center, the three supported agent tools), the chain card (RQ-WEB-010), the tour of five Performance
   Center views (Matrix, Graph, Quality, History, Delivery; the Matrix in place of the Overview, amended by the owner on 2026-11-12),
   each content section named after its view, two cards (the deterministic index, the design system), the close (the link
-  to the demo, three steps to get started) and the footer (the developer documentation, the licence).
+  to the demo, three steps to get started, each with an example command in a console style, amended by the owner on
+  2026-11-13) and the footer (the developer documentation, the licence).
 - **Rationale**: a decision maker's level: one question, one view, a few sentences each; the developer documentation is linked, never
   reproduced (owner review of 2026-11-08).
 - **Priority**: Must

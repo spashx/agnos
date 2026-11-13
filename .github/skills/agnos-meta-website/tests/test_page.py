@@ -275,6 +275,29 @@ def png_pixels(path):
     return header[0], header[1], header[3], zlib.decompress(idat)
 
 
+class TestTheStartSteps(unittest.TestCase):
+    """RQ-WEB-009, RQ-WEB-015 (TASK-WEB-018): each start step shows an example command in a console style."""
+
+    def test_given_the_steps_then_each_shows_a_console_command_in_both_languages(self):
+        # Given the built page, When its three step cards are read, Then each holds a non-empty console block
+        steps = PAGE.split('class="steps"')[1].split('class="foot"')[0]
+        french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))["html"]
+        for number in (1, 2, 3):
+            key = f"start.step{number}-command"
+            english = re.search(rf'<pre class="console" data-i18n="{re.escape(key)}">(.*?)</pre>', steps, re.S)
+            self.assertIsNotNone(english, key)
+            self.assertTrue(english.group(1).strip(), key)
+            self.assertTrue(french[key].strip(), key)
+        self.assertIn("agnos@agnos-marketplace", steps)
+        self.assertIn("Démarrez", french["start.step3-command"])
+
+    def test_given_the_console_style_then_it_uses_tokens_only(self):
+        # Given the template's style, When the console rule is read, Then it consumes the console token and no raw value
+        rule = re.search(r"\.console\{([^}]*)\}", TEMPLATE).group(1)
+        self.assertIn("var(--s-web-console)", rule)
+        self.assertEqual(RAW_VALUE.findall(rule), [])
+
+
 class TestTheFrames(unittest.TestCase):
     """RQ-WEB-019, DEC-WEB-007: every image framed at the capture ratio through a design-system token."""
 

@@ -534,17 +534,33 @@ Install the plugin
 ### step1-text
 A single marketplace for Claude Code, GitHub Copilot and OpenAI Codex.
 
+### step1-command
+```
+claude plugin marketplace add <marketplace>
+claude plugin install agnos@agnos-marketplace
+```
+
 ### step2-title
 Add AGNOS to a project
 
 ### step2-text
 One call to `agnos-init`. Your own files remain intact.
 
+### step2-command
+```
+Call the agnos-init skill.
+```
+
 ### step3-title
 Start a session
 
 ### step3-text
 In a new conversation, the agent records the session and opens its branch.
+
+### step3-command
+```
+Start a new AGNOS session, trigram EXP.
+```
 
 ## footer
 

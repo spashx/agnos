@@ -19,7 +19,8 @@ TEXT_PAIRS = [(text, surface) for text in ("text", "text-muted", "text-subtle")
 TEXT_PAIRS += [("text", "surface-hover"), ("text-muted", "surface-hover"), ("text-on-accent", "accent"),
                ("accent", "surface-raised"), ("web-band-text", "web-band"), ("web-band-text-muted", "web-band"),
                ("web-band-accent", "web-band"), ("web-band-text-on-accent", "web-band-accent"),
-               ("text", "web-human-subtle"), ("text", "web-agent-subtle")]
+               ("text", "web-human-subtle"), ("text", "web-agent-subtle"),
+               ("web-band-text", "web-console")]   # TASK-WEB-018: the start steps' console
 PERF_CENTER_COLOURS = ("kind-human", "kind-agent", "brand-tile", "brand-light", "brand-blue", "brand-green",
                        "brand-yellow")
 LINEAR_THRESHOLD = 0.03928   # WCAG 2: below it a channel is linear

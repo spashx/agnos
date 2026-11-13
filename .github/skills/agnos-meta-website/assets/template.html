@@ -171,6 +171,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .steps h3{font-size:var(--s-web-text-20);color:var(--s-web-band-text);margin-top:var(--s-web-space-2)}
 .steps p{font-size:var(--s-web-text-14);margin-top:var(--s-web-space-6)}
 .steps code{color:var(--s-web-band-accent)}
+/* TASK-WEB-018, RQ-WEB-009: an example command under each start step */
+.console{margin:var(--s-web-space-10) 0 0;background:var(--s-web-console);color:var(--s-web-band-text);border:var(--s-web-border-1) solid var(--s-web-band-border);border-radius:var(--s-web-radius-6);padding:var(--s-web-space-10) var(--s-web-space-12);font-family:var(--s-web-font-mono);font-size:var(--s-web-text-12);line-height:var(--s-web-leading-code);white-space:pre-wrap;overflow-wrap:anywhere}
 .foot{display:flex;justify-content:space-between;gap:var(--s-web-space-16);flex-wrap:wrap;margin-top:var(--s-web-space-40);padding-top:var(--s-web-space-20);border-top:var(--s-web-border-1) solid var(--s-web-band-border);font-size:var(--s-web-text-13);color:var(--s-web-band-text-muted)}
 .foot a{color:var(--s-web-band-accent)}
 
@@ -421,9 +423,9 @@ button{font:inherit;color:inherit;cursor:pointer}
     </div>
     <h2 class="small" data-i18n="start.title"></h2>
     <div class="steps">
-      <div><span class="n">1</span><h3 data-i18n="start.step1-title"></h3><p data-i18n="start.step1-text"></p></div>
-      <div><span class="n">2</span><h3 data-i18n="start.step2-title"></h3><p data-i18n="start.step2-text"></p></div>
-      <div><span class="n">3</span><h3 data-i18n="start.step3-title"></h3><p data-i18n="start.step3-text"></p></div>
+      <div><span class="n">1</span><h3 data-i18n="start.step1-title"></h3><p data-i18n="start.step1-text"></p><pre class="console" data-i18n="start.step1-command"></pre></div>
+      <div><span class="n">2</span><h3 data-i18n="start.step2-title"></h3><p data-i18n="start.step2-text"></p><pre class="console" data-i18n="start.step2-command"></pre></div>
+      <div><span class="n">3</span><h3 data-i18n="start.step3-title"></h3><p data-i18n="start.step3-text"></p><pre class="console" data-i18n="start.step3-command"></pre></div>
     </div>
     <div class="foot"><span data-i18n="footer.developers"></span><span data-i18n="footer.license"></span></div>
   </div>
