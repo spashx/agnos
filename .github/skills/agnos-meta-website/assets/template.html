@@ -92,6 +92,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pill svg{width:var(--s-web-size-icon-pill);height:var(--s-web-size-icon-pill);fill:var(--s-web-ok)}
 .chain-pc{display:grid;grid-template-columns:var(--s-web-size-chain-mark) minmax(0,1fr);gap:var(--s-web-space-10);align-items:start;padding:var(--s-web-space-6) var(--s-web-space-12) 0 var(--s-web-space-16)}
 .chain-pc svg{width:var(--s-web-size-chain-mark);height:var(--s-web-size-chain-mark)}
+/* TASK-WEB-019, RQ-WEB-010: the supervision text starts at the icon's left edge */
+.chain-pc .st{align-self:center}
+.chain-pc .t{grid-column:1 / -1;font-size:var(--s-web-text-14);color:var(--s-text-muted)}
 .chain-foot{margin-top:var(--s-web-space-10);padding-top:var(--s-web-space-10);border-top:var(--s-web-border-1) solid var(--s-border);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
 
 /* tour (RQ-WEB-009) */
@@ -269,7 +272,7 @@ button{font:inherit;color:inherit;cursor:pointer}
             <li><span class="dot"></span><span class="st"><span class="k" data-i18n="chain.commit"></span><span class="id" data-i18n="chain.commit-id"></span><span class="t" data-i18n="chain.commit-text"></span></span></li>
           </ol>
         </div>
-        <div class="chain-pc"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#brand-mark"></use></svg><span class="st"><span class="k" data-i18n="chain.measure"></span><span class="id" data-i18n="chain.measure-id"></span><span class="t" data-i18n="chain.measure-text"></span></span></div>
+        <div class="chain-pc"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#brand-mark"></use></svg><span class="st"><span class="k" data-i18n="chain.measure"></span></span><span class="t" data-i18n="chain.measure-text"></span></div>
       </div>
       <p class="chain-foot" data-i18n="chain.foot"></p>
     </div>

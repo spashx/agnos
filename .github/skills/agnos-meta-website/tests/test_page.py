@@ -298,6 +298,20 @@ class TestTheStartSteps(unittest.TestCase):
         self.assertEqual(RAW_VALUE.findall(rule), [])
 
 
+class TestTheChainPerformanceCenter(unittest.TestCase):
+    """RQ-WEB-010, RQ-WEB-015 (TASK-WEB-019): the chain's Performance Center row, without the demo's name, its text from the icon's edge."""
+
+    def test_given_the_chain_then_its_performance_center_row_has_no_demo_name_and_a_full_width_text(self):
+        # Given the built page, When the chain's Performance Center row is read
+        row = re.search(r'<div class="chain-pc">(.*?)</div>', PAGE, re.S).group(1)
+        # Then it names no demo, And its text is a direct child spanning the row
+        self.assertNotIn("measure-id", row)
+        self.assertNotIn("Roombook", row)
+        self.assertTrue(row.rstrip().endswith('</span>'))
+        self.assertRegex(row, r'</span><span class="t" data-i18n="chain.measure-text">[^<]+</span>$')
+        self.assertIn(".chain-pc .t{grid-column:1 / -1", TEMPLATE)
+
+
 class TestTheFrames(unittest.TestCase):
     """RQ-WEB-019, DEC-WEB-007: every image framed at the capture ratio through a design-system token."""
 
