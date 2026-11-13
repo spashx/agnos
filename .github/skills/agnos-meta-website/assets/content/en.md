@@ -175,7 +175,7 @@ Performance Center
 The tour
 
 ### title
-The Performance Center, the control centre for your agentic development
+The Performance Center: your agentic development at a glance
 
 ### text
 The five views of the Performance Center meet the fundamental need to monitor your development.

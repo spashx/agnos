@@ -177,7 +177,7 @@ Performance Center
 Tour d'horizon
 
 ### title
-Le Performance Center, centre de contrôle de vos développements agentiques
+Le Performance Center : votre développement agentique d'un coup d'œil
 
 ### text
 Les cinq vues du Performance Center répondent au besoin fondamental de monitoring de vos développements.
