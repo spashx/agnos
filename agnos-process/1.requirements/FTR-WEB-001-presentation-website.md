@@ -26,7 +26,7 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 - **EARS Type**: Event-driven
 - **Statement**: WHEN the maintainer calls `agnos-meta-website build --demo <demo repository> --out <folder>`, the skill SHALL write into
   `<folder>` the static site: `index.html`, the images under `screens/` and the demo Performance Center page under `demo/`, then print
-  one summary line (fields per language, images, the index ratio) and exit 0; IF a check fails, THEN it SHALL write nothing, name each
+  one summary line (fields per language, images) and exit 0; IF a check fails, THEN it SHALL write nothing, name each
   failure on the error stream and exit 1.
 - **Rationale**: the site is regenerated from AGNOS's evolutions, never copied by hand.
 - **Priority**: Must
@@ -64,9 +64,10 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 ### RQ-WEB-004: The content checked before anything is written
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
-- **Statement**: IF a field is in one language only, a field is defined twice, text stands outside a field, a field mixes a paragraph and
-  a list or holds more than one paragraph, a field is unknown to the template, a template element has no field, or an image file is
-  missing, THEN the skill SHALL report it with the file and the field, and exit 1.
+- **Statement**: IF a field is in one language only, a field is defined twice, a field holds a variable `{{<name>}}`, text stands
+  outside a field, a field mixes a paragraph and a list or holds more than one paragraph, a field is unknown to the template, a
+  template element has no field, or an image file is missing, THEN the skill SHALL report it with the file and the field, and exit 1.
+  <!-- variable check moved from RQ-WEB-005 by TASK-WEB-017 (owner, 2026-11-13) -->
 - **Rationale**: an edit by hand must not publish a half-translated or broken page.
 - **Priority**: Must
 - **Acceptance Criteria**: Given each of these faults in turn, When `build` runs, Then the error names it, its file and its field, And the
@@ -74,6 +75,8 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 - **Dependencies**: RQ-WEB-003
 
 ### RQ-WEB-005: Figures measured on the demo
+- **Status**: Deprecated (owner, 2026-11-13, TASK-WEB-017): the index card states no measure; a variable left in a field is
+  reported under RQ-WEB-004.
 - **Category**: Functional
 - **EARS Type**: Event-driven
 - **Statement**: WHEN a field holds `{{index.documents}}`, `{{index.size}}`, `{{index.ratio}}` or `{{index.speed}}`, the skill SHALL
@@ -193,7 +196,8 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 ### RQ-WEB-018: Three cards behind the views
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The section behind the views SHALL show three cards side by side, in this order: the deterministic index, the
+- **Statement**: The section behind the views SHALL show three cards side by side, in this order: the deterministic index (its title,
+  text, an excerpt of the index and a caption, without measure), the
   unique identifiers as keys (each element cites the identifiers it depends on, like primary and foreign keys in a database, so that
   the agent follows exact links rather than semantic matching, which makes its work more deterministic), and the design system.
 - **Rationale**: the owner's message that unique identifiers make the links between information exact (owner request of 2026-11-08).
@@ -204,7 +208,8 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
   to the requirement in the Performance Center's type colours; Given the design-system card, Then it
   shows from top to bottom two of Roombook's button styles (primary, danger), each with its chain of tokens, the CSS
   that consumes them and a button rendered in that style, in the demo's colours. <!-- amended by TASK-WEB-009, TASK-WEB-010 and
-  TASK-WEB-011 (owner, 2026-11-08): blocks top to bottom, button styles, graph, two styles -->
+  TASK-WEB-011 (owner, 2026-11-08): blocks top to bottom, button styles, graph, two styles; by TASK-WEB-017 (owner, 2026-11-13):
+  the index card without measure -->
 - **Dependencies**: RQ-WEB-003, RQ-WEB-009, RQ-WEB-015
 
 ### RQ-WEB-019: Screenshot ratio check

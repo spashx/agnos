@@ -8,8 +8,6 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 - En ligne : *emphase*, **gras**, `code`, [texte du lien](adresse). Terminez une ligne par \ pour forcer un retour à la ligne.
 - Écrivez des espaces ordinaires avant : ; ? ! et des apostrophes droites : le build pose les espaces insécables et
   les apostrophes typographiques.
-- {{index.documents}}, {{index.size}}, {{index.ratio}} et {{index.speed}} (secondes pour 100 éléments) sont mesurés
-  sur la démo par le build.
 - Les commentaires comme celui-ci sont ignorés.
 -->
 
@@ -366,16 +364,10 @@ Trois autres raisons pour lesquelles cela tient à l'échelle
 Pensé pour les agents : l'index
 
 ### text
-Un script indexe chaque artefact, une ligne chacun, avec son emplacement exact. L'agent lit d'abord ce petit fichier et n'ouvre que les lignes utiles. Il y prend le prochain identifiant libre : aucun n'est jamais dupliqué. Le Performance Center lit le même index : ce que voit l'agent et ce que vous mesurez ne peuvent pas diverger. L'index est recalculé automatiquement, au début de chaque session et avant chaque commit, par un skill déterministe, en {{index.speed}} environ pour 100 éléments sur Roombook.
-
-### documents
-Documents du processus, {{index.documents}}
-
-### index
-L'index, {{index.size}}
+Un script indexe chaque artefact, une ligne chacun, avec son emplacement exact. L'agent lit d'abord ce petit fichier et n'ouvre que les lignes utiles. Il y prend le prochain identifiant libre : aucun n'est jamais dupliqué. Le Performance Center lit le même index : ce que voit l'agent et ce que vous mesurez ne peuvent pas diverger. L'index est recalculé automatiquement, au début de chaque session et avant chaque commit, par un skill déterministe.
 
 ### caption
-Roombook : l'index fait environ {{index.ratio}} des documents qu'il décrit.
+Roombook : un extrait de l'index.
 
 ### excerpt
 ```

@@ -41,11 +41,7 @@ class Fixture(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="agnos-meta-website-build-"))
         self.demo = self.root / "demo-repo"
-        process = self.demo / site.PROCESS
-        for folder in site.PROCESS_FOLDERS:
-            (process / folder).mkdir(parents=True)
-        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"### RQ-BKG-001: One requirement\n" + b"x" * 12000)
-        (process / site.INDEX).write_bytes(b"x" * 1000)
+        self.demo.mkdir()
         self.given = self.root / "given"
         self.given.mkdir()
         (self.given / "PERF-CENTER.html").write_bytes(GIVEN_PAGE)
@@ -136,7 +132,7 @@ class TestTheSiteFolder(Fixture):
         self.assertEqual(sorted(p.name for p in (self.out / "screens").iterdir()), sorted(f"{v}.png" for v in VIEWS))
         self.assertEqual((self.out / "README.md").read_text(encoding="utf-8"), "the owner's file")
         self.assertEqual(len(out.strip().splitlines()), 1)
-        self.assertRegex(out, r"^agnos-meta-website: \d+ fields in each language, 8 images, index 1/12, "
+        self.assertRegex(out, r"^agnos-meta-website: \d+ fields in each language, 8 images, "
                                   r"demo page copied; "
                                   r".+ written$")
 

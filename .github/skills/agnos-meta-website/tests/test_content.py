@@ -1,5 +1,5 @@
-"""Tests of agnos-meta-website's content: reading en.md and fr.md, their checks against the template, the measured
-figures and French typography (FTR-WEB-001: RQ-WEB-003, RQ-WEB-004, RQ-WEB-005, RQ-WEB-006, RQ-WEB-016; ADR-WEB-001:
+"""Tests of agnos-meta-website's content: reading en.md and fr.md, their checks against the template, a
+variable left in a field and French typography (FTR-WEB-001: RQ-WEB-003, RQ-WEB-004, RQ-WEB-006, RQ-WEB-016; ADR-WEB-001:
 DEC-WEB-001, DEC-WEB-003)."""
 import importlib.util
 import json
@@ -53,7 +53,7 @@ RQ-BKG-003|42-56||No double booking
 ```
 
 ### figure
-Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}, speed {{index.speed}}
+The index, an excerpt
 """
 FR = """## page
 
@@ -82,30 +82,22 @@ RQ-BKG-003|42-56||No double booking
 ```
 
 ### figure
-Documents {{index.documents}}, index {{index.size}}, ratio {{index.ratio}}, speed {{index.speed}}
+The index, an excerpt
 """
-DOCUMENTS_BYTES = 12000
-INDEX_BYTES = 1000
 
 
 class Fixture(unittest.TestCase):
-    """A temporary assets folder and demo repository; each test changes one of their files."""
+    """A temporary assets folder; each test changes one of its files."""
 
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="agnos-meta-website-"))
         self.assets = self.root / "assets"
-        self.demo = self.root / "demo"
         (self.assets / "content").mkdir(parents=True)
         (self.assets / "screens").mkdir()
         (self.assets / "template.html").write_text(TEMPLATE, encoding="utf-8")
         (self.assets / "content" / "en.md").write_text(EN, encoding="utf-8")
         (self.assets / "content" / "fr.md").write_text(FR, encoding="utf-8")
         (self.assets / "screens" / "view.png").write_bytes(PNG)
-        process = self.demo / "agnos-process"
-        for folder in ("1.requirements", "2.architecture", "3.plan"):
-            (process / folder).mkdir(parents=True)
-        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"x" * DOCUMENTS_BYTES)
-        (process / "process.idx.md").write_bytes(b"x" * INDEX_BYTES)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -116,8 +108,7 @@ class Fixture(unittest.TestCase):
     def page(self):
         """(page, errors) of a build of the fixture."""
         errors = []
-        result = site.build_page(self.assets, self.demo, errors, tokens={tier: {} for tier in site.TIERS},
-                                 speed=0.43)
+        result = site.build_page(self.assets, errors, tokens={tier: {} for tier in site.TIERS})
         return (result[0] if result else None), errors
 
     def french(self, page):
@@ -145,12 +136,12 @@ class TestContentInTheAssets(Fixture):
 
     def test_given_a_code_block_with_marks_then_they_are_highlighted(self):
         errors = []
-        self.assertEqual(site.render("x.y", ["```", "refs: ==RQ-BKG-003== <done>", "```"], "en", {}, errors),
+        self.assertEqual(site.render("x.y", ["```", "refs: ==RQ-BKG-003== <done>", "```"], "en", errors),
                          (site.KIND_CODE, "refs: <mark>RQ-BKG-003</mark> &lt;done&gt;"))
 
     def test_given_a_plain_image_then_it_is_an_image_without_link(self):
         errors = []
-        self.assertEqual(site.render("x.y", ["![An example](screens/view.png)"], "en", {}, errors),
+        self.assertEqual(site.render("x.y", ["![An example](screens/view.png)"], "en", errors),
                          (site.KIND_IMAGE, ("An example", "screens/view.png")))
         self.assertEqual(errors, [])
 
@@ -224,20 +215,22 @@ class TestContentChecks(Fixture):
         self.assertFault("en.md: hero.shot: screens/view.png does not exist")
 
 
-class TestMeasuredFigures(Fixture):
-    """RQ-WEB-005: the index figures measured on the demo, in each language's number format."""
+class TestVariableLeftInAField(Fixture):
+    """RQ-WEB-004 (RQ-WEB-005 deprecated): the content holds no variable; one left in a field is reported."""
 
-    def test_given_the_demo_when_built_then_the_figures_are_measured(self):
-        page, _ = self.page()
-        self.assertIn("Documents 12.0 KB, index 1.0 KB, ratio 1/12, speed 0.4 s", page)
-        self.assertEqual(self.french(page)["html"]["hero.figure"],
-                         "Documents 12,0" + NBSP + "Ko, index 1,0" + NBSP + "Ko, ratio 1/12, speed 0,4" + NBSP + "s")
+    def test_given_a_field_without_variable_then_its_text_is_kept(self):
+        # Given the fixture's figure field, When built, Then its text is in both languages as written
+        page, errors = self.page()
+        self.assertEqual(errors, [])
+        self.assertIn(">The index, an excerpt</p>", page)
+        self.assertEqual(self.french(page)["html"]["hero.figure"], "The index, an excerpt")
 
-    def test_given_an_unknown_variable_then_it_is_reported(self):
-        self.write("en.md", EN.replace("{{index.ratio}}", "{{index.unknown}}"))
+    def test_given_a_variable_left_in_a_field_then_it_is_reported(self):
+        # Given a former measure left in a field, When built, Then the error names the file, the field and the variable
+        self.write("en.md", EN.replace("The index, an excerpt", "Ratio {{index.ratio}}"))
         page, errors = self.page()
         self.assertIsNone(page)
-        self.assertIn("en.md: hero.figure: unknown variable {{index.unknown}}", errors)
+        self.assertIn("en.md: hero.figure: unknown variable {{index.ratio}}", errors)
 
 
 class TestFrenchTypography(Fixture):

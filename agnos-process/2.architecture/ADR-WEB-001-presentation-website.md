@@ -20,8 +20,8 @@ and `assets/`; `.claude/skills/agnos-meta-website/SKILL.md` points to it. One su
 With `--demo-page`, the page and its data files (`PERF-CENTER.json`, `PERF-CENTER.data.js`) are copied into `demo/`. Without it, the
 build runs this working tree's `perf_center.py` on the demo with `--process agnos-process --sources service --sources client --history
 --call-graph`, the same sources as `agnos-meta-demo verify`; the generator itself leaves the functions out when the call-graph packages
-are missing. `--demo` stays required: the index figures
-are measured on the repository. Fulfils RQ-WEB-002, RQ-WEB-005.
+are missing. `--demo` stays required. Fulfils RQ-WEB-002. Amended on 2026-11-13 (TASK-WEB-017): the index figures, measured on the
+demo for RQ-WEB-005, are removed with that requirement.
 
 ### DEC-WEB-003: Content in `assets/content/`, images in `assets/screens/`, a template without text
 `en.md` and `fr.md` follow the mock-up's format: `##` section, `###` field, paragraph, list or linked image. `assets/template.html` names

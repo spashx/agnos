@@ -6,8 +6,6 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
   dimmed), or one image written as a linked image: [![alternative text](screens/<file>.png)](<address opened on click>)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
-- {{index.documents}}, {{index.size}}, {{index.ratio}} and {{index.speed}} (seconds per 100 artifacts) are measured on
-  the demo by the build.
 - Comments like this one are ignored.
 -->
 
@@ -364,16 +362,10 @@ Three more reasons why it holds at scale
 Designed for agents: the index
 
 ### text
-A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the useful lines. It takes the next free identifier from it: none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge. The index is recomputed automatically, at the start of every session and before every commit, by a deterministic skill, in about {{index.speed}} per 100 artifacts on Roombook.
-
-### documents
-Process documents, {{index.documents}}
-
-### index
-The index, {{index.size}}
+A script indexes every artifact, one line each, with its exact location. The agent reads this small file first and opens only the useful lines. It takes the next free identifier from it: none is ever duplicated. The Performance Center reads the same index: what the agent sees and what you measure cannot diverge. The index is recomputed automatically, at the start of every session and before every commit, by a deterministic skill.
 
 ### caption
-Roombook: the index is about {{index.ratio}} of the documents it describes.
+Roombook: an excerpt of the index.
 
 ### excerpt
 ```

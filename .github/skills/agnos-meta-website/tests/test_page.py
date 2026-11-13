@@ -29,19 +29,10 @@ LETTERS = re.compile(r"[A-Za-zÀ-ɏ]")
 
 
 def build():
-    """The page built from the real assets on a small demo, and its errors."""
-    root = Path(tempfile.mkdtemp(prefix="agnos-meta-website-page-"))
-    try:
-        process = root / "agnos-process"
-        for folder in site.PROCESS_FOLDERS:
-            (process / folder).mkdir(parents=True)
-        (process / "1.requirements" / "FTR-BKG-001.md").write_bytes(b"### RQ-BKG-001: One requirement\n" + b"x" * 69014)
-        (process / site.INDEX).write_bytes(b"x" * 5843)
-        errors = []
-        result = site.build_page(site.ASSETS_DIR, root, errors)
-        return (result[0] if result else ""), errors
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+    """The page built from the real assets, and its errors."""
+    errors = []
+    result = site.build_page(site.ASSETS_DIR, errors)
+    return (result[0] if result else ""), errors
 
 
 PAGE, ERRORS = build()
@@ -208,11 +199,21 @@ class TestTheDesignSystemCard(unittest.TestCase):
 
 
 class TestTheIndexAndGraph(unittest.TestCase):
-    """RQ-WEB-005, RQ-WEB-018: the index's measured speed, and the identifiers drawn as a small graph."""
+    """RQ-WEB-018 (RQ-WEB-005 deprecated): the index card without measures, and the identifiers drawn as a graph."""
 
-    def test_given_the_index_card_then_it_states_a_measured_speed_per_hundred_artifacts(self):
-        text = re.search(r'data-i18n="index-card.text">(.*?)</p>', PAGE, re.S).group(1)
-        self.assertRegex(text, r"deterministic skill.*\d\.\d s per 100 artifacts")
+    def test_given_the_index_card_then_it_holds_its_texts_and_no_measure(self):
+        # Given the built page, When its index card is read, Then it holds title, text, excerpt and caption only
+        card = PAGE.split('data-i18n="index-card.title"')[1].split('data-i18n="id-card.title"')[0]
+        self.assertEqual(re.findall(r'data-i18n="(index-card\.[a-z-]+)"', card),
+                         ["index-card.text", "index-card.excerpt", "index-card.caption"])
+        self.assertNotIn("bar-row", PAGE)
+        self.assertNotIn("{{", PAGE)
+        # And neither language states a figure in its text or caption
+        french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))["html"]
+        for key in ("index-card.text", "index-card.caption"):
+            english = re.search(rf'data-i18n="{re.escape(key)}">(.*?)</p>', PAGE, re.S).group(1)
+            for text in (english, french[key]):
+                self.assertIsNone(re.search(r"\d|KB|Ko", text), key)
 
     def test_given_the_identifiers_card_then_a_graph_links_task_and_adr_to_the_requirement(self):
         card = PAGE.split('data-i18n="id-card.title"')[1].split('data-i18n="design-card.title"')[0]

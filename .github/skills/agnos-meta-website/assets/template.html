@@ -128,10 +128,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 .excerpt{margin:0;background:var(--s-surface-subtle);color:var(--s-text);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);padding:var(--s-web-space-10) var(--s-web-space-12);font-family:var(--s-web-font-mono);font-size:var(--s-web-text-12);line-height:var(--s-web-leading-code);overflow-x:auto;white-space:pre}
 .excerpt span{color:var(--s-text-subtle)}
 .excerpt mark{background:var(--s-accent-subtle);color:var(--s-accent);font-weight:var(--s-weight-strong);border-radius:var(--s-web-radius-3)}
-.bars{display:grid;gap:var(--s-web-space-10)}
-.bar-row{display:grid;gap:var(--s-web-space-4);font-size:var(--s-web-text-13);color:var(--s-text-muted)}
-.bar-row i{display:block;height:var(--s-web-size-bar-row);border-radius:0 var(--s-web-radius-4) var(--s-web-radius-4) 0;background:var(--s-border-strong)}
-.bar-row i.hl{background:var(--s-accent)}
 .styles{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-web-space-12)}
 .style{display:grid;gap:var(--s-web-space-6);padding:var(--s-web-space-10);border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-6);background:var(--s-surface-subtle);min-width:0}
 .snippet-css{padding-top:var(--s-web-space-6);border-top:var(--s-web-border-1) solid var(--s-border)}
@@ -365,10 +361,6 @@ button{font:inherit;color:inherit;cursor:pointer}
         <h3 data-i18n="index-card.title"></h3>
         <p data-i18n="index-card.text"></p>
         <pre class="excerpt" data-i18n="index-card.excerpt"></pre>
-        <div class="bars">
-          <div class="bar-row"><span data-i18n="index-card.documents"></span><i style="width:100%"></i></div>
-          <div class="bar-row"><span data-i18n="index-card.index"></span><i class="hl" style="width:{{v:index.share}}%"></i></div>
-        </div>
         <p class="cap" data-i18n="index-card.caption"></p>
       </div>
       <div class="card">
