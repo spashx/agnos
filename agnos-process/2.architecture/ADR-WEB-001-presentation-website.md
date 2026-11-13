@@ -48,10 +48,10 @@ RQ-WEB-008, RQ-WEB-014, RQ-WEB-015.
 touches nothing else; it never commits nor pushes. Fulfils RQ-WEB-001, RQ-WEB-013.
 
 ### DEC-WEB-007: A ratio token for the screenshot frames, checked at build
-Added on 2026-11-12 for RQ-WEB-019. The site's `assets/tokens.json` gains `web.ratio-shot`, `1291 / 720`, consumed by the tour and
+Added on 2026-11-12 for RQ-WEB-019. The site's `assets/tokens.json` gains `web.ratio-shot`, `16 / 9` (`1291 / 720` until amended on 2026-11-13 by TASK-WEB-023), consumed by the tour and
 example frames in place of the literal `16/10`. `build_site.py` reads each PNG's width and height from its `IHDR` header (standard
-library), and fails when the ratio is off by more than 0.5% or the width is below 1291 px; the placeholders of DEC-WEB-004 are
-rewritten at 1936 × 1080. Fulfils RQ-WEB-019, RQ-WEB-012.
+library), and fails when the ratio is off by more than 0.5% or the width is below 1920 px; the placeholders of DEC-WEB-004 are
+rewritten at 1920 × 1080. Fulfils RQ-WEB-019, RQ-WEB-012.
 
 ## Consequences
 - The owner edits text and images in `assets/` and rebuilds; no page code to touch.

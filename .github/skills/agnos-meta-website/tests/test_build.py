@@ -82,7 +82,7 @@ def png_of_size(width, height):
 
 
 class TestTheScreenSize(Fixture):
-    """RQ-WEB-019, DEC-WEB-007: an image at the capture ratio and at least 1291 px wide, or nothing is written."""
+    """RQ-WEB-019, DEC-WEB-007: an image at the capture ratio 16:9 and at least 1920 px wide, or nothing is written."""
 
     def build_with_screen(self, width, height):
         """(code, stdout, stderr, snapshot before) of a build whose matrix.png has the given size."""
@@ -99,8 +99,8 @@ class TestTheScreenSize(Fixture):
         return (*result, before)
 
     def test_given_accepted_sizes_when_built_then_each_succeeds(self):
-        """RQ-WEB-019: 1291x720, 1936x1080 and 2582x1440 are accepted."""
-        for width, height in ((1291, 720), (1936, 1080), (2582, 1440)):
+        """RQ-WEB-019: 1920x1080 and 3840x2160 are accepted."""
+        for width, height in ((1920, 1080), (3840, 2160)):
             with self.subTest(size=(width, height)):
                 # Given an image of that size
                 # When the site is built
@@ -109,8 +109,8 @@ class TestTheScreenSize(Fixture):
                 self.assertEqual((code, err), (0, ""))
 
     def test_given_a_wrong_ratio_when_built_then_the_file_is_named_and_nothing_is_written(self):
-        """RQ-WEB-019: 1600x1000 (16:10) and 1000x558 (too narrow) are refused."""
-        for width, height in ((1600, 1000), (1000, 558)):
+        """RQ-WEB-019: 1936x1080 and 1600x1000 (other ratios) and 1280x720 (too narrow) are refused."""
+        for width, height in ((1936, 1080), (1600, 1000), (1280, 720)):
             with self.subTest(size=(width, height)):
                 # Given an image of that size
                 # When the site is built
@@ -118,7 +118,7 @@ class TestTheScreenSize(Fixture):
                 # Then it fails naming the file, its size and the expected ratio, and writes nothing
                 self.assertEqual((code, out), (1, ""))
                 self.assertIn(f"matrix.png: {width}x{height}", err)
-                self.assertIn("1291:720", err)
+                self.assertIn("16:9", err)
                 self.assertEqual(self.snapshot(), before)
 
 

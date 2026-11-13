@@ -20,7 +20,7 @@ TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
 VIEWS = ("matrix", "graph", "history", "delivery", "quality")
 EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-PLACEHOLDER_SIZE = (1936, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
+PLACEHOLDER_SIZE = (1920, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
 RGB_COLOUR_TYPE = 2
 FONT_HOSTS = ("https://fonts.googleapis.com", "https://fonts.gstatic.com")
 RAW_VALUE = re.compile(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|em|rem|vw|vh|s|ms)\b|"
@@ -329,11 +329,11 @@ class TestTheFrames(unittest.TestCase):
         self.assertTrue(ratios)
         self.assertEqual(set(ratios), {"var(--s-web-ratio-shot)"})
         self.assertNotIn("16/10", TEMPLATE)
-        self.assertIn("--s-web-ratio-shot: 1291 / 720;", PAGE)
+        self.assertIn("--s-web-ratio-shot: 16 / 9;", PAGE)
 
 
 class TestThePlaceholders(unittest.TestCase):
-    """RQ-WEB-012, RQ-WEB-019: one single-colour PNG per view, 1936x1080 (the capture ratio)."""
+    """RQ-WEB-012, RQ-WEB-019: one single-colour PNG per view, 1920x1080 (the capture ratio)."""
 
     def test_given_the_assets_then_each_view_has_a_single_colour_placeholder(self):
         for view in VIEWS + EXAMPLES:

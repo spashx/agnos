@@ -13,6 +13,7 @@ summary line is printed. Exit 1: one error per line on the error stream, and not
 import argparse
 import html
 import json
+import math
 import re
 import shutil
 import struct
@@ -53,8 +54,8 @@ NARROW_NBSP = " "
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PNG_HEADER = struct.Struct(">II")        # width, height: the first 8 bytes of the IHDR chunk
 PNG_HEADER_OFFSET = len(PNG_SIGNATURE) + 8   # after the signature, the chunk length and its type
-SHOT_WIDTH = 1291
-SHOT_HEIGHT = 720
+SHOT_WIDTH = 1920
+SHOT_HEIGHT = 1080
 SHOT_TOLERANCE = 0.005
 
 # RQ-WEB-006: French typography
@@ -521,7 +522,8 @@ def png_size(data):
 def screen_size_error(name, data):
     """The error of an image that is not at the capture ratio or is too narrow, or None. RQ-WEB-019, DEC-WEB-007"""
     size = png_size(data)
-    expected = f"{SHOT_WIDTH}:{SHOT_HEIGHT}"
+    divisor = math.gcd(SHOT_WIDTH, SHOT_HEIGHT)
+    expected = f"{SHOT_WIDTH // divisor}:{SHOT_HEIGHT // divisor}"
     if size is None:
         return f"screens/{name}: not a PNG image, expected ratio {expected}"
     width, height = size

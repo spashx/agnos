@@ -34,7 +34,7 @@ Everything the reader sees comes from `assets/`:
 | Path | Content |
 |---|---|
 | `assets/content/en.md`, `assets/content/fr.md` | The text, one `##` section per page element and one `###` field per text, the same in both files; the header comment of each file gives the format |
-| `assets/screens/*.png` | The images the content links to; replace a file by one of the same name. The page frames each one at the capture ratio 1291:720 (the design-system token `web.ratio-shot`): `build` refuses an image whose ratio differs by more than 0.5% or whose width is under 1291 px, naming the file and its size. Accepted sizes: 1291x720, 1936x1080, 2582x1440 (the owner's captures) <!-- RQ-WEB-019 --> |
+| `assets/screens/*.png` | The images the content links to; replace a file by one of the same name. The page frames each one at the capture ratio 16:9 (the design-system token `web.ratio-shot`): `build` refuses an image whose ratio differs by more than 0.5% or whose width is under 1920 px, naming the file and its size. Accepted sizes: 1920x1080, 3840x2160 <!-- RQ-WEB-019 --> |
 | `assets/template.html` | The page's layout, without text |
 
 To change a word, edit the Markdown and build again. To add a field, add it to both languages and give it an element in

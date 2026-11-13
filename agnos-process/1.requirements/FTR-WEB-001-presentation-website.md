@@ -173,11 +173,11 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: `assets/screens/` SHALL hold one PNG per tour view, named after it (`matrix.png`, amended on 2026-11-12, `graph.png`, `quality.png`,
-  `history.png`, `delivery.png`), filled with a single colour at the screenshot ratio of RQ-WEB-019 and 1936 × 1080 px (16:10 until
-  amended by the owner on 2026-11-12), which the owner replaces by a screenshot of the same name.
+  `history.png`, `delivery.png`), filled with a single colour at the screenshot ratio of RQ-WEB-019 and 1920 × 1080 px (16:10 until
+  amended by the owner on 2026-11-12, 1936 × 1080 until 2026-11-13), which the owner replaces by a screenshot of the same name.
 - **Rationale**: the page is complete and checkable before the screenshots exist (owner request of 2026-11-08).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG of one colour at 1936 × 1080; Given one replaced by
+- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG of one colour at 1920 × 1080; Given one replaced by
   another PNG, When `build` runs, Then the site shows it with no other change.
 - **Dependencies**: RQ-WEB-003
 
@@ -216,14 +216,14 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 ### RQ-WEB-019: Screenshot ratio check
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
-- **Statement**: The page SHALL frame every image of `assets/screens/` at the ratio 1291:720 of the owner's screen captures
-  (2582 × 1440), given by a token of the site's design system; IF an image's ratio differs from it by more than 0.5% or its width is
-  below 1291 px, THEN `build` SHALL fail naming the file, its size and the expected ratio.
+- **Statement**: The page SHALL frame every image of `assets/screens/` at the ratio 16:9 of the owner's screen captures
+  (1920 × 1080; 1291:720 until amended by the owner on 2026-11-13), given by a token of the site's design system; IF an image's ratio differs from it by more than 0.5% or its width is
+  below 1920 px, THEN `build` SHALL fail naming the file, its size and the expected ratio.
 - **Rationale**: a capture framed at another ratio is cropped; the owner reduces captures to any size of that ratio (owner request
   of 2026-11-12).
 - **Priority**: Must
 - **Acceptance Criteria**: Given the template, Then every screenshot and example frame takes its ratio from the token; Given images
-  of 1291 × 720, 1936 × 1080 and 2582 × 1440, When `build` runs, Then it succeeds; Given an image of 1600 × 1000 or of 1000 × 558,
+  of 1920 × 1080 and 3840 × 2160, When `build` runs, Then it succeeds; Given an image of 1936 × 1080, 1600 × 1000 or 1280 × 720,
   When `build` runs, Then it fails naming that file and writes nothing.
 - **Dependencies**: RQ-WEB-003, RQ-WEB-012, RQ-WEB-015
 
