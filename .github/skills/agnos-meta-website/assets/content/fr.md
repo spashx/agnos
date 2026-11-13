@@ -200,7 +200,7 @@ Ouvrir dans la démo
 ## matrix
 
 ### view
-Matrix
+Vue Matrice
 
 ### question
 Ce qui a été demandé est-il vraiment construit ?
@@ -209,7 +209,7 @@ Ce qui a été demandé est-il vraiment construit ?
 La matrice de traçabilité de bout en bout, des capacités fonctionnelles au code, sur une page unique, exportable directement.
 
 ### why
-Chaque élément du process est identifié de manière unique, de la capacité fonctionnelle au commit. La spécification et les tests, exprimés dans des syntaxes testables (EARS, Gherkin), réduisent au minimum l'interprétation agentique à l'implémentation.
+Chaque élément du process est identifié de manière unique, de la capacité fonctionnelle au commit. La spécification et les tests, exprimés dans des syntaxes testables (*EARS*, *Gherkin*), réduisent au minimum l'interprétation agentique à l'implémentation.
 
 ### tags
 - EARS
@@ -217,7 +217,7 @@ Chaque élément du process est identifié de manière unique, de la capacité f
 - Identifiants dans le code
 
 ### shot
-[![La vue Matrix du Performance Center sur Roombook](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
+[![Vue Matrice](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
 Roombook : matrice de traçabilité de bout en bout.
@@ -225,22 +225,22 @@ Roombook : matrice de traçabilité de bout en bout.
 ## examples
 
 ### requirement
-![Une exigence de Roombook, en EARS avec ses critères Gherkin](screens/example-requirement.png)
+![Une exigence](screens/example-requirement.png)
 
 ### requirement-caption
-L'exigence RQ-BKG-003
+Une exigence 
 
 ### adr
-![Une décision d'architecture de Roombook, avec son diagramme](screens/example-adr.png)
+![Architecture Decision Record, et diagrammes auto-générés](screens/example-adr.png)
 
 ### adr-caption
-ADR-BKG-001 et son diagramme
+Architecture Decision Record, et diagrammes auto-générés
 
 ### plan
-![Un plan de Roombook, avec l'une de ses tâches](screens/example-plan.png)
+![Plan d'exécution et tâche d'implémentation](screens/example-plan.png)
 
 ### plan-caption
-PLAN-BKG-001 et TASK-BKG-003
+Plan d'exécution et tâche d'implémentation
 
 ### zoom
 Exemple agrandi
@@ -251,21 +251,21 @@ Fermer
 ## graph
 
 ### view
-Graph
+Vue Graph
 
 ### question
 Pourquoi ce code existe-t-il, et que toucherait une modification ?
 
 ### see
-Une exigence et tout ce qui s'y rattache : sa fonctionnalité, les décisions qui l'ont façonnée, les tâches qui l'ont livrée, les fichiers et fonctions qui l'implémentent.
+L'arbre de dépendance d'un élément sélectionné: sa fonctionnalité, les décisions qui l'ont façonnée, les tâches qui l'ont livrée, les fichiers et fonctions qui l'implémentent.
 
 ### why
-Une seule grammaire d'identifiants, écrite en commentaire dans les documents, le code, les tests et les messages de commit. Chaque décision d'architecture a son propre identifiant : le code cite la décision exacte qu'il applique.
+La synergie de l'abre syntaxique d'implémention (arbre *AST*) et de la grammaire unique d'identification garantissent une vision holistique et explorable des relations entre artefacts.
 
 ### tags
-- Décisions d'architecture (ADR)
-- Une grammaire d'identifiants
-- Identifiants en commentaire
+- Abstract Syntax Tree
+- Grammaire d'identifiants
+- Graph explorable
 
 ### shot
 [![La vue Graph du Performance Center, centrée sur l'exigence RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
@@ -273,54 +273,32 @@ Une seule grammaire d'identifiants, écrite en commentaire dans les documents, l
 ### caption
 `RQ-BKG-003`, Double booking rejection, et tout ce qui la cite.
 
-## quality
 
-### view
-Quality
-
-### question
-Peut-on se fier à la façon dont le processus a été appliqué ?
-
-### see
-Des KPIs de A à E, calculés à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
-
-### why
-Des portes que l'agent ne peut pas contourner. Une tâche ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, S, M ou L, proportionne le formalisme au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
-
-### tags
-- Definition of Ready
-- Definition of Done
-- Niveaux S, M, L
-
-### shot
-[![La vue Quality du Performance Center sur Roombook](screens/quality.png)](demo/PERF-CENTER.html)
-
-### caption
-Le bulletin de Roombook, et les contrôles derrière sa note.
 
 ## history
 
 ### view
-History
+Vue History
 
 ### question
-Qui a modifié quoi, et quand ?
+Qui a modifié quoi, et quand ? Agent, humain ou les deux ?
 
 ### see
 Chaque modification d'une exigence, d'une décision, d'un fichier ou d'une fonction, attribuée à ses auteurs depuis git. Chaque identité est classée humaine ou agent IA, et chaque commit humain, agent ou les deux ensemble.
 
 ### why
-Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message. Git reste l'unique système de référence, indépendant de toute infrastructure.
+Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message au standard *Conventional Commits*. Git reste l'unique système de référence, indépendant de toute infrastructure.
 
 ### tags
+- Vu chronologique
 - Un commit par tâche
 - Humain ou agent
 
 ### shot
-[![La vue History du Performance Center sur Roombook](screens/history.png)](demo/PERF-CENTER.html)
+[![La vue Historique du Performance Center](screens/history.png)](demo/PERF-CENTER.html)
 
 ### caption
-Deux mois d'historique de développement de l'application Roombook.
+La vue Historique du Performance Center
 
 ### note
 Chaque commit, humain, agentique ou collaboratif, est traçable par une vue exigence ou une vue implémentation.
@@ -328,16 +306,16 @@ Chaque commit, humain, agentique ou collaboratif, est traçable par une vue exig
 ## delivery
 
 ### view
-Delivery
+vue Delivery
 
 ### question
-Qu'est-ce qui a été livré, et maitrisons-nous la dérive agentique potentielle ?
+Qu'est-ce qui a été livré et à quelle vitesse ? La vélocité agentique est-elle maîtrisée ?
 
 ### see
 Les tâches livrées au fil du temps, pondérées par leur niveau, et la friction de chaque session : questions que l'agent a dû poser, reprises sur erreur, tâches recalibrées, écarts détectés à la vérification.
 
 ### why
-Le travail se fait en sessions de dix tâches au plus, pour une utilisation optimale du contexte. Chaque session se clôt sur ses compteurs de friction ; si l'un d'eux n'est pas nul, une étape d'auto-amélioration propose des règles pour le projet, appliquées une fois approuvées et dans un budget défini.
+Le travail se fait en sessions de dix tâches au plus, pour une utilisation optimale du contexte. Chaque session se clôt sur ses compteurs de friction ; si l'un d'eux n'est pas nul, une étape d'auto-amélioration propose des règles pour le projet, appliquées une fois approuvées et sur un budget défini.
 
 ### tags
 - Sessions
@@ -345,10 +323,35 @@ Le travail se fait en sessions de dix tâches au plus, pour une utilisation opti
 - Auto-amélioration
 
 ### shot
-[![La vue Delivery du Performance Center sur Roombook](screens/delivery.png)](demo/PERF-CENTER.html)
+[![La vue Delivery du Performance Center](screens/delivery.png)](demo/PERF-CENTER.html)
 
 ### caption
-Ce que Roombook a livré, période par période.
+La vue Delivery du Performance Center
+
+## quality
+
+### view
+Vue Quality
+
+### question
+La traçabilité est-elle garantie, par domaine fonctionnel ?
+
+### see
+Des KPIs simple à comprendre de A à E, calculés à partir de contrôles pondérés par le risque. Chaque écart désigne l'élément à corriger : sur Roombook, des fonctions qui ne citent pas encore d'exigence.
+
+### why
+Des portes que l'agent ne peut pas contourner. Chaque tâche répond à un besoin, ne démarre qu'une fois approuvée (Definition of Ready) et ne se clôt qu'une fois sa liste de contrôle validée (Definition of Done). Son niveau, (S)mall, (M)edium ou (L)arge, proportionne la cérémonique au risque de la modification. Un contrôle en échec a droit à une correction, puis l'agent s'arrête et rend compte.
+
+### tags
+- Definition of Ready
+- Definition of Done
+- Niveaux S, M, L
+
+### shot
+[![La vue Quality du Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
+
+### caption
+La vue Quality du Performance Center 
 
 ## more
 
