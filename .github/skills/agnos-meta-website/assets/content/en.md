@@ -4,7 +4,7 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - "## <section>" opens a page element, "### <field>" one of its texts. Keep these ids identical in en.md and fr.md:
   the build refuses a field missing from one language, or unknown to the page template.
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
-  dimmed), or one image written as a linked image: [![alternative text](screens/<file>.png)](<address opened on click>)
+  dimmed), or one image: ![alternative text](screens/<file>.png)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
 - Comments like this one are ignored.
 -->
@@ -189,9 +189,6 @@ What you see
 ### why
 What makes it possible
 
-### open
-Open in the demo
-
 ## matrix
 
 ### view
@@ -212,7 +209,7 @@ Every element of the process is uniquely identified, from the functional capabil
 - Identifiers in the code
 
 ### shot
-[![Matrix view](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
+![Matrix view](screens/matrix.png)
 
 ### caption
 The Matrix view of the Performance Center
@@ -263,7 +260,7 @@ The synergy of the implementation's abstract syntax tree (*AST*) and of the sing
 - Explorable graph
 
 ### shot
-[![The Graph view of the Performance Center](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+![The Graph view of the Performance Center](screens/graph.png)
 
 ### caption
 The Graph view of the Performance Center
@@ -288,7 +285,7 @@ One commit per task, made by a skill that writes the task and ADR identifiers in
 - Human or agent
 
 ### shot
-[![The History view of the Performance Center](screens/history.png)](demo/PERF-CENTER.html)
+![The History view of the Performance Center](screens/history.png)
 
 ### caption
 The History view of the Performance Center
@@ -313,7 +310,7 @@ Work is done in sessions of ten tasks at most, for optimal use of the context. E
 - Self-improvement
 
 ### shot
-[![The Delivery view of the Performance Center](screens/delivery.png)](demo/PERF-CENTER.html)
+![The Delivery view of the Performance Center](screens/delivery.png)
 
 ### caption
 The Delivery view of the Performance Center
@@ -338,7 +335,7 @@ Gates the agent cannot bypass. Each task answers a need, starts only once approv
 - Tiers S, M, L
 
 ### shot
-[![The Quality view of the Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
+![The Quality view of the Performance Center](screens/quality.png)
 
 ### caption
 The Quality view of the Performance Center

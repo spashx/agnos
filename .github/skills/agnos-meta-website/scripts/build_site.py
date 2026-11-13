@@ -71,17 +71,14 @@ FIELD = re.compile(r"^###\s+([a-z0-9-]+)\s*$")
 FENCE = "```"
 FENCE_LINE = re.compile(r"^(```)$(.*?)^(```)$", re.M | re.S)
 LIST_ITEM = re.compile(r"^-\s+(\S.*)$")
-IMAGE = re.compile(r"^!\[([^\]]+)\]\(([^)\s]+)\)$")   # RQ-WEB-017: an image enlarged on click, without link
-SHOT = re.compile(r"^\[!\[([^\]]+)\]\(([^)\s]+)\)\]\(([^)\s]+)\)$")
+IMAGE = re.compile(r"^!\[([^\]]+)\]\(([^)\s]+)\)$")   # RQ-WEB-017, RQ-WEB-011: an image enlarged on click, without link
 INLINE = re.compile(r"`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)")
 VARIABLE = re.compile(r"\{\{([a-z0-9.-]+)\}\}")
 HARD_BREAK = "\\"
 LINE_BREAK = "<br>"
 CODE_MARK = re.compile(r"==(.+?)==")   # RQ-WEB-018: a highlighted part of a code block
 PATH_LINE = "@"            # an index excerpt's document line, dimmed
-OPEN_ARROW = "↗"
 LABELS_SECTION = "labels."
-OPEN_LABEL = "labels.open"
 
 # DEC-WEB-003: the template's slots
 SLOT = re.compile(r'(<(?P<tag>[a-z0-9]+)\b[^>]*?\sdata-i18n="(?P<key>[^"]+)"[^>]*>)(</(?P=tag)>)')
@@ -104,7 +101,7 @@ USED_TOKEN = re.compile(r"var\(--(?P<tier>[sc])-(?P<name>[a-z0-9-]+)\)")
 MEDIA_TOKEN = re.compile(r"\{\{t:([a-z0-9-]+)\}\}")
 SEMANTIC_PREFIX, COMPONENT_PREFIX = "s", "c"
 
-KIND_TEXT, KIND_LIST, KIND_SHOT, KIND_CODE, KIND_IMAGE = "text", "list", "shot", "code", "image"
+KIND_TEXT, KIND_LIST, KIND_CODE, KIND_IMAGE = "text", "list", "code", "image"
 REPORT = "agnos-meta-website: "
 
 
@@ -265,47 +262,25 @@ def render(key, lines, language, errors):
     if any(items):
         errors.append(where + " mixes a list and a paragraph")
         return None
-    shot = SHOT.match(lines[0])
-    if shot:
-        if len(lines) > 1:
-            errors.append(where + " holds more than its image")
-            return None
-        alt, src, href = shot.groups()
-        return KIND_SHOT, (typography(alt, language), src, href)
     image = IMAGE.match(lines[0])
     if image and len(lines) == 1:
         return KIND_IMAGE, (typography(image.group(1), language), image.group(2))
     return KIND_TEXT, paragraph(lines, language)
 
 
-def shot_html(alt, src, href, open_label):
-    """A screenshot that opens the demo, with its "open in the demo" label. RQ-WEB-011"""
-    label = f'<span class="shot-open">{open_label} {OPEN_ARROW}</span>' if open_label else ""
-    image = f'<img src="{escape(src)}" alt="{escape(alt)}" loading="lazy">'
-    return f'<a class="shot-link" href="{escape(href)}" target="_blank" rel="noopener">{image}{label}</a>'
-
-
 def render_language(language, fields, assets, errors, images):
     """{key: html} of one language; a missing image is reported. RQ-WEB-003, RQ-WEB-004"""
     parsed = {key: render(key, lines, language, errors) for key, lines in fields.items()}
-    open_result = parsed.get(OPEN_LABEL)
-    open_label = open_result[1] if open_result and open_result[0] == KIND_TEXT else ""
     rendered = {}
     for key, result in parsed.items():
         if result is not None:
-            rendered[key] = field_html(language, key, result, open_label, assets, errors, images)
+            rendered[key] = field_html(language, key, result, assets, errors, images)
     return rendered
 
 
-def field_html(language, key, result, open_label, assets, errors, images):
+def field_html(language, key, result, assets, errors, images):
     """The HTML of one rendered field; a missing image is reported. RQ-WEB-003, RQ-WEB-004"""
     kind, payload = result
-    if kind == KIND_SHOT:
-        alt, src, href = payload
-        images.add(src)
-        if not (Path(assets) / src).is_file():
-            errors.append(f"{language}{MARKDOWN}: {key}: {src} does not exist")
-        return shot_html(alt, src, href, open_label)
     if kind == KIND_IMAGE:
         alt, src = payload
         images.add(src)
@@ -469,7 +444,6 @@ def build_page(assets, errors, tokens=None):
     template_values = {"link.demo": DEMO_LINK}
     source = rendered[SOURCE_LANGUAGE]
     page, used = fill_template(template, source, template_values, errors)
-    used.add(OPEN_LABEL)
     for key in sorted(set(source) - used):
         errors.append(f"content: {key} is used by no element of the template")
     if template.count(FR_MARKER) != 1:

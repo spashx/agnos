@@ -114,11 +114,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* screenshots: the real views, a click opens the demo (RQ-WEB-011, DEC-WEB-004) */
 .shot{margin:0}
-.shot-link{display:block;position:relative;border:var(--s-web-border-1) solid var(--s-border);border-radius:var(--s-web-radius-10);overflow:hidden;background:var(--s-surface-raised);color:inherit;text-decoration:none;box-shadow:var(--s-web-shadow-shot)}
-.shot-link img{display:block;width:100%;height:auto;aspect-ratio:var(--s-web-ratio-shot);object-fit:cover}
-.shot-open{position:absolute;right:var(--s-web-space-14);bottom:var(--s-web-space-14);background:var(--s-text);color:var(--s-surface-subtle);font-size:var(--s-web-text-13);font-weight:var(--s-weight-strong);padding:var(--s-web-space-5) var(--s-web-space-12);border-radius:var(--s-web-radius-pill);opacity:0;transition:opacity var(--s-web-duration-fast)}
-.shot-link:hover .shot-open,.shot-link:focus-visible .shot-open{opacity:1}
-@media (hover:none){.shot-open{opacity:1}}
 .cap{margin-top:var(--s-web-space-10);font-size:var(--s-web-text-13);color:var(--s-text-subtle)}
 
 /* cards */
@@ -203,7 +198,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   .examples{grid-template-columns:minmax(0,1fr)}
   .cards{grid-template-columns:minmax(0,1fr)}
 }
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.shot-open{transition:none}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -295,7 +290,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="pair"><p class="label" data-i18n="labels.why"></p><p data-i18n="matrix.why"></p></div>
       <ul class="tags" data-i18n="matrix.tags"></ul>
     </div>
-    <div><figure class="shot" data-i18n="matrix.shot"></figure><p class="cap" data-i18n="matrix.caption"></p></div>
+    <div><figure class="shot"><button type="button" class="example-open" data-i18n="matrix.shot"></button></figure><p class="cap" data-i18n="matrix.caption"></p></div>
     <div class="examples">
       <figure class="example"><button type="button" class="example-open" data-i18n="examples.requirement"></button><figcaption data-i18n="examples.requirement-caption"></figcaption></figure>
       <figure class="example"><button type="button" class="example-open" data-i18n="examples.adr"></button><figcaption data-i18n="examples.adr-caption"></figcaption></figure>
@@ -313,7 +308,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="pair"><p class="label" data-i18n="labels.why"></p><p data-i18n="graph.why"></p></div>
       <ul class="tags" data-i18n="graph.tags"></ul>
     </div>
-    <div><figure class="shot" data-i18n="graph.shot"></figure><p class="cap" data-i18n="graph.caption"></p></div>
+    <div><figure class="shot"><button type="button" class="example-open" data-i18n="graph.shot"></button></figure><p class="cap" data-i18n="graph.caption"></p></div>
   </div>
 </section>
 
@@ -326,7 +321,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="pair"><p class="label" data-i18n="labels.why"></p><p data-i18n="history.why"></p></div>
       <ul class="tags" data-i18n="history.tags"></ul>
     </div>
-    <div><figure class="shot" data-i18n="history.shot"></figure><p class="cap" data-i18n="history.caption"></p></div>
+    <div><figure class="shot"><button type="button" class="example-open" data-i18n="history.shot"></button></figure><p class="cap" data-i18n="history.caption"></p></div>
   </div>
 </section>
 
@@ -339,7 +334,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="pair"><p class="label" data-i18n="labels.why"></p><p data-i18n="delivery.why"></p></div>
       <ul class="tags" data-i18n="delivery.tags"></ul>
     </div>
-    <div><figure class="shot" data-i18n="delivery.shot"></figure><p class="cap" data-i18n="delivery.caption"></p></div>
+    <div><figure class="shot"><button type="button" class="example-open" data-i18n="delivery.shot"></button></figure><p class="cap" data-i18n="delivery.caption"></p></div>
   </div>
 </section>
 
@@ -352,7 +347,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="pair"><p class="label" data-i18n="labels.why"></p><p data-i18n="quality.why"></p></div>
       <ul class="tags" data-i18n="quality.tags"></ul>
     </div>
-    <div><figure class="shot" data-i18n="quality.shot"></figure><p class="cap" data-i18n="quality.caption"></p></div>
+    <div><figure class="shot"><button type="button" class="example-open" data-i18n="quality.shot"></button></figure><p class="cap" data-i18n="quality.caption"></p></div>
   </div>
 </section>
 
@@ -472,7 +467,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     chain.dataset.mode = b.dataset.chain;
     $$("[data-chain]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
   }));
-  /* RQ-WEB-017: an example enlarged in a dialog; Escape, the backdrop or the button close it, the focus returns. */
+  /* RQ-WEB-017, RQ-WEB-011: an example or a tour screenshot enlarged in a dialog; Escape, the backdrop or the button close it, the focus returns. */
   const zoom = document.querySelector(".zoom");
   const zoomImage = zoom.querySelector("img");
   let opener = null;

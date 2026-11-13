@@ -30,7 +30,8 @@ text into a JSON dictionary in the page, applied in place by a small script that
 RQ-WEB-003, RQ-WEB-004, RQ-WEB-006, RQ-WEB-007.
 
 ### DEC-WEB-004: Screenshots, not redrawn views
-Each tour stop shows a PNG of the real view, linking to the demo. No chart library: a second rendering would drift from the Performance
+Each tour stop shows a PNG of the real view, enlarged on click like the examples (linking to the demo until amended on
+2026-11-14 by TASK-WEB-024; the demo stays linked by the page's demo buttons). No chart library: a second rendering would drift from the Performance
 Center. Until the owner takes the screenshots, the assets hold one placeholder per view, a single colour at 16:10, written once by the
 task that creates the assets; their capture stays manual. Fulfils RQ-WEB-011, RQ-WEB-012.
 

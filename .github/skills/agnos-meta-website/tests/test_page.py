@@ -8,7 +8,6 @@ import struct
 import subprocess
 import tempfile
 import unittest
-import zlib
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
@@ -20,8 +19,7 @@ TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
 VIEWS = ("matrix", "graph", "history", "delivery", "quality")
 EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-PLACEHOLDER_SIZE = (1920, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
-RGB_COLOUR_TYPE = 2
+SCREEN_SIZE = (1920, 1080)   # RQ-WEB-012, RQ-WEB-019: the capture ratio, at a size the build accepts
 FONT_HOSTS = ("https://fonts.googleapis.com", "https://fonts.gstatic.com")
 RAW_VALUE = re.compile(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|em|rem|vw|vh|s|ms)\b|"
                        r"(?:font-weight|opacity|line-height|letter-spacing)\s*:\s*-?(?!(?:0|1)(?![.\d]))\.?\d")
@@ -103,14 +101,15 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertIn('data-chain="on"', PAGE)
         self.assertIn('.chain[data-mode="on"] .loop-in', PAGE)
 
-    def test_given_the_tour_then_each_screenshot_opens_the_demo(self):
-        shots = re.findall(r'<a class="shot-link" href="([^"]+)"[^>]*><img src="([^"]+)"', PAGE)
-        self.assertEqual([src for _, src in shots], [f"screens/{view}.png" for view in VIEWS])
-        self.assertTrue(all(href.startswith(site.DEMO_LINK) for href, _ in shots))
-        self.assertIn(("demo/PERF-CENTER.html#RQ-BKG-003", "screens/graph.png"), shots)
-        self.assertIn(("demo/PERF-CENTER.html#view=matrix", "screens/matrix.png"), shots)   # RQ-WEB-011, RQ-TRC-121
-        self.assertEqual(PAGE.count('<span class="shot-open">Open in the demo'), len(VIEWS))
-        self.assertIn("@media (hover:none){.shot-open{opacity:1}}", PAGE)
+    def test_given_the_tour_then_each_screenshot_enlarges_on_click(self):
+        """RQ-WEB-011: each tour screenshot is a zoom button, as the examples, and links no more to the demo."""
+        shots = re.findall(r'<figure class="shot"><button type="button" class="example-open"[^>]*><img src="([^"]+)" alt="([^"]+)"', PAGE)
+        self.assertEqual([src for src, _ in shots], [f"screens/{view}.png" for view in VIEWS])
+        self.assertTrue(all(alt for _, alt in shots))
+        self.assertNotIn("shot-link", PAGE)
+        self.assertNotIn("shot-open", PAGE)
+        self.assertNotIn("Open in the demo", PAGE)
+        self.assertNotIn('href="demo/PERF-CENTER.html#', PAGE)
 
     def test_given_the_page_then_no_request_leaves_it_but_fonts(self):
         sources = re.findall(r'\ssrc="([^"]+)"', PAGE)
@@ -243,10 +242,10 @@ class TestTheExamples(unittest.TestCase):
 
     def test_given_the_matrix_stop_then_three_examples_follow_its_screenshot(self):
         stop = re.search(r'<section class="stop" id="matrix">.*?</section>', PAGE, re.S).group(0)
-        examples = re.findall(r'<button type="button" class="example-open"[^>]*><img src="([^"]+)" alt="([^"]+)"', stop)
+        examples = re.findall(r'<figure class="example"><button type="button" class="example-open"[^>]*><img src="([^"]+)" alt="([^"]+)"', stop)
         self.assertEqual([src for src, _ in examples], [f"screens/{name}.png" for name in EXAMPLES])
         self.assertTrue(all(alt for _, alt in examples))
-        self.assertLess(stop.index("shot-link"), stop.index("example-open"))
+        self.assertLess(stop.index('class="shot"'), stop.index('class="example"'))
         captions = re.findall(r'<figcaption data-i18n="examples\.[a-z-]+">([^<]+)</figcaption>', stop)
         self.assertEqual(len(captions), len(EXAMPLES))
 
@@ -264,20 +263,11 @@ class TestTheExamples(unittest.TestCase):
             self.assertIn(part, script)
 
 
-def png_pixels(path):
-    """(width, height, colour type, the decompressed rows) of a PNG."""
+def png_size(path):
+    """(width, height) of a PNG, from its IHDR header. RQ-WEB-012"""
     data = path.read_bytes()
     assert data.startswith(PNG_SIGNATURE)
-    position, idat, header = len(PNG_SIGNATURE), b"", None
-    while position < len(data):
-        length, kind = struct.unpack(">I4s", data[position:position + 8])
-        body = data[position + 8:position + 8 + length]
-        if kind == b"IHDR":
-            header = struct.unpack(">IIBBBBB", body)
-        elif kind == b"IDAT":
-            idat += body
-        position += 12 + length
-    return header[0], header[1], header[3], zlib.decompress(idat)
+    return struct.unpack(">II", data[len(PNG_SIGNATURE) + 8:len(PNG_SIGNATURE) + 16])
 
 
 class TestTheStartSteps(unittest.TestCase):
@@ -332,17 +322,13 @@ class TestTheFrames(unittest.TestCase):
         self.assertIn("--s-web-ratio-shot: 16 / 9;", PAGE)
 
 
-class TestThePlaceholders(unittest.TestCase):
-    """RQ-WEB-012, RQ-WEB-019: one single-colour PNG per view, 1920x1080 (the capture ratio)."""
+class TestTheScreens(unittest.TestCase):
+    """RQ-WEB-012, RQ-WEB-019: one PNG per view and per example, at 1920x1080 (the capture ratio)."""
 
-    def test_given_the_assets_then_each_view_has_a_single_colour_placeholder(self):
+    def test_given_the_assets_then_each_view_has_its_image_at_the_capture_size(self):
         for view in VIEWS + EXAMPLES:
-            width, height, colour_type, rows = png_pixels(site.ASSETS_DIR / "screens" / f"{view}.png")
-            self.assertEqual((width, height), PLACEHOLDER_SIZE, view)
-            self.assertEqual(colour_type, RGB_COLOUR_TYPE, view)
-            row = 1 + 3 * width
-            first = rows[1:4]
-            self.assertTrue(all(rows[i * row + 1:(i + 1) * row] == first * width for i in range(height)), view)
+            # Given the image of a view or an example, Then it is a PNG at the capture size
+            self.assertEqual(png_size(site.ASSETS_DIR / "screens" / f"{view}.png"), SCREEN_SIZE, view)
 
 
 if __name__ == "__main__":

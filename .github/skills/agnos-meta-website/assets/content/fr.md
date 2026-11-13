@@ -4,7 +4,7 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 - "## <section>" ouvre un élément de la page, "### <champ>" l'un de ses textes. Gardez ces identifiants identiques dans
   en.md et fr.md : le build refuse un champ absent d'une langue, ou inconnu du gabarit de la page.
 - Un champ est un paragraphe, une liste d'éléments "- ", un extrait d'index entre deux lignes ``` (les lignes
-  commençant par @ sont atténuées), ou une image cliquable : [![texte alternatif](screens/<fichier>.png)](<adresse>)
+  commençant par @ sont atténuées), ou une image : ![texte alternatif](screens/<fichier>.png)
 - En ligne : *emphase*, **gras**, `code`, [texte du lien](adresse). Terminez une ligne par \ pour forcer un retour à la ligne.
 - Écrivez des espaces ordinaires avant : ; ? ! et des apostrophes droites : le build pose les espaces insécables et
   les apostrophes typographiques.
@@ -191,9 +191,6 @@ Ce que vous voyez
 ### why
 Ce qui le rend possible
 
-### open
-Ouvrir dans la démo
-
 ## matrix
 
 ### view
@@ -214,7 +211,7 @@ Chaque élément du process est identifié de manière unique, de la capacité f
 - Identifiants dans le code
 
 ### shot
-[![Vue Matrice](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
+![Vue Matrice](screens/matrix.png)
 
 ### caption
 La vue Matrice du Performance Center
@@ -265,7 +262,7 @@ La synergie de l'arbre syntaxique d'implémentation (arbre *AST*) et de la gramm
 - Graph explorable
 
 ### shot
-[![La vue Graph du Performance Center](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+![La vue Graph du Performance Center](screens/graph.png)
 
 ### caption
 La vue Graph du Performance Center
@@ -292,7 +289,7 @@ Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et
 - Humain ou agent
 
 ### shot
-[![La vue Historique du Performance Center](screens/history.png)](demo/PERF-CENTER.html)
+![La vue Historique du Performance Center](screens/history.png)
 
 ### caption
 La vue Historique du Performance Center
@@ -317,7 +314,7 @@ Le travail se fait en sessions de dix tâches au plus, pour une utilisation opti
 - Auto-amélioration
 
 ### shot
-[![La vue Delivery du Performance Center](screens/delivery.png)](demo/PERF-CENTER.html)
+![La vue Delivery du Performance Center](screens/delivery.png)
 
 ### caption
 La vue Delivery du Performance Center
@@ -342,7 +339,7 @@ Des portes que l'agent ne peut pas contourner. Chaque tâche répond à un besoi
 - Niveaux S, M, L
 
 ### shot
-[![La vue Quality du Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
+![La vue Quality du Performance Center](screens/quality.png)
 
 ### caption
 La vue Quality du Performance Center 

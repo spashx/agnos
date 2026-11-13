@@ -157,27 +157,28 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
   selected again, Then the first view returns.
 - **Dependencies**: RQ-HST-026, RQ-WEB-015
 
-### RQ-WEB-011: Each screenshot opens the demo
+### RQ-WEB-011: Screenshot zoom on click
 - **Category**: Functional
-- **EARS Type**: Ubiquitous
-- **Statement**: Each tour screenshot SHALL be a link to the address its field gives, under `demo/`, with a visible "open in the demo"
-  label on hover and always on touch screens.
-- **Rationale**: the screenshot is the real view; a click continues in the live demo (owner's option of 2026-11-08).
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader clicks or activates a tour screenshot, the page SHALL show it enlarged over the page, as the examples
+  of RQ-WEB-017, until the reader closes it by its button, a click or Escape; the screenshot SHALL link to no address (a link to
+  the demo until amended by the owner on 2026-11-14; the demo stays reachable by the page's demo buttons).
+- **Rationale**: the reader reads the view in full on the site itself (owner request of 2026-11-14).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the Graph screenshot written with `demo/PERF-CENTER.html#RQ-BKG-003`, When it is clicked, Then the demo
-  opens with RQ-BKG-003 selected; Given the Matrix screenshot written with `demo/PERF-CENTER.html#view=matrix` (RQ-TRC-121), When it
-  is clicked, Then the demo opens on the Matrix; Given a touch screen, Then the label is visible without hover.
-- **Dependencies**: RQ-WEB-002, RQ-TRC-016
+- **Acceptance Criteria**: Given the five tour stops, Then each screenshot is a zoom button holding its image, with no link nor
+  "open in the demo" label; When one is activated by click or keyboard, Then it shows enlarged; When Escape is pressed, the backdrop
+  clicked or the close button used, Then it closes and the focus returns to the screenshot.
+- **Dependencies**: RQ-WEB-017, RQ-WEB-015
 
 ### RQ-WEB-012: Placeholder images until the real screenshots
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: `assets/screens/` SHALL hold one PNG per tour view, named after it (`matrix.png`, amended on 2026-11-12, `graph.png`, `quality.png`,
-  `history.png`, `delivery.png`), filled with a single colour at the screenshot ratio of RQ-WEB-019 and 1920 × 1080 px (16:10 until
-  amended by the owner on 2026-11-12, 1936 × 1080 until 2026-11-13), which the owner replaces by a screenshot of the same name.
+  `history.png`, `delivery.png`), at the screenshot ratio of RQ-WEB-019 and 1920 × 1080 px (16:10 until amended by the owner on 2026-11-12,
+  1936 × 1080 until 2026-11-13; a single-colour placeholder until 2026-11-14), the owner's screenshot of that view.
 - **Rationale**: the page is complete and checkable before the screenshots exist (owner request of 2026-11-08).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG of one colour at 1920 × 1080; Given one replaced by
+- **Acceptance Criteria**: Given the assets, Then the five files exist, each a valid PNG at 1920 × 1080; Given one replaced by
   another PNG, When `build` runs, Then the site shows it with no other change.
 - **Dependencies**: RQ-WEB-003
 

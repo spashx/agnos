@@ -44,7 +44,7 @@ second `code` with **strong** and [a link](https://example.org)
 - Two
 
 ### shot
-[![The view](screens/view.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+![The view](screens/view.png)
 
 ### excerpt
 ```
@@ -73,7 +73,7 @@ Est-ce construit ? Oui : l'index ; enfin !
 - Deux
 
 ### shot
-[![La vue](screens/view.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+![La vue](screens/view.png)
 
 ### excerpt
 ```
@@ -129,9 +129,10 @@ class TestContentInTheAssets(Fixture):
         self.assertIn("<li>One</li><li>Two</li>", page)
         self.assertNotIn("a comment", page)
 
-    def test_given_a_linked_image_when_built_then_it_opens_its_address(self):
+    def test_given_a_tour_image_when_built_then_it_links_nowhere(self):
+        """RQ-WEB-011: a screenshot of the content is an image, enlarged by the page, not a link."""
         page, _ = self.page()
-        self.assertIn('href="demo/PERF-CENTER.html#RQ-BKG-003"', page)
+        self.assertNotIn('href="demo/PERF-CENTER.html#RQ-BKG-003"', page)
         self.assertIn('<img src="screens/view.png" alt="The view"', page)
 
     def test_given_a_code_block_with_marks_then_they_are_highlighted(self):
