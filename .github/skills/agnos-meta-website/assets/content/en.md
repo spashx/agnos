@@ -66,7 +66,7 @@ AI agents write the code, or much more.\
 *You keep control.*
 
 ### text
-AGNOS is a lightweight, tooled process for AI-native development teams (pods of a few people, or solo). Requirements, decisions, tasks, code and commits carry the same identifiers: the work stays explainable, and the process is measured on every project, in real time, with the built-in AGNOS Performance Center application.
+AGNOS is a lightweight, tooled process for *AI-native* development teams (pods of a few people, or solo). Requirements, decisions, tasks, code and commits carry the same identifiers: the work stays explainable, and the process is measured on every project, in real time, with the built-in AGNOS Performance Center application.
 
 ### cta-demo
 Open the demo Performance Center
@@ -80,7 +80,7 @@ Works with Claude Code and GitHub Copilot (OpenAI Codex support coming soon). It
 ## chain
 
 ### title
-One requirement, followed from need to commit
+The agentic loop, from need to commit
 
 ### mode-mixed
 Mixed
@@ -215,7 +215,7 @@ Every element of the process is uniquely identified, from the functional capabil
 [![Matrix view](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
-Roombook: end-to-end traceability matrix.
+The Matrix view of the Performance Center
 
 ## examples
 
@@ -263,35 +263,10 @@ The synergy of the implementation's abstract syntax tree (*AST*) and of the sing
 - Explorable graph
 
 ### shot
-[![The Graph view of the Performance Center, centred on requirement RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+[![The Graph view of the Performance Center](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
 
 ### caption
-`RQ-BKG-003`, Double booking rejection, and everything that cites it.
-
-## quality
-
-### view
-Quality view
-
-### question
-Is traceability guaranteed, per functional area?
-
-### see
-Easy-to-read KPIs from A to E, computed from risk-weighted checks. Each gap points to the element to fix: on Roombook, functions that do not cite a requirement yet.
-
-### why
-Gates the agent cannot bypass. Each task answers a need, starts only once approved (Definition of Ready) and closes only once its checklist is passed (Definition of Done). Its tier, (S)mall, (M)edium or (L)arge, scales the ceremony to the risk of the change. A failing check is allowed one fix, then the agent stops and reports.
-
-### tags
-- Definition of Ready
-- Definition of Done
-- Tiers S, M, L
-
-### shot
-[![The Quality view of the Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
-
-### caption
-The Quality view of the Performance Center
+The Graph view of the Performance Center
 
 ## history
 
@@ -302,7 +277,7 @@ History view
 Who changed what, and when? Agent, human, or both?
 
 ### see
-Every change to a requirement, a decision, a file or a function, credited to its authors from git. Each identity is classed as human or AI agent, and each commit as human, agent or both together.
+Every change to a requirement, a decision, a file or a function, credited to its authors from git. Each identity is classed as human or AI agent. Every commit, human, agentic or collaborative, can be traced through a requirement view or an implementation view.
 
 ### why
 One commit per task, made by a skill that writes the task and ADR identifiers into its message, following the *Conventional Commits* standard. Git remains the single system of record, independent of any infrastructure.
@@ -317,9 +292,6 @@ One commit per task, made by a skill that writes the task and ADR identifiers in
 
 ### caption
 The History view of the Performance Center
-
-### note
-Every commit, whether human, agentic or collaborative, can be traced through a requirement view or an implementation view.
 
 ## delivery
 
@@ -345,6 +317,31 @@ Work is done in sessions of ten tasks at most, for optimal use of the context. E
 
 ### caption
 The Delivery view of the Performance Center
+
+## quality
+
+### view
+Quality view
+
+### question
+Is traceability guaranteed, per functional area?
+
+### see
+Easy-to-read KPIs from A to E, computed from risk-weighted checks. Each gap points to the element to fix: on Roombook, functions that do not cite a requirement yet.
+
+### why
+Gates the agent cannot bypass. Each task answers a need, starts only once approved (Definition of Ready) and closes only once its checklist is passed (Definition of Done). Its tier, (S)mall, (M)edium or (L)arge, scales the ceremony to the risk of the change. A failing check is allowed one fix, then the agent stops and reports.
+
+### tags
+- Definition of Ready
+- Definition of Done
+- Tiers S, M, L
+
+### shot
+[![The Quality view of the Performance Center](screens/quality.png)](demo/PERF-CENTER.html)
+
+### caption
+The Quality view of the Performance Center
 
 ## more
 
@@ -460,7 +457,8 @@ OverlapRule
 Interfaces under the same control
 
 ### text
-A project with an interface defines its design system before its first screen, as a requirement and an architecture decision. The screens cite it, and the code reads every colour and every size from a token. On Roombook, a test rejects any raw value.
+A project with a user interface defines its design system from the AGNOS template, before its first screen, as a requirement and an architecture decision.
+The design system is a specification like any other, expressed as design tokens and implemented in code.
 
 ### primary-name
 Primary
@@ -505,7 +503,7 @@ button.danger.background
 Cancel this reservation
 
 ### caption
-A button's background, in Roombook's tokens: `FTR-DSN-001` and `ADR-DSN-001`.
+Buttons of the Roombook project, using the specified design tokens.
 
 ## close
 
@@ -557,7 +555,7 @@ In a new conversation, the agent records the session and opens its branch.
 
 ### step3-command
 ```
-Start a new AGNOS session, trigram EXP.
+Start a new AGNOS session, trigram <TRI>.
 ```
 
 ## footer

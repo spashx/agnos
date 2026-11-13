@@ -17,7 +17,7 @@ site = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(site)
 
 TEMPLATE = (site.ASSETS_DIR / site.TEMPLATE).read_text(encoding="utf-8")
-VIEWS = ("matrix", "graph", "quality", "history", "delivery")
+VIEWS = ("matrix", "graph", "history", "delivery", "quality")
 EXAMPLES = ("example-requirement", "example-adr", "example-plan")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PLACEHOLDER_SIZE = (1936, 1080)   # RQ-WEB-019: the capture ratio, at a size the build accepts
@@ -83,11 +83,16 @@ class TestTheBuiltPage(unittest.TestCase):
 
     def test_given_the_page_then_its_elements_stand_in_order(self):
         markers = ['class="notice"', 'class="bar"', 'id="top"', 'class="chain-card"', 'id="tour"', 'id="matrix"',
-                   'id="graph"', 'id="quality"', 'id="history"', 'id="delivery"', 'data-i18n="index-card.title"',
+                   'id="graph"', 'id="history"', 'id="delivery"', 'id="quality"', 'data-i18n="index-card.title"',
                    'data-i18n="design-card.title"', 'id="start"', 'class="steps"', 'class="foot"']
         positions = [PAGE.index(marker) for marker in markers]
         self.assertEqual(positions, sorted(positions))
         self.assertIn("can be traced through a requirement view", PAGE)
+
+    # RQ-WEB-001: the History stop states its traceability in its text, without a separate note
+    def test_given_the_history_stop_then_it_holds_no_note(self):
+        self.assertNotIn('class="note"', PAGE)
+        self.assertNotIn("history.note", PAGE)
 
     def test_given_the_chain_then_it_shows_both_modes(self):
         chain = re.search(r'<div class="chain" data-mode="mixed">.*?<p class="chain-foot"', PAGE, re.S).group(0)

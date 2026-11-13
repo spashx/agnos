@@ -68,7 +68,7 @@ Les agents IA écrivent le code, ou bien plus.\
 *Vous gardez le contrôle.*
 
 ### text
-AGNOS est un processus léger, outillé, pour les équipes de développement AI-native (pods de quelques personnes ou solo). Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet, en temps réel grâce à l'application intégrée AGNOS Performance Center.
+AGNOS est un processus léger, outillé, pour les équipes de développement *AI-native* (pods de quelques personnes ou solo). Exigences, décisions, tâches, code et commits portent les mêmes identifiants : le travail reste explicable, et le processus se mesure sur chaque projet, en temps réel grâce à l'application intégrée AGNOS Performance Center.
 
 ### cta-demo
 Ouvrir le Performance Center de démo
@@ -82,7 +82,7 @@ Fonctionne avec Claude Code, GitHub Copilot (support OpenAI Codex à venir). Ses
 ## chain
 
 ### title
-Une exigence, suivie du besoin jusqu'au commit
+La boucle agentique, du besoin jusqu'au commit
 
 ### mode-mixed
 Mixte
@@ -217,7 +217,7 @@ Chaque élément du process est identifié de manière unique, de la capacité f
 [![Vue Matrice](screens/matrix.png)](demo/PERF-CENTER.html#view=matrix)
 
 ### caption
-Roombook : matrice de traçabilité de bout en bout.
+La vue Matrice du Performance Center
 
 ## examples
 
@@ -265,10 +265,10 @@ La synergie de l'arbre syntaxique d'implémentation (arbre *AST*) et de la gramm
 - Graph explorable
 
 ### shot
-[![La vue Graph du Performance Center, centrée sur l'exigence RQ-BKG-003](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
+[![La vue Graph du Performance Center](screens/graph.png)](demo/PERF-CENTER.html#RQ-BKG-003)
 
 ### caption
-`RQ-BKG-003`, Double booking rejection, et tout ce qui la cite.
+La vue Graph du Performance Center
 
 
 
@@ -278,10 +278,10 @@ La synergie de l'arbre syntaxique d'implémentation (arbre *AST*) et de la gramm
 Vue History
 
 ### question
-Qui a modifié quoi, et quand ? Agent, humain ou les deux ?
+Qui a modifié quoi, et quand ? Agent, humain, ou les deux ?
 
 ### see
-Chaque modification d'une exigence, d'une décision, d'un fichier ou d'une fonction, attribuée à ses auteurs depuis git. Chaque identité est classée humaine ou agent IA, et chaque commit humain, agent ou les deux ensemble.
+Chaque modification d'une exigence, d'une décision, d'un fichier ou d'une fonction, attribuée à ses auteurs depuis git. Chaque identité est classée humaine ou agent IA. Chaque commit, humain, agentique ou collaboratif, est traçable par une vue exigence ou une vue implémentation.
 
 ### why
 Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et d'ADR dans son message au standard *Conventional Commits*. Git reste l'unique système de référence, indépendant de toute infrastructure.
@@ -296,9 +296,6 @@ Un commit par tâche, fait par un skill qui écrit les identifiants de tâche et
 
 ### caption
 La vue Historique du Performance Center
-
-### note
-Chaque commit, humain, agentique ou collaboratif, est traçable par une vue exigence ou une vue implémentation.
 
 ## delivery
 
@@ -461,10 +458,11 @@ OverlapRule
 ## design-card
 
 ### title
-Des interfaces sous le même contrôle
+Des IHMs sous le même contrôle
 
 ### text
-Un projet avec interface définit son design system avant son premier écran, sous forme d'exigence et de décision d'architecture. Les écrans le citent, et le code lit chaque couleur et chaque taille dans un jeton. Sur Roombook, un test rejette toute valeur brute.
+Un projet avec IHM définit son design system depuis le template AGNOS, avant son premier écran, sous forme d'exigence et de décision d'architecture.
+Le design system est une spécification comme une autre, projetée sous forme de design tokens et implémentés dans le code.
 
 ### primary-name
 Principal
@@ -509,7 +507,7 @@ button.danger.background
 Annuler cette réservation
 
 ### caption
-Le fond d'un bouton, dans les jetons de Roombook : `FTR-DSN-001` et `ADR-DSN-001`.
+Boutons du projet Roombook, exploitant les design token spécifiés.
 
 ## close
 
@@ -561,7 +559,7 @@ Dans une nouvelle conversation, l'agent enregistre la session et ouvre sa branch
 
 ### step3-command
 ```
-Démarrez une nouvelle session AGNOS, trigramme EXP.
+Démarrez une nouvelle session AGNOS, trigramme <TRI>.
 ```
 
 ## footer

@@ -67,7 +67,7 @@ The tools and systems AGNOS was checked on are listed in [COMPATIBILITY.md](COMP
 |---|---|
 | Claude Code | `claude plugin marketplace add <marketplace>`, then `claude plugin install agnos@agnos-marketplace` |
 | GitHub Copilot CLI | `copilot plugin marketplace add <marketplace>`, then `copilot plugin install agnos@agnos-marketplace` |
-| OpenAI Codex | `codex plugin marketplace add <marketplace>`, then install the plugin from the ChatGPT desktop app, as Codex's documentation says |
+
 
 **2. Ask your agent to call the `agnos-init` skill once**, from your project's root. This step is required: until it runs, an
 agent in your project does not know about AGNOS. <!-- RQ-INI-007 --> Your own content stays as it is: AGNOS only owns the lines

@@ -16,7 +16,7 @@ _spec = importlib.util.spec_from_file_location("agnos_meta_website", SKILL_DIR /
 site = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(site)
 
-VIEWS = ("matrix", "graph", "quality", "history", "delivery", "example-requirement", "example-adr", "example-plan")
+VIEWS = ("matrix", "graph", "history", "delivery", "quality", "example-requirement", "example-adr", "example-plan")
 GIVEN_PAGE = b"<html>given demo page</html>"
 GIVEN_JSON = b'{"given": true}'
 GIVEN_SCRIPT = b"window.DATA = {};"

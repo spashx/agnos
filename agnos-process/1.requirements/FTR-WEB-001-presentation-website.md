@@ -129,7 +129,7 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 - **EARS Type**: Ubiquitous
 - **Statement**: The page SHALL hold, in this order: the hero (the thesis that agents write the code and the organisation keeps control,
   the link to the demo Performance Center, the three supported agent tools), the chain card (RQ-WEB-010), the tour of five Performance
-  Center views (Matrix, Graph, Quality, History, Delivery; the Matrix in place of the Overview, amended by the owner on 2026-11-12),
+  Center views (Matrix, Graph, History, Delivery, Quality, the order of the Performance Center; the Matrix in place of the Overview, amended by the owner on 2026-11-12, the order on 2026-11-13),
   each content section named after its view, two cards (the deterministic index, the design system), the close (the link
   to the demo, three steps to get started, each with an example command in a console style, amended by the owner on
   2026-11-13) and the footer (the developer documentation, the licence).
