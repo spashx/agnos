@@ -144,7 +144,7 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying AGNO
 ### RQ-INI-021: Context-loss risks in the README
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: `README.md` SHALL explain, for Claude Code and GitHub Copilot, what happens to the process after a clear, an automatic
+- **Statement**: `README.md`, and the user's guide `AGNOS-GETTING-STARTED.md` in short (amended on 2026-11-14), SHALL explain, for Claude Code and GitHub Copilot, what happens to the process after a clear, an automatic
   compaction and a manual compaction, the risks of each, and what the user does to keep the process loaded.
 - **Rationale**: these behaviours depend on the tool and are not widely known, while losing the process silently breaks a session.
 - **Priority**: Must

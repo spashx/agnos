@@ -2,7 +2,7 @@
 
 ## Overview
 Write one block for `CLAUDE.md` and `AGENTS.md`, explain in its comments how Claude Code and GitHub Copilot keep the process in context,
-and explain the risks in the README. Order: TASK-INI-013, 014, 015, 016. The demo rebuild and the user's guide follow in a later session.
+and explain the risks in the README. Order: TASK-INI-013, 014, 015, 016, 017, 018: the user's guide, then the demo rebuild.
 Everything stays local, on `feature/PLG`.
 
 ## References
@@ -75,3 +75,30 @@ This plan implements the tasks in the format specified below.
   `##` sections); fix: a `###` subsection under Getting Started; re-run 133 OK. `agnos-init` 42 OK, `agnos-meta-release-prep` 25 OK,
   `agnos-meta-docs-sync` 18 OK, `agnos-meta-demo` 18 OK, `agnos-git-workflow` 8 OK; skips not reported by the runs; other suites not run.
 - **Assumptions**: a subsection rather than a new `##` section, so RQ-PLG-023's list of sections stays as it is.
+
+### TASK-INI-017: Update guide on context loss
+- **Tier**: M
+- **Status**: Done
+- **Description**: Amend RQ-INI-021 to cover the user's guide, then state in `AGNOS-GETTING-STARTED.md` the shared block, one session
+  per conversation, the re-invocation after a compaction, and the matching mistake.
+- **Requirement refs**: RQ-INI-021
+- **ADR refs**: ADR-INI-003
+- **Acceptance Criteria**: Given the guide, Then it no longer says one conversation may hold several sessions, And it orders the
+  re-invocation after a compaction; Given the suites reading the guide, When they run, Then they pass.
+- **Dependencies**: TASK-INI-016
+- **Assignee**: AI
+- **Verification**: guide re-read: lines on the shared block, one session per conversation, "Keep the process loaded", and a new row in
+  "Mistakes that cost the most"; `agnos-init` 42 OK, `agnos-meta-docs-sync` 18 OK, `agnos-meta-release-prep` 25 OK, skips not reported.
+- **Assumptions**: the guide points to the plugin's README for the details rather than repeating its table.
+
+### TASK-INI-018: Rebuild demo on unified block
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Run `agnos-meta-demo build -Verify`, so that the demo's `CLAUDE.md`, `AGENTS.md` and guide come from the new templates.
+- **Requirement refs**: RQ-INI-008, RQ-INI-019, RQ-INI-020
+- **ADR refs**: ADR-INI-003
+- **Acceptance Criteria**: Given the rebuilt demo, When `verify` runs, Then every requirement prints PASS.
+- **Dependencies**: TASK-INI-017
+- **Assignee**: AI
+- **Verification**: pending
+- **Assumptions**: pending

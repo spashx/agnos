@@ -31,7 +31,7 @@ Calling the `agnos-init` skill wrote or changed these files, and left everything
 
 | File | What it holds |
 |---|---|
-| `CLAUDE.md`, `AGENTS.md` | One delimited AGNOS block, which tells the agent to load the process. Your own text around it stays yours |
+| `CLAUDE.md`, `AGENTS.md` | The same delimited AGNOS block, which tells the agent to load the process, the `agnos-instructions` skill. Your own text around it stays yours |
 | `agnos-process/` | Four folders, `1.requirements/`, `2.architecture/`, `3.plan/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
 | `agnos-process/AGNOS-GETTING-STARTED.md` | This guide |
 | `agnos-process/VERSION.txt` | The AGNOS version installed |
@@ -58,8 +58,13 @@ Identifiers appear as plain text in every related process document, and as comme
 
 1. **Open a new conversation in your tool** (Claude Code, GitHub Copilot…). The tool reads `CLAUDE.md` or
    `AGENTS.md` when a conversation opens, so the conversation in which `agnos-init` ran does not know the block yet.
-2. **In that new conversation, ask for an AGNOS session**, as Stage 1 shows. A conversation is not a session:
-   one conversation may hold several AGNOS sessions, and the agent starts one only when you ask.
+2. **In that new conversation, ask for an AGNOS session**, as Stage 1 shows. A conversation is not a session: the
+   agent starts one only when you ask. Run one session per conversation, and clear the conversation before the next one.
+
+**Keep the process loaded.** The process is a skill: once invoked it lives only in the conversation, and the tool does
+not reload it. A compaction can cut it (Claude Code keeps only the first 5,000 tokens of a skill after an automatic
+compaction, and the process is longer) or drop it, with no warning. After any compaction, ask the agent to invoke
+`agnos-instructions` again. The README of the AGNOS plugin details each tool's behaviour and the risks.
 
 **Pick a trigram.** Three uppercase letters naming the functional area you are about to work on: `USR` for user
 management, `EXP` for export, `PAY` for payments. It goes in every artifact ID, so pick one you can live with.
@@ -823,6 +828,7 @@ requirement ID.
 | Mistake | What it breaks | Do instead |
 |---|---|---|
 | Asking for a session in the conversation where `agnos-init` ran | The agent has not read the block yet | Open a new conversation first |
+| Going on after a compaction without invoking the process again | The end of the process may be cut: tests, anti-patterns, Error Recovery Protocol | Ask the agent to invoke `agnos-instructions` again |
 | Skipping the requirement and prompting straight for code | Nothing to trace to; the DoD cannot be satisfied | Spend two minutes on the requirement: the agent writes it, you review it |
 | Accepting an NFR with no number in it | Unverifiable; nobody can tell when it is met | Demand a metric and a measurement method |
 | Approving a task without reading the acceptance criteria | You get exactly what is written there, and nothing else | Read the Gherkin as the contract it is |
