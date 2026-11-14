@@ -4,6 +4,35 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.5.0]
+
+### Added
+- `agnos-meta-demo` demo: the replay engine commits the agents' co-authors and the agents alone, and verify checks them <!-- ADR-DMO-002, TASK-DMO-015, RQ-DMO-023 to RQ-DMO-026, DEC-DMO-008 -->
+- `agnos-meta-demo` demo: a simulated team of four, each person working mostly with an agent, with Claude Code and Copilot co-authors; verify checks the team, its roles and each person's share of agent commits <!-- ADR-DMO-002, TASK-DMO-016, TASK-DMO-019, TASK-DMO-020, RQ-DMO-009, RQ-DMO-011, RQ-DMO-012, RQ-DMO-021, RQ-DMO-023 to RQ-DMO-025, DEC-DMO-003, DEC-DMO-009 -->
+- `agnos-git-workflow` `commit-task` builds the commit message by script, with one co-author trailer naming the agent's harness and model <!-- ADR-HST-003, TASK-PLG-063, TASK-PLG-064, RQ-HST-030, DEC-HST-013 -->
+- `agnos-init` writes one block, the same for `CLAUDE.md` and `AGENTS.md`, whose question line names both tools <!-- ADR-INI-003, TASK-INI-014, RQ-INI-019 -->
+- The block explains how Claude Code and GitHub Copilot keep the process in context, and orders the agent to invoke it again after a compaction <!-- ADR-INI-003, TASK-INI-015, RQ-INI-020 -->
+- `agnos-perf-center` page: a `#view=<name>` fragment opens the view of any tab the page shows, else the Overview <!-- ADR-TRC-019, TASK-TRC-108, RQ-TRC-121, DEC-TRC-066 -->
+- `agnos-meta-website` site: screenshots framed at 16:9, 1920 x 1080, and checked at build <!-- ADR-WEB-001, TASK-WEB-012, TASK-WEB-023, RQ-WEB-012, RQ-WEB-019, DEC-WEB-007 -->
+- `agnos-meta-website` site: tour screenshots enlarged on click, as the examples are <!-- ADR-WEB-001, TASK-WEB-024, RQ-WEB-011, RQ-WEB-012 -->
+- `agnos-meta-website` site: the tour sections named after their views, the Matrix first and linked to `#view=matrix` <!-- ADR-WEB-001, TASK-WEB-015, RQ-WEB-009, RQ-WEB-011, RQ-WEB-012, RQ-WEB-017 -->
+- `agnos-meta-website` site: the tour stops in the Performance Center's order <!-- ADR-WEB-001, TASK-WEB-021, RQ-WEB-001, RQ-WEB-003 -->
+- `agnos-meta-website` site: an example command in a console style under each start step, the French addressing the reader with "vous" <!-- ADR-WEB-001, TASK-WEB-018, RQ-WEB-009, RQ-WEB-015 -->
+- `agnos-meta-website` site: the chain's Performance Center row without the demo's name <!-- ADR-WEB-001, TASK-WEB-019, RQ-WEB-010, RQ-WEB-015 -->
+
+### Changed
+- `agnos-meta-demo` demo: each of its ADRs holds a class diagram and a sequence diagram <!-- ADR-DMO-001, TASK-PLG-062, RQ-DMO-005 -->
+- `agnos-meta-demo` demo: its functions cite their requirement in comments <!-- ADR-DMO-001, TASK-DMO-017, RQ-DMO-026, DEC-DMO-004 -->
+- A Tier S task needs no written plan; Tier M and L tasks keep theirs, as the tier table of the instructions and of `AGNOS-GETTING-STARTED.md` states <!-- TASK-INI-019, RQ-PLG-022 -->
+- `README.md` explains what clear, automatic and manual compaction do to the process in Claude Code and GitHub Copilot, the risks and what to do <!-- ADR-INI-003, TASK-INI-016, RQ-INI-021 -->
+- `AGNOS-GETTING-STARTED.md` states the shared entry-point block, one session per conversation and the invocation again after a compaction <!-- ADR-INI-003, TASK-INI-017, RQ-INI-021 -->
+- `agnos-meta-website` site: its English text aligned on the French, OpenAI Codex support stated as coming, French typos corrected <!-- ADR-WEB-001, TASK-WEB-020, RQ-WEB-003, RQ-WEB-009 -->
+- `agnos-meta-website` site: quotes the renamed demo, its titles, its ADR excerpt and its commit <!-- ADR-WEB-001, TASK-PLG-060, RQ-WEB-003, RQ-WEB-005 -->
+
+### Removed
+- `agnos-meta-website` site: the index card without measures, its sizes, ratio, speed and bars removed <!-- ADR-WEB-001, TASK-WEB-017, RQ-WEB-001, RQ-WEB-004, RQ-WEB-005, RQ-WEB-018 -->
+- `agnos-meta-website` site: the History note <!-- ADR-WEB-001, TASK-WEB-021, TASK-WEB-022, RQ-WEB-001, RQ-WEB-003 -->
+
 ## [3.4.0]
 
 ### Added
