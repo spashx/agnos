@@ -1,11 +1,12 @@
 # AGNOS — Lightweight Software Engineering Process for Agentic AI
 
 **AGNOS is an ultra-lightweight engineering process for tiger teams and solo experts who build
-software with agentic AI.** It puts two things first — **end-to-end traceability** and
-**deterministic indexing** — so that AI-driven development stays controllable as the codebase grows.
+software with agentic AI.
 
-Every requirement can be followed, by a single `grep`, from its definition through its
-architecture decisions, its tasks and its Git commits, down to the functions that implement it.
+AGNOS is a lightweight, tooled process for *AI-native* development teams (pods of a few people, or solo). Requirements, decisions, tasks, code and commits carry the same identifiers: the work stays explainable.
+AGNOS It puts two things first — **end-to-end traceability** and **deterministic indexing** — so that AI-driven development stays controllable as the codebase grows.
+The process can be monitored with the built-in AGNOS Performance Center application.
+
 
 ![AGNOS overview](agnos-overview.png)
 
