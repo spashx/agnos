@@ -104,3 +104,15 @@ This plan implements the tasks in the format specified below.
   PASS (block alone 2 of 2, 0 changes after a new call). Re-checked here: demo HEAD f85c790, `CLAUDE.md` and `AGENTS.md` identical and
   holding the re-invocation order, demo working tree clean.
 - **Assumptions**: no change to the demo's scenario or content was needed.
+
+### TASK-INI-019: Align guide tier table
+- **Tier**: S
+- **Status**: Done
+- **Description**: Set the Tier S written plan to No in the guide's tier table, and say a Tier S task may still be listed in a plan.
+- **Requirement refs**: RQ-PLG-022
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the guide, Then its tier table matches TASK TIERS of the instructions.
+- **Dependencies**: None
+- **Assignee**: Human
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None

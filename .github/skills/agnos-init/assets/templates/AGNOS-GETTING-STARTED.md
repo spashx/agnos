@@ -402,11 +402,11 @@ Implements the streaming CSV exporter and exposes it on the orders API.
 
 | Tier | When | Tests | ADR | Written plan |
 |---|---|:-:|:-:|:-:|
-| **S** | ≤ 5 lines changed, no new file, no new public API | No | No | Yes |
+| **S** | ≤ 5 lines changed, no new file, no new public API | No | No | No |
 | **M** | New method, class or file, contained to one module | Yes | No | Yes |
 | **L** | Cross-cutting, new public API, or new dependency | Yes | Yes | Yes |
 
-Every tier gets a written plan, which is why TASK-EXP-002, a Tier S task, sits in `PLAN-EXP-001` above.
+A Tier S task needs no written plan; it may still be listed in one, as TASK-EXP-002 is in PLAN-EXP-001 above.
 
 When in doubt the agent defaults to **M**. A Tier S task that turns out to need a new file must be re-tiered before
 it continues: that rule exists to stop "just a quick fix" from silently skipping tests.
