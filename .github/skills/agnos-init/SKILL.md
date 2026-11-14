@@ -58,4 +58,4 @@ To update a project after AGNOS changes, call it again.
 | Path | Role |
 |---|---|
 | `scripts/init.ps1`, `scripts/init.sh` | The two versions, giving the same bytes |
-| `assets/templates/` | One block per entry-point file, written as it is, one `readme.md` per process folder, and the guide `AGNOS-GETTING-STARTED.md` |
+| `assets/templates/` | One block, `agnos.block.md`, written as it is into both entry-point files <!-- RQ-INI-019 -->, one `readme.md` per process folder, and the guide `AGNOS-GETTING-STARTED.md` |

@@ -8,5 +8,5 @@ Before any other action, invoke the skill named `agnos-instructions` and follow 
 - If that skill is not available, stop and tell the user to install the AGNOS plugin.
 - Read `agnos-process/project-rules.md` when it exists: this project's own rules, added to the process. `agnos-process/project-rules.md` is the improvement target: the process's improvements go into it, never into a file of the plugin.
 - Run the commands from this project's root, where `agnos-process/` is.
-- Where the process asks the user a question, use your tool's question feature, or ask in chat and wait for the answer.
+- Where the process asks the user a question, use the built-in user-question tool (`askQuestion` on GitHub Copilot, `AskUserQuestion` on Claude Code), or ask in chat and wait for the answer.
 <!-- AGNOS:END -->

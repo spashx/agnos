@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # agnos-init (bash): adds AGNOS to a project, the block of its entry-point files, its guide and its process folders.
-# RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
+# RQ-INI-001 to RQ-INI-006, RQ-INI-019, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-INI-003 (DEC-INI-014), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
 # RQ-INI-016 / ADR-INI-002 (DEC-INI-012): the session state is added to .gitignore.
 # Usage: init.sh --target <project folder>
 # Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
@@ -14,6 +14,7 @@ END_MARKER='<!-- AGNOS:END -->'
 CR=$(printf '\r')
 END_PATTERN="^$END_MARKER$CR?\$"
 ENTRY_FILES='CLAUDE.md AGENTS.md'
+BLOCK_TEMPLATE='agnos.block.md'    # RQ-INI-019 / DEC-INI-014: one block for every entry-point file
 README='readme.md'
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 # RQ-PLG-036 / DEC-PLG-027: every name of the process folder comes from the generated agnos-layout.sh.
@@ -43,9 +44,9 @@ done
 work=$(mktemp -d) || fail 'no temporary folder'
 trap 'rm -rf "$work"' EXIT
 
-# RQ-INI-006: writes the template, in the file's line ending, with a final one.
+# RQ-INI-006, RQ-INI-019 / DEC-INI-014: writes the one template of every entry-point file, in the file's line ending, with a final one.
 write_block() {   # <file> <crlf|lf> <output>
-  tr -d '\r' < "$SCRIPT_DIR/../assets/templates/${1%.md}.block.md" > "$3.lf"
+  tr -d '\r' < "$SCRIPT_DIR/../assets/templates/$BLOCK_TEMPLATE" > "$3.lf"
   if [ "$2" = crlf ]; then awk '{ printf "%s\r\n", $0 }' "$3.lf" > "$3"; else cp "$3.lf" "$3"; fi
 }
 

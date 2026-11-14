@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-014: Merge block templates
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then replace `CLAUDE.block.md` and `AGENTS.block.md` by `agnos.block.md`, read by `init.ps1` and
   `init.sh`, with one question line for both tools.
 - **Requirement refs**: RQ-INI-019
@@ -38,8 +38,9 @@ This plan implements the tasks in the format specified below.
   suite runs, Then both blocks are byte-identical in both script versions, And every former test passes.
 - **Dependencies**: TASK-INI-013
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: 2 new RQ-INI-019 tests before the change: 2 run, failures=2 (blocks differ; `AGENTS.block.md`, `CLAUDE.block.md`
+  listed); after: `agnos-init` suite 40 run, OK, 0 skipped, PowerShell 5.1 and Git Bash both run on Windows.
+- **Assumptions**: `CLAUDE.block.md` renamed with `git mv` so its history follows; the question line reuses the instructions file's wording.
 
 ### TASK-INI-015: Add context behaviour comments
 - **Tier**: M

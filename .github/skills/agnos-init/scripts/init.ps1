@@ -2,7 +2,7 @@
 .SYNOPSIS
   Adds AGNOS to a project: the block of its entry-point files, its guide and its process folders.
 .DESCRIPTION
-  RQ-INI-001 to RQ-INI-006, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
+  RQ-INI-001 to RQ-INI-006, RQ-INI-019, RQ-PLG-004, RQ-PLG-021 / ADR-INI-001 (DEC-INI-001 to DEC-INI-003), ADR-INI-003 (DEC-INI-014), ADR-PLG-001 (DEC-PLG-003), ADR-PLG-003 (DEC-PLG-016), RQ-PLG-033 / ADR-PLG-005 (DEC-PLG-026).
   RQ-INI-016 / ADR-INI-002 (DEC-INI-012): the session state is added to .gitignore.
   Every entry-point file is checked before any write. Exit code 0 on success, 1 on error, with nothing
   written (message on the error stream). init.sh gives the same bytes.
@@ -20,6 +20,7 @@ $END_PATTERN = '(?m)^<!-- AGNOS:END -->(?=\r?$)'
 $LF = "`n"
 $CRLF = "`r`n"
 $ENTRY_FILES = @('CLAUDE.md', 'AGENTS.md')
+$BLOCK_TEMPLATE = 'agnos.block.md'   # RQ-INI-019 / DEC-INI-014: one block for every entry-point file
 # RQ-PLG-036 / DEC-PLG-027: every name of the process folder comes from the generated agnos-layout.ps1.
 . (Join-Path $PSScriptRoot 'agnos-layout.ps1')
 $PROCESS_FOLDERS = @($AGNOS_SUBFOLDERS | ForEach-Object { "$AGNOS_FOLDER/$_" })
@@ -42,9 +43,9 @@ function Get-Eol([string]$Text) {
   return $LF
 }
 
-# RQ-INI-006: the template, in the given line ending, with no final line ending.
-function Get-Block([string]$File, [string]$Eol) {
-  $template = Join-Path $PSScriptRoot "../assets/templates/$($File -replace '\.md$', '.block.md')"
+# RQ-INI-006, RQ-INI-019 / DEC-INI-014: the one template of every entry-point file, in the given line ending, with no final line ending.
+function Get-Block([string]$Eol) {
+  $template = Join-Path $PSScriptRoot "../assets/templates/$BLOCK_TEMPLATE"
   $text = (Read-Bytes $template).Replace($CRLF, $LF).TrimEnd($LF)
   return $text.Replace($LF, $Eol)
 }
@@ -52,13 +53,13 @@ function Get-Block([string]$File, [string]$Eol) {
 # RQ-INI-002, RQ-INI-004: what the file should hold and the action it takes.
 function Get-Plan([string]$File, [string]$Path) {
   if (-not (Test-Path -LiteralPath $Path)) {
-    return @{ Path = $Path; File = $File; Text = (Get-Block $File $LF) + $LF; Action = 'created'; Old = $null }
+    return @{ Path = $Path; File = $File; Text = (Get-Block $LF) + $LF; Action = 'created'; Old = $null }
   }
   $old = Read-Bytes $Path
   $begins = [regex]::Matches($old, $BEGIN_PATTERN)
   $ends = [regex]::Matches($old, $END_PATTERN)
   $eol = Get-Eol $old
-  $block = Get-Block $File $eol
+  $block = Get-Block $eol
   if ($begins.Count -eq 0 -and $ends.Count -eq 0) {
     $text = $old
     if ($text.Length -gt 0) {

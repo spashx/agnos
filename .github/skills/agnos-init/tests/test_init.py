@@ -49,6 +49,10 @@ GUIDE_STEPS = ("new conversation", "AGNOS session", "Write the requirement", "ap
                "End of session", "agnos-perf-center")
 ID_TRIGRAM_RE = re.compile(rb"\b(?:FTR|RQ|ADR|DEC|PLAN|TASK)-([A-Z]{3})-\d{3}\b")
 SUCCESS_STEP_RE = re.compile(r"^   - `0`:.*$", re.M)
+TEMPLATES = SKILL_DIR / "assets" / "templates"
+BLOCK_TEMPLATE = "agnos.block.md"                       # RQ-INI-019 / DEC-INI-014
+QUESTION_LINE_START = b"- Where the process asks the user a question"
+QUESTION_TOOLS = (b"`askQuestion`", b"`AskUserQuestion`", b"ask in chat")
 
 
 def bash_command():
@@ -193,6 +197,20 @@ class ResultTest(InitCase):
                 data = (project / name).read_bytes()
                 self.assertIsNone(ID_RE.search(data), name)
                 self.assertNotIn(b"{{", data, name)
+
+    # RQ-INI-019 / DEC-INI-014
+    def test_RQ_INI_019_given_a_new_project_then_both_blocks_are_identical_and_name_both_question_tools(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            blocks = [(project / name).read_bytes() for name in ENTRY_FILES]
+            self.assertEqual(blocks[0], blocks[1])
+            question = next(line for line in blocks[0].splitlines() if line.startswith(QUESTION_LINE_START))
+            for tool in QUESTION_TOOLS:
+                self.assertIn(tool, question)
+
+    # RQ-INI-019 / DEC-INI-014
+    def test_RQ_INI_019_given_the_templates_folder_then_it_holds_one_block_template(self):
+        self.assertEqual([BLOCK_TEMPLATE], sorted(path.name for path in TEMPLATES.glob("*.block.md")))
 
 
 class RepeatTest(InitCase):
