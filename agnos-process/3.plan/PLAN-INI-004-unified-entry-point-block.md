@@ -61,7 +61,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-016: Document context-loss risks
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add to `README.md` a section on what happens to the process after a clear, an automatic and a manual compaction,
   for Claude Code and GitHub Copilot, with the risks and the action to take.
 - **Requirement refs**: RQ-INI-021
@@ -70,5 +70,8 @@ This plan implements the tasks in the format specified below.
   and the action to take, And states what the documentation leaves unsaid.
 - **Dependencies**: TASK-INI-015
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: README re-read: the subsection names both tools, new conversation, clear, automatic and manual compaction, 3 risks,
+  4 actions, and marks 2 behaviours as undocumented. First run: `agnos-meta-release` 133 run, failures=1 (RQ-PLG-023 test fixes the
+  `##` sections); fix: a `###` subsection under Getting Started; re-run 133 OK. `agnos-init` 42 OK, `agnos-meta-release-prep` 25 OK,
+  `agnos-meta-docs-sync` 18 OK, `agnos-meta-demo` 18 OK, `agnos-git-workflow` 8 OK; skips not reported by the runs; other suites not run.
+- **Assumptions**: a subsection rather than a new `##` section, so RQ-PLG-023's list of sections stays as it is.

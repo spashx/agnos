@@ -81,6 +81,43 @@ between its `AGNOS:BEGIN` and `AGNOS:END` markers. To update a project after AGN
 concepts behind it. Its source is
 [the skill's template](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md). <!-- RQ-PLG-021, RQ-PLG-022, RQ-PLG-033 -->
 
+### Keeping the Process in the Agent's Context
+
+<!-- RQ-INI-021 / ADR-INI-003: from the tools' documentation read on 2026-11-14; what it leaves unsaid is stated as such -->
+
+The block that `agnos-init` writes holds no process: it orders the agent to invoke the `agnos-instructions` skill, and that
+skill holds the whole process. Your tool reloads `CLAUDE.md` and `AGENTS.md` whenever it needs them. **A skill is not reloaded:**
+once invoked, it lives only in the conversation, so whatever clears or shortens the conversation can remove the process, with no
+error and no warning. The agent then goes on working, but without some or all of the AGNOS rules.
+
+| Event | Claude Code | GitHub Copilot |
+|---|---|---|
+| **New conversation, session start** | `CLAUDE.md` is loaded; the block makes the agent invoke the skill | `AGENTS.md` is included (and `CLAUDE.md` with `chat.useClaudeMdFile`); the block makes the agent invoke the skill |
+| **Clear** (`/clear`, new chat) | The skill is gone, `CLAUDE.md` is loaded again: the block makes the agent invoke the skill again | The same, in the new chat |
+| **Automatic compaction** (the conversation is summarised when the context fills) | `CLAUDE.md` is re-read from disk. The skill is re-attached, **but only its first 5,000 tokens**, within 25,000 tokens shared by every skill invoked. The process is about 7,000 tokens: **its end is cut**, which holds the testing rules, the anti-patterns and the Error Recovery Protocol | Long chats are summarised. **The documentation does not say** what happens to a skill already loaded: assume it can be lost |
+| **Manual compaction** (`/compact`) | `CLAUDE.md` is re-read from disk. **The documentation does not say** whether the skill is re-attached the same way: assume its end is cut too | No equivalent command |
+
+**What the risks are.**
+
+1. **A partial process.** After an automatic compaction in Claude Code, the agent keeps the beginning of the process and loses its
+   end. It may still tier tasks and cite IDs, while no longer writing tests first or stopping after a failed fix.
+2. **A silent loss.** Nothing tells you the process was cut or dropped. The work looks normal until a rule is not applied.
+3. **Uncovered behaviour.** What GitHub Copilot does with a skill when it summarises, and what Claude Code does on `/compact`, are
+   not documented: AGNOS cannot guarantee them.
+
+**What you do.**
+
+1. **Run one AGNOS session per conversation.** Between two sessions, clear the conversation, then ask for the next session: the
+   block reloads the process whole.
+2. **After any compaction, automatic or manual, ask the agent to invoke `agnos-instructions` again.** The block orders it too, but
+   the order only works if the agent follows it. Claude Code shows when it compacted; on GitHub Copilot, do it whenever a chat has
+   grown long.
+3. **Check, when in doubt.** Ask the agent to quote a rule from the end of the process, such as the Error Recovery Protocol. If it
+   cannot quote it word for word, have it invoke the skill again.
+4. **Keep sessions short.** The process asks for a checkpoint after 10 tasks: it is the right moment to clear and start again.
+
+The block of `CLAUDE.md` and `AGENTS.md` also holds these notes, as HTML comments that Claude Code leaves out of its context.
+
 ---
 
 ## License

@@ -739,11 +739,11 @@ TASK-INI-009|94-111|Done|The demo without a committed session state
 TASK-INI-010|112-130|Done|The documents follow
 TASK-INI-012|131-146|Done|agnos-session runs its script with bash
 @agnos-process/3.plan/PLAN-INI-004-unified-entry-point-block.md
-PLAN-INI-004|1-74||Unified context-aware entry-point block
+PLAN-INI-004|1-77||Unified context-aware entry-point block
 TASK-INI-013|17-29|Done|Record block unification artifacts
 TASK-INI-014|30-44|Done|Merge block templates
 TASK-INI-015|45-61|Done|Add context behaviour comments
-TASK-INI-016|62-74|Not Started|Document context-loss risks
+TASK-INI-016|62-77|Done|Document context-loss risks
 @agnos-process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
 TASK-MTA-001|17-28|Done|Rename the meta skills, the prefix as the only criterion
