@@ -53,6 +53,10 @@ TEMPLATES = SKILL_DIR / "assets" / "templates"
 BLOCK_TEMPLATE = "agnos.block.md"                       # RQ-INI-019 / DEC-INI-014
 QUESTION_LINE_START = b"- Where the process asks the user a question"
 QUESTION_TOOLS = (b"`askQuestion`", b"`AskUserQuestion`", b"ask in chat")
+# RQ-INI-020 / DEC-INI-015: the block's notes are its comments, the marker lines excepted.
+COMMENT_RE = re.compile(rb"<!--(?! AGNOS:)(.*?)-->", re.S)
+CONTEXT_SUBJECTS = (b"claude code", b"github copilot", b"session start", b"clear", b"compaction")
+REINVOKE_ORDER = f"After a compaction, invoke `{PROCESS_SKILL}` again".encode()
 
 
 def bash_command():
@@ -207,6 +211,22 @@ class ResultTest(InitCase):
             question = next(line for line in blocks[0].splitlines() if line.startswith(QUESTION_LINE_START))
             for tool in QUESTION_TOOLS:
                 self.assertIn(tool, question)
+
+    # RQ-INI-020 / DEC-INI-015
+    def test_RQ_INI_020_given_the_block_then_its_comments_explain_both_tools_on_start_clear_and_compaction(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            data = (project / ENTRY_FILES[0]).read_bytes()
+            notes = b" ".join(COMMENT_RE.findall(data)).lower()
+            for subject in CONTEXT_SUBJECTS:
+                self.assertIn(subject, notes)
+
+    # RQ-INI-020 / DEC-INI-015
+    def test_RQ_INI_020_given_the_block_then_it_orders_the_skill_invoked_again_outside_any_comment(self):
+        for _, project, result in self.each_script():
+            self.assertEqual(0, result.returncode, result.stderr)
+            visible = COMMENT_RE.sub(b"", (project / ENTRY_FILES[0]).read_bytes())
+            self.assertIn(REINVOKE_ORDER, visible)
 
     # RQ-INI-019 / DEC-INI-014
     def test_RQ_INI_019_given_the_templates_folder_then_it_holds_one_block_template(self):

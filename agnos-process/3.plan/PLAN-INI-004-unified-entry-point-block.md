@@ -44,7 +44,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-015: Add context behaviour comments
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add to the block its HTML comments on Claude Code and GitHub Copilot, and the visible
   order to invoke the process skill again after a compaction.
 - **Requirement refs**: RQ-INI-020
@@ -53,8 +53,11 @@ This plan implements the tasks in the format specified below.
   name both tools, session start, clear and compaction, And the block holds no artifact ID.
 - **Dependencies**: TASK-INI-014
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: 2 new RQ-INI-020 tests before the change: 2 run, failures=2; after: `agnos-init` 42 run, OK, 0 skipped (PowerShell
+  5.1 and Git Bash); `agnos-session` 17 OK, `agnos-self-improvement` 9 OK, `agnos-meta-release` 133 OK, skips not reported by the run;
+  the RQ-INI-006 test confirms no artifact ID in the block. Other suites not run.
+- **Assumptions**: the facts come from code.claude.com/docs (memory, skills) and code.visualstudio.com/docs (custom instructions, agent
+  skills), read on 2026-11-14; the instructions skill measured at about 7,000 tokens (28,257 characters / 4).
 
 ### TASK-INI-016: Document context-loss risks
 - **Tier**: M
