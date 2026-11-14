@@ -25,6 +25,7 @@ Writes happen only on a change. Fulfils RQ-INI-002, RQ-INI-003, RQ-INI-004.
 `AGENTS.md` has no standard import. Only `{{TOOLKIT}}` is replaced. Templates hold no ID, because they are delivered as they are:
 their traceability is in the scripts and `SKILL.md`. Fulfils RQ-INI-006. Its import is replaced by DEC-INI-007 (amended on 2026-10-31).
 Amended on 2026-11-01 by DEC-PLG-003: both templates name the skill `agnos-process`, and `{{TOOLKIT}}` is removed.
+Amended on 2026-11-14 by DEC-INI-014: one template serves both files.
 
 ### DEC-INI-004: The toolkit path is an input, written as given
 The path is mandatory, relative to the target, and written with `/`; the script does not compute one. A relative path works in each

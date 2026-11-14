@@ -118,6 +118,40 @@ Out of scope: the plugin itself, removing AGNOS from a project, and copying AGNO
   block alone, And no other toolkit file is in its history; Given two builds, Then their HEAD is the same.
 - **Dependencies**: RQ-INI-002, RQ-MTA-005
 
+### RQ-INI-019: Single block for both entry points
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: `agnos-init` SHALL write the same block, from one template, into `CLAUDE.md` and `AGENTS.md`, its question line naming
+  `askQuestion` for GitHub Copilot and `AskUserQuestion` for Claude Code, with a question in chat as the fallback.
+- **Rationale**: GitHub Copilot reads both files, and two blocks gave it two different orders for the same question.
+- **Priority**: Must
+- **Acceptance Criteria**: Given a new project, When either script runs, Then the blocks of `CLAUDE.md` and `AGENTS.md` are byte-identical,
+  And their question line names `askQuestion` and `AskUserQuestion`; Given the templates folder, Then it holds one block template.
+- **Dependencies**: RQ-INI-006, RQ-INI-010, ADR-INI-003
+
+### RQ-INI-020: Context behaviour notes in the block
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The block SHALL explain, in HTML comments only, how Claude Code and GitHub Copilot load the block and the process skill
+  at session start, after a clear and after a compaction, and SHALL order the agent to invoke the process skill again after a compaction.
+- **Rationale**: the process skill lives only in the conversation, and a compaction can cut it, which a developer does not know.
+- **Priority**: Must
+- **Acceptance Criteria**: Given the written block, Then its comments name Claude Code and GitHub Copilot, session start, clear and
+  compaction, And no text outside its marker lines and comments is longer than before but the re-invocation order; Given the block, Then
+  it holds no artifact ID.
+- **Dependencies**: RQ-INI-019, ADR-INI-003
+
+### RQ-INI-021: Context-loss risks in the README
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: `README.md` SHALL explain, for Claude Code and GitHub Copilot, what happens to the process after a clear, an automatic
+  compaction and a manual compaction, the risks of each, and what the user does to keep the process loaded.
+- **Rationale**: these behaviours depend on the tool and are not widely known, while losing the process silently breaks a session.
+- **Priority**: Must
+- **Acceptance Criteria**: Given `README.md`, Then one section names both tools, clear, automatic and manual compaction, their risks, and
+  the action to take, And it states what the tools' documentation leaves unsaid.
+- **Dependencies**: RQ-INI-020, RQ-PLG-023
+
 ---
 
 ## Non-Functional Requirements
