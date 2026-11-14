@@ -93,12 +93,14 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-018: Rebuild demo on unified block
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-demo build -Verify`, so that the demo's `CLAUDE.md`, `AGENTS.md` and guide come from the new templates.
 - **Requirement refs**: RQ-INI-008, RQ-INI-019, RQ-INI-020
 - **ADR refs**: ADR-INI-003
 - **Acceptance Criteria**: Given the rebuilt demo, When `verify` runs, Then every requirement prints PASS.
 - **Dependencies**: TASK-INI-017
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `build -Verify` (Sonnet subagent): exit 0, 88 commits, `verify: 27 passed, 0 failed`, nothing skipped, RQ-INI-008
+  PASS (block alone 2 of 2, 0 changes after a new call). Re-checked here: demo HEAD f85c790, `CLAUDE.md` and `AGENTS.md` identical and
+  holding the re-invocation order, demo working tree clean.
+- **Assumptions**: no change to the demo's scenario or content was needed.
