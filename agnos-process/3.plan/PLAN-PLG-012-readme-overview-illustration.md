@@ -24,3 +24,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: Human, AI
 - **Verification**: New test RQ_PLG_047 failed before the layer rule, passes after; agnos-meta-release suite 151 run, 151 OK, 0 skipped; 4 SVGs parse as XML, 0 removed claims, `BKG` only in the example; PNG 1536x1024 by headless Edge, checked visually by the owner; README link unchanged.
 - **Assumptions**: AC v1 restored from the owner's copy; the SVGs' prototype header replaced by the RQ-PLG-047 comment.
+
+### TASK-PLG-079: Prepare version 3.6.2 release
+- **Tier**: S
+- **Status**: Done
+- **Description**: Record the version 3.6.2 the owner approved, with the changelog and user's guide docs-sync wrote, by agnos-meta-release-prep.
+- **Requirement refs**: RQ-PLG-032
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the approved diff, When the version is set, Then `VERSION.txt` holds 3.6.2 And the changelog's `[Unreleased]` is `[3.6.2]`.
+- **Dependencies**: TASK-PLG-078
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The owner chose 3.6.2 over the proposed 3.7.0.
