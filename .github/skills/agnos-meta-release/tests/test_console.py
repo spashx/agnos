@@ -52,12 +52,13 @@ class LastLineTest(ConsoleCase):
     def test_RQ_PLG_014_given_a_rehearsal_that_passes_then_the_last_line_says_exit_0_and_the_files_on_disk(self):
         code, lines = self.rehearse_console()
         self.assertEqual(EXIT_OK, code)
-        self.assertTrue(lines[-1].startswith(f"{LAST_LINE}0, 10 files,"), lines[-1])
+        # RQ-PLG-046 / TASK-PLG-073: the fixture's tokens.json and the generated logo are two files more
+        self.assertTrue(lines[-1].startswith(f"{LAST_LINE}0, 12 files,"), lines[-1])
 
     def test_RQ_PLG_014_given_a_rehearsal_that_fails_then_the_last_line_says_exit_1(self):
         code, lines = self.rehearse_console(proof=stray_proof)
         self.assertEqual(EXIT_FAILED, code)
-        self.assertTrue(lines[-1].startswith(f"{LAST_LINE}1, 11 files,"), lines[-1])
+        self.assertTrue(lines[-1].startswith(f"{LAST_LINE}1, 13 files,"), lines[-1])
         self.assertTrue(any(STRAY in line for line in lines), lines)
 
     def test_RQ_PLG_014_given_a_refusal_before_writing_then_the_last_line_says_exit_1_and_nothing_written(self):

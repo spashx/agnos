@@ -23,7 +23,7 @@ website's template, its colours as the `color.brand-*` tokens of the perf center
 ## Consequences
 - Easier: a tool shows the plugin with its links, keywords, category and logo.
 - Easier: a change of a brand colour reaches the logo at the next release.
-- Harder: the release script holds the brand mark's shapes, a second copy beside the website's template.
+- Harder: the release's `assets/logo-template.svg` holds the brand mark's shapes, a second copy beside the website's template.
 - Constrained: a field added to the listing goes into `assets/marketplace.json`, never into the script.
 
 ## Alternatives Considered

@@ -871,7 +871,7 @@ TASK-PLG-070|75-85|Done|Prepare version 3.6.0 release
 PLAN-PLG-011|1-61||Plugin listing metadata and logo
 TASK-PLG-071|15-26|Done|Record listing metadata decisions
 TASK-PLG-072|27-38|Done|Write catalogue and manifest metadata
-TASK-PLG-073|39-50|Not Started|Generate plugin logo from brand tokens
+TASK-PLG-073|39-50|Done|Generate plugin logo from brand tokens
 TASK-PLG-074|51-61|Not Started|Prove listing metadata install
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass

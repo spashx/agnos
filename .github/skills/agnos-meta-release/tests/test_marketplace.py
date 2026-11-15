@@ -1,4 +1,5 @@
-"""Tests of the marketplace the release writes (RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-007, TASK-PLG-005; ADR-PLG-001: DEC-PLG-001, DEC-PLG-002).
+"""Tests of the marketplace the release writes (RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-007, TASK-PLG-005; ADR-PLG-001: DEC-PLG-001, DEC-PLG-002;
+RQ-PLG-046, TASK-PLG-073; ADR-PLG-009: DEC-PLG-036).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
 """
@@ -12,7 +13,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "scripts"))
 import release  # noqa: E402
-from test_select import CHANGELOG_FILE, INSTRUCTIONS_FILE, EXIT_FAILED, EXIT_OK, RehearsalCase, files_under  # noqa: E402
+from test_select import (BRAND, CHANGELOG_FILE, INSTRUCTIONS_FILE, EXIT_FAILED, EXIT_OK, TOKENS_FILE,  # noqa: E402
+                         RehearsalCase, files_under)
 
 PLUGIN = "plugins/agnos"
 SKILLS = f"{PLUGIN}/skills"
@@ -22,6 +24,7 @@ CATALOGUES = (".claude-plugin/marketplace.json",)     # RQ-PLG-043 / DEC-PLG-033
 WITHDRAWN_CATALOGUE = ".agents/plugins/marketplace.json"
 MANIFESTS = (f"{PLUGIN}/plugin.json", f"{PLUGIN}/.claude-plugin/plugin.json")
 ATTRIBUTES = ".gitattributes"
+LOGO_PLACE = f"{PLUGIN}/assets/agnos.svg"     # RQ-PLG-046
 AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 WORKSHOP_ROOTS = (".github/", ".claude/", "CLAUDE.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md")
 SAME_IN_MANIFESTS = ("name", "version", "description")
@@ -92,6 +95,23 @@ class CatalogueTest(MarketplaceCase):
         for name in MANIFESTS:
             self.assertEqual("1.2.0", self.json_of(name)["version"], name)
         self.assertEqual("1.2.0", self.json_of(CATALOGUES[0])["plugins"][0]["version"])
+
+
+class LogoFromCommitTest(MarketplaceCase):
+    """RQ-PLG-046 / DEC-PLG-036: the logo's colours are the brand tokens of the commit rehearsed."""
+
+    def test_RQ_PLG_046_given_the_commits_brand_tokens_then_the_logo_holds_exactly_their_colours(self):
+        self.built()
+        text = (self.output / LOGO_PLACE).read_text(encoding="utf-8")
+        self.assertEqual(sorted(BRAND.values()), sorted(re.findall(r'fill="(#[0-9A-Fa-f]{6})"', text)))
+
+    def test_RQ_PLG_046_given_a_commit_without_the_tokens_when_it_runs_then_it_stops_and_names_them(self):
+        (self.repo / TOKENS_FILE).unlink()
+        self.commit({})
+        code, errors = self.rehearse()
+        self.assertEqual(EXIT_FAILED, code)
+        self.assertIn(TOKENS_FILE, errors)
+        self.assertFalse(self.output.exists())
 
 
 class ProcessSkillTest(MarketplaceCase):

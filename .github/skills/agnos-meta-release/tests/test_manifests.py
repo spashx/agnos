@@ -1,9 +1,10 @@
 """Tests that the release checks the manifests by itself, whatever the tool (RQ-PLG-015, TASK-PLG-014; ADR-PLG-002: DEC-PLG-010;
-RQ-PLG-044, RQ-PLG-045, TASK-PLG-072; ADR-PLG-009: DEC-PLG-035).
+RQ-PLG-044, RQ-PLG-045, TASK-PLG-072, RQ-PLG-046, TASK-PLG-073; ADR-PLG-009: DEC-PLG-035, DEC-PLG-036).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
 """
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -13,7 +14,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 sys.path.insert(0, str(HERE))
 import release  # noqa: E402
-from test_select import EXIT_OK, REPORT_SUFFIX, RehearsalCase  # noqa: E402
+from test_select import BRAND, EXIT_OK, REPORT_SUFFIX, RehearsalCase  # noqa: E402
 
 SCRIPT = HERE.parent / "scripts" / "release.py"
 VERSION = "1.2.0"
@@ -25,6 +26,7 @@ PROCESS_SKILL_LINK = "skills/agnos-instructions/SKILL.md"     # RQ-PLG-035: gene
 OWNER_EMAIL = "25369377+spashx@users.noreply.github.com"     # RQ-PLG-044: GitHub's private address of the owner
 LISTING_FIELDS = ("author", "homepage", "repository", "keywords")     # RQ-PLG-045
 CATEGORY = "software development"
+LOGO = "assets/agnos.svg"     # RQ-PLG-046, relative to the plugin's folder
 
 
 class ManifestCase(unittest.TestCase):
@@ -32,7 +34,7 @@ class ManifestCase(unittest.TestCase):
         holder = tempfile.TemporaryDirectory()
         self.addCleanup(holder.cleanup)
         self.output = Path(holder.name)
-        release.write_marketplace(self.output, VERSION, PLUGIN_README_TEXT)
+        release.write_marketplace(self.output, VERSION, PLUGIN_README_TEXT, BRAND)
 
     def edit(self, name, change):
         path = self.output / name
@@ -76,6 +78,25 @@ class ListingTest(ManifestCase):
         self.assertEqual(CATEGORY, entry["category"])
         for data in manifests:
             self.assertNotIn("category", data)
+
+
+class LogoTest(ManifestCase):
+    """RQ-PLG-046 / DEC-PLG-036: the brand mark, in the brand colours given, declared by both manifests."""
+
+    def test_RQ_PLG_046_given_the_written_marketplace_then_the_logo_holds_the_five_brand_colours(self):
+        text = (self.output / release.LOGO_PLACE).read_text(encoding="utf-8")
+        self.assertTrue(text.startswith("<svg "), text[:40])
+        self.assertEqual(sorted(BRAND.values()), sorted(re.findall(r'fill="(#[0-9A-Fa-f]{6})"', text)))
+
+    def test_RQ_PLG_046_given_the_written_marketplace_then_both_manifests_declare_the_logo_and_the_entry_does_not(self):
+        for name in (release.ROOT_MANIFEST, release.CLAUDE_MANIFEST):
+            self.assertEqual(LOGO, json.loads((self.output / name).read_text(encoding="utf-8"))["logo"], name)
+        entry = json.loads((self.output / release.CLAUDE_CATALOGUE).read_text(encoding="utf-8"))["plugins"][0]
+        self.assertNotIn("logo", entry)
+
+    def test_RQ_PLG_046_given_a_manifest_whose_logo_file_is_absent_then_the_file_is_named(self):
+        (self.output / release.LOGO_PLACE).unlink()
+        self.assertNamed(release.CLAUDE_MANIFEST)
 
 
 class PluginReadmeTest(ManifestCase):

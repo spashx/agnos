@@ -13,7 +13,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 sys.path.insert(0, str(HERE))
 import release  # noqa: E402
-from test_select import EXIT_FAILED, EXIT_OK, GENERATED, PROCESS_PLACE, SKILL_PLACE, TOOLKIT_FILE, VERSION_PLACE, RehearsalCase, files_under  # noqa: E402
+from test_select import (EXIT_FAILED, EXIT_OK, GENERATED, PROCESS_PLACE, SKILL_PLACE, TOKENS_PLACE, TOOLKIT_FILE,  # noqa: E402
+                         VERSION_PLACE, RehearsalCase, files_under)
 
 STRAY = "plugins/agnos/skills/agnos-index/scripts/__pycache__/x.cpython-314.pyc"
 CACHE_FOLDER = "__pycache__"
@@ -39,7 +40,7 @@ class InventoryTest(RehearsalCase):
 
     def test_RQ_PLG_012_given_a_rehearsal_then_the_files_on_disk_are_exactly_the_delivered_and_generated_ones(self):
         self.assertEqual(EXIT_OK, self.rehearse()[0])
-        self.assertEqual(sorted({TOOLKIT_FILE, SKILL_PLACE, PROCESS_PLACE, "CHANGELOG.md", VERSION_PLACE, *GENERATED}), files_under(self.output))
+        self.assertEqual(sorted({TOOLKIT_FILE, SKILL_PLACE, PROCESS_PLACE, "CHANGELOG.md", VERSION_PLACE, TOKENS_PLACE, *GENERATED}), files_under(self.output))
 
     def test_RQ_PLG_012_given_a_file_added_to_the_output_before_the_inventory_then_it_exits_1_and_names_it(self):
         code, errors = self.rehearse_with(stray_proof)

@@ -38,15 +38,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-073: Generate plugin logo from brand tokens
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `plugins/agnos/assets/agnos.svg` from the brand mark and the `color.brand-*` tokens, declare it as `logo` in both manifests, and check the file exists, test first.
 - **Requirement refs**: RQ-PLG-046
 - **ADR refs**: ADR-PLG-009
 - **Acceptance Criteria**: Given a release, When the marketplace is written, Then the SVG exists And its five fill colours equal the tokens And both manifests hold `logo` `assets/agnos.svg`; Given a manifest whose logo file is absent, When it is checked, Then a problem is reported.
 - **Dependencies**: TASK-PLG-072
 - **Assignee**: AI
-- **Verification**: Pending
-- **Assumptions**: None
+- **Verification**: agnos-meta-release suite 150 run: 146 passed, 2 failed (`test_console` file counts 10/11, +2 for the fixture's tokens.json and the logo; expectations set to 12/13, then `test_console` 5/5), 2 skipped (`test_proof`, `test_determinism`: no demo beside the scratchpad copy); `LogoTest` 3/3, `LogoFromCommitTest` 2/2.
+- **Assumptions**: The brand mark's shapes sit in `assets/logo-template.svg`, its colours as placeholders; a commit without the brand tokens is refused.
 
 ### TASK-PLG-074: Prove listing metadata install
 - **Tier**: M

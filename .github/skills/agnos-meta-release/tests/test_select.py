@@ -31,7 +31,13 @@ VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION.txt"     # RQ
 VERSION_PLACE = "plugins/agnos/skills/agnos-init/assets/templates/VERSION.txt"
 GENERATED = (".claude-plugin/marketplace.json", ".gitattributes",     # RQ-PLG-043 / DEC-PLG-033: no Codex catalogue
              "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json",
-             "plugins/agnos/README.md")     # RQ-PLG-042 / DEC-PLG-034
+             "plugins/agnos/README.md",     # RQ-PLG-042 / DEC-PLG-034
+             "plugins/agnos/assets/agnos.svg")     # RQ-PLG-046 / DEC-PLG-036
+# RQ-PLG-046 / DEC-PLG-036: the brand colours the logo takes, from the commit's perf-center tokens
+TOKENS_FILE = ".github/skills/agnos-perf-center/assets/tokens.json"
+TOKENS_PLACE = "plugins/agnos/skills/agnos-perf-center/assets/tokens.json"
+BRAND = {"tile": "#101010", "light": "#202020", "blue": "#303030", "green": "#404040", "yellow": "#505050"}
+TOKENS_TEXT = json.dumps({"global": {f"color.brand-{name}": colour for name, colour in BRAND.items()}}) + "\n"
 SKILL_TEST = ".github/skills/agnos-index/tests/test_a.py"
 META_SKILL = ".github/skills/agnos-meta-other/SKILL.md"
 PLUGIN_README_SOURCE = ".github/skills/agnos-meta-release/assets/plugin-README.md"     # RQ-PLG-042: linkless in the fixture
@@ -82,7 +88,7 @@ class RehearsalCase(unittest.TestCase):
         git(self.repo, "init", "-q")
         self.commit({TOOLKIT_FILE: "# Toolkit\n", SKILL_FILE: "skill\n", SKILL_TEST: "test\n", META_SKILL: "meta\n",
                      PROCESS_FILE: INDEX_TEXT, SETTINGS: "{}\n", INSTRUCTIONS_FILE: "# Process\n", CHANGELOG_FILE: "## [v1.2]\n",
-                     VERSION_FILE: "1.2.0\n", PLUGIN_README_SOURCE: "# Plugin\n"})
+                     VERSION_FILE: "1.2.0\n", PLUGIN_README_SOURCE: "# Plugin\n", TOKENS_FILE: TOKENS_TEXT})
 
     def commit(self, files):
         for name, text in files.items():
@@ -166,7 +172,7 @@ class LayersTest(RehearsalCase):
 
     def test_RQ_MTA_008_given_the_rules_then_the_meta_layer_is_left_out_and_the_rest_delivered(self):
         self.assertEqual(EXIT_OK, self.rehearse()[0])
-        self.assertEqual(sorted((CHANGELOG_FILE, PROCESS_PLACE, SKILL_PLACE, TOOLKIT_FILE, VERSION_PLACE) + GENERATED), files_under(self.output))
+        self.assertEqual(sorted((CHANGELOG_FILE, PROCESS_PLACE, SKILL_PLACE, TOOLKIT_FILE, VERSION_PLACE, TOKENS_PLACE) + GENERATED), files_under(self.output))
         report = json.loads(Path(f"{self.output}{REPORT_SUFFIX}").read_text(encoding="utf-8"))
         self.assertEqual(sorted([SKILL_TEST, META_SKILL, PROCESS_FILE, SETTINGS, PLUGIN_README_SOURCE]), sorted(report["leftOut"]))
 

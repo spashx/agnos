@@ -31,6 +31,11 @@ MARKETPLACE_PATH = ASSETS / "marketplace.json"
 ATTRIBUTES_PATH = ASSETS / "marketplace.gitattributes.txt"
 # RQ-PLG-042 / DEC-PLG-034: the plugin's README, read from the commit rehearsed like the version
 PLUGIN_README_SOURCE = ".github/skills/agnos-meta-release/assets/plugin-README.md"
+# RQ-PLG-046 / DEC-PLG-036: the brand mark's shapes (template.html's brand-mark), its colours read from the commit's tokens
+LOGO_TEMPLATE_PATH = ASSETS / "logo-template.svg"
+TOKENS_SOURCE = ".github/skills/agnos-perf-center/assets/tokens.json"
+BRAND_NAMES = ("tile", "light", "blue", "green", "yellow")
+BRAND_TOKEN = "color.brand-{}"
 AGENT_TABLE_PATH = ASSETS / "agent-frontmatter.json"
 REPORT_CSS_PATH = ASSETS / "report.css"         # RQ-PLG-017 / DEC-PLG-012: only tokens of the perf center
 REPORT_PAGE_PATH = ASSETS / "report.html"       # RQ-PLG-016 / DEC-PLG-011
@@ -96,7 +101,10 @@ ROOT_MANIFEST = f"{PLUGIN_FOLDER}/plugin.json"
 CLAUDE_MANIFEST = f"{PLUGIN_FOLDER}/.claude-plugin/plugin.json"
 ATTRIBUTES_FILE = ".gitattributes"
 PLUGIN_README = f"{PLUGIN_FOLDER}/README.md"     # RQ-PLG-042 / DEC-PLG-034: the README a tool shows for the plugin
-MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, ATTRIBUTES_FILE, PLUGIN_README)
+LOGO_KEY = "logo"
+LOGO_FILE = "assets/agnos.svg"     # RQ-PLG-046 / DEC-PLG-036: relative to the plugin's folder, as a manifest names it
+LOGO_PLACE = f"{PLUGIN_FOLDER}/{LOGO_FILE}"
+MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, ATTRIBUTES_FILE, PLUGIN_README, LOGO_PLACE)
 LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
 EXTERNAL_LINK_RE = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|#)", re.I)
 NO_BYTECODE = {"PYTHONDONTWRITEBYTECODE": "1"}     # RQ-PLG-012, DEC-PLG-008: the checks run Python from the output
@@ -132,8 +140,8 @@ METADATA_VERSION = f"{METADATA_KEY}.version"
 LISTING_REQUIRED = ("author.url", "homepage", "repository", "keywords")
 ENTRY_FIELDS = (*SAME_EVERYWHERE, "author", "homepage", "repository", "license", "keywords")
 # (fields of the file, fields of each plugin it declares), as documented and observed in the trial of ADR-PLG-001
-REQUIRED_FIELDS = {ROOT_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED)),
-                   CLAUDE_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED)),
+REQUIRED_FIELDS = {ROOT_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED, LOGO_KEY)),
+                   CLAUDE_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED, LOGO_KEY)),
                    CLAUDE_CATALOGUE: (("name", "owner.name", "owner.email", f"{METADATA_KEY}.description", METADATA_VERSION),
                                       (*SAME_EVERYWHERE, *LISTING_REQUIRED, "source", "license", "category"))}
 ROOT_DESCRIPTION = "description"     # RQ-PLG-044: a catalogue holds it in metadata, never at its root
@@ -228,10 +236,28 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2) + "\n", encoding=ENCODING, newline="\n")
 
 
-def write_marketplace(output, version, readme):
-    """The catalogues, the manifests, the attributes and the plugin's README: same name, version and description in each."""
+# RQ-PLG-046 / DEC-PLG-036
+def brand_colours(tokens_text):
+    """The five brand colours of a perf-center token file, by name, or None when one is missing."""
+    found = json.loads(tokens_text).get("global", {})
+    colours = {name: found.get(BRAND_TOKEN.format(name)) for name in BRAND_NAMES}
+    return colours if all(colours.values()) else None
+
+
+# RQ-PLG-046 / DEC-PLG-036
+def commit_brand(repo):
+    """The brand colours of the commit rehearsed, or None when its token file is absent, unreadable or lacks one."""
+    try:
+        return brand_colours(git(repo, "show", f"HEAD:{TOKENS_SOURCE}").decode(ENCODING))
+    except (subprocess.CalledProcessError, ValueError):
+        return None
+
+
+def write_marketplace(output, version, readme, brand):
+    """The catalogues, the manifests, the attributes, the plugin's README and its logo: same name, version and
+    description in each."""
     said = json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))
-    plugin = {**said["plugin"], "version": version}
+    plugin = {**said["plugin"], "version": version, LOGO_KEY: LOGO_FILE}     # RQ-PLG-046: declared by both manifests
     # RQ-PLG-045 / DEC-PLG-035: the entry repeats the plugin's fields, plus its own
     listed = {**{key: plugin[key] for key in ENTRY_FIELDS}, "source": f"./{PLUGIN_FOLDER}", **said["entry"]}
     marketplace = said["marketplace"]
@@ -242,6 +268,9 @@ def write_marketplace(output, version, readme):
     write_json(output / CLAUDE_CATALOGUE, catalogue)
     (output / ATTRIBUTES_FILE).write_bytes(ATTRIBUTES_PATH.read_bytes())
     (output / PLUGIN_README).write_bytes(readme)     # RQ-PLG-042 / DEC-PLG-034
+    (output / LOGO_PLACE).parent.mkdir(parents=True, exist_ok=True)     # RQ-PLG-046 / DEC-PLG-036
+    (output / LOGO_PLACE).write_text(LOGO_TEMPLATE_PATH.read_text(encoding=ENCODING).format(**brand),
+                                     encoding=ENCODING, newline="\n")
 
 
 # RQ-PLG-042 / DEC-PLG-034
@@ -611,6 +640,15 @@ def catalogue_metadata_problems(name, data, entries):
                        for entry in entries if version is not None and field(entry, "version") != version]
 
 
+# RQ-PLG-046 / DEC-PLG-036
+def logo_problem(output, name, manifest):
+    """A manifest's logo that names no file of the plugin's folder, or None."""
+    logo = manifest.get(LOGO_KEY)
+    if isinstance(logo, str) and not (output / PLUGIN_FOLDER / logo).is_file():
+        return f"{name}: its {LOGO_KEY} {logo} is no file of the plugin"
+    return None
+
+
 def manifest_problems(output):
     """What the four manifests and catalogues lack, name wrongly, or say differently."""
     problems, said = [], {}
@@ -629,8 +667,8 @@ def manifest_problems(output):
             problems += catalogue_metadata_problems(name, data, entries)
         for entry in entries:
             problems += [f"{name}: no {key} for a plugin" for key in required[1] if field(entry, key) in (None, "")]
-            if name in CATALOGUE_SOURCES:
-                problems.append(plugin_folder_problem(output, name, field(entry, CATALOGUE_SOURCES[name])))
+            problems.append(plugin_folder_problem(output, name, field(entry, CATALOGUE_SOURCES[name]))
+                            if name in CATALOGUE_SOURCES else logo_problem(output, name, entry))
             said[name] = {key: entry.get(key) for key in SAME_EVERYWHERE}
     reference = said.get(ROOT_MANIFEST)
     problems += [f"{name}: {key} differs from {ROOT_MANIFEST}" for name, values in said.items() if reference
@@ -742,6 +780,9 @@ def rehearse(repo, output, demo, proof):
         readme = git(repo, "show", f"HEAD:{PLUGIN_README_SOURCE}")     # RQ-PLG-042 / DEC-PLG-034
     except subprocess.CalledProcessError:
         return refused(f"no {PLUGIN_README_SOURCE} at HEAD: the plugin would have no README")
+    brand = commit_brand(repo)
+    if not brand:
+        return refused(f"no brand colours in {TOKENS_SOURCE} at HEAD: the plugin would have no logo")
     unreleased = unreleased_entries(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in delivered_paths else 0
     left_out = [path for path, _ in entries if layer_of(path, rules) == LAYER_META]
     try:
@@ -751,7 +792,7 @@ def rehearse(repo, output, demo, proof):
     drifted = layout_findings(repo)
     output.mkdir(parents=True, exist_ok=True)
     findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
-    write_marketplace(output, version, readme)
+    write_marketplace(output, version, readme, brand)
     left = check_output(output, pattern, rules)
     unsound = manifest_problems(output) + readme_problems(output)
     unproved = proof(repo, output, demo)
