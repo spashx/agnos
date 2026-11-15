@@ -71,3 +71,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: Rehearsal of 4d14f6c with the demo proof: exit=0, 71 files, 1712 IDs removed, 5 lines to read (pre-existing `agnos-meta-` mentions in CHANGELOG). Output search for "codex": one hit, `agnos-perf-center/assets/agents.json:6` (author pattern, kept). `plugins/agnos/README.md` present, `.agents/` absent. Not done: install in VS Code, left to the owner.
 - **Assumptions**: None
+
+### TASK-PLG-070: Prepare version 3.6.0 release
+- **Tier**: M
+- **Status**: Done
+- **Description**: Run `agnos-meta-release-prep` and record version 3.6.0, the owner's choice over the proposed 4.0.0.
+- **Requirement refs**: RQ-PLG-027, RQ-PLG-029, RQ-PLG-032
+- **ADR refs**: ADR-PLG-005
+- **Acceptance Criteria**: Given the approved version 3.6.0, When `set-version` runs, Then `VERSION.txt` holds 3.6.0 And the changelog's `[Unreleased]` heading becomes `[3.6.0]`.
+- **Dependencies**: TASK-PLG-069
+- **Assignee**: AI
+- **Verification**: `check`: exit 0, TASK-PLG-007 open (kept). docs-sync: no file edited. `review`: empty diff, current 3.5.0, proposed 4.0.0; owner chose 3.6.0. `set-version 3.6.0`: exit 0; `VERSION.txt` re-read: 3.6.0; changelog headings `[3.6.0]`, `[3.5.0]`.
+- **Assumptions**: Removing an untested tool breaks no user: a minor version (owner, 2026-11-15). The guide's drifts docs-sync named are left to a later task.

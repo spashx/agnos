@@ -4,7 +4,7 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [3.6.0]
 
 ### Added
 - `agnos-meta-release` delivers a README in the plugin's folder, the one VS Code shows for the installed plugin <!-- ADR-PLG-008, TASK-PLG-067, RQ-PLG-042, DEC-PLG-034 -->
