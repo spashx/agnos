@@ -856,7 +856,7 @@ TASK-PLG-065|15-26|Done|Record two-tool marketplace decisions
 TASK-PLG-066|27-38|Done|Remove Codex catalogue from release
 TASK-PLG-067|39-50|Done|Deliver plugin folder README
 TASK-PLG-068|51-62|Done|Remove Codex from delivered documents
-TASK-PLG-069|63-73|Not Started|Rehearse two-tool marketplace release
+TASK-PLG-069|63-73|Done|Rehearse two-tool marketplace release
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill

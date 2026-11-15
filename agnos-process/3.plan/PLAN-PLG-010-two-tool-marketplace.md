@@ -62,12 +62,12 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-069: Rehearse two-tool marketplace release
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `agnos-meta-release` on the session's last commit and search its output for Codex.
 - **Requirement refs**: RQ-PLG-042, RQ-PLG-043
 - **ADR refs**: ADR-PLG-008
 - **Acceptance Criteria**: Given the release output, Then its checks pass And "codex" is found only in `agnos-perf-center`'s author patterns And `plugins/agnos/README.md` exists.
 - **Dependencies**: TASK-PLG-067, TASK-PLG-068
 - **Assignee**: AI
-- **Verification**: Filled at closure.
+- **Verification**: Rehearsal of 4d14f6c with the demo proof: exit=0, 71 files, 1712 IDs removed, 5 lines to read (pre-existing `agnos-meta-` mentions in CHANGELOG). Output search for "codex": one hit, `agnos-perf-center/assets/agents.json:6` (author pattern, kept). `plugins/agnos/README.md` present, `.agents/` absent. Not done: install in VS Code, left to the owner.
 - **Assumptions**: None
