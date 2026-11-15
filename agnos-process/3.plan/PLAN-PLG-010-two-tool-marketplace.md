@@ -38,7 +38,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-067: Deliver plugin folder README
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add `assets/plugin-README.md`, copied by the release to `plugins/agnos/README.md`, and a check that its relative links lead to files of the plugin, test first.
 - **Requirement refs**: RQ-PLG-042
 - **ADR refs**: ADR-PLG-008 (DEC-PLG-034)

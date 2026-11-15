@@ -30,9 +30,11 @@ CHANGELOG_FILE = "CHANGELOG.md"
 VERSION_FILE = ".github/skills/agnos-init/assets/templates/VERSION.txt"     # RQ-PLG-032: the version's single source
 VERSION_PLACE = "plugins/agnos/skills/agnos-init/assets/templates/VERSION.txt"
 GENERATED = (".claude-plugin/marketplace.json", ".gitattributes",     # RQ-PLG-043 / DEC-PLG-033: no Codex catalogue
-             "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json")
+             "plugins/agnos/.claude-plugin/plugin.json", "plugins/agnos/plugin.json",
+             "plugins/agnos/README.md")     # RQ-PLG-042 / DEC-PLG-034
 SKILL_TEST = ".github/skills/agnos-index/tests/test_a.py"
 META_SKILL = ".github/skills/agnos-meta-other/SKILL.md"
+PLUGIN_README_SOURCE = ".github/skills/agnos-meta-release/assets/plugin-README.md"     # RQ-PLG-042: linkless in the fixture
 PROCESS_FILE = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
 SETTINGS = ".claude/settings.json"
 UNKNOWN_FILE = "stray.txt"
@@ -80,7 +82,7 @@ class RehearsalCase(unittest.TestCase):
         git(self.repo, "init", "-q")
         self.commit({TOOLKIT_FILE: "# Toolkit\n", SKILL_FILE: "skill\n", SKILL_TEST: "test\n", META_SKILL: "meta\n",
                      PROCESS_FILE: INDEX_TEXT, SETTINGS: "{}\n", INSTRUCTIONS_FILE: "# Process\n", CHANGELOG_FILE: "## [v1.2]\n",
-                     VERSION_FILE: "1.2.0\n"})
+                     VERSION_FILE: "1.2.0\n", PLUGIN_README_SOURCE: "# Plugin\n"})
 
     def commit(self, files):
         for name, text in files.items():
@@ -166,7 +168,7 @@ class LayersTest(RehearsalCase):
         self.assertEqual(EXIT_OK, self.rehearse()[0])
         self.assertEqual(sorted((CHANGELOG_FILE, PROCESS_PLACE, SKILL_PLACE, TOOLKIT_FILE, VERSION_PLACE) + GENERATED), files_under(self.output))
         report = json.loads(Path(f"{self.output}{REPORT_SUFFIX}").read_text(encoding="utf-8"))
-        self.assertEqual(sorted([SKILL_TEST, META_SKILL, PROCESS_FILE, SETTINGS]), sorted(report["leftOut"]))
+        self.assertEqual(sorted([SKILL_TEST, META_SKILL, PROCESS_FILE, SETTINGS, PLUGIN_README_SOURCE]), sorted(report["leftOut"]))
 
     def test_RQ_MTA_008_given_a_tracked_file_matching_no_rule_when_it_runs_then_it_exits_1_names_it_and_delivers_nothing(self):
         self.commit({UNKNOWN_FILE: "stray\n"})

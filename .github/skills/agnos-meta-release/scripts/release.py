@@ -29,6 +29,8 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 LAYERS_PATH = ASSETS / "layers.json"
 MARKETPLACE_PATH = ASSETS / "marketplace.json"
 ATTRIBUTES_PATH = ASSETS / "marketplace.gitattributes.txt"
+# RQ-PLG-042 / DEC-PLG-034: the plugin's README, read from the commit rehearsed like the version
+PLUGIN_README_SOURCE = ".github/skills/agnos-meta-release/assets/plugin-README.md"
 AGENT_TABLE_PATH = ASSETS / "agent-frontmatter.json"
 REPORT_CSS_PATH = ASSETS / "report.css"         # RQ-PLG-017 / DEC-PLG-012: only tokens of the perf center
 REPORT_PAGE_PATH = ASSETS / "report.html"       # RQ-PLG-016 / DEC-PLG-011
@@ -93,7 +95,10 @@ CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"     # RQ-PLG-043 / DEC-PLG-
 ROOT_MANIFEST = f"{PLUGIN_FOLDER}/plugin.json"
 CLAUDE_MANIFEST = f"{PLUGIN_FOLDER}/.claude-plugin/plugin.json"
 ATTRIBUTES_FILE = ".gitattributes"
-MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, ATTRIBUTES_FILE)
+PLUGIN_README = f"{PLUGIN_FOLDER}/README.md"     # RQ-PLG-042 / DEC-PLG-034: the README a tool shows for the plugin
+MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, ATTRIBUTES_FILE, PLUGIN_README)
+LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
+EXTERNAL_LINK_RE = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|#)", re.I)
 NO_BYTECODE = {"PYTHONDONTWRITEBYTECODE": "1"}     # RQ-PLG-012, DEC-PLG-008: the checks run Python from the output
 AGENT_PLUGINS_SCHEMA ="https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 CHANGELOG = "CHANGELOG.md"
@@ -215,8 +220,8 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2) + "\n", encoding=ENCODING, newline="\n")
 
 
-def write_marketplace(output, version):
-    """The catalogues, the manifests and the attributes: same name, version and description in each."""
+def write_marketplace(output, version, readme):
+    """The catalogues, the manifests, the attributes and the plugin's README: same name, version and description in each."""
     said = json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))
     plugin = {**said["plugin"], "version": version}
     listed = {"name": plugin["name"], "description": plugin["description"], "version": version}
@@ -224,6 +229,22 @@ def write_marketplace(output, version):
     write_json(output / CLAUDE_MANIFEST, plugin)
     write_json(output / CLAUDE_CATALOGUE, {**said["marketplace"], "plugins": [{**listed, "source": f"./{PLUGIN_FOLDER}"}]})
     (output / ATTRIBUTES_FILE).write_bytes(ATTRIBUTES_PATH.read_bytes())
+    (output / PLUGIN_README).write_bytes(readme)     # RQ-PLG-042 / DEC-PLG-034
+
+
+# RQ-PLG-042 / DEC-PLG-034
+def readme_problems(output):
+    """Each relative link of the plugin's README that leads to no file of the plugin."""
+    plugin = (output / PLUGIN_FOLDER).resolve()
+    text = (output / PLUGIN_README).read_text(encoding=ENCODING)
+    problems = []
+    for link in LINK_RE.findall(text):
+        if EXTERNAL_LINK_RE.match(link):
+            continue
+        target = (plugin / link.split("#")[0]).resolve()
+        if plugin not in target.parents or not target.is_file():
+            problems.append(f"{PLUGIN_README}: its link {link} leads to no file of the plugin")
+    return problems
 
 
 # RQ-PLG-003 / DEC-PLG-002
@@ -694,6 +715,10 @@ def rehearse(repo, output, demo, proof):
     version = release_version(git(repo, "show", f"HEAD:{VERSION_FILE}").decode(ENCODING)) if VERSION_FILE in delivered_paths else None
     if not version:
         return refused(f"{VERSION_FILE} at HEAD is absent or not one SemVer 2.0.0 line: the plugin would have no version")
+    try:
+        readme = git(repo, "show", f"HEAD:{PLUGIN_README_SOURCE}")     # RQ-PLG-042 / DEC-PLG-034
+    except subprocess.CalledProcessError:
+        return refused(f"no {PLUGIN_README_SOURCE} at HEAD: the plugin would have no README")
     unreleased = unreleased_entries(git(repo, "show", f"HEAD:{CHANGELOG}").decode(ENCODING)) if CHANGELOG in delivered_paths else 0
     left_out = [path for path, _ in entries if layer_of(path, rules) == LAYER_META]
     try:
@@ -703,9 +728,9 @@ def rehearse(repo, output, demo, proof):
     drifted = layout_findings(repo)
     output.mkdir(parents=True, exist_ok=True)
     findings, placed = write_delivered(repo, output, delivered, pattern, left_out)
-    write_marketplace(output, version)
+    write_marketplace(output, version, readme)
     left = check_output(output, pattern, rules)
-    unsound = manifest_problems(output)
+    unsound = manifest_problems(output) + readme_problems(output)
     unproved = proof(repo, output, demo)
     tokens, unstyled = report_tokens(output)
     problems = drifted + left + unsound + unproved + unstyled + stray_files(output, [*placed, *MARKETPLACE_FILES])
