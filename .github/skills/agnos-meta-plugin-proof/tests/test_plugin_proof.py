@@ -1,4 +1,4 @@
-"""Tests of the plugin proof (RQ-PLG-010, TASK-PLG-008; ADR-PLG-001: DEC-PLG-007).
+"""Tests of the plugin proof (RQ-PLG-010, TASK-PLG-008; ADR-PLG-001: DEC-PLG-007; RQ-PLG-046, TASK-PLG-075; ADR-PLG-009: DEC-PLG-037).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-plugin-proof/tests -v
 """
@@ -120,6 +120,48 @@ class InstallTest(unittest.TestCase):
         checks = proof.ask_questions("copilot", "copilot", self.market / proof.PLUGIN_FOLDER, project, self.base,
                                      Runner(answer="no"), initialise=lambda *_: proof.FAIL)
         self.assertIn(proof.FAIL, {check["status"] for check in checks})
+
+
+LOGO_WARNING = ("  > plugins[0] plugin.json → logo: Unknown field 'logo' (commonly seen in manifests across many tools). "
+                "Claude Code ignores unrecognized fields at load time, so it's safe to keep.\n")
+OTHER_WARNING = "  > plugins[0] plugin.json → color: Unknown field 'color'.\n"
+STRICT_FAILED = "\n× Validation failed (--strict treats warnings as errors)\n"
+
+
+class StrictValidationTest(unittest.TestCase):
+    """RQ-PLG-046 / DEC-PLG-037, TASK-PLG-075: the logo warning, and it alone, is accepted."""
+
+    def judged(self, out, code=1):
+        return proof.validation_check("validate-plugin", SimpleNamespace(returncode=code, stdout=out))
+
+    def test_RQ_PLG_046_given_only_the_logo_warning_then_the_validation_passes_and_says_it_was_accepted(self):
+        result = self.judged(f"‼ Found 1 warning:\n\n{LOGO_WARNING}{STRICT_FAILED}")
+        self.assertEqual(proof.PASS, result["status"])
+        self.assertIn("accepted", result["detail"])
+
+    def test_RQ_PLG_046_given_the_logo_warning_and_another_then_the_validation_fails(self):
+        result = self.judged(f"‼ Found 2 warnings:\n\n{LOGO_WARNING}{OTHER_WARNING}{STRICT_FAILED}")
+        self.assertEqual(proof.FAIL, result["status"])
+
+    def test_RQ_PLG_046_given_the_logo_warning_and_an_error_then_the_validation_fails(self):
+        result = self.judged(f"✘ Found 1 error:\n\n  > name: required\n\n‼ Found 1 warning:\n\n{LOGO_WARNING}{STRICT_FAILED}")
+        self.assertEqual(proof.FAIL, result["status"])
+
+    def test_RQ_PLG_046_given_directory_warnings_and_advice_beside_the_logo_warning_then_the_validation_passes(self):
+        """The output of Claude Code on the rehearsed plugin, 2026-11-15: the last two blocks do not change the verdict."""
+        out = (f"Validating plugin manifest: x\n\n‼ Found 1 warning:\n\n  > logo: Unknown field 'logo'.\n\n"
+               "Plugin directory checks for x.\n\n‼ Found 1 plugin directory warning:\n\n"
+               "  > .claude-plugin/plugin.json icon: No icon (ICON_MISSING).\n\n"
+               "These plugin directory checks do not change the result below.\n\n"
+               "i Advice (does not change the verdict):\n\n  > README.md: no install line.\n"
+               f"{STRICT_FAILED}")
+        self.assertEqual(proof.PASS, self.judged(out)["status"])
+
+    def test_RQ_PLG_046_given_a_failure_without_any_warning_then_the_validation_fails(self):
+        self.assertEqual(proof.FAIL, self.judged(STRICT_FAILED)["status"])
+
+    def test_RQ_PLG_046_given_a_clean_validation_then_it_passes_with_no_detail(self):
+        self.assertEqual(proof.check("validate-plugin", proof.PASS), self.judged("✔ Validation passed\n", code=0))
 
 
 class MainTest(unittest.TestCase):

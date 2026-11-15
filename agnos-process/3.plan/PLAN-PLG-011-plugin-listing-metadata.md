@@ -50,12 +50,24 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-074: Prove listing metadata install
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rehearse a release and install it with `agnos-meta-plugin-proof` in Claude Code and GitHub Copilot.
 - **Requirement refs**: RQ-PLG-044, RQ-PLG-045, RQ-PLG-046
 - **ADR refs**: ADR-PLG-009
 - **Acceptance Criteria**: Given the rehearsed marketplace, When it is installed in both tools, Then each install succeeds And the result of each is recorded.
+- **Dependencies**: TASK-PLG-073, TASK-PLG-075
+- **Assignee**: AI
+- **Verification**: `release.py --dry-run` at e427411 with the demo: exit=0, 72 files, 0 problems; catalogue `metadata.version` 3.6.0, both manifests `logo`, `agnos.svg` in the five brand colours; `plugin_proof.py`: exit=0, claude validate-plugin/catalogue pass (logo accepted), marketplace-add, install, skills 8/8 pass in Claude Code and Copilot. Models not asked (`--with-models` not run, it costs credits).
+- **Assumptions**: None
+
+### TASK-PLG-075: Accept logo warning in strict validation
+- **Tier**: L
+- **Status**: Done
+- **Description**: Make the plugin proof count a strict validation whose only warnings are the unknown field `logo` as passed, saying so, test first.
+- **Requirement refs**: RQ-PLG-046
+- **ADR refs**: ADR-PLG-009
+- **Acceptance Criteria**: Given a validation output whose only warning is the unknown field `logo`, When it is judged, Then it passes and its detail says accepted; Given a second warning or an error beside it, Then it fails.
 - **Dependencies**: TASK-PLG-073
 - **Assignee**: AI
-- **Verification**: Pending
-- **Assumptions**: None
+- **Verification**: plugin-proof tests 22/22, 0 skipped (`StrictValidationTest` 6/6: logo only, logo + warning, logo + error, no warning, clean, real output with directory warnings and advice); first real run failed `validate-plugin` (the directory and advice blocks counted), one fix then passed.
+- **Assumptions**: The blocks "plugin directory" and "Advice" are outside the verdict, as the validator's output says.

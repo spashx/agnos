@@ -1,7 +1,7 @@
 # ADR-PLG-002: A Deterministic Release and its Report Page
 
 ## Status
-Accepted — approved by the owner on 2026-11-03, for FTR-PLG-002 (RQ-PLG-012 to RQ-PLG-017). Amends RQ-MTA-012 on the summary line.
+Accepted — approved by the owner on 2026-11-03, for FTR-PLG-002 (RQ-PLG-012 to RQ-PLG-017). Amends RQ-MTA-012 on the summary line. DEC-PLG-010 amended by DEC-PLG-037 (ADR-PLG-009, 2026-11-15): the strict validation accepts the `logo` warning.
 
 ## Context
 FTR-PLG-002 (RQ-PLG-012 to RQ-PLG-017) comes from the rehearsal of `1361a8b` on 2026-11-03. Its `sameBehaviour` check ran the output's

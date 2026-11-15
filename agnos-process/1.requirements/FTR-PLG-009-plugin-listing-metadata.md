@@ -42,5 +42,5 @@ website's brand mark, in the brand colours of the perf center's tokens.
 - **Statement**: The release SHALL write the brand mark as `plugins/agnos/assets/agnos.svg`, in the brand colours of the perf center's tokens, and declare it as `logo` in both manifests.
 - **Rationale**: GitHub Copilot shows a plugin's logo, and the brand mark already exists with its colours as tokens.
 - **Priority**: Should
-- **Acceptance Criteria**: Given a release, When the marketplace is written, Then `plugins/agnos/assets/agnos.svg` exists And its five fill colours equal the `color.brand-*` tokens of `tokens.json` And both manifests hold `logo` `assets/agnos.svg`.
+- **Acceptance Criteria**: Given a release, When the marketplace is written, Then `plugins/agnos/assets/agnos.svg` exists And its five fill colours equal the `color.brand-*` tokens of `tokens.json` And both manifests hold `logo` `assets/agnos.svg`; Given the plugin proof, When `claude plugin validate --strict` warns only that `logo` is an unknown field, Then the check passes and says the warning was accepted (owner, 2026-11-15: Claude Code ignores the field and installs).
 - **Dependencies**: RQ-PLG-045, RQ-PLG-017

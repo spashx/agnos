@@ -76,6 +76,39 @@ def check(name, status, detail=""):
     return {"check": name, "status": status, "detail": detail}
 
 
+# RQ-PLG-046 / DEC-PLG-037: the one warning of `claude plugin validate --strict` the proof accepts
+DETAIL_LENGTH = 300
+# A block's header; the plugin directory's warnings and the advice "do not change the verdict", as the validator says
+SECTION_RE = re.compile(r"^\S.*?(Found \d+ (?:(plugin directory) )?(warning|error)s?:|Advice)")
+VERDICT_KINDS = {"warning", "error"}
+FINDING_RE = re.compile(r"^\s*>\s")
+ACCEPTED_WARNING_RE = re.compile(r"\blogo: Unknown field 'logo'")
+ACCEPTED_DETAIL = "accepted: logo is a field unknown to Claude Code, which ignores it"
+
+
+def verdict_findings(out):
+    """The findings of the blocks that make the verdict, as (kind, line)."""
+    findings, kind = [], None
+    for line in out.splitlines():
+        header = SECTION_RE.match(line)
+        if header:
+            kind = header.group(3) if header.group(3) and not header.group(2) else None
+        elif kind in VERDICT_KINDS and FINDING_RE.match(line):
+            findings.append((kind, line))
+    return findings
+
+
+def validation_check(name, done):
+    """A strict validation's check: passed, or passed with its only verdict findings the unknown field logo, else failed."""
+    if not done.returncode:
+        return check(name, PASS)
+    out = done.stdout or ""
+    findings = verdict_findings(out)
+    if findings and all(kind == "warning" and ACCEPTED_WARNING_RE.search(line) for kind, line in findings):
+        return check(name, PASS, ACCEPTED_DETAIL)
+    return check(name, FAIL, out[-DETAIL_LENGTH:])
+
+
 def clean_copy(marketplace, work):
     """A copy with only what git tracks when it is a repository, as a clone would give."""
     target = work / "clean"
@@ -102,8 +135,7 @@ def prove_install(tool, exe, copy, work, run):
     checks = []
     if tool == TOOLS[0]:
         for label, folder in (("validate-plugin", copy / PLUGIN_FOLDER), ("validate-catalogue", copy)):
-            done = run([exe, "plugin", "validate", folder, "--strict"], env=env)
-            checks.append(check(label, FAIL if done.returncode else PASS, done.stdout[-300:] if done.returncode else ""))
+            checks.append(validation_check(label, run([exe, "plugin", "validate", folder, "--strict"], env=env)))
     added = run([exe, "plugin", "marketplace", "add", copy], env=env)
     checks.append(check("marketplace-add", FAIL if added.returncode else PASS, added.stdout[-300:] if added.returncode else ""))
     installed = run([exe, "plugin", "install", PLUGIN_ID], env=env)

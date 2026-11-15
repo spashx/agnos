@@ -35,7 +35,7 @@ Claude Code named by `AGNOS_CLAUDE` when it is not on the PATH. A tool that is a
 
 | Check | Observed how | Without a model |
 |---|---|---|
-| `validate-plugin`, `validate-catalogue` | `claude plugin validate --strict` (Claude Code) | yes |
+| `validate-plugin`, `validate-catalogue` | `claude plugin validate --strict` (Claude Code); a run whose only warnings are the unknown field `logo` passes, its detail saying it was accepted <!-- RQ-PLG-046 / DEC-PLG-037 --> | yes |
 | `marketplace-add`, `install` | The tool's commands, in its isolated configuration | yes |
 | `skills` | The number of skills the tool announces against the plugin's | yes |
 | `init` | `CLAUDE.md` written by the model calling `agnos-init` | no |
