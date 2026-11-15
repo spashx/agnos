@@ -24,7 +24,7 @@ OLD_NAMES = ("agnos-demo", "agnos-docs-sync")
 NAME_RE = re.compile(r"^name:\s*(\S+)\s*$", re.M)
 PATTERN_RE = re.compile(r"^\$TOOLKIT_PATTERN = '([^']*)'", re.M)
 TOOLKIT_PATHS = (".github/skills/agnos-index/SKILL.md", ".claude/settings.json", "GETTING_STARTED.MD",
-                 "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "agnos-overview.png")
+                 "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "assets/agnos-overview.png")     # TASK-PLG-076
 PROJECT_PATHS = ("README.md", ".gitignore", ".gitattributes", "CLAUDE.md", "AGENTS.md", "agnos-process/process.idx.md", "service/roombook/CHANGELOG.md", "client/src/app.ts")
 OWN_FILES = {".gitignore", ".gitattributes"}
 TRIGRAMS_RE = re.compile(r"^\$TOOLKIT_TRIGRAMS = '([^']*)'", re.M)

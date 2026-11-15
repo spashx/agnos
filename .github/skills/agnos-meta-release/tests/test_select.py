@@ -45,7 +45,7 @@ PROCESS_FILE = f"{agnos_layout.FOLDER}/{agnos_layout.INDEX}"
 SETTINGS = ".claude/settings.json"
 UNKNOWN_FILE = "stray.txt"
 PUBLIC_FILES = ("LICENSE.md", ".gitignore")
-TOOLKIT_FILES = ("README.md", "COMPATIBILITY.md", ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md", "CHANGELOG.md", "agnos-overview.png",
+TOOLKIT_FILES = ("README.md", "COMPATIBILITY.md", ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md", "CHANGELOG.md", "assets/agnos-overview.png",     # TASK-PLG-076
                  ".github/instructions/agnos-sw-eng.instructions.md", ".github/skills/agnos-init/SKILL.md")
 WORKSHOP_FILES = ("CLAUDE.md", "AGENTS.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".github/ISSUE_TEMPLATE.md",
                   ".github/PULL_REQUEST_TEMPLATE.md", ".gitattributes", ".claude/skills/agnos-init/SKILL.md")

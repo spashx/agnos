@@ -71,3 +71,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: plugin-proof tests 22/22, 0 skipped (`StrictValidationTest` 6/6: logo only, logo + warning, logo + error, no warning, clean, real output with directory warnings and advice); first real run failed `validate-plugin` (the directory and advice blocks counted), one fix then passed.
 - **Assumptions**: The blocks "plugin directory" and "Advice" are outside the verdict, as the validator's output says.
+
+### TASK-PLG-076: Relocate overview image into assets
+- **Tier**: M
+- **Status**: Done
+- **Description**: Deliver the README's image at `assets/agnos-overview.png`, where the owner moved it in a2a65fd, by its layer rule and the selection test.
+- **Requirement refs**: RQ-PLG-008
+- **ADR refs**: None
+- **Acceptance Criteria**: Given a commit holding `assets/agnos-overview.png`, When the release is rehearsed, Then the file is delivered at that path And the README's link leads to it And the agnos-meta-release suite passes.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: agnos-meta-release suite 150 run, 148 passed, 2 skipped (`test_proof`, `test_determinism`: no demo beside the copy); agnos-meta-demo suite 18/18; the delivered path is proved again by the 3.6.1 rehearsal.
+- **Assumptions**: The demo verifier's toolkit pattern follows the image to `assets/`.

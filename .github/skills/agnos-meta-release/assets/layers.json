@@ -1,5 +1,5 @@
 {
-  "_comment": "FTR-MTA-002, ADR-MTA-002 (DEC-MTA-008), ADR-PLG-001 (DEC-PLG-001): the layer of each tracked path, as regular expressions on its repository path. Meta is read first and holds what stays in the workshop; a skill or sub-agent is also Meta by its prefix alone, so no skill is named here. A file matching nothing stops the build.",
+  "_comment": "FTR-MTA-002, ADR-MTA-002 (DEC-MTA-008), ADR-PLG-001 (DEC-PLG-001), RQ-PLG-008 / TASK-PLG-076 (the README's image under assets/): the layer of each tracked path, as regular expressions on its repository path. Meta is read first and holds what stays in the workshop; a skill or sub-agent is also Meta by its prefix alone, so no skill is named here. A file matching nothing stops the build.",
   "meta": [
     "^agnos-process/",
     "(^|/)tests?/",
@@ -13,7 +13,7 @@
     "^\\.github/agents/",
     "^\\.github/skills/",
     "^(README|CHANGELOG|LICENSE|COMPATIBILITY)\\.md$",
-    "^agnos-overview\\.png$",
+    "^assets/agnos-overview\\.png$",
     "^\\.gitignore$"
   ]
 }

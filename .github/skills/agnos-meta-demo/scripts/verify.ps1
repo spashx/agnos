@@ -26,7 +26,7 @@ $DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
 . (Join-Path $PSScriptRoot 'agnos-layout.ps1')
 $PF = [regex]::Escape($AGNOS_FOLDER)
 $SKILL_NAME = 'agnos-meta-demo'
-$TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|agnos-overview\.png$)'   # RQ-MTA-005, RQ-INI-008
+$TOOLKIT_PATTERN = '^(\.github/|\.claude/|(CHANGELOG|CONTRIBUTING|LICENSE|SECURITY|CODE_OF_CONDUCT)\.md$|GETTING_STARTED\.MD$|assets/agnos-overview\.png$)'   # RQ-MTA-005, RQ-INI-008; TASK-PLG-076: the image under assets/
 $INIT_SCRIPT = '.github/skills/agnos-init/scripts/init.ps1'
 $INIT_FILES = @('CLAUDE.md', 'AGENTS.md')
 $BLOCK_BEGIN = '<!-- AGNOS:BEGIN'

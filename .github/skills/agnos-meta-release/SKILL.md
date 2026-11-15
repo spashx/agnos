@@ -44,7 +44,7 @@ not delivered.
 | `plugins/agnos/assets/agnos.svg` | The logo both manifests declare: `assets/logo-template.svg` in the `color.brand-*` tokens of `agnos-perf-center`'s `tokens.json` at the commit rehearsed; a commit without them is refused <!-- RQ-PLG-046 / DEC-PLG-036 --> |
 | `plugins/agnos/skills/<name>/` | Each delivered skill |
 | `plugins/agnos/skills/agnos-instructions/SKILL.md` | The process instructions as a skill, generated |
-| `README.md`, `COMPATIBILITY.md`, `LICENSE.md`, `CHANGELOG.md`, `agnos-overview.png`, `.gitignore` | From the repository; the user's guide is `agnos-init`'s template, delivered with that skill <!-- RQ-PLG-022 --> |
+| `README.md`, `COMPATIBILITY.md`, `LICENSE.md`, `CHANGELOG.md`, `assets/agnos-overview.png`, `.gitignore` | From the repository; the user's guide is `agnos-init`'s template, delivered with that skill <!-- RQ-PLG-022 --> |
 | `.gitattributes` | The marketplace's own, from `assets/marketplace.gitattributes.txt` |
 | `plugins/agnos/README.md` | The README the tools show for the plugin, from `assets/plugin-README.md` at the commit rehearsed; each relative link must lead to a file of the plugin <!-- RQ-PLG-042 / DEC-PLG-034 --> |
 
