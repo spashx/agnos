@@ -1,7 +1,7 @@
 # ADR-PLG-001: One Marketplace for Three Tools
 
 ## Status
-Accepted — approved by the owner on 2026-11-01, for FTR-PLG-001 (RQ-PLG-001 to RQ-PLG-009). Amends DEC-MTA-004, DEC-MTA-005, DEC-INI-003, DEC-INI-004 and DEC-INI-005. DEC-PLG-001, DEC-PLG-005 and DEC-PLG-006 amended by DEC-PLG-033 (ADR-PLG-008, 2026-11-15): Codex is withdrawn.
+Accepted — approved by the owner on 2026-11-01, for FTR-PLG-001 (RQ-PLG-001 to RQ-PLG-009). Amends DEC-MTA-004, DEC-MTA-005, DEC-INI-003, DEC-INI-004 and DEC-INI-005. DEC-PLG-001, DEC-PLG-005 and DEC-PLG-006 amended by DEC-PLG-033 (ADR-PLG-008, 2026-11-15): Codex is withdrawn. DEC-PLG-001 amended by DEC-PLG-035 (ADR-PLG-009, 2026-11-15): listing fields and catalogue `metadata`.
 
 ## Context
 FTR-PLG-001 (RQ-PLG-001 to RQ-PLG-009) delivers AGNOS as a plugin. DEC-MTA-005 planned a plugin beside a copy format, and DEC-INI-005
