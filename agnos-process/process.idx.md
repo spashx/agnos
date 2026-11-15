@@ -853,7 +853,7 @@ TASK-PLG-064|28-38|Done|Add commit-task script
 @agnos-process/3.plan/PLAN-PLG-010-two-tool-marketplace.md
 PLAN-PLG-010|1-73||Two-tool marketplace with plugin README
 TASK-PLG-065|15-26|Done|Record two-tool marketplace decisions
-TASK-PLG-066|27-38|Not Started|Remove Codex catalogue from release
+TASK-PLG-066|27-38|Done|Remove Codex catalogue from release
 TASK-PLG-067|39-50|Not Started|Deliver plugin folder README
 TASK-PLG-068|51-62|Not Started|Remove Codex from delivered documents
 TASK-PLG-069|63-73|Not Started|Rehearse two-tool marketplace release

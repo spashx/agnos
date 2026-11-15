@@ -18,7 +18,7 @@ from test_select import (CHANGELOG_FILE, EXIT_FAILED, EXIT_OK, REPORT_SUFFIX, VE
                          no_proof)
 
 MANIFESTS = ("plugins/agnos/plugin.json", "plugins/agnos/.claude-plugin/plugin.json")
-CATALOGUES = (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json")
+CATALOGUES = (".claude-plugin/marketplace.json",)     # RQ-PLG-043 / DEC-PLG-033
 DELIVERED_VERSION = "plugins/agnos/skills/agnos-init/assets/templates/VERSION.txt"
 PAGE_SUFFIX = ".report.html"
 UNRELEASED_KEY = "unreleasedEntries"

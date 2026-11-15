@@ -39,8 +39,7 @@ not delivered.
 
 | Path | What |
 |---|---|
-| `.claude-plugin/marketplace.json` | The catalogue read by Claude Code and Copilot |
-| `.agents/plugins/marketplace.json` | The catalogue read by Codex |
+| `.claude-plugin/marketplace.json` | The catalogue read by Claude Code and Copilot <!-- RQ-PLG-043 / DEC-PLG-033 --> |
 | `plugins/agnos/plugin.json`, `plugins/agnos/.claude-plugin/plugin.json` | The manifests, with the version of `agnos-init`'s template `VERSION.txt` <!-- RQ-PLG-032 --> |
 | `plugins/agnos/skills/<name>/` | Each delivered skill |
 | `plugins/agnos/skills/agnos-instructions/SKILL.md` | The process instructions as a skill, generated |

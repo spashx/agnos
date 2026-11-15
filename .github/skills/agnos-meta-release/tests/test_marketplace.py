@@ -18,7 +18,8 @@ PLUGIN = "plugins/agnos"
 SKILLS = f"{PLUGIN}/skills"
 PROCESS_SKILL = f"{SKILLS}/agnos-instructions/SKILL.md"     # RQ-PLG-035 / DEC-PLG-030
 OLD_PROCESS_SKILL = f"{SKILLS}/agnos-process"
-CATALOGUES = (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json")
+CATALOGUES = (".claude-plugin/marketplace.json",)     # RQ-PLG-043 / DEC-PLG-033: no Codex catalogue
+WITHDRAWN_CATALOGUE = ".agents/plugins/marketplace.json"
 MANIFESTS = (f"{PLUGIN}/plugin.json", f"{PLUGIN}/.claude-plugin/plugin.json")
 ATTRIBUTES = ".gitattributes"
 AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
@@ -66,14 +67,16 @@ class TreeTest(MarketplaceCase):
 class CatalogueTest(MarketplaceCase):
     """RQ-PLG-002."""
 
-    def test_RQ_PLG_002_given_the_output_then_both_catalogues_declare_the_plugin_where_it_is(self):
+    def test_RQ_PLG_002_given_the_output_then_the_catalogue_declares_the_plugin_where_it_is(self):
         self.built()
-        claude, codex = (self.json_of(name) for name in CATALOGUES)
-        self.assertEqual(f"./{PLUGIN}", claude["plugins"][0]["source"])
-        self.assertEqual({"source": "local", "path": f"./{PLUGIN}"}, codex["plugins"][0]["source"])
-        self.assertEqual(claude["name"], codex["name"])
-        self.assertEqual({"installation", "authentication"}, set(codex["plugins"][0]["policy"]))
-        self.assertTrue(codex["plugins"][0]["category"])
+        self.assertEqual(f"./{PLUGIN}", self.json_of(CATALOGUES[0])["plugins"][0]["source"])
+
+    def test_RQ_PLG_043_given_the_output_then_no_codex_catalogue_and_no_codex_value(self):
+        """RQ-PLG-043 / DEC-PLG-033."""
+        names = self.built()
+        self.assertNotIn(WITHDRAWN_CATALOGUE, names)
+        for name in (*CATALOGUES, *MANIFESTS):
+            self.assertNotIn("codex", (self.output / name).read_text(encoding="utf-8").lower(), name)
 
     def test_RQ_PLG_002_given_the_output_then_the_manifests_agree_and_only_the_root_one_has_the_schema(self):
         self.built()

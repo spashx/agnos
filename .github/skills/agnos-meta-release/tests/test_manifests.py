@@ -52,8 +52,8 @@ class RefusedTest(ManifestCase):
         self.assertNamed(release.CLAUDE_MANIFEST)
 
     def test_RQ_PLG_015_given_a_catalogue_naming_a_missing_plugin_folder_then_the_file_is_named(self):
-        self.edit(release.CODEX_CATALOGUE, lambda data: data["plugins"][0]["source"].update(path="./plugins/absent"))
-        self.assertNamed(release.CODEX_CATALOGUE)
+        self.edit(release.CLAUDE_CATALOGUE, lambda data: data["plugins"][0].update(source="./plugins/absent"))
+        self.assertNamed(release.CLAUDE_CATALOGUE)
 
     def test_RQ_PLG_015_given_a_description_that_differs_between_files_then_the_file_is_named(self):
         self.edit(release.ROOT_MANIFEST, lambda data: data.update(description="another"))

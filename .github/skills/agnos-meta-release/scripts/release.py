@@ -89,12 +89,11 @@ PLUGIN_SKILLS = f"{PLUGIN_FOLDER}/skills/"
 PROCESS_SKILL_FILE = f"{PLUGIN_SKILLS}{json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))['process']['name']}/SKILL.md"
 PERF_SCRIPT_FOLDER = f"{PLUGIN_SKILLS}{Path(PERF_SCRIPT).parent.as_posix()}"
 SKILL_FILE = "SKILL.md"
-CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"
-CODEX_CATALOGUE = ".agents/plugins/marketplace.json"
+CLAUDE_CATALOGUE = ".claude-plugin/marketplace.json"     # RQ-PLG-043 / DEC-PLG-033: the only catalogue
 ROOT_MANIFEST = f"{PLUGIN_FOLDER}/plugin.json"
 CLAUDE_MANIFEST = f"{PLUGIN_FOLDER}/.claude-plugin/plugin.json"
 ATTRIBUTES_FILE = ".gitattributes"
-MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, CODEX_CATALOGUE, ATTRIBUTES_FILE)
+MARKETPLACE_FILES = (ROOT_MANIFEST, CLAUDE_MANIFEST, CLAUDE_CATALOGUE, ATTRIBUTES_FILE)
 NO_BYTECODE = {"PYTHONDONTWRITEBYTECODE": "1"}     # RQ-PLG-012, DEC-PLG-008: the checks run Python from the output
 AGENT_PLUGINS_SCHEMA ="https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 CHANGELOG = "CHANGELOG.md"
@@ -124,9 +123,8 @@ PLUGIN_MANIFESTS = ("plugin.json", ".claude-plugin/plugin.json")
 SAME_EVERYWHERE = ("name", "version", "description")
 # (fields of the file, fields of each plugin it declares), as documented and observed in the trial of ADR-PLG-001
 REQUIRED_FIELDS = {ROOT_MANIFEST: ((), SAME_EVERYWHERE), CLAUDE_MANIFEST: ((), SAME_EVERYWHERE),
-                   CLAUDE_CATALOGUE: (("name", "owner.name"), (*SAME_EVERYWHERE, "source")),
-                   CODEX_CATALOGUE: (("name",), (*SAME_EVERYWHERE, "source.path", "policy.installation", "policy.authentication", "category"))}
-CATALOGUE_SOURCES = {CLAUDE_CATALOGUE: "source", CODEX_CATALOGUE: "source.path"}
+                   CLAUDE_CATALOGUE: (("name", "owner.name"), (*SAME_EVERYWHERE, "source"))}
+CATALOGUE_SOURCES = {CLAUDE_CATALOGUE: "source"}
 FRONT_MATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n\s*", re.S)
 PARSE_MESSAGE_LENGTH = 200
 EXIT_KEY = "exit"
@@ -225,8 +223,6 @@ def write_marketplace(output, version):
     write_json(output / ROOT_MANIFEST, {"$schema": AGENT_PLUGINS_SCHEMA, **plugin})
     write_json(output / CLAUDE_MANIFEST, plugin)
     write_json(output / CLAUDE_CATALOGUE, {**said["marketplace"], "plugins": [{**listed, "source": f"./{PLUGIN_FOLDER}"}]})
-    write_json(output / CODEX_CATALOGUE, {**said["marketplace"], "plugins": [{
-        **listed, "source": {"source": "local", "path": f"./{PLUGIN_FOLDER}"}, **said["codex"]}]})
     (output / ATTRIBUTES_FILE).write_bytes(ATTRIBUTES_PATH.read_bytes())
 
 

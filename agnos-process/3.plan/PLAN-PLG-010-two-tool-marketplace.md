@@ -26,15 +26,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-066: Remove Codex catalogue from release
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Remove `.agents/plugins/marketplace.json` and the `codex` values from `agnos-meta-release`, its skill and its tests, test first.
 - **Requirement refs**: RQ-PLG-043
 - **ADR refs**: ADR-PLG-008 (DEC-PLG-033)
 - **Acceptance Criteria**: Given a release, When the marketplace is written, Then `.agents/plugins/marketplace.json` is absent And `assets/marketplace.json` holds no `codex` key And the release's tests pass.
 - **Dependencies**: TASK-PLG-065
 - **Assignee**: AI
-- **Verification**: Filled at closure.
-- **Assumptions**: None
+- **Verification**: New RQ-PLG-043 test failed first (2 failures), then passed. Full release suite: 134 run, 132 OK, 2 failed in `test_console` (file count one lower, the Codex catalogue gone); expected counts corrected to 9 and 10, `test_console` 5 OK; 0 skipped. No "codex" left in the release's scripts, assets or SKILL.md.
+- **Assumptions**: The missing-folder manifest test now edits the Claude catalogue's source.
 
 ### TASK-PLG-067: Deliver plugin folder README
 - **Tier**: M

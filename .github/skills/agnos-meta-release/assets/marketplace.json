@@ -1,5 +1,5 @@
 {
-  "_comment": "FTR-PLG-001, ADR-PLG-001 (DEC-PLG-001, DEC-PLG-002): what the manifests and the process skill say. The version comes from the changelog's latest release. Codex's policy and category are its documented values, not tested yet (DEC-PLG-006).",
+  "_comment": "FTR-PLG-001, ADR-PLG-001 (DEC-PLG-001, DEC-PLG-002): what the manifests and the process skill say. The version comes from the changelog's latest release. RQ-PLG-043 / DEC-PLG-033: Claude Code and GitHub Copilot only.",
   "marketplace": {
     "name": "agnos-marketplace",
     "description": "The AGNOS software engineering process for agentic development.",
@@ -11,10 +11,6 @@
     "author": { "name": "spashx" },
     "license": "AGPL-3.0-only",
     "keywords": ["process", "requirements", "traceability", "adr", "planning"]
-  },
-  "codex": {
-    "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
-    "category": "Productivity"
   },
   "process": {
     "name": "agnos-instructions",
