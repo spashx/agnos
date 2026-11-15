@@ -105,6 +105,17 @@ the branch, recording when a session started or whether one was left open.
   three sub-commands, And the file has at most 400 lines.
 - **Dependencies**: RQ-INI-011, RQ-INI-014, RQ-INI-015, RQ-PLG-019
 
+### RQ-INI-022: Context reset recommendation at session end
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN END SESSION steps 1-3 are done and no task remains, the instructions file SHALL have the agent tell the user
+  to run the harness's context-reset command (`/clear` on Claude Code and GitHub Copilot).
+- **Rationale**: a finished session's context only costs tokens and risks leaking into the next session.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the instructions file, When END SESSION is read, Then its step 4 names the context-reset command,
+  And cites RQ-INI-022, And the file has at most 400 lines.
+- **Dependencies**: RQ-INI-017, RQ-PLG-019
+
 ---
 
 ## Non-Functional Requirements
