@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Proposal C "Three promises". Source of the README overview image (RQ-PLG-047 / TASK-PLG-078). -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1536 1024" width="1536" height="1024">
+  <title>AGNOS - Agentic efficiency by traceability</title>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans+Condensed:wght@600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+      text{font-family:"IBM Plex Sans",system-ui,"Segoe UI",Roboto,Arial,sans-serif;fill:#0F172A}
+      .d{font-family:"IBM Plex Sans Condensed","Arial Narrow","IBM Plex Sans",sans-serif}
+      .m{font-family:"IBM Plex Mono",Consolas,Menlo,monospace}
+      .md{font-weight:500}.b{font-weight:600}.bb{font-weight:700}
+      .mu{fill:#475569}.su{fill:#64748B}.ac{fill:#2563EB}.ag{fill:#B45309}.wh{fill:#FFFFFF}
+      .i{fill:none;stroke:#0F172A;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+      .ib{stroke:#2563EB}.ia{stroke:#B45309}.iw{stroke:#FFFFFF}.im{stroke:#475569}
+      .hl{stroke:#E2E8F0;stroke-width:1}
+      .top{stroke:#0B1120;stroke-width:2}
+      .nh{fill:#FFFFFF;stroke:#2563EB;stroke-width:1.75}
+      .na{fill:#FFFFFF;stroke:#B45309;stroke-width:1.75}
+      .card{fill:#F8FAFC;stroke:#E2E8F0}
+    </style>
+    <g id="logo"><rect width="24" height="24" rx="5.5" fill="#3C4043"/><rect x="4" y="3" width="16" height="3" rx="1" fill="#E8EAED"/><rect x="4" y="8" width="6" height="3" rx="1" fill="#4285F4"/><rect x="10" y="13" width="5" height="3" rx="1" fill="#34A853"/><rect x="15" y="18" width="5" height="3" rx="1" fill="#FBBC05"/></g>
+    <g id="i-req"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/></g>
+    <g id="i-dec"><path d="M12 21v-6M12 15c0-4-6-3-6-8M12 15c0-4 6-3 6-8"/><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/></g>
+    <g id="i-task"><path d="M9 4h6v3H9zM9 5.5H6V21h12V5.5h-3M9.5 12h5M9.5 16h3"/></g>
+    <g id="i-you"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></g>
+    <g id="i-code"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 6l-3 12"/></g>
+    <g id="i-done"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></g>
+    <g id="i-commit"><circle cx="12" cy="12" r="3.5"/><path d="M3 12h5.5M15.5 12H21"/></g>
+    <g id="i-agent"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 8V5M9.5 13v1M14.5 13v1"/><circle cx="12" cy="4" r="1"/></g>
+    <g id="i-link"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g>
+    <g id="i-index"><path d="M4 6h1M9 6h11M4 12h1M9 12h11M4 18h1M9 18h11"/></g>
+    <g id="i-gate"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></g>
+    <g id="i-cycle"><path d="M20 12a8 8 0 0 1-14.5 4.7M4 12a8 8 0 0 1 14.5-4.7M18.5 3v4.3h-4.3M5.5 21v-4.3h4.3"/></g>
+    <g id="i-tokens"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><circle cx="16.500" cy="16.500" r="3.500"/></g>
+    <g id="i-plug"><path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0zM12 18v3"/></g>
+    <g id="i-folder"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 11v6M9 14h6"/></g>
+    <g id="i-branch"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10a6 6 0 0 1-6 6H8"/></g>
+    <g id="t-matrix"><rect width="96" height="6" rx="1" fill="#CBD5E1"/>
+      <g fill="#94A3B8"><rect y="12" width="21" height="9" rx="1"/><rect y="25" width="21" height="9" rx="1"/><rect y="38" width="21" height="9" rx="1"/><rect y="51" width="21" height="9" rx="1"/></g>
+      <g fill="#2563EB"><rect x="25" y="12" width="21" height="9" rx="1"/><rect x="50" y="12" width="21" height="9" rx="1"/><rect x="75" y="12" width="21" height="9" rx="1"/><rect x="25" y="25" width="21" height="9" rx="1"/><rect x="50" y="25" width="21" height="9" rx="1"/><rect x="75" y="25" width="21" height="9" rx="1"/><rect x="25" y="38" width="21" height="9" rx="1"/><rect x="75" y="38" width="21" height="9" rx="1"/><rect x="25" y="51" width="21" height="9" rx="1"/><rect x="50" y="51" width="21" height="9" rx="1"/><rect x="75" y="51" width="21" height="9" rx="1"/></g>
+      <rect x="50.75" y="38.75" width="19.5" height="7.5" rx="1" fill="#FFFFFF" stroke="#B45309" stroke-width="1.5"/></g>
+    <g id="t-graph"><g stroke="#CBD5E1" stroke-width="1.5"><path d="M48 30L12 12M48 30L14 50M48 30L82 10M48 30l38 5M48 30l28 24M86 35L76 54" fill="none"/></g><g fill="#94A3B8"><circle cx="12" cy="12" r="4.5"/><circle cx="14" cy="50" r="4.5"/><circle cx="82" cy="10" r="4.5"/><circle cx="86" cy="35" r="4.5"/><circle cx="76" cy="54" r="4.5"/></g><circle cx="48" cy="30" r="8" fill="#2563EB"/></g>
+    <g id="t-history"><path d="M0 12h96M0 30h96M0 48h96" stroke="#CBD5E1" stroke-width="1.5"/><g fill="#2563EB"><circle cx="10" cy="12" r="5"/><circle cx="58" cy="12" r="5"/><circle cx="34" cy="48" r="5"/></g><g fill="#B45309"><circle cx="26" cy="30" r="5"/><circle cx="44" cy="30" r="5"/><circle cx="74" cy="30" r="5"/><circle cx="86" cy="48" r="5"/></g><g fill="#7C3AED"><circle cx="84" cy="12" r="5"/><circle cx="60" cy="48" r="5"/></g></g>
+    <g id="t-delivery"><path d="M0 59.5h96" stroke="#CBD5E1"/><g fill="#2563EB"><rect x="3" y="44" width="11" height="15" rx="1"/><rect x="19" y="38" width="11" height="21" rx="1"/><rect x="35" y="33" width="11" height="26" rx="1"/><rect x="51" y="24" width="11" height="35" rx="1"/><rect x="67" y="16" width="11" height="43" rx="1"/><rect x="83" y="6" width="11" height="53" rx="1"/></g><g fill="#93C5FD"><rect x="3" y="44" width="11" height="5"/><rect x="19" y="38" width="11" height="8"/><rect x="35" y="33" width="11" height="9"/><rect x="51" y="24" width="11" height="12"/><rect x="67" y="16" width="11" height="15"/><rect x="83" y="6" width="11" height="18"/></g></g>
+    <g id="t-quality"><rect y="12" width="36" height="36" rx="6" fill="#15803D"/><text x="18" y="38" text-anchor="middle" font-size="24" class="b wh">A</text><g fill="#E2E8F0"><rect x="46" y="15" width="50" height="6" rx="3"/><rect x="46" y="27" width="50" height="6" rx="3"/><rect x="46" y="39" width="50" height="6" rx="3"/></g><rect x="46" y="15" width="46" height="6" rx="3" fill="#15803D"/><rect x="46" y="27" width="39" height="6" rx="3" fill="#15803D"/><rect x="46" y="39" width="27" height="6" rx="3" fill="#B45309"/></g>
+  </defs>
+
+  <rect width="1536" height="1024" fill="#FFFFFF"/>
+
+  <!-- Left: poster headline -->
+  <use xlink:href="#logo" transform="translate(48,48) scale(2)"/>
+  <text x="110" y="74" font-size="28" class="d bb" letter-spacing=".5">AGNOS</text>
+  <text x="110" y="94" font-size="14" class="mu">Agentic efficiency by traceability</text>
+
+  <text x="48" y="178" font-size="13" class="b ac">Engineering process for agentic AI</text>
+  <text x="48" y="244" font-size="56" class="d bb" fill="#0B1120">AI agents write</text>
+  <text x="48" y="304" font-size="56" class="d bb" fill="#0B1120">the code, or</text>
+  <text x="48" y="364" font-size="56" class="d bb" fill="#0B1120">much more.</text>
+  <text x="48" y="424" font-size="56" class="d bb ac">You keep control.</text>
+
+  <text x="48" y="474" font-size="15" class="mu">AGNOS is a lightweight, tooled process for AI-native</text>
+  <text x="48" y="496" font-size="15" class="mu">development teams: pods of a few people, or solo.</text>
+  <text x="48" y="518" font-size="15" class="mu">Requirements, decisions, tasks, code and commits</text>
+  <text x="48" y="540" font-size="15" class="mu">carry the same identifiers: the work stays explainable.</text>
+
+  <path d="M48 574.500h472" class="hl"/>
+  <use xlink:href="#i-you" x="48" y="596" class="i ib"/>
+  <text x="88" y="606" font-size="14" class="b">Human in the loop</text>
+  <text x="88" y="625" font-size="12.500" class="mu">The agent drafts; you decide and approve each step.</text>
+  <use xlink:href="#i-agent" x="48" y="652" class="i ia"/>
+  <text x="88" y="662" font-size="14" class="b">Human on the loop</text>
+  <text x="88" y="681" font-size="12.500" class="mu">The agent carries out the approved task; you supervise.</text>
+  <use xlink:href="#i-branch" x="48" y="708" class="i im"/>
+  <text x="88" y="718" font-size="14" class="b">Work in sessions</text>
+  <text x="88" y="737" font-size="12.500" class="mu">One functional area, one branch, at most 10 tasks.</text>
+
+  <!-- Pillar 01: control -->
+  <g transform="translate(600,48)">
+    <path d="M0 1h280" class="top"/>
+    <text y="30" font-size="12" class="m md ac">01</text>
+    <text y="62" font-size="26" class="d b">You stay in control</text>
+    <text y="84" font-size="13" class="mu">The agentic loop, from need to commit</text>
+
+    <path d="M24 134v228" stroke="#2563EB" stroke-width="2.500"/>
+    <path d="M24 362v228" stroke="#B45309" stroke-width="2.500"/>
+
+    <g transform="translate(24,134)"><circle r="20" class="nh"/><use xlink:href="#i-req" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="131" font-size="14.500" class="b">Requirement</text>
+    <text x="60" y="149" font-size="12" class="mu">The need, made testable</text>
+
+    <g transform="translate(24,210)"><circle r="20" class="nh"/><use xlink:href="#i-dec" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="207" font-size="14.500" class="b">Architecture decision</text>
+    <text x="60" y="225" font-size="12" class="mu">Why this design, and not another</text>
+
+    <g transform="translate(24,286)"><circle r="20" class="nh"/><use xlink:href="#i-task" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="283" font-size="14.500" class="b">Task</text>
+    <text x="60" y="301" font-size="12" class="mu">Sized to the risk: tier S, M or L</text>
+
+    <g transform="translate(24,362)"><circle r="20" fill="#2563EB"/><use xlink:href="#i-you" x="-12" y="-12" class="i iw"/></g>
+    <text x="60" y="359" font-size="14.500" class="b ac">You approve</text>
+    <text x="60" y="377" font-size="12" class="mu">Nothing starts without approval</text>
+
+    <g transform="translate(24,438)"><circle r="20" class="na"/><use xlink:href="#i-code" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="435" font-size="14.500" class="b">Tests, then code</text>
+    <text x="60" y="453" font-size="12" class="mu">Code cites its identifiers</text>
+
+    <g transform="translate(24,514)"><circle r="20" class="na"/><use xlink:href="#i-done" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="511" font-size="14.500" class="b">Checklist passed</text>
+    <text x="60" y="529" font-size="12" class="mu">Definition of Done</text>
+
+    <g transform="translate(24,590)"><circle r="20" class="na"/><use xlink:href="#i-commit" x="-12" y="-12" class="i"/></g>
+    <text x="60" y="587" font-size="14.500" class="b">Commit</text>
+    <text x="60" y="605" font-size="12" class="mu">One per task, identifiers checked</text>
+
+    <path d="M0 646.500h280" class="hl"/>
+    <text y="672" font-size="12" class="mu"><tspan fill="#2563EB" class="b">Blue</tspan>: you decide. <tspan fill="#B45309" class="b">Amber</tspan>: the agent</text>
+    <text y="689" font-size="12" class="mu">carries out the task, you supervise.</text>
+  </g>
+
+  <!-- Pillar 02: visibility -->
+  <g transform="translate(904,48)">
+    <path d="M0 1h280" class="top"/>
+    <text y="30" font-size="12" class="m md ac">02</text>
+    <text y="62" font-size="26" class="d b">You see everything</text>
+    <text y="84" font-size="13" class="mu">The built-in Performance Center</text>
+
+    <g transform="translate(0,112)">
+      <rect width="120" height="84" rx="6" class="card"/><use xlink:href="#t-matrix" x="12" y="12"/>
+      <text x="136" y="16" font-size="14.500" class="b">Matrix</text>
+      <text x="136" y="36" font-size="12" class="mu">Was everything we</text>
+      <text x="136" y="52" font-size="12" class="mu">asked for actually</text>
+      <text x="136" y="68" font-size="12" class="mu">built?</text>
+    </g>
+    <g transform="translate(0,218)">
+      <rect width="120" height="84" rx="6" class="card"/><use xlink:href="#t-graph" x="12" y="12"/>
+      <text x="136" y="16" font-size="14.500" class="b">Graph</text>
+      <text x="136" y="36" font-size="12" class="mu">Why does this code</text>
+      <text x="136" y="52" font-size="12" class="mu">exist? What would a</text>
+      <text x="136" y="68" font-size="12" class="mu">change touch?</text>
+    </g>
+    <g transform="translate(0,324)">
+      <rect width="120" height="84" rx="6" class="card"/><use xlink:href="#t-history" x="12" y="12"/>
+      <text x="136" y="16" font-size="14.500" class="b">History</text>
+      <text x="136" y="36" font-size="12" class="mu">Who changed what,</text>
+      <text x="136" y="52" font-size="12" class="mu">and when? Agent,</text>
+      <text x="136" y="68" font-size="12" class="mu">human, or both?</text>
+    </g>
+    <g transform="translate(0,430)">
+      <rect width="120" height="84" rx="6" class="card"/><use xlink:href="#t-delivery" x="12" y="12"/>
+      <text x="136" y="16" font-size="14.500" class="b">Delivery</text>
+      <text x="136" y="36" font-size="12" class="mu">What was delivered,</text>
+      <text x="136" y="52" font-size="12" class="mu">how fast? Is velocity</text>
+      <text x="136" y="68" font-size="12" class="mu">under control?</text>
+    </g>
+    <g transform="translate(0,536)">
+      <rect width="120" height="84" rx="6" class="card"/><use xlink:href="#t-quality" x="12" y="12"/>
+      <text x="136" y="16" font-size="14.500" class="b">Quality</text>
+      <text x="136" y="36" font-size="12" class="mu">Is traceability</text>
+      <text x="136" y="52" font-size="12" class="mu">guaranteed, per</text>
+      <text x="136" y="68" font-size="12" class="mu">functional area?</text>
+    </g>
+
+    <path d="M0 646.500h280" class="hl"/>
+    <text y="672" font-size="12" class="mu">Five views, five management questions.</text>
+    <text y="689" font-size="12" class="mu">One page, built from git and the index.</text>
+  </g>
+
+  <!-- Pillar 03: scale -->
+  <g transform="translate(1208,48)">
+    <path d="M0 1h280" class="top"/>
+    <text y="30" font-size="12" class="m md ac">03</text>
+    <text y="62" font-size="26" class="d b">It holds at scale</text>
+    <text y="84" font-size="13" class="mu">Deterministic by construction</text>
+
+    <g transform="translate(0,112)">
+      <use xlink:href="#i-link" class="i ib"/>
+      <text x="40" y="16" font-size="14.500" class="b">Exact identifiers</text>
+      <text x="40" y="36" font-size="12" class="mu">Links are cited, never guessed:</text>
+      <text x="40" y="52" font-size="12" class="mu">same inputs, same links.</text>
+      <rect x="40" y="62" width="92" height="22" rx="4" class="card"/><text x="86" y="77" font-size="10.500" text-anchor="middle" class="m">TASK-BKG-003</text>
+      <text x="151" y="77" font-size="10.500" text-anchor="middle" class="su">cites</text>
+      <rect x="170" y="62" width="80" height="22" rx="4" fill="#EFF6FF" stroke="#BFDBFE"/><text x="210" y="77" font-size="10.500" text-anchor="middle" class="m ac">RQ-BKG-003</text>
+    </g>
+    <g transform="translate(0,230)">
+      <use xlink:href="#i-index" class="i ib"/>
+      <text x="40" y="16" font-size="14.500" class="b">Deterministic index</text>
+      <text x="40" y="36" font-size="12" class="mu">One line per artifact. The agent</text>
+      <text x="40" y="52" font-size="12" class="mu">and your metrics read the same file.</text>
+    </g>
+    <g transform="translate(0,318)">
+      <use xlink:href="#i-gate" class="i ib"/>
+      <text x="40" y="16" font-size="14.500" class="b">Gates agents cannot bypass</text>
+      <text x="40" y="36" font-size="12" class="mu">Ready, Done, tiers S, M, L. A failed</text>
+      <text x="40" y="52" font-size="12" class="mu">check: one fix, then stop, report.</text>
+    </g>
+    <g transform="translate(0,406)">
+      <use xlink:href="#i-cycle" class="i ib"/>
+      <text x="40" y="16" font-size="14.500" class="b">Measured friction</text>
+      <text x="40" y="36" font-size="12" class="mu">Four counters close each session;</text>
+      <text x="40" y="52" font-size="12" class="mu">non-zero triggers self-improvement.</text>
+    </g>
+    <g transform="translate(0,494)">
+      <use xlink:href="#i-tokens" class="i ib"/>
+      <text x="40" y="16" font-size="14.500" class="b">Design system first</text>
+      <text x="40" y="36" font-size="12" class="mu">UI projects define their tokens</text>
+      <text x="40" y="52" font-size="12" class="mu">before the first screen.</text>
+    </g>
+
+    <path d="M0 646.500h280" class="hl"/>
+    <text y="672" font-size="12" class="mu">Markdown artifacts, versioned in git.</text>
+    <text y="689" font-size="12" class="mu">Any language, any stack.</text>
+  </g>
+
+  <!-- Bottom band: get started -->
+  <rect x="48.500" y="784.500" width="1439" height="191" rx="12" class="card"/>
+  <text x="80" y="826" font-size="22" class="d b">Three steps to the first session</text>
+
+  <g transform="translate(80,856)">
+    <use xlink:href="#i-plug" class="i ib"/>
+    <text x="40" y="12" font-size="12" class="m md ac">1</text>
+    <text x="56" y="12" font-size="15" class="b">Install the plugin</text>
+    <text x="40" y="34" font-size="12.500" class="mu">From the marketplace, in Claude Code</text>
+    <text x="40" y="51" font-size="12.500" class="mu">or GitHub Copilot.</text>
+  </g>
+  <g transform="translate(432,856)">
+    <use xlink:href="#i-folder" class="i ib"/>
+    <text x="40" y="12" font-size="12" class="m md ac">2</text>
+    <text x="56" y="12" font-size="15" class="b">Add AGNOS to a project</text>
+    <text x="40" y="34" font-size="12.500" class="mu">Call the agnos-init skill once.</text>
+    <text x="40" y="51" font-size="12.500" class="mu">Your own files stay intact.</text>
+  </g>
+  <g transform="translate(784,856)">
+    <use xlink:href="#i-branch" class="i ib"/>
+    <text x="40" y="12" font-size="12" class="m md ac">3</text>
+    <text x="56" y="12" font-size="15" class="b">Start a session</text>
+    <text x="40" y="34" font-size="12.500" class="mu">In a new conversation, give a trigram:</text>
+    <text x="40" y="51" font-size="12.500" class="mu">the agent opens the session branch.</text>
+  </g>
+
+  <path d="M1136.500 808v144" class="hl" stroke="#CBD5E1"/>
+  <text x="1168" y="826" font-size="12.500" class="b mu">Works with</text>
+  <text x="1168" y="868" font-size="15" class="b">Claude Code  ·  GitHub Copilot</text>
+  <text x="1168" y="890" font-size="12.500" class="su">OpenAI Codex coming soon</text>
+  <text x="1168" y="924" font-size="12.500" class="mu">Open source, GNU AGPL v3</text>
+</svg>

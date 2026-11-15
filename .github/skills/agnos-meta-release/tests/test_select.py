@@ -193,6 +193,13 @@ class LayersTest(RehearsalCase):
         self.assertEqual(release.LAYER_META, release.layer_of(".github/agents/agnos-meta-new.agent.md", rules))
         self.assertEqual(release.LAYER_DELIVERED, release.layer_of(".github/agents/agnos-new.agent.md", rules))
 
+    def test_RQ_PLG_047_given_the_overview_sources_then_they_are_meta_and_the_image_delivered(self):
+        """Given the SVG sources under assets/, Then they stay Meta, And the PNG is delivered (RQ-PLG-047 / TASK-PLG-078)."""
+        rules = release.load_rules()
+        for path in ("assets/agnos-overview-A.svg", "assets/agnos-overview-AC-v2.svg"):
+            self.assertEqual(release.LAYER_META, release.layer_of(path, rules), path)
+        self.assertEqual(release.LAYER_DELIVERED, release.layer_of("assets/agnos-overview.png", rules))
+
     def test_RQ_PLG_022_given_a_guide_at_the_root_then_it_has_no_layer_so_the_release_refuses_it(self):
         self.assertIsNone(release.layer_of("GETTING_STARTED.MD", release.load_rules()))
 

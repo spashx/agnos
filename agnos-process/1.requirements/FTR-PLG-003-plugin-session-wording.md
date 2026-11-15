@@ -76,3 +76,12 @@ task (`METRICS_LOG.md`, the output of `agnos-init`, which runs outside an AGNOS 
 - **Priority**: Should
 - **Acceptance Criteria**: Given `README.md`, Then its second-level headings are, in order, "What AGNOS Provides", "Requirements", "Getting Started" and "License", And its Requirements section names git, PowerShell 5.1, bash, Python 3.9 and `requirements-callgraph.txt` as installed by the user, And the VS Code settings `chat.useAgentsMdFile` and `chat.useAgentSkills` (amended on 2026-11-07, TASK-PLG-049), And it names `COMPATIBILITY.md`, And it says nothing of what was tested, And it holds no "What was tested", "How a Session Runs", "Core Concepts", "Continuous Improvement" or "Repository Map"; Given `COMPATIBILITY.md`, Then it says macOS and Codex are not tested; Given a rehearsal, Then the marketplace holds `COMPATIBILITY.md`; Given `CONTRIBUTING.md`, Then it holds the repository map; Given the guide, Then it holds the table of artifacts and the identifier format `<TYPE>-<TRI>-<NNN>`.
 - **Dependencies**: RQ-PLG-008, RQ-PLG-022, RQ-INI-007
+
+### RQ-PLG-047: README overview illustration content
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The README's overview image `assets/agnos-overview.png` SHALL show the brand and its tagline "Agentic efficiency by traceability", the agentic loop under human control, the five views of the Performance Center, why AGNOS holds at scale, and the get-started steps, SHALL hold no identifier of the demo other than one traceability example, and no outdated claim; its SVG sources SHALL be kept in `assets/` and SHALL NOT be delivered.
+- **Rationale**: on 2026-11-15 the owner found the former image dated (cloning, a test template, a verbosity setting, a project-size limit) and silent on the Performance Center; one image must explain AGNOS at a glance.
+- **Priority**: Should
+- **Acceptance Criteria**: Given `README.md`, Then its image link leads to `assets/agnos-overview.png`; Given `assets/agnos-overview-AC-v2.svg`, the source of the PNG, Then it parses as XML, And holds no `BKG` identifier other than the traceability example, And none of "git clone", "verbosity", "small to medium", "self-contained"; Given a rehearsal, Then the marketplace holds the PNG and no `assets/*.svg`, And the agnos-meta-release suite passes.
+- **Dependencies**: RQ-PLG-023, RQ-PLG-008
