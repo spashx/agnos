@@ -126,9 +126,17 @@ UNRELEASED_KEY = "unreleasedEntries"
 PLUGINS_KEY = "plugins"
 PLUGIN_MANIFESTS = ("plugin.json", ".claude-plugin/plugin.json")
 SAME_EVERYWHERE = ("name", "version", "description")
+METADATA_KEY = "metadata"
+METADATA_VERSION = f"{METADATA_KEY}.version"
+# RQ-PLG-045 / DEC-PLG-035: what every plugin declaration lists, and what the catalogue's entry repeats of the plugin
+LISTING_REQUIRED = ("author.url", "homepage", "repository", "keywords")
+ENTRY_FIELDS = (*SAME_EVERYWHERE, "author", "homepage", "repository", "license", "keywords")
 # (fields of the file, fields of each plugin it declares), as documented and observed in the trial of ADR-PLG-001
-REQUIRED_FIELDS = {ROOT_MANIFEST: ((), SAME_EVERYWHERE), CLAUDE_MANIFEST: ((), SAME_EVERYWHERE),
-                   CLAUDE_CATALOGUE: (("name", "owner.name"), (*SAME_EVERYWHERE, "source"))}
+REQUIRED_FIELDS = {ROOT_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED)),
+                   CLAUDE_MANIFEST: ((), (*SAME_EVERYWHERE, *LISTING_REQUIRED)),
+                   CLAUDE_CATALOGUE: (("name", "owner.name", "owner.email", f"{METADATA_KEY}.description", METADATA_VERSION),
+                                      (*SAME_EVERYWHERE, *LISTING_REQUIRED, "source", "license", "category"))}
+ROOT_DESCRIPTION = "description"     # RQ-PLG-044: a catalogue holds it in metadata, never at its root
 CATALOGUE_SOURCES = {CLAUDE_CATALOGUE: "source"}
 FRONT_MATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n\s*", re.S)
 PARSE_MESSAGE_LENGTH = 200
@@ -224,10 +232,14 @@ def write_marketplace(output, version, readme):
     """The catalogues, the manifests, the attributes and the plugin's README: same name, version and description in each."""
     said = json.loads(MARKETPLACE_PATH.read_text(encoding=ENCODING))
     plugin = {**said["plugin"], "version": version}
-    listed = {"name": plugin["name"], "description": plugin["description"], "version": version}
+    # RQ-PLG-045 / DEC-PLG-035: the entry repeats the plugin's fields, plus its own
+    listed = {**{key: plugin[key] for key in ENTRY_FIELDS}, "source": f"./{PLUGIN_FOLDER}", **said["entry"]}
+    marketplace = said["marketplace"]
+    # RQ-PLG-044 / DEC-PLG-035: the description and the version in metadata, as at the plugin's level
+    catalogue = {**marketplace, METADATA_KEY: {**marketplace[METADATA_KEY], "version": version}, PLUGINS_KEY: [listed]}
     write_json(output / ROOT_MANIFEST, {"$schema": AGENT_PLUGINS_SCHEMA, **plugin})
     write_json(output / CLAUDE_MANIFEST, plugin)
-    write_json(output / CLAUDE_CATALOGUE, {**said["marketplace"], "plugins": [{**listed, "source": f"./{PLUGIN_FOLDER}"}]})
+    write_json(output / CLAUDE_CATALOGUE, catalogue)
     (output / ATTRIBUTES_FILE).write_bytes(ATTRIBUTES_PATH.read_bytes())
     (output / PLUGIN_README).write_bytes(readme)     # RQ-PLG-042 / DEC-PLG-034
 
@@ -590,6 +602,15 @@ def plugin_folder_problem(output, name, source):
     return None
 
 
+# RQ-PLG-044 / DEC-PLG-035
+def catalogue_metadata_problems(name, data, entries):
+    """A description at the catalogue's root, and a metadata version other than its plugins'."""
+    problems = [f"{name}: {ROOT_DESCRIPTION} at its root, not in {METADATA_KEY}"] if ROOT_DESCRIPTION in data else []
+    version = field(data, METADATA_VERSION)
+    return problems + [f"{name}: {METADATA_VERSION} differs from its plugin's version"
+                       for entry in entries if version is not None and field(entry, "version") != version]
+
+
 def manifest_problems(output):
     """What the four manifests and catalogues lack, name wrongly, or say differently."""
     problems, said = [], {}
@@ -604,6 +625,8 @@ def manifest_problems(output):
             problems.append(f"{name}: no plugin declared")
             continue
         problems += [f"{name}: no {key}" for key in required[0] if field(data, key) in (None, "")]
+        if name in CATALOGUE_SOURCES:     # RQ-PLG-044 / DEC-PLG-035
+            problems += catalogue_metadata_problems(name, data, entries)
         for entry in entries:
             problems += [f"{name}: no {key} for a plugin" for key in required[1] if field(entry, key) in (None, "")]
             if name in CATALOGUE_SOURCES:

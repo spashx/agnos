@@ -1,4 +1,5 @@
-"""Tests that the release checks the manifests by itself, whatever the tool (RQ-PLG-015, TASK-PLG-014; ADR-PLG-002: DEC-PLG-010).
+"""Tests that the release checks the manifests by itself, whatever the tool (RQ-PLG-015, TASK-PLG-014; ADR-PLG-002: DEC-PLG-010;
+RQ-PLG-044, RQ-PLG-045, TASK-PLG-072; ADR-PLG-009: DEC-PLG-035).
 
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-meta-release/tests -v
 """
@@ -21,6 +22,9 @@ PLUGIN_README_TEXT = b"# Plugin\n"
 WORKSHOP = HERE.parents[3]
 WORKSHOP_SKILLS = WORKSHOP / ".github" / "skills"
 PROCESS_SKILL_LINK = "skills/agnos-instructions/SKILL.md"     # RQ-PLG-035: generated from the instructions file
+OWNER_EMAIL = "25369377+spashx@users.noreply.github.com"     # RQ-PLG-044: GitHub's private address of the owner
+LISTING_FIELDS = ("author", "homepage", "repository", "keywords")     # RQ-PLG-045
+CATEGORY = "software development"
 
 
 class ManifestCase(unittest.TestCase):
@@ -46,6 +50,32 @@ class ConsistentTest(ManifestCase):
 
     def test_RQ_PLG_015_given_the_written_marketplace_then_no_manifest_problem_is_named(self):
         self.assertEqual([], release.manifest_problems(self.output))
+
+
+class ListingTest(ManifestCase):
+    """RQ-PLG-044, RQ-PLG-045 / DEC-PLG-035: the listing fields, from the marketplace asset."""
+
+    def setUp(self):
+        super().setUp()
+        self.asset = json.loads(release.MARKETPLACE_PATH.read_text(encoding="utf-8"))
+        self.catalogue = json.loads((self.output / release.CLAUDE_CATALOGUE).read_text(encoding="utf-8"))
+
+    def test_RQ_PLG_044_given_the_written_catalogue_then_its_metadata_holds_description_and_version_and_the_owner_an_email(self):
+        self.assertEqual(VERSION, self.catalogue["metadata"]["version"])
+        self.assertEqual(self.asset["marketplace"]["metadata"]["description"], self.catalogue["metadata"]["description"])
+        self.assertEqual(OWNER_EMAIL, self.catalogue["owner"]["email"])
+        self.assertNotIn("description", self.catalogue)
+
+    def test_RQ_PLG_045_given_the_written_files_then_manifests_and_entry_hold_the_listing_fields_of_the_asset(self):
+        entry = self.catalogue["plugins"][0]
+        manifests = [json.loads((self.output / name).read_text(encoding="utf-8")) for name in (release.ROOT_MANIFEST, release.CLAUDE_MANIFEST)]
+        for data in (entry, *manifests):
+            for key in LISTING_FIELDS:
+                self.assertEqual(self.asset["plugin"][key], data[key], key)
+        self.assertEqual(self.asset["plugin"]["license"], entry["license"])
+        self.assertEqual(CATEGORY, entry["category"])
+        for data in manifests:
+            self.assertNotIn("category", data)
 
 
 class PluginReadmeTest(ManifestCase):
@@ -101,6 +131,18 @@ class RefusedTest(ManifestCase):
     def test_RQ_PLG_015_given_a_catalogue_with_no_owner_then_the_file_is_named(self):
         self.edit(release.CLAUDE_CATALOGUE, lambda data: data.pop("owner"))
         self.assertNamed(release.CLAUDE_CATALOGUE)
+
+    def test_RQ_PLG_044_given_a_catalogue_metadata_version_that_differs_then_the_catalogue_is_named(self):
+        self.edit(release.CLAUDE_CATALOGUE, lambda data: data["metadata"].update(version="0.0.1"))
+        self.assertNamed(release.CLAUDE_CATALOGUE)
+
+    def test_RQ_PLG_044_given_a_catalogue_description_at_its_root_then_the_catalogue_is_named(self):
+        self.edit(release.CLAUDE_CATALOGUE, lambda data: data.update(description="root"))
+        self.assertNamed(release.CLAUDE_CATALOGUE)
+
+    def test_RQ_PLG_045_given_a_manifest_without_homepage_then_the_file_is_named(self):
+        self.edit(release.ROOT_MANIFEST, lambda data: data.pop("homepage"))
+        self.assertNamed(release.ROOT_MANIFEST)
 
     def test_RQ_PLG_015_given_a_file_that_is_not_json_then_the_file_is_named(self):
         (self.output / release.ROOT_MANIFEST).write_text("{", encoding="utf-8")

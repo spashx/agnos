@@ -26,15 +26,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-072: Write catalogue and manifest metadata
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add the listing fields to `assets/marketplace.json`, write them and `metadata` from `write_marketplace`, and check `metadata.version` in `manifest_problems`, test first.
 - **Requirement refs**: RQ-PLG-044, RQ-PLG-045
 - **ADR refs**: ADR-PLG-009
 - **Acceptance Criteria**: Given a release, When the marketplace is written, Then the catalogue holds `metadata.version` equal to `VERSION.txt` and no root `description` And both manifests and the plugin entry hold `homepage`, `repository` and `author.url`; Given a catalogue whose `metadata.version` differs, When it is checked, Then a problem is reported.
 - **Dependencies**: TASK-PLG-071
 - **Assignee**: AI
-- **Verification**: Pending
-- **Assumptions**: None
+- **Verification**: `test_manifests` 19/19 (`ListingTest` metadata, owner email, listing fields, category; `RefusedTest` metadata version, root description, homepage); agnos-meta-release suite 145 run, 143 passed, 2 skipped (`test_proof`, `test_determinism`: the demo is not built beside the scratchpad copy).
+- **Assumptions**: The entry-only fields sit under an `entry` key of `assets/marketplace.json`.
 
 ### TASK-PLG-073: Generate plugin logo from brand tokens
 - **Tier**: L

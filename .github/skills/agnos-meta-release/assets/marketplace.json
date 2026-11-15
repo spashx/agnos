@@ -1,16 +1,21 @@
 {
-  "_comment": "FTR-PLG-001, ADR-PLG-001 (DEC-PLG-001, DEC-PLG-002): what the manifests and the process skill say. The version comes from the changelog's latest release. RQ-PLG-043 / DEC-PLG-033: Claude Code and GitHub Copilot only.",
+  "_comment": "FTR-PLG-001, ADR-PLG-001 (DEC-PLG-001, DEC-PLG-002): what the manifests and the process skill say. The version comes from VERSION.txt. RQ-PLG-043 / DEC-PLG-033: Claude Code and GitHub Copilot only. RQ-PLG-044, RQ-PLG-045 / DEC-PLG-035: the listing fields; 'entry' holds the fields of the catalogue's plugin entry only.",
   "marketplace": {
     "name": "agnos-marketplace",
-    "description": "The AGNOS software engineering process for agentic development.",
-    "owner": { "name": "spashx" }
+    "owner": { "name": "spashx", "email": "25369377+spashx@users.noreply.github.com" },
+    "metadata": { "description": "The AGNOS software engineering process for agentic development." }
   },
   "plugin": {
     "name": "agnos",
     "description": "AGNOS, a lightweight software engineering process for agentic development: requirements, architecture decisions, plans and tasks with full traceability, and the skills that run them.",
-    "author": { "name": "spashx" },
+    "author": { "name": "spashx", "url": "https://github.com/spashx" },
+    "homepage": "https://github.com/spashx/agnos-lightweight-process",
+    "repository": "https://github.com/spashx/agnos-lightweight-process",
     "license": "AGPL-3.0-only",
-    "keywords": ["process", "requirements", "traceability", "adr", "planning"]
+    "keywords": ["process", "requirements", "traceability", "adr", "planning", "agentic", "ears", "claude-code", "copilot"]
+  },
+  "entry": {
+    "category": "software development"
   },
   "process": {
     "name": "agnos-instructions",
