@@ -83,3 +83,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: agnos-meta-release suite 150 run, 148 passed, 2 skipped (`test_proof`, `test_determinism`: no demo beside the copy); agnos-meta-demo suite 18/18; the delivered path is proved again by the 3.6.1 rehearsal.
 - **Assumptions**: The demo verifier's toolkit pattern follows the image to `assets/`.
+
+### TASK-PLG-077: Prepare version 3.6.1 release
+- **Tier**: S
+- **Status**: Done
+- **Description**: Record the version 3.6.1 the owner approved, with the changelog docs-sync wrote, by agnos-meta-release-prep.
+- **Requirement refs**: RQ-PLG-032
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the approved diff, When the version is set, Then `VERSION.txt` holds 3.6.1 And the changelog's `[Unreleased]` is `[3.6.1]`.
+- **Dependencies**: TASK-PLG-076
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The owner chose 3.6.1 over the proposed 3.7.0.
