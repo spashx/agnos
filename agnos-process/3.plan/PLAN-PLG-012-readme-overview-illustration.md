@@ -36,3 +36,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: The owner chose 3.6.2 over the proposed 3.7.0.
+
+### TASK-PLG-080: Class social image as Meta
+- **Tier**: S
+- **Status**: Done
+- **Description**: Add `assets/social.png` to the Meta layer of agnos-meta-release's `layers.json`, so the rehearsal accepts it and leaves it out of the marketplace.
+- **Requirement refs**: RQ-PLG-047
+- **ADR refs**: None
+- **Acceptance Criteria**: Given a rehearsal of HEAD, Then it does not stop on `assets/social.png` And the PNG is not delivered.
+- **Dependencies**: TASK-PLG-079
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
