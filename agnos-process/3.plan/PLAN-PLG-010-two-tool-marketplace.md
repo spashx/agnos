@@ -45,19 +45,19 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**: Given a release, Then `plugins/agnos/README.md` exists; Given a README link to an absent file, When the release checks it, Then a problem names the link.
 - **Dependencies**: TASK-PLG-066
 - **Assignee**: AI
-- **Verification**: Filled at closure.
-- **Assumptions**: None
+- **Verification**: New RQ-PLG-042 tests failed first (3 failures, 4 errors), then 66 impacted tests OK. Full suite: 139 run, 137 OK, 0 skipped; the 2 rehearsals of this repository's HEAD refused "no plugin-README.md at HEAD", the asset being uncommitted; after commit 953996f, `test_proof.DemoTest` and `test_determinism.ThisRepositoryTest`: 6 OK.
+- **Assumptions**: The README is read from the commit rehearsed, as `VERSION.txt` is; the fixtures commit a linkless one-line README, and a unit test checks the real asset's links against `.github/skills/` (owner's choice, 2026-11-15).
 
 ### TASK-PLG-068: Remove Codex from delivered documents
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Remove Codex from `README.md`, `COMPATIBILITY.md` and `CHANGELOG.md`, past entries included, and add the change to the changelog's Unreleased section.
 - **Requirement refs**: RQ-PLG-043
 - **ADR refs**: ADR-PLG-008 (DEC-PLG-033)
 - **Acceptance Criteria**: Given the three documents, When searched for "codex" ignoring case, Then none is found.
 - **Dependencies**: TASK-PLG-066
 - **Assignee**: AI
-- **Verification**: Filled at closure.
+- **Verification**: New RQ-PLG-043 documents test failed first, then passed; full release suite: 140 run, 140 OK, 0 skipped.
 - **Assumptions**: None
 
 ### TASK-PLG-069: Rehearse two-tool marketplace release

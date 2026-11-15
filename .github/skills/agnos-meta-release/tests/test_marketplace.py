@@ -143,10 +143,13 @@ class UserDocumentsTest(MarketplaceCase):
 class WhatWasTestedTest(unittest.TestCase):
     """RQ-PLG-008, amended by RQ-PLG-023: what was tested is stated in COMPATIBILITY.md."""
 
-    def test_RQ_PLG_008_given_compatibility_then_it_says_macos_and_codex_are_not_tested(self):
-        text = (ROOT / COMPATIBILITY).read_text(encoding="utf-8")
-        for row in ("| macOS | Not tested", "| OpenAI Codex | Not tested"):
-            self.assertIn(row, text)
+    def test_RQ_PLG_008_given_compatibility_then_it_says_macos_is_not_tested(self):
+        self.assertIn("| macOS | Not tested", (ROOT / COMPATIBILITY).read_text(encoding="utf-8"))
+
+    def test_RQ_PLG_043_given_the_delivered_documents_then_none_names_codex(self):
+        """RQ-PLG-043 / DEC-PLG-033."""
+        for name in ("README.md", COMPATIBILITY, CHANGELOG_FILE):
+            self.assertNotIn("codex", (ROOT / name).read_text(encoding="utf-8").lower(), name)
 
 
 class ReadmeTest(unittest.TestCase):

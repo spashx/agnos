@@ -4,6 +4,14 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- `agnos-meta-release` delivers a README in the plugin's folder, the one VS Code shows for the installed plugin <!-- ADR-PLG-008, TASK-PLG-067, RQ-PLG-042, DEC-PLG-034 -->
+
+### Removed
+- The marketplace serves Claude Code and GitHub Copilot only: its second catalogue and the documents' mentions of a third tool are withdrawn, to be delivered later <!-- ADR-PLG-008, TASK-PLG-066, TASK-PLG-068, RQ-PLG-043, DEC-PLG-033 -->
+
 ## [3.5.0]
 
 ### Added
@@ -26,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A Tier S task needs no written plan; Tier M and L tasks keep theirs, as the tier table of the instructions and of `AGNOS-GETTING-STARTED.md` states <!-- TASK-INI-019, RQ-PLG-022 -->
 - `README.md` explains what clear, automatic and manual compaction do to the process in Claude Code and GitHub Copilot, the risks and what to do <!-- ADR-INI-003, TASK-INI-016, RQ-INI-021 -->
 - `AGNOS-GETTING-STARTED.md` states the shared entry-point block, one session per conversation and the invocation again after a compaction <!-- ADR-INI-003, TASK-INI-017, RQ-INI-021 -->
-- `agnos-meta-website` site: its English text aligned on the French, OpenAI Codex support stated as coming, French typos corrected <!-- ADR-WEB-001, TASK-WEB-020, RQ-WEB-003, RQ-WEB-009 -->
+- `agnos-meta-website` site: its English text aligned on the French, French typos corrected <!-- ADR-WEB-001, TASK-WEB-020, RQ-WEB-003, RQ-WEB-009 -->
 - `agnos-meta-website` site: quotes the renamed demo, its titles, its ADR excerpt and its commit <!-- ADR-WEB-001, TASK-PLG-060, RQ-WEB-003, RQ-WEB-005 -->
 
 ### Removed
@@ -71,7 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `agnos-meta-release` checks the four manifests and catalogues by script, with no AI tool: required fields, plugin folders, the same name, version and description everywhere <!-- ADR-PLG-002, TASK-PLG-014, RQ-PLG-015 -->
 - `agnos-meta-release` console: the problems, the lines to read, the mentions and the IDs outside comments, each with its file and line, and a last line giving `exit=` whatever the outcome <!-- ADR-PLG-002, TASK-PLG-013, RQ-PLG-014 -->
 - `agnos-meta-plugin-proof` maintainer skill: proves a built marketplace by a real install in isolated Claude Code and GitHub Copilot configurations, on request with questions to their models and the delivered suites on Linux, publishing nothing <!-- ADR-PLG-001, TASK-PLG-008, RQ-PLG-010 -->
-- `agnos-meta-release` writes a marketplace holding the plugin `agnos`, with its generated skill `agnos-process` and its agents, for Claude Code, GitHub Copilot and OpenAI Codex <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-006, RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-006, RQ-PLG-007 -->
+- `agnos-meta-release` writes a marketplace holding the plugin `agnos`, with its generated skill `agnos-process` and its agents, for Claude Code and GitHub Copilot <!-- ADR-PLG-001, TASK-PLG-005, TASK-PLG-006, RQ-PLG-001, RQ-PLG-002, RQ-PLG-003, RQ-PLG-006, RQ-PLG-007 -->
 - `agnos-meta-release` maintainer skill: rehearses a release in a folder, from a commit, without AGNOS's own IDs, and proves it behaves as the repository does, publishing nothing <!-- ADR-MTA-002, TASK-MTA-005 to TASK-MTA-008, RQ-MTA-006 to RQ-MTA-013 -->
 - `agnos-index` and `agnos-perf-center` show on their output line the time the run took, never written into the generated files <!-- TASK-IDX-003, TASK-TRC-090, RQ-IDX-018, RQ-TRC-107 -->
 - `agnos-meta-qa` maintainer skill: a code quality report on request, as normalised JSON from pinned analysers, blocking
