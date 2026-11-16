@@ -1,22 +1,71 @@
 # Contributing to AGNOS
 
-Thanks for taking the time to contribute. This repository defines the **AGNOS Software
-Engineering Process** — the instructions, skills, and templates that an AI coding agent (GitHub
-Copilot or Claude Code) follows. Read
-[README.md](README.md) and the user's guide, [AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md), first if you haven't already;
-they explain what the process does before you change how it does it.
+<!-- RQ-DOC-005, RQ-DOC-006 / TASK-DOC-005 -->
+
+AGNOS is developed with AGNOS. Every requirement, decision, plan and line of code in this repository was
+produced by following the process this repository defines. The same rule applies to you:
+
+> **A pull request is accepted only if it was made with AGNOS.**
+
+This is not a formality. The process is the product, and a change to it that skipped it cannot be checked
+against it. If you want to contribute, run the process on your own change, as the maintainers do.
 
 By participating, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## What you can contribute
+## What you can do without AGNOS
 
-- **Process changes** — edits to
-  [`.github/instructions/agnos-sw-eng.instructions.md`](.github/instructions/agnos-sw-eng.instructions.md),
-  the `agnos-git-workflow` skill, or the requirement/ADR/plan templates.
-- **Documentation** — `README.md`, the user's guide `AGNOS-GETTING-STARTED.md` (a template of `agnos-init`), this file, or comments inside the
-  templates.
-- **Tooling** — the `validate-ids` scripts (`.github/skills/agnos-git-workflow/scripts/`), kept
-  exit-code-equivalent between the PowerShell and bash versions.
+Only pull requests need AGNOS. You are welcome, without it, to:
+
+- report a bug or propose a feature, with the [issue template](.github/ISSUE_TEMPLATE.md);
+- discuss a design in an issue before writing any code;
+- report a security issue, privately: see [SECURITY.md](SECURITY.md). Never open a public issue for it.
+
+## What "made with AGNOS" means
+
+The rule covers every change, however small: a typo fix is a Tier S task. In your fork:
+
+1. **Open your agent on the repository.** GitHub Copilot and Claude Code both load the process from
+   [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md). Read the [README](README.md) and the
+   [user's guide](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) first: they show
+   a whole session.
+2. **Start a session.** Ask the agent to start one. It asks you a trigram `<TRI>` and whether tests run,
+   then the `agnos-git-workflow` skill creates the branch `feature/<TRI>` from `dev`. Reuse an existing
+   trigram when your change belongs to its area; otherwise pick a new one.
+3. **Write the requirement first.** New or changed behaviour is a requirement (EARS statement, Gherkin
+   criteria) in `agnos-process/1.requirements/`. A cross-cutting choice is an ADR with its decisions in
+   `agnos-process/2.architecture/`. The work is planned as tasks in `agnos-process/3.plan/`.
+4. **Let every task be tiered and approved.** The agent presents each task (tier S, M or L) and waits for
+   your approval before the first edit.
+5. **Commit through the skill.** Commits come from `agnos-git-workflow commit-task`, which validates the
+   artifact IDs, regenerates the index and computes the message. A hand-typed `git commit` is not accepted.
+6. **Close the session.** The agent summarises it and appends the friction-metrics row to
+   `agnos-process/_sessionstate/METRICS_LOG.md`. That row is part of your pull request.
+
+Any agent that follows these steps is fine. What matters is the result, which a reviewer can see.
+
+## How a reviewer checks it
+
+A pull request is declined, with the reason given, when one of these is visible:
+
+- a commit that does not follow the `commit-task` format, or has no task and requirement ID;
+- a code or documentation change with no requirement, task or plan under `agnos-process/`;
+- an artifact without its ID, or a code file that does not cite its requirement in a comment;
+- a hand-edited `agnos-process/process.idx.md`, which only the `agnos-index` skill writes;
+- a task never presented, tiered or approved, or tests missing for a Tier M or L task;
+- no friction-metrics row for the session.
+
+The [`agnos-perf-center`](.github/skills/agnos-perf-center/SKILL.md) skill produces the traceability matrix
+that shows these gaps. You can run it on your branch before opening the pull request.
+
+## Branches
+
+| Branch | Role | Who pushes |
+|---|---|---|
+| `feature/<TRI>` | Working branch of one session | You, in your fork |
+| `dev` | Validation: where pull requests land and are checked | Maintainers, by merging |
+| `release` | Snapshots of releases only | Maintainers, at release time |
+
+Open your pull request against `dev`, never against `release`.
 
 ## The layers of this repository
 
@@ -33,7 +82,7 @@ AGNOS is developed with AGNOS, so this tree holds three layers:
 A skill or sub-agent that serves only the development of AGNOS takes the prefix `agnos-meta-`. The prefix is the
 only criterion: tools read it, and no list of names is kept.
 
-## Repository Map
+## Repository map
 
 <!-- RQ-PLG-023 / DEC-PLG-018 -->
 
@@ -43,56 +92,29 @@ only criterion: tools read it, and no list of names is kept.
 | [.github/skills/](.github/skills/) | The skills: `agnos-init`, `agnos-index`, `agnos-git-workflow`, `agnos-design-system`, `agnos-self-improvement`, `agnos-perf-center`, and the `agnos-meta-*` maintainer skills |
 | [.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | The user's guide, a worked session, written into each project by `agnos-init` |
 | [README.md](README.md), [COMPATIBILITY.md](COMPATIBILITY.md), [CHANGELOG.md](CHANGELOG.md) | The plugin user's landing page, what was tested, what each release holds |
-| [agnos-process/](agnos-process/) | AGNOS's own requirements, decisions and plans: AGNOS is developed with AGNOS |
+| [agnos-process/](agnos-process/) | AGNOS's own requirements, decisions and plans |
 
-## Before you open a pull request
+## Rules that come with the process files
 
-1. **Read before editing.** Don't propose a change to a file you haven't actually read in full —
-   the same rule the process itself enforces on the agent.
-2. **Keep the two entry points in sync.** GitHub Copilot and Claude Code share one canonical
-   instruction file and one canonical `agnos-git-workflow/SKILL.md` under `.github/`; the
-   `.claude/` copies are thin pointers. Don't fork the content between them.
-3. **Respect the instructions-file line budget.** `agnos-sw-eng.instructions.md` must stay at or
-   under 400 lines. If your change would exceed it, trim an existing section in the same change
-   rather than deferring cleanup.
-4. **Traceability stays in comments, not prose.** If you reference a requirement, ADR, or decision
-   ID from process-definition files under `.github/`, keep the citation out of the file's own
-   normative text — this is the convention this repository has settled on for its own process
-   files (see recent history for the rationale).
-5. **Ask for a quality report on code you changed.** The `agnos-meta-qa` skill reports on Python and JavaScript as JSON, for
-   you or an agent to correct before the pull request. You call it: no hook runs it and it blocks nothing. <!-- RQ-QLT-001, RQ-QLT-008 -->
-6. **If you're using this process to build a real feature** (not editing AGNOS itself), follow the
-   full session workflow: open a session with a trigram, author the requirement, get the plan
-   approved, then commit through the `agnos-git-workflow` skill's `commit-task` sub-command so the
-   Conventional-Commits message is computed for you, not typed by hand.
+These apply on top of the process, to a change in the instructions file, the skills or their scripts:
 
-## Commit messages
-
-Whether or not you're running a full AGNOS session, commits in this repository follow
-[Conventional Commits](https://www.conventionalcommits.org/) with a scope:
-
-```
-<type>(<scope>): <description>
-```
-
-`<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`,
-`style`. `<scope>` is the trigram of the area touched (e.g. `GIT` for the git-workflow skill,
-`REC` for process self-improvement work) or a short free-text scope for repo-wide changes (e.g.
-`repo`). If your change implements a tracked `TASK-*`/`ADR-*` artifact, include its ID in the
-description per the skill's own `commit-task` grammar.
+1. **Read before editing.** Don't change a file you haven't read in full: the process enforces the same rule on the agent.
+2. **Keep the two entry points in sync.** GitHub Copilot and Claude Code share one canonical instructions file and one
+   canonical `agnos-git-workflow/SKILL.md` under `.github/`; the `.claude/` copies are thin pointers. Don't fork the content.
+3. **Respect the instructions-file line budget.** `agnos-sw-eng.instructions.md` stays at or under 400 lines. If your
+   change would exceed it, trim an existing section in the same change, and state the new line count in the task's `Verification`.
+4. **Keep traceability in comments, not prose.** Cite requirement, ADR and decision IDs in comments of the files under
+   `.github/`, never in their normative text.
+5. **Keep the two script flavours equivalent.** The PowerShell and bash versions of a script stay exit-code-equivalent.
+6. **Ask for a quality report on code you changed.** The `agnos-meta-qa` skill reports on Python and JavaScript as JSON, for
+   you or your agent to correct before the pull request. You call it: no hook runs it and it blocks nothing. <!-- RQ-QLT-001, RQ-QLT-008 -->
 
 ## Pull requests
 
-Use the PR template — it asks for the same traceability information the process asks of every
-task: what changed, why, which requirement/ADR/task IDs (if any) it relates to, and how it was
-verified. A PR that touches the instructions file should state its new line count.
-
-## Reporting bugs and proposing features
-
-Use the issue template. For a security issue, do **not** open a public issue — see
-[SECURITY.md](SECURITY.md).
+Use the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). It asks what the process already holds: what changed, why, which requirement,
+ADR and task IDs, and how it was verified. A pull request that touches the instructions file states its new line count.
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the
-[Code of Conduct](CODE_OF_CONDUCT.md). Report unacceptable behavior as described there.
+This project and everyone participating in it is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Report unacceptable behavior as described there.
