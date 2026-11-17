@@ -28,7 +28,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-082: Regenerate presentation website
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Build the site with `agnos-meta-website build` from the regenerated demo into `agnos-website`, and commit it there locally.
 - **Requirement refs**: RQ-WEB-001, RQ-WEB-002
 - **ADR refs**: ADR-WEB-001

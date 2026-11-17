@@ -894,7 +894,7 @@ TASK-PLG-080|40-50|Done|Class social image as Meta
 @agnos-process/3.plan/PLAN-PLG-013-version-4-release.md
 PLAN-PLG-013|1-87||Version 4.0.0 release
 TASK-PLG-081|17-28|Done|Regenerate demo repository
-TASK-PLG-082|29-40|Not Started|Regenerate presentation website
+TASK-PLG-082|29-40|Done|Regenerate presentation website
 TASK-PLG-086|41-52|Done|Remove covered plan checkpoint
 TASK-PLG-083|53-64|Not Started|Prepare version 4.0.0 release
 TASK-PLG-084|65-76|Not Started|Rehearse marketplace release
