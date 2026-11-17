@@ -64,10 +64,11 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 ### RQ-WEB-004: The content checked before anything is written
 - **Category**: Functional
 - **EARS Type**: Unwanted-behavior
-- **Statement**: IF a field is in one language only, a field is defined twice, a field holds a variable `{{<name>}}`, text stands
+- **Statement**: IF a field is in one language only, a field is defined twice, a field holds a variable `{{<name>}}` other than a
+  link `{{link.<name>}}` that `assets/site.json` declares (RQ-WEB-020), text stands
   outside a field, a field mixes a paragraph and a list or holds more than one paragraph, a field is unknown to the template, a
   template element has no field, or an image file is missing, THEN the skill SHALL report it with the file and the field, and exit 1.
-  <!-- variable check moved from RQ-WEB-005 by TASK-WEB-017 (owner, 2026-11-13) -->
+  <!-- variable check moved from RQ-WEB-005 by TASK-WEB-017 (owner, 2026-11-13); declared links allowed by TASK-WEB-025 (owner, 2026-11-18) -->
 - **Rationale**: an edit by hand must not publish a half-translated or broken page.
 - **Priority**: Must
 - **Acceptance Criteria**: Given each of these faults in turn, When `build` runs, Then the error names it, its file and its field, And the
@@ -132,7 +133,8 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
   Center views (Matrix, Graph, History, Delivery, Quality, the order of the Performance Center; the Matrix in place of the Overview, amended by the owner on 2026-11-12, the order on 2026-11-13),
   each content section named after its view, two cards (the deterministic index, the design system), the close (the link
   to the demo, three steps to get started, each with an example command in a console style, amended by the owner on
-  2026-11-13) and the footer (the developer documentation, the licence).
+  2026-11-13, the first with the marketplace button of RQ-WEB-020, amended by the owner on 2026-11-18) and the footer (the developer
+  documentation, the licence).
 - **Rationale**: a decision maker's level: one question, one view, a few sentences each; the developer documentation is linked, never
   reproduced (owner review of 2026-11-08).
 - **Priority**: Must
@@ -227,6 +229,24 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
   of 1920 × 1080 and 3840 × 2160, When `build` runs, Then it succeeds; Given an image of 1936 × 1080, 1600 × 1000 or 1280 × 720,
   When `build` runs, Then it fails naming that file and writes nothing.
 - **Dependencies**: RQ-WEB-003, RQ-WEB-012, RQ-WEB-015
+
+### RQ-WEB-020: Marketplace links from one configuration
+- **Category**: Functional
+- **EARS Type**: Complex
+- **Statement**: The page SHALL link the AGNOS marketplace from a ghost button "AGNOS marketplace" right of the header's demo button
+  and from a button of the same label under the install step's command, SHALL show the marketplace address in that command, and
+  SHALL link the footer's developer documentation to the marketplace's getting-started section; every address SHALL be declared once,
+  in `assets/site.json`; IF the template or a field names a link that file does not declare, THEN `build` SHALL fail naming it, its
+  file and its field, and exit 1.
+- **Rationale**: the site gave no way to reach the marketplace it tells the reader to install from (owner request of 2026-11-18);
+  one declaration per address avoids duplicates.
+- **Priority**: Must
+- **Acceptance Criteria**: Given `site.json` declaring `marketplace` and `getting-started`, When `build` runs, Then the header and the
+  install step each hold a button "AGNOS marketplace" to the `marketplace` address, the header's a ghost button after the demo button,
+  And the install command reads `claude plugin marketplace add` followed by that address, And the footer's developer link leads to the
+  `getting-started` address; Given each address, Then it appears in no file of the assets but `site.json`; Given `{{link.unknown}}` in a
+  field or `{{v:link.unknown}}` in the template, When `build` runs, Then the error names it and the exit code is 1.
+- **Dependencies**: RQ-WEB-003, RQ-WEB-004, RQ-WEB-009, RQ-WEB-015
 
 ---
 
