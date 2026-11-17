@@ -201,7 +201,7 @@ What makes it possible
 Matrix view
 
 ### question
-Was everything we asked for actually built ?
+Was everything we asked for actually built?
 
 ### see
 The end-to-end traceability matrix, from functional capabilities to code, on a single page, directly exportable.

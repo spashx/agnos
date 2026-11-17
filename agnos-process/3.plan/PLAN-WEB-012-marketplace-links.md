@@ -49,7 +49,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-027: Fix English tour question spacing
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Remove the space before `?` in the English Matrix question of `en.md`, and any other space before `?`, `!`, `;` or `:`
   in the English text.
 - **Requirement refs**: RQ-WEB-006
@@ -58,4 +58,5 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-WEB-026
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
-- **Assumptions**: None
+- **Assumptions**: The page test expected the Matrix question as worded before the owner's commits of 2026-11-14; it now expects the
+  owner's wording, approved by the owner on 2026-11-18.

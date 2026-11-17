@@ -1107,7 +1107,7 @@ TASK-WEB-023|15-31|Done|Switch the screenshot ratio to 16:9
 PLAN-WEB-011|1-34||Tour screenshots enlarged on click
 TASK-WEB-024|16-34|Done|Enlarge the tour screenshots on click
 @agnos-process/3.plan/PLAN-WEB-012-marketplace-links.md
-PLAN-WEB-012|1-61||Marketplace links of the site
+PLAN-WEB-012|1-62||Marketplace links of the site
 TASK-WEB-025|17-29|Done|Record marketplace link decisions
 TASK-WEB-026|30-49|Done|Implement marketplace links and buttons
-TASK-WEB-027|50-61|Not Started|Fix English tour question spacing
+TASK-WEB-027|50-62|Done|Fix English tour question spacing

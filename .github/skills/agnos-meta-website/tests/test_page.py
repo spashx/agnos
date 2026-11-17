@@ -61,7 +61,7 @@ class TestTheBuiltPage(unittest.TestCase):
     def test_given_the_page_without_script_then_it_reads_complete_in_english(self):
         self.assertIsNone(site.SLOT.search(PAGE.split("<script>")[0]))
         self.assertIn('<html lang="en">', PAGE)
-        self.assertIn("Is what was asked for really built?", PAGE)
+        self.assertIn("Was everything we asked for actually built?", PAGE)   # the owner's wording of 2026-11-14 (TASK-WEB-027)
 
     def test_given_the_page_then_french_holds_every_text(self):
         french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))
