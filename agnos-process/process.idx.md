@@ -798,7 +798,7 @@ TASK-PLG-005|64-75|Done|The marketplace target
 TASK-PLG-006|76-87|Done|Agents generated per tool
 TASK-PLG-008|88-99|Done|The proof can be run again
 TASK-PLG-009|100-111|Done|A skipped test is not a passed test
-TASK-PLG-007|112-122|In Progress|Install proof and user documents
+TASK-PLG-007|112-122|Done|Install proof and user documents
 @agnos-process/3.plan/PLAN-PLG-002-deterministic-release.md
 PLAN-PLG-002|1-110||A Deterministic Release and its Report Page
 TASK-PLG-010|16-27|Done|Feature, decisions and plan
