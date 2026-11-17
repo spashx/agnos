@@ -6,6 +6,7 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
   dimmed), or one image: ![alternative text](screens/<file>.png)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
+- {{link.<name>}} is replaced by an address declared in assets/site.json (RQ-WEB-020); write no address that file declares.
 - Comments like this one are ignored.
 -->
 
@@ -55,6 +56,11 @@ EN
 
 ### french
 FR
+
+## marketplace
+
+### label
+AGNOS marketplace
 
 ## hero
 
@@ -529,7 +535,7 @@ A single marketplace for Claude Code and GitHub Copilot (OpenAI Codex support co
 
 ### step1-command
 ```
-claude plugin marketplace add <marketplace>
+claude plugin marketplace add {{link.marketplace}}
 claude plugin install agnos@agnos-marketplace
 ```
 
@@ -558,7 +564,7 @@ Start a new AGNOS session, trigram <TRI>.
 ## footer
 
 ### developers
-[TODO LIEN GETTING STARTED DU PLUG For your developers: the documentation on GitHub](https://github.com/spashx/agnos-lightweight-process)
+For your developers: the documentation on GitHub
 
 ### license
 AGNOS is distributed under the GNU Affero General Public License v3.

@@ -1,6 +1,6 @@
 """Tests of agnos-meta-website's content: reading en.md and fr.md, their checks against the template, a
-variable left in a field and French typography (FTR-WEB-001: RQ-WEB-003, RQ-WEB-004, RQ-WEB-006, RQ-WEB-016; ADR-WEB-001:
-DEC-WEB-001, DEC-WEB-003)."""
+variable left in a field, the declared links and French typography (FTR-WEB-001: RQ-WEB-003, RQ-WEB-004, RQ-WEB-006,
+RQ-WEB-016, RQ-WEB-020; ADR-WEB-001: DEC-WEB-001, DEC-WEB-003, DEC-WEB-008)."""
 import importlib.util
 import json
 import re
@@ -19,6 +19,8 @@ _spec.loader.exec_module(site)
 NBSP = " "
 NARROW_NBSP = " "
 PNG = b"\x89PNG\r\n\x1a\n"
+LINK_NAME = "site"                          # RQ-WEB-020: the fixture's declared link
+LINK_ADDRESS = "https://example.org/site"
 TEMPLATE = """<!doctype html><html lang="en"><head><title data-i18n="page.title"></title>
 <meta name="description" data-i18n-attr="content=page.description"></head><body>
 <p data-i18n="hero.text"></p><ul data-i18n="hero.tags"></ul><figure data-i18n="hero.shot"></figure>
@@ -98,6 +100,11 @@ class Fixture(unittest.TestCase):
         (self.assets / "content" / "en.md").write_text(EN, encoding="utf-8")
         (self.assets / "content" / "fr.md").write_text(FR, encoding="utf-8")
         (self.assets / "screens" / "view.png").write_bytes(PNG)
+        self.write_links({LINK_NAME: LINK_ADDRESS})
+
+    def write_links(self, links):
+        """The fixture's site.json, declaring the given links. RQ-WEB-020"""
+        (self.assets / "site.json").write_text(json.dumps({"links": links}), encoding="utf-8")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -232,6 +239,70 @@ class TestVariableLeftInAField(Fixture):
         page, errors = self.page()
         self.assertIsNone(page)
         self.assertIn("en.md: hero.figure: unknown variable {{index.ratio}}", errors)
+
+
+class TestDeclaredLinks(Fixture):
+    """RQ-WEB-020, RQ-WEB-004 / DEC-WEB-008: the addresses of assets/site.json, in the fields and the template."""
+
+    def test_given_a_declared_link_in_a_field_then_both_languages_hold_its_address(self):
+        # Given {{link.site}} in a paragraph of each language, When built, Then each holds the declared address
+        self.write("en.md", EN.replace("The index, an excerpt", "See {{link.site}}"))
+        self.write("fr.md", FR.replace("The index, an excerpt", "Voir {{link.site}}"))
+        page, errors = self.page()
+        self.assertEqual(errors, [])
+        self.assertIn(f">See {LINK_ADDRESS}</p>", page)
+        self.assertEqual(self.french(page)["html"]["hero.figure"], f"Voir {LINK_ADDRESS}")
+
+    def test_given_a_declared_link_in_a_code_block_then_it_holds_its_address(self):
+        # Given {{link.site}} in a console excerpt, When built, Then the excerpt holds the address
+        self.write("en.md", EN.replace("RQ-BKG-003|42-56||No double booking", "add {{link.site}}"))
+        page, errors = self.page()
+        self.assertEqual(errors, [])
+        self.assertIn(f"add {LINK_ADDRESS}", page)
+
+    def test_given_a_declared_link_as_a_link_address_then_the_anchor_leads_to_it(self):
+        # Given [a link]({{link.site}}), When built, Then the anchor's href is the address
+        self.write("en.md", EN.replace("(https://example.org)", "({{link.site}})"))
+        page, errors = self.page()
+        self.assertEqual(errors, [])
+        self.assertIn(f'<a href="{LINK_ADDRESS}">a link</a>', page)
+
+    def test_given_an_undeclared_link_in_a_field_then_it_is_reported(self):
+        # Given {{link.unknown}} in a field, When built, Then the error names the file, the field and the variable
+        self.write("en.md", EN.replace("The index, an excerpt", "See {{link.unknown}}"))
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertIn("en.md: hero.figure: unknown variable {{link.unknown}}", errors)
+
+    def test_given_a_declared_link_in_the_template_then_it_holds_its_address(self):
+        # Given {{v:link.site}} in the template, When built, Then the attribute holds the address
+        template = TEMPLATE.replace("<body>", '<body><a href="{{v:link.site}}"></a>')
+        (self.assets / "template.html").write_text(template, encoding="utf-8")
+        page, errors = self.page()
+        self.assertEqual(errors, [])
+        self.assertIn(f'<a href="{LINK_ADDRESS}"></a>', page)
+
+    def test_given_an_undeclared_link_in_the_template_then_it_is_reported(self):
+        # Given {{v:link.unknown}} in the template, When built, Then the error names it
+        template = TEMPLATE.replace("<body>", '<body><a href="{{v:link.unknown}}"></a>')
+        (self.assets / "template.html").write_text(template, encoding="utf-8")
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertIn("template: unknown value {{v:link.unknown}}", errors)
+
+    def test_given_site_json_declaring_the_computed_demo_link_then_it_is_reported(self):
+        # Given site.json declaring demo, which the build computes, When built, Then the error names it
+        self.write_links({LINK_NAME: LINK_ADDRESS, "demo": "https://example.org/demo"})
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertIn("site.json: link demo is computed by the build", errors)
+
+    def test_given_no_site_json_then_it_is_reported(self):
+        # Given the assets without site.json, When built, Then the error names the file
+        (self.assets / "site.json").unlink()
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertTrue(any(error.startswith("site.json:") for error in errors), errors)
 
 
 class TestFrenchTypography(Fixture):

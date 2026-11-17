@@ -36,6 +36,7 @@ Everything the reader sees comes from `assets/`:
 | `assets/content/en.md`, `assets/content/fr.md` | The text, one `##` section per page element and one `###` field per text, the same in both files; the header comment of each file gives the format |
 | `assets/screens/*.png` | The images the content links to; replace a file by one of the same name. The page frames each one at the capture ratio 16:9 (the design-system token `web.ratio-shot`): `build` refuses an image whose ratio differs by more than 0.5% or whose width is under 1920 px, naming the file and its size. Accepted sizes: 1920x1080, 3840x2160 <!-- RQ-WEB-019 --> |
 | `assets/template.html` | The page's layout, without text |
+| `assets/site.json` | The external link addresses, each declared once: `{{v:link.<name>}}` in the template, `{{link.<name>}}` in the content; `link.demo` is the build's own. An undeclared link fails the build <!-- RQ-WEB-020 / DEC-WEB-008 --> |
 
 To change a word, edit the Markdown and build again. To add a field, add it to both languages and give it an element in
 the template: the build refuses a field one language lacks or the template does not use.

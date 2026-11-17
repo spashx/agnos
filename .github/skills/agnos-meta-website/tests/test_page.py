@@ -1,5 +1,5 @@
 """Tests of agnos-meta-website's page: the template, the content and the placeholder images of the assets (FTR-WEB-001:
-RQ-WEB-003, RQ-WEB-007 to RQ-WEB-015; ADR-WEB-001: DEC-WEB-003, DEC-WEB-004, DEC-WEB-005)."""
+RQ-WEB-003, RQ-WEB-007 to RQ-WEB-015, RQ-WEB-020; ADR-WEB-001: DEC-WEB-003, DEC-WEB-004, DEC-WEB-005, DEC-WEB-008)."""
 import importlib.util
 import json
 import re
@@ -291,6 +291,62 @@ class TestTheStartSteps(unittest.TestCase):
         rule = re.search(r"\.console\{([^}]*)\}", TEMPLATE).group(1)
         self.assertIn("var(--s-web-console)", rule)
         self.assertEqual(RAW_VALUE.findall(rule), [])
+
+
+MARKETPLACE_LABEL = "AGNOS marketplace"     # RQ-WEB-020: the label of both marketplace buttons
+SITE_LINKS = json.loads((site.ASSETS_DIR / "site.json").read_text(encoding="utf-8"))["links"]
+
+
+def anchors_to(html, address):
+    """The opening tags of the anchors of html that lead to address. RQ-WEB-020"""
+    return re.findall(rf'<a [^>]*href="{re.escape(address)}"[^>]*>', html)
+
+
+class TestTheMarketplaceLinks(unittest.TestCase):
+    """RQ-WEB-020, RQ-WEB-009 / DEC-WEB-008 (TASK-WEB-026): the marketplace and getting-started links, declared once."""
+
+    def test_given_site_json_then_it_declares_the_marketplace_and_its_getting_started_section(self):
+        # Given the assets' site.json, Then it declares both addresses of the owner's request of 2026-11-18
+        self.assertEqual(SITE_LINKS["marketplace"], "https://github.com/spashx/agnos-marketplace")
+        self.assertEqual(SITE_LINKS["getting-started"], "https://github.com/spashx/agnos-marketplace#getting-started")
+
+    def test_given_the_header_then_a_ghost_marketplace_button_follows_the_demo_button(self):
+        # Given the header, Then its last two links are the demo button and the marketplace ghost button
+        header = PAGE.split('<header class="bar">')[1].split("</header>")[0]
+        buttons = re.findall(r'<a class="([^"]*\bbtn\b[^"]*)" href="([^"]+)"[^>]*>([^<]*)</a>', header)
+        self.assertEqual([href for _, href, _ in buttons], [site.DEMO_LINK, SITE_LINKS["marketplace"]])
+        classes, _, label = buttons[1]
+        self.assertIn("btn-ghost", classes.split())
+        self.assertEqual(label, MARKETPLACE_LABEL)
+
+    def test_given_the_install_step_then_its_command_and_button_lead_to_the_marketplace(self):
+        # Given the first start step, Then its command adds the marketplace address And a button of the same label follows it
+        step = PAGE.split('class="steps"')[1].split("</div>")[0]
+        self.assertIn(f"claude plugin marketplace add {SITE_LINKS['marketplace']}", step)
+        button = re.search(r'<a class="[^"]*\bbtn\b[^"]*" href="([^"]+)"[^>]*>([^<]*)</a>', step.split("</pre>")[1])
+        self.assertEqual(button.groups(), (SITE_LINKS["marketplace"], MARKETPLACE_LABEL))
+
+    def test_given_the_footer_then_the_developer_link_leads_to_getting_started(self):
+        # Given the footer, Then the developer documentation is a link to the getting-started section, without a TODO
+        foot = PAGE.split('class="foot"')[1].split("</div>")[0]
+        self.assertEqual(len(anchors_to(foot, SITE_LINKS["getting-started"])), 1)
+        self.assertNotIn("TODO", PAGE)
+
+    def test_given_the_french_page_then_both_buttons_keep_the_label_and_the_command_the_address(self):
+        # Given the French dictionary, Then the button label is the same And the install command holds the address
+        french = json.loads(re.search(r"const FR = (\{.*?\});\n", PAGE, re.S).group(1))["html"]
+        self.assertEqual(french["marketplace.label"], MARKETPLACE_LABEL)
+        self.assertIn(SITE_LINKS["marketplace"], french["start.step1-command"])
+        self.assertNotIn("TODO", json.dumps(french))
+
+    def test_given_the_assets_then_each_address_is_written_in_site_json_only(self):
+        # Given the template and both languages, Then none holds an address of site.json nor the <marketplace> placeholder
+        sources = [site.ASSETS_DIR / site.TEMPLATE] + [site.ASSETS_DIR / site.CONTENT / f"{lang}.md" for lang in site.LANGUAGES]
+        for source in sources:
+            text = source.read_text(encoding="utf-8")
+            for address in SITE_LINKS.values():
+                self.assertNotIn(address, text, source.name)
+            self.assertNotIn("<marketplace>", text, source.name)
 
 
 class TestTheChainPerformanceCenter(unittest.TestCase):

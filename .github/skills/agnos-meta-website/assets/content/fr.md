@@ -6,6 +6,8 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 - Un champ est un paragraphe, une liste d'éléments "- ", un extrait d'index entre deux lignes ``` (les lignes
   commençant par @ sont atténuées), ou une image : ![texte alternatif](screens/<fichier>.png)
 - En ligne : *emphase*, **gras**, `code`, [texte du lien](adresse). Terminez une ligne par \ pour forcer un retour à la ligne.
+- {{link.<nom>}} est remplacé par une adresse déclarée dans assets/site.json (RQ-WEB-020) ; n'écrivez aucune adresse
+  que ce fichier déclare.
 - Écrivez des espaces ordinaires avant : ; ? ! et des apostrophes droites : le build pose les espaces insécables et
   les apostrophes typographiques.
 - Les commentaires comme celui-ci sont ignorés.
@@ -57,6 +59,11 @@ EN
 
 ### french
 FR
+
+## marketplace
+
+### label
+AGNOS marketplace
 
 ## hero
 
@@ -533,7 +540,7 @@ Une seule marketplace pour Claude Code et GitHub Copilot (support OpenAI Codex �
 
 ### step1-command
 ```
-claude plugin marketplace add <marketplace>
+claude plugin marketplace add {{link.marketplace}}
 claude plugin install agnos@agnos-marketplace
 ```
 
@@ -562,7 +569,7 @@ Démarrez une nouvelle session AGNOS, trigramme <TRI>.
 ## footer
 
 ### developers
-[Pour vos développeurs : la documentation sur GitHub](https://github.com/spashx/agnos-lightweight-process)
+Pour vos développeurs : la documentation sur GitHub
 
 ### license
 AGNOS est distribué sous licence GNU Affero General Public License v3.

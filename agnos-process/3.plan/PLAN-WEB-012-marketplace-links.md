@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-WEB-026: Implement marketplace links and buttons
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add `assets/site.json`; make `build_site.py` read it into the template's values and replace declared `{{link.<name>}}`
   in the fields; add the two "AGNOS marketplace" buttons and the footer link to the template; write the install command and the
   button label in `en.md` and `fr.md`; rebuild the site into `agnos-website` and commit it there.
@@ -40,8 +40,12 @@ This plan implements the tasks in the format specified below.
   skipped; Given a build into `agnos-website`, Then it exits 0 And no `TODO` nor `<marketplace>` is left in `index.html`.
 - **Dependencies**: TASK-WEB-025
 - **Assignee**: AI
-- **Verification**: Not yet run
-- **Assumptions**: None
+- **Verification**: Tests first, red before the code: `TestDeclaredLinks` 6 of 8 failed, `test_page` failed to import (no `site.json`). After:
+  `test_content` 29 OK; full suite on a copy 80 run, 79 OK, 1 skipped (no demo beside the copy), that test then OK in the repository.
+  `test_given_the_page_without_script_then_it_reads_complete_in_english` failed before this task (the owner's wording of 2026-11-14), fixed by TASK-WEB-027.
+  Build into a scratch folder: exit 0, 151 fields, two `href` to the marketplace, one to `#getting-started`, no `TODO`, no `&lt;marketplace&gt;`.
+- **Assumptions**: The install step's button is primary (the band's accent), for visibility; `render` takes the links as its last
+  argument, defaulting to none, so the existing calls stay; the footer's link moves from the content to the template.
 
 ### TASK-WEB-027: Fix English tour question spacing
 - **Tier**: S

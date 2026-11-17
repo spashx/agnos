@@ -1,0 +1,7 @@
+{
+  "_comment": "RQ-WEB-020 / DEC-WEB-008: the site's external link addresses, declared once. The template names each as {{v:link.<name>}}, the content as {{link.<name>}}; link.demo is computed by the build and may not be declared here.",
+  "links": {
+    "marketplace": "https://github.com/spashx/agnos-marketplace",
+    "getting-started": "https://github.com/spashx/agnos-marketplace#getting-started"
+  }
+}
