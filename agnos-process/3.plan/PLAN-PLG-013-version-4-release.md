@@ -50,9 +50,21 @@ This plan implements the tasks in the format specified below.
 - **Verification**: N/A (Tier S)
 - **Assumptions**: No requirement covers checkpoints; the cleanup is cited under RQ-PLG-027, the check before release preparation.
 
+### TASK-PLG-087: Name repository default branch
+- **Tier**: S
+- **Status**: Done
+- **Description**: In this repository's `AGENTS.md`, a Meta file never delivered, name `dev`, the default branch of AGNOS's development, in place of `main`.
+- **Requirement refs**: RQ-DOC-006
+- **ADR refs**: None
+- **Acceptance Criteria**: Given `AGENTS.md` section 2, Then it names `dev` as the default branch; Given `layers.json`, Then `AGENTS.md` is Meta.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
+
 ### TASK-PLG-083: Prepare version 4.0.0 release
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Run `agnos-meta-release-prep` and record version 4.0.0 with the documents docs-sync updates, in one commit.
 - **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-032
 - **ADR refs**: ADR-PLG-005
