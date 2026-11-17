@@ -38,6 +38,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
 
+### TASK-PLG-086: Remove covered plan checkpoint
+- **Tier**: S
+- **Status**: Done
+- **Description**: Delete `CHECKPOINT-PLG-2026-11-06.md`, whose completed and open items are all Done or Accepted, at the owner's request.
+- **Requirement refs**: RQ-PLG-027
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the checkpoint's items, When each is Done or Accepted in the index, Then the file is deleted And the index no longer lists it.
+- **Dependencies**: TASK-PLG-081
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: No requirement covers checkpoints; the cleanup is cited under RQ-PLG-027, the check before release preparation.
+
 ### TASK-PLG-083: Prepare version 4.0.0 release
 - **Tier**: M
 - **Status**: Not Started
