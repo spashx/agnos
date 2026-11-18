@@ -86,6 +86,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: `release_prep.py check`: passed (open: TASK-PLG-083 to 085); docs-sync: no edit; `review`: `current: 3.6.2`, `proposed: 3.7.0`, 4.0.0 approved by the owner; `set-version 4.0.0`: exit 0, `VERSION.txt` reads 4.0.0, the first changelog heading reads `## [4.0.0]`; release-prep suite: Ran 25 tests, OK, 0 skipped.
 - **Assumptions**: The owner removed the TASK-INI-020 line of `[3.6.2]` with the requirement it implemented; `[4.0.0]` adds TASK-DOC-006, TASK-DOC-007 and the demo fix, at the owner's request.
 
+### TASK-PLG-089: Assign links file to meta layer
+- **Tier**: S
+- **Status**: Done
+- **Description**: Add `assets/links.json`, read only by maintainer skills, to the Meta layer of `layers.json`, which the comment already announced; the changelog's entry no longer names that file.
+- **Requirement refs**: RQ-MTA-008, RQ-DOC-007
+- **ADR refs**: ADR-MTA-002 (DEC-MTA-008)
+- **Acceptance Criteria**: Given the commit of this task, When the rehearsal runs, Then it passes the layer check.
+- **Dependencies**: TASK-PLG-083
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
+
 ### TASK-PLG-084: Rehearse marketplace release
 - **Tier**: S
 - **Status**: Not Started

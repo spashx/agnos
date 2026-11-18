@@ -8,7 +8,8 @@
     "^(CLAUDE|AGENTS|SECURITY|CODE_OF_CONDUCT|CONTRIBUTING)\\.md$",
     "^\\.gitattributes$",
     "^assets/.*\\.svg$",
-    "^assets/social\\.png$"
+    "^assets/social\\.png$",
+    "^assets/links\\.json$"
   ],
   "delivered": [
     "^\\.github/instructions/",
