@@ -34,7 +34,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DOC-007: Link process documents to addresses
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make the README and the guide's template write their AGNOS addresses as checked reference definitions; link the
   Performance Center from the README, the guide in the marketplace as its source; rename the guide's row 8 to the Performance Center.
 - **Requirement refs**: RQ-DOC-007, RQ-DOC-008
@@ -43,8 +43,11 @@ This plan implements the tasks in the format specified below.
   Given the links test, Then it passes on both files.
 - **Dependencies**: TASK-DOC-006
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Tests first: `TestProcessDocumentLinks` 4 of 4 failed, and the hard-coded check failed on README.md (5 copies).
+  After: `test_links.py` 20 run, OK, none skipped; `agnos-init` 42 run, OK; `test_marketplace.py` 26 run, the same 2 failures as
+  TASK-DOC-006 (TASK-DOC-009), no new one.
+- **Assumptions**: The CLI commands, in code where no reference link works, name the marketplace by its GitHub shorthand
+  `spashx/agnos-marketplace`, which both CLIs accept; not yet proved by an install.
 
 ### TASK-DOC-008: Link demo README to addresses
 - **Tier**: M
@@ -60,3 +63,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**:
 - **Assumptions**:
+
+### TASK-DOC-009: Align release tests with current documents
+- **Tier**: S
+- **Status**: Done
+- **Description**: Make the release's tests read COMPATIBILITY.md's matrix layout ("macOS is not tested") and CONTRIBUTING.md's
+  heading `## Repository map`, both changed on purpose (owner's matrix of 2026-11-18, TASK-DOC-005).
+- **Requirement refs**: RQ-PLG-008, RQ-PLG-023
+- **ADR refs**: None
+- **Acceptance Criteria** (Gherkin): Given the current COMPATIBILITY.md and CONTRIBUTING.md, When `test_marketplace.py` runs, Then
+  both tests pass.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None

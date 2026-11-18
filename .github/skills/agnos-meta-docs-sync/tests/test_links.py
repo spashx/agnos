@@ -188,5 +188,57 @@ class TestRepositoryAddresses(unittest.TestCase):
         self.assertEqual(failures, [])
 
 
+README = "README.md"
+GUIDE = ".github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md"
+GUIDE_TABLE = "## What you actually type, all together"
+PERF_CENTER_ROW = "| 8. "
+PERF_CENTER_NAME = "Performance Center"
+PERF_CENTER_OPTIONS = ("--call-graph", "--history")
+FORMER_TRACE_WORDS = ("Trace", "traceability matrix")
+GUIDE_SOURCE = "Its source is"
+FULL_REFERENCE = re.compile(r"\]\[([^\]]+)\]")
+
+
+def referenced_names(text):
+    """The names a text references as [label][name] and also defines. RQ-DOC-008 / DEC-DOC-001"""
+    return set(FULL_REFERENCE.findall(text)) & set(definitions(text))
+
+
+def table_rows(text, heading):
+    """The table rows (lines starting with |) of the section under heading. RQ-DOC-008"""
+    section = text.split(heading, 1)[1].split("\n## ", 1)[0]
+    return [line for line in section.splitlines() if line.startswith("|")]
+
+
+class TestProcessDocumentLinks(unittest.TestCase):
+    """RQ-DOC-008 / DEC-DOC-001: the README and the guide link the AGNOS places."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.readme = (ROOT / README).read_text(encoding=ENCODING)
+        cls.guide = (ROOT / GUIDE).read_text(encoding=ENCODING)
+
+    def test_given_the_readme_then_it_links_the_perf_center_and_the_marketplace(self):
+        # Given the README, Then it references and defines perf-center and marketplace
+        self.assertLessEqual({"perf-center", "marketplace"}, referenced_names(self.readme))
+
+    def test_given_the_readme_then_the_guide_source_is_the_guide_in_the_marketplace(self):
+        # Given the README's sentence on the guide's source, Then its link is the [guide] reference
+        sentence = self.readme.split(GUIDE_SOURCE, 1)[1].split("<!--", 1)[0]
+        self.assertIn("][guide]", sentence)
+
+    def test_given_the_guide_table_then_row_8_names_the_perf_center_and_its_options(self):
+        # Given the table "What you actually type", Then row 8 names the Performance Center, --call-graph and --history
+        row = next(line for line in table_rows(self.guide, GUIDE_TABLE) if line.startswith(PERF_CENTER_ROW))
+        for word in (PERF_CENTER_NAME, *PERF_CENTER_OPTIONS):
+            self.assertIn(word, row)
+
+    def test_given_the_guide_table_then_no_row_names_a_trace(self):
+        # Given the table "What you actually type", Then no row names a trace or a traceability matrix
+        for line in table_rows(self.guide, GUIDE_TABLE):
+            for word in FORMER_TRACE_WORDS:
+                self.assertNotIn(word, line)
+
+
 if __name__ == "__main__":
     unittest.main()
