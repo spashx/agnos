@@ -49,7 +49,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DMO-023: Rebuild demo with product run
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run `build -Verify`, import the demo into `../agnos-demo` without push, rebuild the website and commit it there locally.
 - **Requirement refs**: RQ-DMO-027, RQ-DMO-021
 - **ADR refs**: ADR-DMO-001
