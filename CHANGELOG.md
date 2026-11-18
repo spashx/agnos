@@ -4,6 +4,16 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+- `CONTRIBUTING.md` rewritten: a pull request is accepted only if it was made with AGNOS, with the steps that make a change so, the grounds on which a reviewer declines a pull request, and the branches: `feature/<TRI>`, `dev` (where pull requests land) and `release` (maintainers' snapshots only) <!-- TASK-DOC-005, RQ-DOC-005, RQ-DOC-006 -->
+
+### Fixed
+- `README.md` overview illustration: `assets/agnos-overview.png` corrected after 3.6.2
+- The instructions' ADR diagram rule presents the class and sequence diagrams as examples of the static and dynamic diagrams, not as fixed UML defaults, and allows other Mermaid diagrams to help the reader
+- The instructions' C/C++ traceability rule names the implementation files (`.c`, `.cpp`) where references go, and the headers (`.h`, `.hpp`) they are not put in
+
 ## [3.6.2]
 
 ### Changed

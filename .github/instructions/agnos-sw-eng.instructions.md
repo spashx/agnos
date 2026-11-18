@@ -80,8 +80,8 @@ The unique identifier shall be in the format: `<TYPE>-<TRI>-<NNN>` where:
   - `<NNN>` is a zero-padded sequence number (e.g. 001, 002, etc) that is incremented for each new artifact of the same type and feature.
 
 ### MANDATORY TRACEABILITY
-- EACH ARTIFACT SHALL reference all related artifacts by their unique identifier.
-- Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class/function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
+- EACH ARTIFACT SHALL reference ALL related artifacts by their unique identifier.
+- Requirement IDs SHALL appear in ALL related artefacts: feature files, ADR files, Plan files, task descriptions, file headers, class AND function doc comments, those of test functions included. <!-- RQ-PLG-026 / DEC-PLG-021 -->
 - The user SHALL be able to grep any requirement ID and find all related code and documentation.
 - An artifact with no traceable requirement ID is considered incomplete and SHALL NOT be delivered.
 - ALWAYS put traceability references into comments, never as plain text, in every file outside agnos-process/; the artifact files of agnos-process/ hold their own IDs as plain text. <!-- RQ-PLG-041 -->
@@ -314,7 +314,6 @@ Tag every task with a tier before starting. The tier determines which steps are 
 - Scope grows: re-tier and get approval before continuing. Amending a DEC: Tier L minimum. <!-- RQ-FIX-004 -->
 
 ### Plan/Task File Template
-
 
 Every plan file in `agnos-process/3.plan/` SHALL follow this structure:
 
