@@ -712,7 +712,7 @@
       "time": "10:00",
       "by": "linda-pm",
       "with": "Claude Code/Claude Opus 5.5",
-      "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-005",
+      "message": "docs(CLI): FTR-CLI-001 HTTP API, typed client and command line, RQ-CLI-001 to RQ-CLI-006",
       "add": [
         "agnos-process/1.requirements/FTR-CLI-001-api-client-and-cli.md"
       ],
@@ -914,6 +914,32 @@
       ],
       "closeTasks": [
         "TASK-CLI-005"
+      ],
+      "index": true
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-21",
+      "time": "10:05",
+      "by": "sachin-tech",
+      "message": "test(CLI): ADR-CLI-001/TASK-CLI-006 tests for the service start command",
+      "add": [
+        "service/tests/test_main.py"
+      ]
+    },
+    {
+      "op": "commit",
+      "date": "2026-10-22",
+      "time": "09:30",
+      "by": "andy-tech",
+      "with": "Claude Code/Claude Opus 5.5",
+      "message": "feat(CLI): ADR-CLI-001/TASK-CLI-006 service start command and the office's rooms file",
+      "add": [
+        "service/roombook/__main__.py",
+        "service/rooms.json"
+      ],
+      "closeTasks": [
+        "TASK-CLI-006"
       ],
       "index": true
     },

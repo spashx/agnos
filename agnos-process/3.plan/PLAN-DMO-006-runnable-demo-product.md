@@ -31,7 +31,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DMO-022: Add service entry point to demo
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In the demo's content and scenario, add RQ-CLI-006 and TASK-CLI-006 to its CLI session, the service's entry point `python -m roombook` reading `service/rooms.json`, its tests written first, and the README commands of the service and the command-line tool.
 - **Requirement refs**: RQ-DMO-027, RQ-DMO-003, RQ-DMO-008, RQ-DMO-009
 - **ADR refs**: ADR-DMO-001 (DEC-DMO-002, DEC-DMO-004)
@@ -44,8 +44,8 @@ This plan implements the tasks in the format specified below.
   - **Then** the test commit of TASK-CLI-006 precedes its code commit, both in the CLI session before its merge
 - **Dependencies**: TASK-DMO-021
 - **Assignee**: AI
-- **Verification**: Not yet run
-- **Assumptions**: The rooms come from a versioned JSON file; the service listens on 127.0.0.1:8080, the client's default.
+- **Verification**: `python -m unittest tests.test_main` (content `service/`): failed before `__main__.py` (import error), then Ran 4 tests, OK; whole service suite Ran 97 tests, OK; skill suite Ran 18 tests, OK. `build -Verify`: test commit of TASK-CLI-006 (10-21) before its code commit (10-22), RQ-DMO-012 and RQ-DMO-017 PASS, RQ-DMO-021 same HEAD `ebed4e9`; `verify -SkipRebuild` after the room-name fix of the TASK-DMO-021 check (PowerShell 5.1 passes a JSON array as one object): `28 passed, 0 failed`. No test skipped.
+- **Assumptions**: The rooms come from a versioned JSON file; the service listens on 127.0.0.1:8080, the client's default; the entry point schedules no reminder.
 
 ### TASK-DMO-023: Rebuild demo with product run
 - **Tier**: S

@@ -709,7 +709,7 @@ TASK-DMO-020|38-61|Done|Recast the demo scenario for Acme
 @agnos-process/3.plan/PLAN-DMO-006-runnable-demo-product.md
 PLAN-DMO-006|1-63||Runnable demo product
 TASK-DMO-021|17-31|Done|Check demo product run in verify
-TASK-DMO-022|32-49|Not Started|Add service entry point to demo
+TASK-DMO-022|32-49|Done|Add service entry point to demo
 TASK-DMO-023|50-63|Not Started|Rebuild demo with product run
 @agnos-process/3.plan/PLAN-DOC-001-documentation-sync.md
 PLAN-DOC-001|1-72||Documentation Sync Sub-Agent

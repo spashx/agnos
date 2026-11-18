@@ -373,7 +373,7 @@ function Wait-Http([string]$Url) {
 $readmeText = $readme -join "`n"
 $commandsMissing = @($SERVICE_COMMAND, $UI_COMMAND, $CLI_COMMAND | Where-Object { -not $readmeText.Contains($_) })
 $roomName = $null
-if (Test-Path -LiteralPath (Join-Path $Demo $ROOMS_FILE)) { $roomName = @([System.IO.File]::ReadAllText((Join-Path $Demo $ROOMS_FILE)) | ConvertFrom-Json)[0].name }
+if (Test-Path -LiteralPath (Join-Path $Demo $ROOMS_FILE)) { $rooms = [System.IO.File]::ReadAllText((Join-Path $Demo $ROOMS_FILE)) | ConvertFrom-Json; $roomName = $rooms[0].name }
 $service = $null; $ui = $null; $runProblems = New-Object System.Collections.ArrayList
 try {
   $service = Start-Process -FilePath python -ArgumentList '-m', 'roombook' -WorkingDirectory (Join-Path $Demo 'service') -PassThru -WindowStyle Hidden

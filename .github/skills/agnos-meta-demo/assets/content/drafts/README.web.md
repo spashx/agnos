@@ -69,7 +69,9 @@ git log --graph --oneline --all                                 # the sessions a
 ```
 cd service && python -m unittest discover -s tests -t .         # Python tests (standard library only)
 cd client && node --test "tests/*.test.ts"                      # TypeScript tests (Node 22.18 or later)
+cd service && python -m roombook                                # the service on http://127.0.0.1:8080, rooms from service/rooms.json
 cd client && npm run ui                                       # web interface on http://127.0.0.1:3000 (ROOMBOOK_URL names the service)
+cd client && node src/cli.ts rooms                             # command-line tool: rooms, book, cancel
 ```
 
 The AGNOS skills `agnos-index` and `agnos-perf-center` run from an AGNOS installation, on this folder as the project.

@@ -25,7 +25,7 @@ working days and hours only.
 |---|---|
 | `scripts/replay.ps1` | The engine: replays a scenario into a new git repository |
 | `scripts/build.ps1` | Runs the engine on this skill's scenario and content, records the build |
-| `scripts/verify.ps1` | One PASS/FAIL line per requirement; RQ-DMO-027 runs the product as the README says <!-- RQ-DMO-001 to RQ-DMO-027 --> |
+| `scripts/verify.ps1` | One PASS/FAIL line per requirement, including a run of the product as the README says <!-- RQ-DMO-001 to RQ-DMO-027 --> |
 | `assets/scenario.json` | Cast (humans and agents), calendar, and the ordered commits (date, time, identity, co-author, files) |
 | `assets/content/` | The demo's files: process documents, Python and TypeScript code, README, calendar, and `project/` for its git files, named so they do not apply here |
 | `tests/test_meta_prefix.py` | The tests of the names and of the prefix as the only criterion <!-- RQ-MTA-001, RQ-MTA-002 --> |
