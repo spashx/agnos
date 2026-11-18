@@ -920,7 +920,7 @@ TASK-PLG-082|29-40|Done|Regenerate presentation website
 TASK-PLG-086|41-52|Done|Remove covered plan checkpoint
 TASK-PLG-087|53-64|Done|Name repository default branch
 TASK-PLG-088|65-76|Done|Rebuild presentation website
-TASK-PLG-083|77-88|In Progress|Prepare version 4.0.0 release
+TASK-PLG-083|77-88|Done|Prepare version 4.0.0 release
 TASK-PLG-084|89-100|Not Started|Rehearse marketplace release
 TASK-PLG-085|101-111|Not Started|Regenerate marketplace folder
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md

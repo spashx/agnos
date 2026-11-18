@@ -76,15 +76,15 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-083: Prepare version 4.0.0 release
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Run `agnos-meta-release-prep` and record version 4.0.0 with the documents docs-sync updates, in one commit.
 - **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-032
 - **ADR refs**: ADR-PLG-005
 - **Acceptance Criteria**: Given the approved diff and version 4.0.0, When `set-version` runs, Then `VERSION.txt` holds 4.0.0 And the changelog's `[Unreleased]` heading becomes `[4.0.0]` And the release-prep suite passes.
 - **Dependencies**: TASK-PLG-082
 - **Assignee**: AI
-- **Verification**: Not yet run
-- **Assumptions**: None
+- **Verification**: `release_prep.py check`: passed (open: TASK-PLG-083 to 085); docs-sync: no edit; `review`: `current: 3.6.2`, `proposed: 3.7.0`, 4.0.0 approved by the owner; `set-version 4.0.0`: exit 0, `VERSION.txt` reads 4.0.0, the first changelog heading reads `## [4.0.0]`; release-prep suite: Ran 25 tests, OK, 0 skipped.
+- **Assumptions**: The owner removed the TASK-INI-020 line of `[3.6.2]` with the requirement it implemented; `[4.0.0]` adds TASK-DOC-006, TASK-DOC-007 and the demo fix, at the owner's request.
 
 ### TASK-PLG-084: Rehearse marketplace release
 - **Tier**: S
