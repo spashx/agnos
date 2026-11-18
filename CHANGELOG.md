@@ -18,7 +18,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - `README.md` overview illustration replaced: `assets/agnos-overview.png` is the new image, and its SVG sources stay in `assets/`, not delivered with the plugin <!-- TASK-PLG-078, RQ-PLG-047 -->
-- END SESSION step 4 of the instructions recommends a context reset: once the steps are done and no task remains, the agent tells you to run the context-reset command (`/clear` on Claude Code and GitHub Copilot) <!-- TASK-INI-020, RQ-INI-022 -->
 
 ## [3.6.1]
 
