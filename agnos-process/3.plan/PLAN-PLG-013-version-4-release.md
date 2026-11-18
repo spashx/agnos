@@ -124,7 +124,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-085: Regenerate marketplace folder
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Replace the content of `agnos-marketplace`, `.git` excepted, by the proved output, and commit it there locally as `4.0.0`.
 - **Requirement refs**: RQ-PLG-001, RQ-PLG-032
 - **ADR refs**: ADR-PLG-001
