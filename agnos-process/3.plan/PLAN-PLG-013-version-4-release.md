@@ -112,7 +112,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-084: Rehearse marketplace release
 - **Tier**: S
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Rehearse the release of the version commit with `agnos-meta-release --dry-run` into an empty folder outside the repository, then prove it with `agnos-meta-plugin-proof`.
 - **Requirement refs**: RQ-PLG-001, RQ-PLG-002, RQ-PLG-031, RQ-PLG-032
 - **ADR refs**: ADR-PLG-001

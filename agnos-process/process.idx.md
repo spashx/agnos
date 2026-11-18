@@ -923,7 +923,7 @@ TASK-PLG-088|65-76|Done|Rebuild presentation website
 TASK-PLG-083|77-88|Done|Prepare version 4.0.0 release
 TASK-PLG-089|89-100|Done|Assign links file to meta layer
 TASK-PLG-090|101-112|Done|Parse validator provides section
-TASK-PLG-084|113-124|In Progress|Rehearse marketplace release
+TASK-PLG-084|113-124|Done|Rehearse marketplace release
 TASK-PLG-085|125-135|Not Started|Regenerate marketplace folder
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
