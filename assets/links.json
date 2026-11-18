@@ -1,0 +1,13 @@
+{
+  "_comment": "RQ-DOC-007 / DEC-DOC-001: the addresses of AGNOS's repositories and pages, each declared once; documents write them as [name]: address reference definitions and the website lists the names it uses in its site.json. Meta layer, never delivered.",
+  "links": {
+    "process": "https://github.com/spashx/agnos",
+    "marketplace": "https://github.com/spashx/agnos-marketplace",
+    "getting-started": "https://github.com/spashx/agnos-marketplace#getting-started",
+    "guide": "https://github.com/spashx/agnos-marketplace/blob/main/plugins/agnos/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md",
+    "website": "https://spashx.github.io/agnos-website",
+    "website-repository": "https://github.com/spashx/agnos-website",
+    "perf-center": "https://spashx.github.io/agnos-website/demo/PERF-CENTER.html",
+    "demo-repository": "https://github.com/spashx/agnos-demo"
+  }
+}

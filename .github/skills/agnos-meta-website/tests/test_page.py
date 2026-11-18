@@ -294,7 +294,10 @@ class TestTheStartSteps(unittest.TestCase):
 
 
 MARKETPLACE_LABEL = "AGNOS marketplace"     # RQ-WEB-020: the label of both marketplace buttons
-SITE_LINKS = json.loads((site.ASSETS_DIR / "site.json").read_text(encoding="utf-8"))["links"]
+# RQ-DOC-007 / DEC-DOC-001: site.json lists names, the repository's links.json holds their addresses
+LISTED_LINKS = json.loads((site.ASSETS_DIR / "site.json").read_text(encoding="utf-8"))["links"]
+REPOSITORY_LINKS = json.loads(site.LINKS_FILE.read_text(encoding="utf-8"))["links"]
+SITE_LINKS = {name: REPOSITORY_LINKS[name] for name in LISTED_LINKS}
 
 
 def anchors_to(html, address):
@@ -305,8 +308,10 @@ def anchors_to(html, address):
 class TestTheMarketplaceLinks(unittest.TestCase):
     """RQ-WEB-020, RQ-WEB-009 / DEC-WEB-008 (TASK-WEB-026): the marketplace and getting-started links, declared once."""
 
-    def test_given_site_json_then_it_declares_the_marketplace_and_its_getting_started_section(self):
-        # Given the assets' site.json, Then it declares both addresses of the owner's request of 2026-11-18
+    def test_given_site_json_then_it_lists_the_marketplace_and_its_getting_started_section(self):
+        # Given the assets' site.json and the links.json it reads (RQ-DOC-007), Then both names resolve to the
+        # addresses of the owner's request of 2026-11-18
+        self.assertEqual(LISTED_LINKS, ["marketplace", "getting-started"])
         self.assertEqual(SITE_LINKS["marketplace"], "https://github.com/spashx/agnos-marketplace")
         self.assertEqual(SITE_LINKS["getting-started"], "https://github.com/spashx/agnos-marketplace#getting-started")
 
@@ -339,8 +344,8 @@ class TestTheMarketplaceLinks(unittest.TestCase):
         self.assertIn(SITE_LINKS["marketplace"], french["start.step1-command"])
         self.assertNotIn("TODO", json.dumps(french))
 
-    def test_given_the_assets_then_each_address_is_written_in_site_json_only(self):
-        # Given the template and both languages, Then none holds an address of site.json nor the <marketplace> placeholder
+    def test_given_the_assets_then_each_address_is_written_in_links_json_only(self):
+        # Given the template and both languages, Then none holds an address of links.json nor the <marketplace> placeholder
         sources = [site.ASSETS_DIR / site.TEMPLATE] + [site.ASSETS_DIR / site.CONTENT / f"{lang}.md" for lang in site.LANGUAGES]
         for source in sources:
             text = source.read_text(encoding="utf-8")

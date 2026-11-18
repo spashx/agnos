@@ -94,6 +94,7 @@ class Fixture(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="agnos-meta-website-"))
         self.assets = self.root / "assets"
+        self.links_file = self.root / "links.json"     # RQ-DOC-007: the repository's links file, injected into the build
         (self.assets / "content").mkdir(parents=True)
         (self.assets / "screens").mkdir()
         (self.assets / "template.html").write_text(TEMPLATE, encoding="utf-8")
@@ -102,9 +103,12 @@ class Fixture(unittest.TestCase):
         (self.assets / "screens" / "view.png").write_bytes(PNG)
         self.write_links({LINK_NAME: LINK_ADDRESS})
 
-    def write_links(self, links):
-        """The fixture's site.json, declaring the given links. RQ-WEB-020"""
-        (self.assets / "site.json").write_text(json.dumps({"links": links}), encoding="utf-8")
+    def write_links(self, links, listed=None):
+        """The fixture's links.json, holding the given addresses, and its site.json, listing the given names (all of
+        them by default). RQ-WEB-020, RQ-DOC-007 / DEC-DOC-001"""
+        self.links_file.write_text(json.dumps({"links": links}), encoding="utf-8")
+        names = list(links) if listed is None else listed
+        (self.assets / "site.json").write_text(json.dumps({"links": names}), encoding="utf-8")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -115,7 +119,8 @@ class Fixture(unittest.TestCase):
     def page(self):
         """(page, errors) of a build of the fixture."""
         errors = []
-        result = site.build_page(self.assets, errors, tokens={tier: {} for tier in site.TIERS})
+        result = site.build_page(self.assets, errors, tokens={tier: {} for tier in site.TIERS},
+                                 links_file=self.links_file)
         return (result[0] if result else None), errors
 
     def french(self, page):
@@ -242,7 +247,8 @@ class TestVariableLeftInAField(Fixture):
 
 
 class TestDeclaredLinks(Fixture):
-    """RQ-WEB-020, RQ-WEB-004 / DEC-WEB-008: the addresses of assets/site.json, in the fields and the template."""
+    """RQ-WEB-020, RQ-WEB-004, RQ-DOC-007 / DEC-WEB-008, DEC-DOC-001: the addresses of the names assets/site.json lists,
+    read from the repository's links.json, in the fields and the template."""
 
     def test_given_a_declared_link_in_a_field_then_both_languages_hold_its_address(self):
         # Given {{link.site}} in a paragraph of each language, When built, Then each holds the declared address
@@ -296,6 +302,28 @@ class TestDeclaredLinks(Fixture):
         page, errors = self.page()
         self.assertIsNone(page)
         self.assertIn("site.json: link demo is computed by the build", errors)
+
+    def test_given_a_listed_name_absent_from_links_json_then_it_is_reported(self):
+        # Given site.json listing a name links.json lacks (RQ-DOC-007), When built, Then the error names it
+        self.write_links({LINK_NAME: LINK_ADDRESS}, listed=[LINK_NAME, "missing"])
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertIn("site.json: link missing is not declared in links.json", errors)
+
+    def test_given_a_link_declared_but_not_listed_then_its_variable_is_unknown(self):
+        # Given links.json declaring a name site.json does not list, When a field uses it, Then it is reported
+        self.write_links({LINK_NAME: LINK_ADDRESS, "other": "https://example.org/other"}, listed=[LINK_NAME])
+        self.write("en.md", EN.replace("The index, an excerpt", "See {{link.other}}"))
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertIn("en.md: hero.figure: unknown variable {{link.other}}", errors)
+
+    def test_given_no_links_json_then_it_is_reported(self):
+        # Given no links.json (RQ-DOC-007), When built, Then the error names the file
+        self.links_file.unlink()
+        page, errors = self.page()
+        self.assertIsNone(page)
+        self.assertTrue(any(error.startswith("links.json:") for error in errors), errors)
 
     def test_given_no_site_json_then_it_is_reported(self):
         # Given the assets without site.json, When built, Then the error names the file

@@ -58,7 +58,8 @@ rewritten at 1920 × 1080. Fulfils RQ-WEB-019, RQ-WEB-012.
 - **Statement**: The build SHALL use `assets/site.json` for the site's external link addresses, exposing each as `{{v:link.<name>}}` in the template and `{{link.<name>}}` in the content, beside the computed `link.demo`.
 - **Rationale**: the marketplace address appears in two buttons and a console command, and the getting-started address in the footer
   (owner request of 2026-11-18): one file avoids duplicates, and the owner changes an address without touching the template or the two
-  languages; any undeclared link fails the build (RQ-WEB-004). Fulfils RQ-WEB-020.
+  languages; any undeclared link fails the build (RQ-WEB-004). Fulfils RQ-WEB-020. Amended by DEC-DOC-001 (2026-11-18):
+  `site.json` names the links, their addresses come from the repository's `assets/links.json`.
 
 ## Consequences
 - The owner edits text and images in `assets/` and rebuilds; no page code to touch.

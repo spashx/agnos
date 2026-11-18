@@ -6,7 +6,8 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
   dimmed), or one image: ![alternative text](screens/<file>.png)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
-- {{link.<name>}} is replaced by an address declared in assets/site.json (RQ-WEB-020); write no address that file declares.
+- {{link.<name>}} is replaced by an address whose name is listed in assets/site.json and whose address comes from the repository's assets/links.json (RQ-WEB-020, RQ-DOC-007);
+  write no address that links.json declares.
 - Comments like this one are ignored.
 -->
 

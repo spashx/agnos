@@ -6,8 +6,8 @@ Modifiez librement les mots ; gardez la structure, puis relancez le build du ski
 - Un champ est un paragraphe, une liste d'éléments "- ", un extrait d'index entre deux lignes ``` (les lignes
   commençant par @ sont atténuées), ou une image : ![texte alternatif](screens/<fichier>.png)
 - En ligne : *emphase*, **gras**, `code`, [texte du lien](adresse). Terminez une ligne par \ pour forcer un retour à la ligne.
-- {{link.<nom>}} est remplacé par une adresse déclarée dans assets/site.json (RQ-WEB-020) ; n'écrivez aucune adresse
-  que ce fichier déclare.
+- {{link.<nom>}} est remplacé par une adresse dont le nom est listé dans assets/site.json et que
+  assets/links.json du dépôt déclare (RQ-WEB-020, RQ-DOC-007) ; n'écrivez aucune adresse que links.json déclare.
 - Écrivez des espaces ordinaires avant : ; ? ! et des apostrophes droites : le build pose les espaces insécables et
   les apostrophes typographiques.
 - Les commentaires comme celui-ci sont ignorés.

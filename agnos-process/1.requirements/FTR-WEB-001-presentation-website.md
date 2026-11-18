@@ -235,16 +235,16 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 - **EARS Type**: Complex
 - **Statement**: The page SHALL link the AGNOS marketplace from a ghost button "AGNOS marketplace" right of the header's demo button
   and from a button of the same label under the install step's command, SHALL show the marketplace address in that command, and
-  SHALL link the footer's developer documentation to the marketplace's getting-started section; every address SHALL be declared once,
-  in `assets/site.json`; IF the template or a field names a link that file does not declare, THEN `build` SHALL fail naming it, its
+  SHALL link the footer's developer documentation to the marketplace's getting-started section; `assets/site.json` SHALL name the
+  links the site uses, each address taken from the repository's `assets/links.json` (RQ-DOC-007, amended 2026-11-18); IF the template or a field names a link that file does not declare, THEN `build` SHALL fail naming it, its
   file and its field, and exit 1.
 - **Rationale**: the site gave no way to reach the marketplace it tells the reader to install from (owner request of 2026-11-18);
   one declaration per address avoids duplicates.
 - **Priority**: Must
-- **Acceptance Criteria**: Given `site.json` declaring `marketplace` and `getting-started`, When `build` runs, Then the header and the
+- **Acceptance Criteria**: Given `site.json` naming `marketplace` and `getting-started`, When `build` runs, Then the header and the
   install step each hold a button "AGNOS marketplace" to the `marketplace` address, the header's a ghost button after the demo button,
   And the install command reads `claude plugin marketplace add` followed by that address, And the footer's developer link leads to the
-  `getting-started` address; Given each address, Then it appears in no file of the assets but `site.json`; Given `{{link.unknown}}` in a
+  `getting-started` address of `links.json`; Given each address, Then it appears in no file of the assets; Given `{{link.unknown}}` in a
   field or `{{v:link.unknown}}` in the template, When `build` runs, Then the error names it and the exit code is 1.
 - **Dependencies**: RQ-WEB-003, RQ-WEB-004, RQ-WEB-009, RQ-WEB-015
 
