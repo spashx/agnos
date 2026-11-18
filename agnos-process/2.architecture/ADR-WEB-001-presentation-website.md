@@ -1,7 +1,7 @@
 # ADR-WEB-001: A Maintainer Skill That Assembles the Site From Markdown, Images and the Demo Page
 
 ## Status
-Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions. DEC-WEB-007 approved by the owner on 2026-11-12 for RQ-WEB-019.
+Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions. DEC-WEB-007 approved by the owner on 2026-11-12 for RQ-WEB-019. DEC-WEB-008 approved by the owner on 2026-11-18 for RQ-WEB-020.
 
 ## Context
 The presentation website must follow AGNOS's evolutions, in English and French, with visuals continuous with the Performance Center.
@@ -54,11 +54,19 @@ example frames in place of the literal `16/10`. `build_site.py` reads each PNG's
 library), and fails when the ratio is off by more than 0.5% or the width is below 1920 px; the placeholders of DEC-WEB-004 are
 rewritten at 1920 × 1080. Fulfils RQ-WEB-019, RQ-WEB-012.
 
+### DEC-WEB-008: Link addresses declared once in `assets/site.json`
+- **Statement**: The build SHALL use `assets/site.json` for the site's external link addresses, exposing each as `{{v:link.<name>}}` in the template and `{{link.<name>}}` in the content, beside the computed `link.demo`.
+- **Rationale**: the marketplace address appears in two buttons and a console command, and the getting-started address in the footer
+  (owner request of 2026-11-18): one file avoids duplicates, and the owner changes an address without touching the template or the two
+  languages; any undeclared link fails the build (RQ-WEB-004). Fulfils RQ-WEB-020. Amended by DEC-DOC-001 (2026-11-18):
+  `site.json` names the links, their addresses come from the repository's `assets/links.json`.
+
 ## Consequences
 - The owner edits text and images in `assets/` and rebuilds; no page code to touch.
 - The site cannot open the demo on a given view until the Performance Center supports it; screenshots open the page, or an element.
 - Screenshots go stale when the Performance Center changes, until the owner retakes them.
 - A rebuild without `--demo-page` needs the demo built and Python packages for the call graph, as `agnos-meta-demo` does.
+- An external address changes in `assets/site.json` only (DEC-WEB-008); the content may hold `{{link.<name>}}`, and no other variable.
 
 ## Alternatives Considered
 - **Redrawing the views with ECharts from the demo's data**: tried in the mock-up's second version; drifts from the real views. Rejected.
@@ -89,6 +97,9 @@ classDiagram
   class Tokens {
     +themes
   }
+  class SiteConfig {
+    +links: name to address
+  }
   class DemoPage {
     +PERF-CENTER.html
     +data files
@@ -102,6 +113,9 @@ classDiagram
   Content "1" *-- "many" Field
   BuildSite --> Template : fills slots
   BuildSite --> Tokens : writes CSS variables
+  BuildSite --> SiteConfig : reads link addresses
+  Template ..> SiteConfig : v:link.name
+  Field ..> SiteConfig : link.name
   BuildSite --> DemoPage : copies or generates
   BuildSite --> Site : writes
   Tokens ..> DemoPage : same brand and identity colours
@@ -116,7 +130,8 @@ sequenceDiagram
   participant P as agnos-perf-center
   participant O as Output folder
   M->>B: build --demo <repo> --out <folder> [--demo-page <page>]
-  B->>A: read en.md, fr.md, template.html, tokens.json, screens/
+  B->>A: read en.md, fr.md, template.html, tokens.json, site.json, screens/
+  B->>B: replace each declared link in the template and the fields
   B->>B: parse and check both languages against the template
   B->>D: measure the process documents and process.idx.md
   alt --demo-page given

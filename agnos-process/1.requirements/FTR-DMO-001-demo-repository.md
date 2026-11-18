@@ -200,6 +200,22 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
   - **And** the client's tests pass
 - **Dependencies**: RQ-DMO-010, RQ-DMO-011, RQ-DMO-012, RQ-DMO-004
 
+### RQ-DMO-027: Product run from the README
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The README of the demo SHALL give a command for each part of the product (the service, the web
+  interface, the command-line tool) and the tests, and each of these commands SHALL work on the rebuilt demo: the service
+  starts with the rooms of a file of the demo, and the web interface and the command-line tool show those rooms.
+- **Rationale**: a reader who runs the demo must see the product work; the service had no entry point (owner request of
+  2026-11-18).
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** the demo rebuilt by `build`
+  - **When** the service is started with the README's command
+  - **Then** the web interface started with the README's command answers 200 with the name of a room of the rooms file
+  - **And** the command-line tool's `rooms` command exits 0 with that name
+- **Dependencies**: RQ-DMO-003, RQ-DMO-009, RQ-DMO-022
+
 ---
 
 ## Non-Functional Requirements

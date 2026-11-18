@@ -79,6 +79,20 @@ and a TypeScript client and a command-line tool built on it make them easy to ca
   - **Then** they answer 200, 201 and 204, and a conflict answers 409 with code CONFLICT
 - **Dependencies**: RQ-BKG-002, RQ-BKG-003, RQ-BKG-005
 
+### RQ-CLI-006: Service start command
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN `python -m roombook` is run in `service/`, the booking service SHALL load the rooms of
+  `rooms.json`, choose its reservation storage from the configuration, and answer HTTP on 127.0.0.1, port 8080.
+- **Rationale**: The client, the command-line tool and the web interface need a running service to call.
+- **Priority**: Must
+- **Acceptance Criteria** (Gherkin):
+  - **Given** a rooms file holding two rooms
+  - **When** the service is started
+  - **Then** `GET /rooms` answers the two rooms
+  - **And** the service listens on 127.0.0.1, port 8080
+- **Dependencies**: RQ-CLI-005, RQ-BKG-001, RQ-BKG-007
+
 ---
 
 ## Non-Functional Requirements

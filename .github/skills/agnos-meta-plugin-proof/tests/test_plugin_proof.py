@@ -157,6 +157,13 @@ class StrictValidationTest(unittest.TestCase):
                f"{STRICT_FAILED}")
         self.assertEqual(proof.PASS, self.judged(out)["status"])
 
+    def test_RQ_PLG_046_given_a_provides_block_after_the_logo_warning_then_the_validation_passes(self):
+        """TASK-PLG-090: Claude Code 2.1.327 lists what the plugin provides after the warnings; those lines are no warning."""
+        out = (f"Validating plugin manifest: x\n\n‼ Found 1 warning:\n\n{LOGO_WARNING}\n"
+               "Provides:\n\n  > skills: agnos:agnos-index\n  > skills: agnos:agnos-init\n"
+               f"{STRICT_FAILED}")
+        self.assertEqual(proof.PASS, self.judged(out)["status"])
+
     def test_RQ_PLG_046_given_a_failure_without_any_warning_then_the_validation_fails(self):
         self.assertEqual(proof.FAIL, self.judged(STRICT_FAILED)["status"])
 

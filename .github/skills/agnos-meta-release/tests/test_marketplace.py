@@ -164,7 +164,7 @@ class WhatWasTestedTest(unittest.TestCase):
     """RQ-PLG-008, amended by RQ-PLG-023: what was tested is stated in COMPATIBILITY.md."""
 
     def test_RQ_PLG_008_given_compatibility_then_it_says_macos_is_not_tested(self):
-        self.assertIn("| macOS | Not tested", (ROOT / COMPATIBILITY).read_text(encoding="utf-8"))
+        self.assertIn("macOS is not tested", (ROOT / COMPATIBILITY).read_text(encoding="utf-8"))     # TASK-DOC-009
 
     def test_RQ_PLG_043_given_the_delivered_documents_then_none_names_codex(self):
         """RQ-PLG-043 / DEC-PLG-033."""
@@ -193,7 +193,7 @@ class ReadmeTest(unittest.TestCase):
             self.assertNotIn(moved.lower(), self.text.lower(), moved)
 
     def test_RQ_PLG_023_given_contributing_then_it_holds_the_repository_map(self):
-        self.assertIn("## Repository Map", (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"))
+        self.assertIn("## Repository map", (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"))     # TASK-DOC-009
 
 
 

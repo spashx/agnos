@@ -6,6 +6,8 @@ Edit the words freely; keep the structure, then build again with the agnos-meta-
 - A field is one paragraph, a list of "- " items, an index excerpt between two ``` lines (lines starting with @ are
   dimmed), or one image: ![alternative text](screens/<file>.png)
 - Inline: *emphasis*, **strong**, `code`, [link text](address). End a line with \ to force a line break.
+- {{link.<name>}} is replaced by an address whose name is listed in assets/site.json and whose address comes from the repository's assets/links.json (RQ-WEB-020, RQ-DOC-007);
+  write no address that links.json declares.
 - Comments like this one are ignored.
 -->
 
@@ -55,6 +57,11 @@ EN
 
 ### french
 FR
+
+## marketplace
+
+### label
+AGNOS marketplace
 
 ## hero
 
@@ -195,7 +202,7 @@ What makes it possible
 Matrix view
 
 ### question
-Was everything we asked for actually built ?
+Was everything we asked for actually built?
 
 ### see
 The end-to-end traceability matrix, from functional capabilities to code, on a single page, directly exportable.
@@ -529,7 +536,7 @@ A single marketplace for Claude Code and GitHub Copilot (OpenAI Codex support co
 
 ### step1-command
 ```
-claude plugin marketplace add <marketplace>
+claude plugin marketplace add {{link.marketplace}}
 claude plugin install agnos@agnos-marketplace
 ```
 
@@ -558,7 +565,7 @@ Start a new AGNOS session, trigram <TRI>.
 ## footer
 
 ### developers
-[TODO LIEN GETTING STARTED DU PLUG For your developers: the documentation on GitHub](https://github.com/spashx/agnos-lightweight-process)
+For your developers: the documentation on GitHub
 
 ### license
 AGNOS is distributed under the GNU Affero General Public License v3.
