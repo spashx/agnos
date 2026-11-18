@@ -62,6 +62,18 @@ This plan implements the tasks in the format specified below.
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
 
+### TASK-PLG-088: Rebuild presentation website
+- **Tier**: S
+- **Status**: Done
+- **Description**: Build the site again with `agnos-meta-website build` into `agnos-website`, its links now read from `assets/links.json`, and commit it there locally.
+- **Requirement refs**: RQ-WEB-001, RQ-WEB-002, RQ-WEB-020
+- **ADR refs**: ADR-WEB-001
+- **Acceptance Criteria**: Given the regenerated demo, When the site is built into `agnos-website`, Then the exit code is 0 And only `index.html`, `screens/` and `demo/` change.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The commit in `agnos-website` is named `4.0.0: links from links.json`.
+
 ### TASK-PLG-083: Prepare version 4.0.0 release
 - **Tier**: M
 - **Status**: In Progress
