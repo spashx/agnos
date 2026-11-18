@@ -240,5 +240,28 @@ class TestProcessDocumentLinks(unittest.TestCase):
                 self.assertNotIn(word, line)
 
 
+DEMO_READMES = (".github/skills/agnos-meta-demo/assets/content/README.md",
+                ".github/skills/agnos-meta-demo/assets/content/drafts/README.web.md")    # the first one, then the final one
+DEMO_LINKED_NAMES = {"perf-center", "marketplace", "process"}
+FORMER_SKILL_NAME = "traceability skill"
+
+
+class TestDemoReadmeLinks(unittest.TestCase):
+    """RQ-DOC-008 / DEC-DOC-001: both READMEs of the demo's content link the AGNOS places and name the Performance Center."""
+
+    def test_given_each_demo_readme_then_it_links_the_perf_center_the_marketplace_and_the_process(self):
+        # Given each README of the demo's content, Then it references and defines perf-center, marketplace and process
+        for document in DEMO_READMES:
+            text = (ROOT / document).read_text(encoding=ENCODING)
+            self.assertLessEqual(DEMO_LINKED_NAMES, referenced_names(text), document)
+
+    def test_given_each_demo_readme_then_it_names_the_perf_center_not_the_traceability_skill(self):
+        # Given each README of the demo's content, Then it names the Performance Center And not the traceability skill
+        for document in DEMO_READMES:
+            text = (ROOT / document).read_text(encoding=ENCODING)
+            self.assertNotIn(FORMER_SKILL_NAME, text, document)
+            self.assertIn(PERF_CENTER_NAME, text, document)
+
+
 if __name__ == "__main__":
     unittest.main()

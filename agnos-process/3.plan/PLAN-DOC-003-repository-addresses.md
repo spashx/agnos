@@ -51,7 +51,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-DOC-008: Link demo README to addresses
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make both READMEs of the demo's content link the Performance Center, the marketplace and the process repository
   and name the Performance Center; rebuild and verify the demo, then import it into `../agnos-demo`.
 - **Requirement refs**: RQ-DOC-007, RQ-DOC-008
@@ -61,8 +61,11 @@ This plan implements the tasks in the format specified below.
   build's HEAD And its `origin` is unchanged.
 - **Dependencies**: TASK-DOC-006
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: Tests first: `TestDemoReadmeLinks` 2 of 2 failed; after: `test_links.py` 22 run, OK; `agnos-meta-demo` tests 18 run,
+  OK; none skipped. `build -Verify`: exit 0, 27 PASS, 0 FAIL, demo HEAD `f2943d0`; its `README.md` holds `## AGNOS` and the three
+  definitions, no "traceability skill". `../agnos-demo`: `main` at `f2943d0`, `feature/*` imported, `origin` unchanged, not pushed.
+- **Assumptions**: The demo's READMEs carry no comment citing RQ-DOC-007 or RQ-DOC-008: the demo's verification refuses the IDs of
+  AGNOS's own development (RQ-INI-008).
 
 ### TASK-DOC-009: Align release tests with current documents
 - **Tier**: S

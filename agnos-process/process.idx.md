@@ -715,11 +715,11 @@ TASK-DOC-004|62-72|Done|The sub-agent defined once, in .github
 PLAN-DOC-002|1-32||Contributor guide rewrite
 TASK-DOC-005|16-32|Done|Rewrite contributor guide
 @agnos-process/3.plan/PLAN-DOC-003-repository-addresses.md
-PLAN-DOC-003|1-79||Unified AGNOS repository addresses
+PLAN-DOC-003|1-82||Unified AGNOS repository addresses
 TASK-DOC-006|17-34|Done|Declare AGNOS addresses once
 TASK-DOC-007|35-51|Done|Link process documents to addresses
-TASK-DOC-008|52-66|Not Started|Link demo README to addresses
-TASK-DOC-009|67-79|Done|Align release tests with current documents
+TASK-DOC-008|52-69|Done|Link demo README to addresses
+TASK-DOC-009|70-82|Done|Align release tests with current documents
 @agnos-process/3.plan/PLAN-DSY-001-design-system-skill.md
 PLAN-DSY-001|1-57||Design-system template as a skill
 TASK-DSY-001|15-38|Done|agnos-design-system skill and reference updates

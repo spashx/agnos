@@ -22,7 +22,13 @@ A meeting-room booking service in Python (`service/`) with a TypeScript HTTP cli
 | CLI | FTR-CLI-001 | HTTP/JSON API, typed client, command-line tool |
 
 The process artifacts are in `agnos-process/` (requirements, ADRs, plans, session state, generated index). The code
-cites them in comments, and the AGNOS traceability skill can show the links.
+cites them in comments, and the AGNOS Performance Center shows the links: see [this demo's Performance Center][perf-center].
+
+## AGNOS
+
+- [This demo's Performance Center][perf-center]: its traceability matrix, quality score, call graph and history.
+- [The AGNOS marketplace][marketplace]: the plugin `agnos` to install in Claude Code or GitHub Copilot.
+- [The AGNOS process repository][process]: where AGNOS is developed.
 
 ## The team
 
@@ -57,3 +63,7 @@ cd client && node --test "tests/*.test.ts"                      # TypeScript tes
 ```
 
 The AGNOS skills `agnos-index` and `agnos-perf-center` run from an AGNOS installation, on this folder as the project.
+
+[perf-center]: https://spashx.github.io/agnos-website/demo/PERF-CENTER.html
+[marketplace]: https://github.com/spashx/agnos-marketplace
+[process]: https://github.com/spashx/agnos
