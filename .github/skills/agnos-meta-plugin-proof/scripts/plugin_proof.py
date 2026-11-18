@@ -87,12 +87,14 @@ ACCEPTED_DETAIL = "accepted: logo is a field unknown to Claude Code, which ignor
 
 
 def verdict_findings(out):
-    """The findings of the blocks that make the verdict, as (kind, line)."""
+    """The findings of the blocks that make the verdict, as (kind, line); any other unindented line ends a block (TASK-PLG-090)."""
     findings, kind = [], None
     for line in out.splitlines():
         header = SECTION_RE.match(line)
         if header:
             kind = header.group(3) if header.group(3) and not header.group(2) else None
+        elif line[:1].strip():
+            kind = None
         elif kind in VERDICT_KINDS and FINDING_RE.match(line):
             findings.append((kind, line))
     return findings

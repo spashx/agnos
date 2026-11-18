@@ -98,9 +98,21 @@ This plan implements the tasks in the format specified below.
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
 
+### TASK-PLG-090: Parse validator provides section
+- **Tier**: S
+- **Status**: Done
+- **Description**: In `plugin_proof.py`, end a block of the strict validation's output at any unindented line, so that the `Provides:` list of Claude Code 2.1.327 is not read as warnings; a test reproduces that output.
+- **Requirement refs**: RQ-PLG-010, RQ-PLG-046
+- **ADR refs**: ADR-PLG-009 (DEC-PLG-037)
+- **Acceptance Criteria**: Given the logo warning followed by a `Provides:` list, When the validation is judged, Then it passes.
+- **Dependencies**: TASK-PLG-089
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
+
 ### TASK-PLG-084: Rehearse marketplace release
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Rehearse the release of the version commit with `agnos-meta-release --dry-run` into an empty folder outside the repository, then prove it with `agnos-meta-plugin-proof`.
 - **Requirement refs**: RQ-PLG-001, RQ-PLG-002, RQ-PLG-031, RQ-PLG-032
 - **ADR refs**: ADR-PLG-001
