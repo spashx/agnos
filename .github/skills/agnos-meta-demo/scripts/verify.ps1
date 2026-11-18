@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-  Checks the demo repository against the requirements RQ-DMO-001 to RQ-DMO-026.
+  Checks the demo repository against the requirements RQ-DMO-001 to RQ-DMO-027.
 .DESCRIPTION
-  RQ-DMO-020, RQ-DMO-019, RQ-DMO-008, RQ-DMO-001 / ADR-DMO-001 (DEC-DMO-005, DEC-DMO-006);
+  RQ-DMO-020, RQ-DMO-019, RQ-DMO-008, RQ-DMO-001, RQ-DMO-027 / ADR-DMO-001 (DEC-DMO-005, DEC-DMO-006);
   RQ-DMO-023 to RQ-DMO-026 / ADR-DMO-002 (DEC-DMO-008, DEC-DMO-009).
   Prints one PASS or FAIL line per requirement and exits with 0 when all pass, 1 otherwise.
 .PARAMETER Demo         Folder of the demo repository (default: sibling of the toolkit).
@@ -61,6 +61,11 @@ $MIN_AGENT_ONLY = 3; $MAX_AGENT_ONLY = 6; $EXPECTED_AGENTS = 4
 $MIN_FUNCTION_SCORE = 8.5; $MAX_FUNCTION_SCORE = 10.0; $FUNCTION_CHECK = 'functions-traced'
 $HISTORY_SUMMARY_PATTERN = 'history: (\d+) commits, (\d+) humans, (\d+) agents'
 $UI_ARTIFACTS = @('FTR-DSN-001', 'ADR-DSN-001', 'PLAN-DSN-001', 'FTR-WEB-001', 'ADR-WEB-001', 'PLAN-WEB-001')   # RQ-DMO-022
+# RQ-DMO-027: the README's commands of the product, run as written, on the defaults they rely on
+$SERVICE_COMMAND = 'cd service && python -m roombook'; $UI_COMMAND = 'cd client && npm run ui'; $CLI_COMMAND = 'cd client && node src/cli.ts rooms'
+$ROOMS_FILE = 'service/rooms.json'; $UI_ENTRY = 'src/ui/server.ts'; $CLI_ENTRY = 'src/cli.ts'; $CLI_ROOMS = 'rooms'
+$SERVICE_ROOMS_URL = 'http://127.0.0.1:8080/rooms'; $UI_URL = 'http://127.0.0.1:3000/'
+$RUN_WAIT_SECONDS = 15; $RUN_POLL_MS = 500; $HTTP_OK = 200
 $ROLE_BY_PATH = @(
   # RQ-DMO-012 as amended on 2026-11-12 (DEC-DMO-003)
   @{ Pattern = "^$PF/1\.requirements/FTR-"; Role = 'pm' }
@@ -355,6 +360,39 @@ $webCitesDesign = ($webPlan.Count -gt 0) -and ([System.IO.File]::ReadAllText($we
 $uxCommits = @(Demo-Git @('log', '--all', '--author=-ux', '--format=%h'))
 $clientTests = Start-Process -FilePath node -ArgumentList '--test', 'tests/*.test.ts' -WorkingDirectory (Join-Path $Demo 'client') -Wait -PassThru -WindowStyle Hidden
 Report 'RQ-DMO-022' (($uiMissing.Count -eq 0) -and $webCitesDesign -and ($uxCommits.Count -gt 0) -and ($clientTests.ExitCode -eq 0)) "design system and interface artifacts missing: $(if ($uiMissing.Count) { $uiMissing -join ', ' } else { 'none' }); UI plan cites the design system: $webCitesDesign; commits by a ux identity: $($uxCommits.Count); client tests exit $($clientTests.ExitCode)"
+
+# RQ-DMO-027: the README's commands start the service and the interface, and the interface and the tool show a room of the file
+function Wait-Http([string]$Url) {
+  $deadline = (Get-Date).AddSeconds($RUN_WAIT_SECONDS)
+  while ((Get-Date) -lt $deadline) {
+    try { $r = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec $RUN_WAIT_SECONDS; if ($r.StatusCode -eq $HTTP_OK) { return $r.Content } } catch { }
+    Start-Sleep -Milliseconds $RUN_POLL_MS
+  }
+  return $null
+}
+$readmeText = $readme -join "`n"
+$commandsMissing = @($SERVICE_COMMAND, $UI_COMMAND, $CLI_COMMAND | Where-Object { -not $readmeText.Contains($_) })
+$roomName = $null
+if (Test-Path -LiteralPath (Join-Path $Demo $ROOMS_FILE)) { $roomName = @([System.IO.File]::ReadAllText((Join-Path $Demo $ROOMS_FILE)) | ConvertFrom-Json)[0].name }
+$service = $null; $ui = $null; $runProblems = New-Object System.Collections.ArrayList
+try {
+  $service = Start-Process -FilePath python -ArgumentList '-m', 'roombook' -WorkingDirectory (Join-Path $Demo 'service') -PassThru -WindowStyle Hidden
+  $ui = Start-Process -FilePath node -ArgumentList $UI_ENTRY -WorkingDirectory (Join-Path $Demo 'client') -PassThru -WindowStyle Hidden
+  if (-not $roomName) { [void]$runProblems.Add("no room in $ROOMS_FILE") }
+  if ($null -eq (Wait-Http $SERVICE_ROOMS_URL)) { [void]$runProblems.Add("service does not answer $SERVICE_ROOMS_URL (exited: $($service.HasExited))") }
+  else {
+    $page = Wait-Http $UI_URL
+    if ($null -eq $page) { [void]$runProblems.Add("interface does not answer 200 on $UI_URL") }
+    elseif ($roomName -and -not $page.Contains($roomName)) { [void]$runProblems.Add("interface page lacks the room $roomName") }
+    Push-Location (Join-Path $Demo 'client')
+    try { $cliOut = (& node $CLI_ENTRY $CLI_ROOMS 2>&1) -join "`n"; $cliExit = $LASTEXITCODE } finally { Pop-Location }
+    if ($cliExit -ne 0) { [void]$runProblems.Add("command-line tool exit $cliExit") }
+    elseif ($roomName -and -not $cliOut.Contains($roomName)) { [void]$runProblems.Add("command-line tool output lacks the room $roomName") }
+  }
+} finally {
+  foreach ($p in @($service, $ui)) { if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force } }
+}
+Report 'RQ-DMO-027' (($commandsMissing.Count -eq 0) -and ($runProblems.Count -eq 0)) "README commands missing: $(if ($commandsMissing.Count) { $commandsMissing -join ' | ' } else { 'none' }); run: $(if ($runProblems.Count) { Show-Failures $runProblems } else { "service, interface and command-line tool show $roomName" })"
 
 # RQ-INI-008: the two files hold the block alone, and a new agnos-init call on the demo changes nothing
 $blockOnly = @($INIT_FILES | Where-Object {
