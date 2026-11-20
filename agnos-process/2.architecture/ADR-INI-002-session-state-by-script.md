@@ -52,7 +52,7 @@ existing keys" is removed: the file is rewritten by a script at every start, so 
 - END SESSION gets the trigram from a file, even after the conversation was compacted.
 - A project upgraded from an earlier version still tracks `session.yaml` until its owner untracks it; the changelog says how.
 - Two scripts must stay byte-equivalent: one Python suite drives both on the same cases.
-- Linux and macOS are proven by simulation only until a real run; the plugin proof may later run them.
+- Linux is proven by a real run: a complete AGNOS session on Linux Mint, plugin 4.0.0, in the Claude Code and GitHub Copilot extensions of VS Code (PLAN-FIX-002, TASK-FIX-003). macOS is proven by simulation only.
 - The instructions file shrinks at step 3 and in the schema, and must stay within 400 lines.
 
 ## Alternatives Considered
