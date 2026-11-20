@@ -6,7 +6,7 @@ repository's copy, align the demo, then sync the documents. Order: TASK-INI-006,
 prepared afterwards with `agnos-meta-release-prep`, outside this plan. Everything stays local.
 
 ## References
-- **Requirements**: RQ-INI-011 to RQ-INI-018, RQ-INI-022; amended: RQ-DMO-006
+- **Requirements**: RQ-INI-011 to RQ-INI-018; amended: RQ-DMO-006
 - **ADRs**: ADR-INI-002 (DEC-INI-008 to DEC-INI-013)
 
 This plan implements the tasks in the format specified below.
@@ -144,15 +144,3 @@ This plan implements the tasks in the format specified below.
   0 skipped; `layout.py --check` 0 findings; `agnos-meta-docs-sync/tests` 18 OK, 0 skipped. No other document said `sh` for agnos-session.
 - **Assumptions**: DEC-INI-010's "sh:" label of the uname detection is read as the interpreter and becomes "bash:"; the tests keep the
   names `SH_SCRIPT`, `run_sh` (the script's file kind), only the runner is named bash.
-
-### TASK-INI-020: Add context reset step
-- **Tier**: S
-- **Status**: Done
-- **Description**: Record RQ-INI-022 and cite it on END SESSION step 4, which recommends the harness's context-reset command.
-- **Requirement refs**: RQ-INI-022
-- **ADR refs**: None
-- **Acceptance Criteria**: Given the instructions file, When END SESSION is read, Then step 4 names `/clear` and cites RQ-INI-022.
-- **Dependencies**: None
-- **Assignee**: Human, AI
-- **Verification**: N/A (Tier S); instructions file 312 lines.
-- **Assumptions**: None

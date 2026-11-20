@@ -776,9 +776,6 @@ and waits for your confirmation before drafting anything. The rules it adds go i
 names: the agent reads that file in every conversation, and an update of the plugin never touches it. It never edits
 the plugin's own files.
 
-**Then a context reset.** Once the summary, the metrics and any follow-up are done and no task remains, the agent tells
-you to run the context-reset command of your tool: `/clear` on Claude Code and GitHub Copilot.
-
 > **Long sessions:** past about ten tasks, or when replies start losing earlier context, the agent writes a checkpoint
 > to `agnos-process/3.plan/` (completed IDs, open IDs, blockers, key decisions) and suggests starting fresh. Do not push
 > through a saturated session: take the checkpoint.
