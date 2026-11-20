@@ -464,6 +464,7 @@ const CSV_MUST_QUOTE = /[",\r\n]/;
 /** Rows fetched per repository round-trip — ADR-EXP-001 / DEC-EXP-002. */
 const FETCH_BATCH_SIZE = 500;
 
+/** Exports the order list as CSV — RQ-EXP-001, RQ-EXP-002. */
 export class OrderCsvExporter {
   constructor(private readonly orders: OrderRepository) {}
 
@@ -618,6 +619,7 @@ Before committing, the agent walks the Definition of Done for the task's tier:
 | DoD item (Tier M) | TASK-EXP-001 |
 |---|---|
 | Every new artifact references a requirement ID | ✓ header comments in source and test |
+| Every new function, method and class cites its requirement ID | ✓ doc comment of `OrderCsvExporter`, `export`, `encodeRow`, `encodeField` |
 | No duplicated inline literal — all named constants | ✓ `FETCH_BATCH_SIZE`, `CSV_DELIMITER`, … |
 | No failing test was modified to force a pass | ✓ suite green on first run |
 | UI change consumes design-system tokens | n/a — no UI |
@@ -632,8 +634,8 @@ commit-task TASK-EXP-001 ADR-EXP-001 add streaming CSV order exporter
 
 The skill checks the format of `TASK-EXP-001` and `ADR-EXP-001` **before** touching git, then refreshes
 `agnos-process/process.idx.md` with the `agnos-index` skill, refusing to commit if two artifacts share an ID. It infers a
-Conventional-Commits `<type>` from the nature of the change, builds the message, shows it to you for confirmation,
-then runs `git add .` and `git commit`.
+Conventional-Commits `<type>` from the nature of the change, stages the task's files by name (never `git add .`), builds
+the message with its script, shows it to you for confirmation, then commits.
 
 **Resulting commit message:**
 
@@ -646,9 +648,9 @@ Co-Authored-By: Claude Code/Claude Opus 5.5 <noreply@anthropic.com>
 Without an ADR it would be `feat(EXP): TASK-EXP-002 expose GET /orders/export`. The `<type>` is inferred by the
 agent (`feat`, `fix`, `docs`, `refactor`, `test`, ...): you are only asked if it is genuinely ambiguous.
 
-> **`git add .` stages everything in the working tree that git does not ignore.** If you have unrelated work in
-> progress, commit or stash it before a task commit, or it lands under this task's ID. Generated files, such as
-> Python's `__pycache__/` or a build folder, belong in your `.gitignore`: AGNOS leaves that file to you.
+> **Only the task's files are staged, by name.** Your unrelated work in progress stays out of the commit, but a file you
+> edited by hand for another purpose can still be among the task's files: commit or stash your own work before a task
+> commit, and read the message and the file list the skill shows you.
 
 The chain is now closed. From the commit message you reach the task, from the task the ADR and the requirement, from
 the requirement the feature, and searching for `RQ-EXP-001` returns every one of them plus the code and the tests.
@@ -796,7 +798,7 @@ One row per stage. This is the whole human side of a session.
 | 6. Test | `Run the tests.` | Gherkin-named tests, run under `session.platform` |
 | 7. Commit | *(agent proposes)* `commit-task TASK-EXP-001 ADR-EXP-001 <description>` | `feat(EXP): ADR-EXP-001/TASK-EXP-001 <description>` |
 | 8. Perf Center | `Generate the AGNOS Performance Center for src and tests.` — options: `--call-graph` (functions and calls), `--history` (who changed what, deliveries; `--history-since 6.months`) | `PERF-CENTER.html` — Performance Center: matrix, coverage, quality score and grade, graph; call graph and history with their options |
-| 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics, then a reminder to run `/clear` |
+| 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics |
 
 Corrections at any point are just sentences: *"RQ-EXP-002 should be 20 MB, not 50."* — *"Drop the retry logic, it's
 not in the acceptance criteria."* — *"Re-tier that as M, it needs a new file."*
@@ -835,7 +837,7 @@ requirement ID.
 | Accepting an NFR with no number in it | Unverifiable; nobody can tell when it is met | Demand a metric and a measurement method |
 | Approving a task without reading the acceptance criteria | You get exactly what is written there, and nothing else | Read the Gherkin as the contract it is |
 | Letting a "quick fix" stay Tier S after it grows a new file | Silently skips the test obligation | Re-tier to M and let the tests be written |
-| Uncommitted unrelated work, or generated files not ignored, at commit time | `git add .` sweeps them into the task commit | Commit or stash first; list generated files in `.gitignore` |
+| Your own unrelated edits in the working tree at commit time | A file touched for another purpose can land under the task's ID | Commit or stash your own work first |
 | Working on `main` | Loses the session's isolation and its history | Every change on `feature/<TRI>` |
 | Letting the agent retry a failing fix repeatedly | Buries the root cause under workarounds | The protocol allows one attempt, then a stop and a report |
 | Editing this guide or the AGNOS block | The next `agnos-init` overwrites it | Write your own rules in `agnos-process/project-rules.md` |

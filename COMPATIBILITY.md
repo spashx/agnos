@@ -9,7 +9,7 @@ Tests have been performed with remote and local marketplace.
 | Claude Code | Tested | Tested | Not tested |
 | GitHub Copilot (CLI and VS Code) | Tested | Tested | Not tested |
 
-Linux was tested for plugin 4.0.0 on Linux Mint, in the Claude Code and GitHub Copilot extensions of VS Code, with a complete AGNOS session in each <!-- RQ-PLG-008, RQ-PLG-009 / TASK-FIX-003 -->.
+Linux was tested for plugin 4.0.0 on Linux Mint, in the Claude Code and GitHub Copilot extensions of VS Code, with a complete AGNOS session in each, and in their command-line interfaces <!-- RQ-PLG-008, RQ-PLG-009 / TASK-FIX-003, TASK-FIX-005 -->.
 
 macOS is not tested: it shares the Linux scripts. 
 

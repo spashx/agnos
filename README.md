@@ -23,6 +23,7 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 |---|---|
 | **The process** | Requirements (EARS) → Architecture Decision Records → Plans and tasks (Gherkin), each artifact with a unique ID and explicit links to the others. |
 | **`agnos-init`** | Adds AGNOS to a project: one explicit call completes its `CLAUDE.md` and `AGENTS.md` with a delimited block, leaving every other byte untouched. It also creates its `agnos-process/` folders and writes there the guide `AGNOS-GETTING-STARTED.md` and `VERSION.txt`. |
+| **`agnos-session`** | Writes the session state (trigram, tests, platform) at session start, reloads it, and appends the session's friction-metrics row at the end: the agent never writes these files itself. |
 | **`agnos-index`** | Deterministically regenerates `agnos-process/process.idx.md`, the index of every artifact (ID, line range, status, title), so the agent reads only what it needs. |
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability stays permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
@@ -41,7 +42,7 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 |---|---|---|---|
 | An AI coding tool | Claude Code or GitHub Copilot (CLI or VS Code) | The same | Every skill |
 | git | Git for Windows | git | `agnos-git-workflow`; `agnos-perf-center --history` |
-| A shell for the scripts | Windows PowerShell 5.1, built into Windows; PowerShell 7 is not needed | bash, with the usual `grep`, `awk`, `od` and `cmp` | `agnos-init`, `agnos-index`, `agnos-git-workflow` |
+| A shell for the scripts | Windows PowerShell 5.1, built into Windows; PowerShell 7 is not needed | bash, with the usual `grep`, `awk`, `od` and `cmp` | `agnos-init`, `agnos-session`, `agnos-index`, `agnos-git-workflow`, `agnos-self-improvement` |
 | Python 3.9 or later, standard library only | `python` | `python3` | `agnos-perf-center` only |
 | A current browser, and network access once | The page loads its libraries from cdnjs the first time it opens | The same | The page of `agnos-perf-center` |
 
