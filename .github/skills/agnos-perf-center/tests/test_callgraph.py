@@ -233,6 +233,59 @@ class CallResolutionTest(unittest.TestCase):
         self.assertEqual(calls_of(fixture_call_graph()[1]), self.calls)
 
 
+# RQ-TRC-122: one source per language whose second definition does not parse, its first one being sound.
+BROKEN_SOURCES = {
+    "broken.c": "int good(void) { return 0; }\nint bad( { return 1;\n",
+    "broken.cpp": "int good() { return 0; }\nint bad( { return 1;\n",
+    "Broken.cs": "class A { int good() { return 0; } int bad( { } }\n",
+    "Broken.java": "class A { int good() { return 0; } int bad( { } }\n",
+    "broken.js": "function good() { return 0; }\nfunction bad( { \n",
+    "broken.py": "def good():\n    return 0\n\ndef bad(:\n    pass\n",
+    "broken.rs": "fn good() -> i32 { 0 }\nfn bad( { }\n",
+}
+SOUND_SOURCE = ("sound.c", "int fine(void) { return 0; }\n")
+
+
+def broken_graph(root):
+    """The call graph of BROKEN_SOURCES and SOUND_SOURCE written in root."""
+    for name, text in [*BROKEN_SOURCES.items(), SOUND_SOURCE]:
+        (root / name).write_text(text, encoding="utf-8")
+    files = sorted((p.name, p) for p in root.iterdir())
+    return cg.analyse(files, {}, tm.evidence)
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class ParseFailureTest(unittest.TestCase):
+    """TASK-TRC-110: RQ-TRC-122 (DEC-TRC-067)."""
+
+    @classmethod
+    def setUpClass(cls):
+        with tempfile.TemporaryDirectory() as tmp:
+            cls.graph = broken_graph(Path(tmp))
+
+    def test_RQ_TRC_122_given_a_broken_file_per_language_when_analysed_then_each_is_unparsed_and_the_sound_one_is_not(
+            self):
+        self.assertEqual(sorted(BROKEN_SOURCES), self.graph.unparsed)
+        self.assertEqual(sorted([*BROKEN_SOURCES, SOUND_SOURCE[0]]), self.graph.parsed)
+
+    def test_RQ_TRC_122_given_a_broken_file_when_analysed_then_its_sound_function_is_still_read(self):
+        files = {f["file"] for f in self.graph.functions if f["name"] == "good"}
+        self.assertEqual(set(BROKEN_SOURCES), files)
+
+    def test_RQ_TRC_122_given_broken_files_when_summarised_then_the_counts_and_summary_line_give_their_number(self):
+        self.assertIn(f"unparsed {len(BROKEN_SOURCES)}", self.graph.summary())
+        for f in self.graph.functions:
+            f.setdefault("dup", 0)
+            f.setdefault(cg.KEY_SCOPE_INDEX, cg.NO_SCOPE)
+        counts = self.graph.page_data({f["file"]: 0 for f in self.graph.functions})["counts"]
+        self.assertEqual(len(BROKEN_SOURCES), counts["unparsed"])
+
+    def test_RQ_TRC_122_given_the_call_graph_fixture_when_analysed_then_no_file_is_unparsed(self):
+        graph = fixture_call_graph()[1]
+        self.assertEqual([], graph.unparsed)
+        self.assertEqual(4, len(graph.parsed))                  # the four C and C++ files of calls/
+
+
 def call_graph_page(out):
     """The fixture page with tests/fixtures/repo/calls scanned too and the call graph on."""
     return generate(out, "--sources", str(CALLS), "--call-graph")
@@ -267,14 +320,15 @@ class PageDataTest(unittest.TestCase):
         self.assertEqual((7, 7, "net::Port::send"), (first, last, name))
         self.assertEqual("cpp", graph["languages"][language])
         self.assertTrue(all(isinstance(n, int) for n in graph["calls"]))
-        self.assertEqual({"functions": 14, "calls": 8, "ambiguous": 2, "external": 2}, graph["counts"])
+        self.assertEqual({"functions": 14, "calls": 8, "ambiguous": 2, "external": 2, "parsed": 8, "unparsed": 0},
+                         graph["counts"])                       # parsed, unparsed: RQ-TRC-122 (TASK-TRC-110)
 
     def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_it_adds_at_most_120_bytes_per_function_and_16_per_call(
             self):
         without, _ = generate(Path(self.tmp.name) / "without.html", "--sources", str(CALLS))
         counts = self.data["callGraph"]["counts"]
         added = output_bytes(self.page) - output_bytes(without)
-        self.assertLessEqual(added, 120 * counts["functions"] + 16 * counts["calls"])
+        self.assertLessEqual(added, 1024 + 120 * counts["functions"] + 16 * counts["calls"])   # amended, TASK-TRC-110
 
     def test_RQ_PLG_024_given_the_call_graph_when_embedded_then_untraced_functions_are_a_medium_check(self):
         """RQ-TRC-035 amended by RQ-PLG-024 (DEC-PLG-019): the untraced functions weigh as the untraced files."""
@@ -287,6 +341,11 @@ class PageDataTest(unittest.TestCase):
         self.assertNotIn("covered", names)                      # its docstring cites an ID
         self.assertNotIn("net::Port::send", names)
         self.assertEqual(("medium", "function"), (check["risk"], check["items"]))
+
+    def test_RQ_TRC_122_given_the_call_graph_whose_files_all_parse_then_files_parsed_scores_10_with_no_finding(self):
+        check = next(c for c in self.data["quality"]["checks"] if c["key"] == "files-parsed")
+        self.assertEqual(("medium", "file", [], 10.0), (check["risk"], check["items"], check["findings"], check["score"]))
+        self.assertEqual(self.data["callGraph"]["counts"]["parsed"], check["population"])
 
     def test_RQ_PLG_024_given_untraced_functions_when_scored_then_they_lower_the_score_and_count_in_the_findings(self):
         quality = self.data["quality"]
@@ -851,7 +910,16 @@ class FunctionMatrixTest(unittest.TestCase):
         dom = rendered_dom(self.path, "#RQ-DEM-003")
         self.assertIn("Functions 0", dom)
 
-    def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_nine_checks_are_reached_by_scrolling(self):
+    def test_RQ_TRC_122_given_the_call_graph_card_when_unparsed_files_is_clicked_then_the_files_parsed_check_opens(self):
+        script = ("agnosTrace.showView('graph'); document.getElementById('show-functions').click();"
+                  "const item = [...document.querySelectorAll('#call-graph-card button')]"
+                  ".find((b) => b.textContent.startsWith('Unparsed files'));"
+                  "document.documentElement.dataset.found = String(Boolean(item)); item.click();")
+        dom = rendered_dom_after(self.path, script)
+        self.assertIn('data-found="true"', dom)
+        self.assertIn('<article class="card check-card is-open" id="check-files-parsed"', dom)
+
+    def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_ten_checks_are_reached_by_scrolling(self):
         import re
         script = ("agnosTrace.showView('quality'); const view = document.getElementById('view-quality');"
                   "const cards = [...document.querySelectorAll('#quality-list .check-card')];"
@@ -861,7 +929,7 @@ class FunctionMatrixTest(unittest.TestCase):
                   "d.visible = String(last.getBoundingClientRect().bottom <= view.getBoundingClientRect().bottom + 1);")
         dom = rendered_dom_after(self.path, script, "1440,900")
         found = dict(re.findall(r'data-(checks|fits|visible)="([^"]*)"', dom))
-        self.assertEqual({"checks": "9", "fits": "auto", "visible": "true"}, found)
+        self.assertEqual({"checks": "10", "fits": "auto", "visible": "true"}, found)      # files-parsed: RQ-TRC-122
 
     def test_RQ_TRC_041_given_a_page_without_call_graph_then_no_function_column_switch_or_count_appears(self):
         dom = rendered_dom_after(self.plain, "agnosTrace.showView('matrix'); agnosTrace.select('RQ-DEM-003');")

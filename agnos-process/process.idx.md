@@ -283,7 +283,7 @@ RQ-TRC-022|481-494||Safe display of scanned text
 RQ-TRC-023|495-507||Reproducible output
 RQ-TRC-024|508-519||Vendored library
 @agnos-process/1.requirements/FTR-TRC-002-call-graph.md
-FTR-TRC-002|1-336||Call Graph in the Traceability Matrix
+FTR-TRC-002|1-339||Call Graph in the Traceability Matrix
 RQ-TRC-026|22-33||Opt-in analysis
 RQ-TRC-027|34-45||Missing parser
 RQ-TRC-028|46-57||Function elements
@@ -302,9 +302,9 @@ RQ-TRC-122|238-253||Parse failures as findings
 RQ-TRC-123|254-272||Unresolved calls by cause
 RQ-TRC-036|275-286||Analysis time
 RQ-TRC-037|287-300||Page responsiveness with a call graph
-RQ-TRC-038|301-311||Page size
-RQ-TRC-039|312-325||Optional dependency, unchanged independence
-RQ-TRC-040|326-336||Reproducible call graph
+RQ-TRC-038|301-314||Page size
+RQ-TRC-039|315-328||Optional dependency, unchanged independence
+RQ-TRC-040|329-339||Reproducible call graph
 @agnos-process/1.requirements/FTR-TRC-003-quality-scorecard.md
 FTR-TRC-003|1-209||Traceability Quality Scorecard
 RQ-TRC-057|33-45||Quality vocabulary replaces "gap"
@@ -1098,10 +1098,10 @@ TASK-TRC-106|18-39|Done|Find why the headless-browser tests read nothing, and fi
 PLAN-TRC-020|1-34||Deep links to a view
 TASK-TRC-108|16-34|Done|Open the view named in the URL fragment
 @agnos-process/3.plan/PLAN-TRC-021-call-graph-measurement.md
-PLAN-TRC-021|1-56||Call graph measurement
+PLAN-TRC-021|1-62||Call graph measurement
 TASK-TRC-109|17-31|Done|Specify call graph measurement
-TASK-TRC-110|32-44|Not Started|Score files that fail to parse
-TASK-TRC-111|45-56|Not Started|Count unresolved calls by cause
+TASK-TRC-110|32-50|Done|Score files that fail to parse
+TASK-TRC-111|51-62|Not Started|Count unresolved calls by cause
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

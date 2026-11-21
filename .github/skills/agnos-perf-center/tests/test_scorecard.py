@@ -81,6 +81,7 @@ class QualityBlockTest(unittest.TestCase):
 
     def test_RQ_TRC_058_given_no_call_graph_then_the_functions_check_is_left_out(self):
         self.assertNotIn("functions-traced", self.checks)
+        self.assertNotIn("files-parsed", self.checks)                   # RQ-TRC-122: read by the call graph only
 
     def test_RQ_TRC_059_given_the_fixture_then_the_overall_score_is_the_weighted_average_of_the_checks(self):
         pairs = [(c["risk"], c["score"]) for c in self.quality["checks"]]

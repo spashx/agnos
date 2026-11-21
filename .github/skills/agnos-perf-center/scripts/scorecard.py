@@ -33,6 +33,7 @@ SCORE_STEP = Decimal("0.1")
 TRIGRAM_PART = 1                          # "RQ-ABC-001".split("-")[1]
 CONTAINING = "contains"
 FUNCTION_FINDINGS = "untraced-functions"
+UNPARSED_FINDINGS = "unparsed-files"      # RQ-TRC-122, DEC-TRC-067
 
 
 class ScoringError(Exception):
@@ -114,12 +115,15 @@ def populations(model, graph):
     }
     if graph is not None:
         found["functions"] = list(range(len(graph.functions)))
+        found["parsed-files"] = list(graph.parsed)          # RQ-TRC-122, DEC-TRC-067
     return found
 
 
 def findings_of(name, analysis, graph):
     if name == FUNCTION_FINDINGS:
         return [n for n, f in enumerate(graph.functions) if not f["ids"]]
+    if name == UNPARSED_FINDINGS:                         # RQ-TRC-122, DEC-TRC-067
+        return list(graph.unparsed)
     return list(analysis[KEY_FINDINGS][name])
 
 

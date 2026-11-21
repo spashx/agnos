@@ -61,4 +61,5 @@ count, `score`) and `checks`, each with `key`, `title`, `label`, `rule`, `risk`,
 - `calls`: one flat list of integers over all callers, in function order; per caller: caller - previous caller, callee count, then per callee: callee -
   caller, ambiguous + 2 * line count, each call-site line - the caller's first line.
 - `ids`, each `[function index, ID, [lines]]`.
-- `counts`: `functions`, `calls`, `ambiguous`, `external`.
+- `counts`: `functions`, `calls`, `ambiguous`, `external`, `parsed` (files the call graph read) and `unparsed` (those whose
+  tree holds a syntax error, the findings of the `files-parsed` check). <!-- RQ-TRC-122, DEC-TRC-067 -->

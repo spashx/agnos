@@ -31,7 +31,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-110: Score files that fail to parse
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Record `has_error` files in `callgraph.py`, add the `files-parsed` check to `scoring.json` and its population
   to `scorecard.py`, an "Unparsed files" figure to the page's call graph card, one broken fixture per language, documentation.
 - **Requirement refs**: RQ-TRC-122, RQ-PLG-024
@@ -39,8 +39,14 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria** (Gherkin): the acceptance criteria of RQ-TRC-122; Given the skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-109
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: `ParseFailureTest` and the `files-parsed` page test failed (`no attribute 'unparsed'`,
+  `'unparsed 7' not found`). After: `test_callgraph test_scorecard test_languages` 117 run, OK, 1 skipped; full suite
+  `python -m unittest discover -s tests` 418 run, OK, 3 skipped (opt-in performance tests, `AGNOS_PERF_CENTER_PERF=1`, not
+  measured); `node --check assets/matrix.js` exit 0. Re-pinned on purpose: `counts` gains `parsed` 8, `unparsed` 0; ten checks
+  with the call graph; RQ-TRC-038 amended by the owner (fixed 1,024 bytes; the fixture's call graph grew from 1,657 to 1,940 bytes).
+- **Assumptions**: the broken sources are written by the test in a temporary folder, not committed as fixtures, so the
+  repository's own QA and call graph read no syntax error; the check's label is "Parsed"; the card's hint reads "a syntax error
+  in the file".
 
 ### TASK-TRC-111: Count unresolved calls by cause
 - **Tier**: M

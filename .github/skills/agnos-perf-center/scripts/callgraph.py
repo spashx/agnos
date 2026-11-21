@@ -183,7 +183,8 @@ def scope_names(node, scopes):
 # RQ-TRC-028, RQ-TRC-031, DEC-TRC-016 (TASK-TRC-010)
 def file_functions(shown, grammar, api, data, cited, evidence):
     """The functions defined in one file, in line order, each with the IDs of its lines and of the comment block just
-    above it; and the file's calls as (call node, called expression node)."""
+    above it; the file's calls as (call node, called expression node); its declared scopes; and whether its tree holds an
+    error or a missing node (RQ-TRC-122, DEC-TRC-067)."""
     root = api.parse(grammar.language, data)
     lines = data.decode(ENCODING, KEY_REPLACE).split("\n")
     caps = captures_of(grammar, api, root)
@@ -203,7 +204,7 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
                           KEY_NODE: node})
-    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE])
+    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE]), root.has_error
 
 
 # RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
@@ -325,7 +326,8 @@ def assign_scopes(graph, declared, grammars):
 
 # ---- the call graph ----------------------------------------------------------------------------------------------
 class CallGraph:
-    """The functions and calls found, the ambiguous and external call counts, and the packages that were missing."""
+    """The functions and calls found, the ambiguous and external call counts, the files read and those that did not
+    parse (RQ-TRC-122), and the packages that were missing."""
 
     def __init__(self):
         self.functions = []
@@ -333,6 +335,8 @@ class CallGraph:
         self.scopes = []
         self.ambiguous = 0
         self.external = 0
+        self.parsed = []
+        self.unparsed = []
         self.core_missing = False
         self.missing = []
 
@@ -341,7 +345,7 @@ class CallGraph:
         if self.core_missing:
             return f"call graph skipped: {CORE_PACKAGE} not installed, run: {install_command()}"
         line = (f"call graph: {len(self.functions)} functions, {len(self.calls)} calls, ambiguous {self.ambiguous}, "
-                f"external {self.external}")
+                f"external {self.external}, unparsed {len(self.unparsed)}")    # RQ-TRC-122
         if self.missing:
             line += f"; skipped: {', '.join(self.missing)} not installed, run: {install_command()}"
         return line
@@ -373,10 +377,11 @@ class CallGraph:
                for target, proofs in sorted(f["ids"].items())]
         return {KEY_FUNCTIONS: functions, "languages": languages, KEY_SCOPES: self.scopes, KEY_CALLS: calls, "ids": ids,
                 "counts": {KEY_FUNCTIONS: len(self.functions), KEY_CALLS: len(self.calls), "ambiguous": self.ambiguous,
-                           "external": self.external}}
+                           "external": self.external, "parsed": len(self.parsed),
+                           "unparsed": len(self.unparsed)}}                              # RQ-TRC-122
 
 
-# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040 (TASK-TRC-009, TASK-TRC-010)
+# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040, RQ-TRC-122 (TASK-TRC-009, TASK-TRC-010, TASK-TRC-110)
 def analyse(files, cited, evidence, table=None):
     """The call graph of the scanned files [(shown path, path)], for the languages whose packages are installed;
     cited: {shown path: [(line, ID, proof)]}, the file's ID citations; evidence(line, text): a proof line. Functions
@@ -392,7 +397,10 @@ def analyse(files, cited, evidence, table=None):
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
-            functions, calls, scopes = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            functions, calls, scopes, broken = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            graph.parsed.append(shown)                     # RQ-TRC-122, DEC-TRC-067: the population of files-parsed
+            if broken:
+                graph.unparsed.append(shown)
             graph.functions += functions
             sites += call_sites(functions, calls)
             for name, kind in scopes.items():

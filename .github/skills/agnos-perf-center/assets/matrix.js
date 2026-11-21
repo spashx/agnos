@@ -291,6 +291,7 @@
   const ITEMS_FILE = "file";
   const ITEMS_FUNCTION = "function";
   const FUNCTIONS_CHECK = "functions-traced";
+  const PARSED_CHECK = "files-parsed";            // RQ-TRC-122
   const SCORE_MAX = 10;
   const SCORE_DECIMALS = 1;
   const FIX_FIRST_SHOWN = 3;
@@ -1459,6 +1460,7 @@
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
     const functionsCheck = CHECKS.find((check) => check.key === FUNCTIONS_CHECK);
+    const parsedCheck = CHECKS.find((check) => check.key === PARSED_CHECK);
     const item = (label, value, hint, onClick) => richTip(el(onClick ? TAG_BUTTON : "div",
       { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, on: onClick ? { click: onClick } : null },
       el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
@@ -1471,7 +1473,9 @@
         item("Call links", c.calls, "one per caller and callee"),
         item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
         item("External calls", c.external, "a name defined in no scanned file"),
-        item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK))));
+        item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK)),
+        // RQ-TRC-122, DEC-TRC-067: the files whose functions may be missing
+        item("Unparsed files", parsedCheck.findings.length, `a syntax error in the file · ${parsedCheck.risk}`, () => openCheck(PARSED_CHECK))));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------

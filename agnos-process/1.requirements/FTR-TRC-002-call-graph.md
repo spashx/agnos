@@ -302,12 +302,15 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Category**: Non-Functional
 - **NFR Type**: Performance
 - **EARS Type**: Ubiquitous
-- **Statement**: The call graph SHALL add to the page at most 120 bytes per function and 16 bytes per call link on average.
-- **Metric**: (page size with − page size without) ≤ 120 × functions + 16 × calls.
+- **Statement**: The call graph SHALL add to the page at most 1,024 bytes, plus 120 bytes per function and 16 bytes per call
+  link on average.
+- **Metric**: (page size with − page size without) ≤ 1,024 + 120 × functions + 16 × calls.
 - **Measurement Method**: generate both pages of this repository and of the generated fixture, compare their sizes.
 - **Priority**: Should
 - **Acceptance Criteria**: Given 20,000 functions and 100,000 calls, Then the call graph adds at most 4 MB.
 - **Dependencies**: DEC-TRC-016
+- **Amendment**: Amended by TASK-TRC-110 (owner, 2026-11-21): a fixed 1,024 bytes for the call graph's checks and counts
+  (RQ-TRC-122, RQ-TRC-123), which no longer fit the per-function budget of a small fixture.
 
 ### RQ-TRC-039: Optional dependency, unchanged independence
 - **Category**: Non-Functional

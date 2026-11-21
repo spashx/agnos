@@ -40,11 +40,15 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 | Elements connected (`connected`) | medium | defined elements | `isolated` |
 | Source files traced (`files-traced`) | medium | scanned files | `untraced-files` |
 | Functions traced (`functions-traced`) | medium | functions (with `--call-graph`; no score without it) | functions citing no ID |
+| Files parsed (`files-parsed`) <!-- RQ-TRC-122, DEC-TRC-067 --> | medium | files the call graph read (with `--call-graph`) | files whose tree holds an `ERROR` or `MISSING` node |
 
 ## Call graph <!-- DEC-TRC-013 to DEC-TRC-018 -->
 
 - A function is a definition with a body; its key is `fn:<file>:<first line>`. It cites the IDs of its lines and of the
   comment block just above it. Coverage and the findings stay file-based: the call graph changes none of them.
+- A file whose syntax tree-sitter cannot fully read (a syntax error, a dialect its grammar lacks) still gives the functions
+  found in it, and is a finding of `files-parsed`: some of its functions may be missing, and with them their findings
+  of `functions-traced`. <!-- RQ-TRC-122, DEC-TRC-067 -->
 - Calls are resolved by name: among the definitions of that name in the caller's language, the first non-empty set of
   the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
   each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function
