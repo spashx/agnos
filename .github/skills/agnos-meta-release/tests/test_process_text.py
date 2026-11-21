@@ -71,7 +71,7 @@ class TestTraceabilityTest(unittest.TestCase):
 
     TRACEABILITY = "### MANDATORY TRACEABILITY"
     NEXT_SUBSECTION_RE = re.compile(r"\n###? ")
-    TEST_DOC_COMMENTS = "class/function doc comments, those of test functions included"
+    TEST_DOC_COMMENTS = "class AND function doc comments, those of test functions included"
     TEST_NAMES = "test case names"
 
     def traceability(self):
