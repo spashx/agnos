@@ -133,3 +133,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: None
+
+### TASK-PLG-091: Remove release plan checkpoint
+- **Tier**: S
+- **Status**: Done
+- **Description**: Delete `CHECKPOINT-PLG-2026-11-18.md`, whose open items are all Done, at the owner's request.
+- **Requirement refs**: RQ-PLG-027
+- **ADR refs**: None
+- **Acceptance Criteria**: Given the checkpoint's items, When each is Done in the index or confirmed by the owner, Then the file is deleted And the index no longer lists it.
+- **Dependencies**: TASK-PLG-085
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: The website rebuild, not a task, is confirmed done by the owner; cited under RQ-PLG-027, as TASK-PLG-086.
