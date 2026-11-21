@@ -95,6 +95,40 @@ class ReceiverTest(unittest.TestCase):
         self.assertEqual({"g": False}, callees(graph, "f"))
 
 
+# RQ-TRC-125: per language, a class with a constructor, another with one too, a function creating the first:
+# (file, text, caller, expected constructor).
+CONSTRUCTION = {
+    "java": ("M.java", "class Greeter { Greeter() { } }\nclass Other { Other() { } }\n"
+                       "class Main { void run() { new Greeter(); } }\n", "Main.run", "Greeter.Greeter"),
+    "csharp": ("M.cs", "class Greeter { public Greeter() { } }\nclass Other { public Other() { } }\n"
+                       "class Main { void Run() { new Greeter(); } }\n", "Main.Run", "Greeter.Greeter"),
+    "javascript": ("m.js", "class Panel { constructor() { } }\nclass Other { constructor() { } }\n"
+                           "function run() { return new Panel(); }\n", "run", "Panel.constructor"),
+    "python": ("m.py", "class Shape:\n    def __init__(self):\n        pass\n\n\nclass Other:\n    def __init__(self):\n"
+                       "        pass\n\n\ndef run():\n    return Shape()\n", "run", "Shape.__init__"),
+    "cpp": ("m.cpp", "struct Session { Session(int n) { } };\nstruct Other { Other() { } };\n"
+                     "int run() { Session* s = new Session(1); return 0; }\n", "run", "Session::Session"),
+}
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class ConstructionTest(unittest.TestCase):
+    """TASK-TRC-114: RQ-TRC-125 (DEC-TRC-069, DEC-TRC-070)."""
+
+    def test_RQ_TRC_125_given_an_object_created_when_analysed_then_the_call_links_to_its_class_constructor_only(self):
+        for language, (name, text, caller, constructor) in CONSTRUCTION.items():
+            with self.subTest(language):
+                self.assertEqual({constructor: False}, callees(graph_of({name: text}), caller))
+
+    def test_RQ_TRC_125_given_a_class_without_constructor_when_created_then_constructor_counts_it(self):
+        graph = graph_of({"m.py": "class Plain:\n    pass\n\n\ndef run():\n    return Plain()\n"})
+        self.assertEqual(({}, 1, 1), (callees(graph, "run"), graph.external, graph.unresolved["constructor"]))
+
+    def test_RQ_TRC_125_given_a_library_class_created_when_analysed_then_library_counts_it(self):
+        graph = graph_of({"M.java": "class Main { void run() { new java.util.ArrayList<String>(); } }\n"})
+        self.assertEqual((1, 1), (graph.external, graph.unresolved["library"]))
+
+
 # RQ-TRC-126, RQ-TRC-124: per language, B derives from A; A and an unrelated C define g; B.f calls g through its own
 # object; in Java, C++ and C#, B.h calls g unqualified.
 ANCESTOR = {

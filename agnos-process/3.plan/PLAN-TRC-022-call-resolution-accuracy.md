@@ -50,7 +50,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-114: Link constructions to constructors
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Capture `new` in the Java, C#, C++ and JavaScript query files, give the `constructor` name of Python and
   JavaScript in the language table, resolve a construction to the constructors of its class, documentation.
 - **Requirement refs**: RQ-TRC-125, RQ-TRC-123
@@ -58,8 +58,12 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria** (Gherkin): the acceptance criteria of RQ-TRC-125; Given the skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-113
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: `ConstructionTest` 6 failures (five languages, a library class). After: `test_resolution.py`
+  16 run, OK; full suite 439 run, 1 failure, RQ-TRC-067 (`'constructor'` written twice), fixed by a named constant, then
+  `test_literals test_languages test_resolution` 43 run, OK. Demo: 116 new plain links to constructors, `constructor`
+  176 → 60 (classes without `__init__`), Python fixture's `Greeter()` still `constructor`.
+- **Assumptions**: a call whose name is a class of the caller's language is a creation whatever its receiver; a creation of
+  a class no scanned file declares counts as `library`.
 
 ### TASK-TRC-115: Add ancestor classes to resolution
 - **Tier**: L

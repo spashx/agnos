@@ -24,6 +24,7 @@ KEY_LAST = "last"
 KEY_QUALIFIED = "qualified"
 KEY_NAME = "name"
 KEY_TEXT = "text"
+KEY_CONSTRUCTOR = "constructor"    # a language table key (RQ-TRC-125), and the word of its unresolved cause (RQ-TRC-123)
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = SKILL_DIR / "assets" / "callgraph"
@@ -43,7 +44,8 @@ COMMENT = "comment"
 CALL_RECEIVER = "call.receiver"                    # the receiver, where the called name is a node of its own (Java)
 SCOPE_BASE = "scope.base"                          # a class, interface or trait a scope derives from (RQ-TRC-126)
 SHOWN_BASES = 10                                   # unknown bases named in the summary line, the others counted
-KINDS = ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (COMMENT, None))
+NEW, NEW_NAME = "new", "new.name"                  # an object's creation and the class created (RQ-TRC-125)
+KINDS = ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (NEW, NEW_NAME), (COMMENT, None))
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
 MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
 NAMESPACE_KIND, CLASS_KIND = "namespace", "class"  # the box kinds of a scope (DEC-TRC-019)
@@ -92,6 +94,7 @@ class Grammar:
         self.scopes = entry.get(KEY_SCOPES, {})
         self.self_words = frozenset(entry.get("self", ()))      # the receiver naming the caller's own object
         self.super_words = frozenset(entry.get("super", ()))    # the receiver naming its parent object
+        self.constructor = entry.get(KEY_CONSTRUCTOR)             # a constructor's name, when not the class's (RQ-TRC-125)
 
 
 def load_table(path=LANGUAGES_PATH):
@@ -231,7 +234,13 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
                           KEY_NODE: node})
-    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE]), root.has_error, declared_bases(grammar, caps[SCOPE])
+    calls = sorted(caps[CALL] + caps[NEW], key=lambda entry: call_node(entry).start_byte)       # RQ-TRC-125
+    return functions, calls, declared_scopes(grammar, caps[SCOPE]), root.has_error, declared_bases(grammar, caps[SCOPE])
+
+
+def call_node(entry):
+    """The call or creation node of a call entry."""
+    return entry[NEW if NEW in entry else CALL][0]
 
 
 # RQ-TRC-126, DEC-TRC-072 (TASK-TRC-115)
@@ -254,40 +263,48 @@ def declared_scopes(grammar, scopes):
 
 
 # RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111): the causes of an unresolved call; the first three make up the external count.
-LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL = "library", "constructor", "cross-language", "unnamed", "top-level"
+LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL = "library", KEY_CONSTRUCTOR, "cross-language", "unnamed", "top-level"
 CAUSES = (LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL)
 
 
 # RQ-TRC-124, DEC-TRC-069 (TASK-TRC-113)
 def called(entry, expression):
-    """(receiver, name) of a call: what stands before the called name, or the receiver captured beside it."""
+    """(receiver, name) of a call: what stands before the called name, or the receiver captured beside it; of a
+    creation, ('', the class's last part) (RQ-TRC-125)."""
     receiver, name = split_call(plain_name(text_of(expression)))
+    if NEW in entry:
+        return "", name
     receiver_node = first(entry, CALL_RECEIVER)
     return (receiver if receiver_node is None else plain_name(text_of(receiver_node))), name
 
 
+def open_functions(stack, pending, start):
+    """Moves to the stack the pending functions starting before start, and drops from it those ending before."""
+    while pending and pending[-1][KEY_NODE].start_byte <= start:
+        function = pending.pop()
+        while stack and stack[-1][KEY_NODE].end_byte <= function[KEY_NODE].start_byte:
+            stack.pop()
+        stack.append(function)
+    while stack and stack[-1][KEY_NODE].end_byte <= start:
+        stack.pop()
+
+
 def call_sites(functions, calls, unresolved):
-    """(caller, called name, line, receiver) of each call whose name can be resolved, the caller being the innermost
-    function holding the call, the receiver what stands before the name ('' for none, RQ-TRC-124); nodes in start
-    order, one sweep with a stack of the open functions. A call outside any function counts as top-level, one whose
-    expression is no name as unnamed, in unresolved (RQ-TRC-123)."""
+    """(caller, called name, line, receiver, creation) of each call whose name can be resolved, the caller being the
+    innermost function holding the call, the receiver what stands before the name ('' for none, RQ-TRC-124), creation
+    whether it creates an object (RQ-TRC-125); nodes in start order, one sweep with a stack of the open functions. A call
+    outside any function counts as top-level, one whose expression is no name as unnamed, in unresolved (RQ-TRC-123)."""
     sites, stack, pending = [], [], list(reversed(functions))
     for entry in calls:
-        call, expression = entry[CALL][0], entry[CALL_NAME][0]
-        while pending and pending[-1][KEY_NODE].start_byte <= call.start_byte:
-            function = pending.pop()
-            while stack and stack[-1][KEY_NODE].end_byte <= function[KEY_NODE].start_byte:
-                stack.pop()
-            stack.append(function)
-        while stack and stack[-1][KEY_NODE].end_byte <= call.start_byte:
-            stack.pop()
-        receiver, name = called(entry, expression)
+        call = call_node(entry)
+        open_functions(stack, pending, call.start_byte)
+        receiver, name = called(entry, entry[NEW_NAME if NEW in entry else CALL_NAME][0])
         if not stack:
             unresolved[TOP_LEVEL] += 1
         elif not NAME_RE.match(name):
             unresolved[UNNAMED] += 1
         else:
-            sites.append((stack[-1], name, call.start_point[0] + 1, receiver))
+            sites.append((stack[-1], name, call.start_point[0] + 1, receiver, NEW in entry))
     return sites
 
 
@@ -392,9 +409,15 @@ def nearest(candidates, levels):
 
 # RQ-TRC-029, RQ-TRC-124 (TASK-TRC-113)
 def choose(caller, signature, grammar, definitions, hierarchy):
-    """(the candidates of one call signature (name, receiver), whether a certain receiver confined them): those of the
-    receiver's scopes first, then the preferred ones (DEC-TRC-071)."""
-    name, receiver = signature
+    """(the candidates of one call signature (name, receiver, creation), whether a certain receiver confined them): for
+    the creation of a class or a call to a class's name, its constructors; else those of the receiver's scopes first,
+    then the preferred ones (DEC-TRC-071)."""
+    name, receiver, creation = signature
+    classes = {s for s in hierarchy.named(grammar.name, name) if hierarchy.is_class(grammar.name, s)}
+    if classes or creation:                                             # RQ-TRC-125: a creation, or a class called
+        names = (name, grammar.constructor)
+        candidates = [f for n in names for f in definitions.get((grammar.name, n), []) if f[KEY_SCOPE] in classes]
+        return (preferred(caller, candidates, grammar.separator) if candidates else []), False
     candidates = definitions.get((grammar.name, name), [])
     levels = restriction(caller, receiver, grammar, hierarchy) if candidates else None
     if levels is not None:

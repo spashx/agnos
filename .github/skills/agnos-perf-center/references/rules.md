@@ -72,14 +72,19 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
-  a node of its own (Java), `@scope.base` (each base a scope declares); the captures of all the matches of one node are
+  a node of its own (Java), `@scope.base` (each base a scope declares), `@new` and `@new.name` (an object's creation, its
+  class); the captures of all the matches of one node are
   merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs
   `.pyi` are not read) and Rust (`.rs`). A definition is a function or method with a body: in JavaScript also a function
   or arrow given to a name, an object key or a member (`exports.f = function`); a Rust trait's default method; not an
-  interface or abstract method. `new`, macros (`println!`) and calls outside any function are not calls.
+  interface or abstract method. Macros (`println!`) and calls outside any function are not calls.
+- An object's creation (`new T(…)` in Java, C#, C++ and JavaScript) and a call to a class's name (Python's `T()`, C++'s
+  `T(1)`) link to the constructors of `T`: its functions named `T`, or named the `constructor` of the language table
+  (`__init__`, `constructor`); none: external, `constructor` <!-- RQ-TRC-125, DEC-TRC-070 -->. Not followed: a C++ object
+  declared on the stack (`T t(1);`), C#'s `new()` without type, Java's `super(…)` and `this(…)`.
 - What differs between languages is settled in their query files <!-- DEC-TRC-026 -->: Java's `package a.b;` and C#'s
   `namespace A.B;` stand before the classes, so the file's root node is captured as that namespace's scope; Python's
   decorators and Rust's attributes are captured as `@comment`, so the comment block above them reaches the definition.

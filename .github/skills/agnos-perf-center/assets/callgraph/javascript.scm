@@ -19,3 +19,5 @@
 (comment) @comment
 ; The class a class extends (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
 (class_declaration name: (identifier) @scope.name (class_heritage (_) @scope.base)) @scope
+; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069).
+(new_expression constructor: (_) @new.name) @new

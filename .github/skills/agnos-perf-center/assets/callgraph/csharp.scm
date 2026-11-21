@@ -19,3 +19,5 @@
 (struct_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
 (interface_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
 (record_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069); a target-typed new() names none.
+(object_creation_expression type: (_) @new.name) @new

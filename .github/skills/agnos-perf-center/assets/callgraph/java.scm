@@ -20,3 +20,5 @@
 (interface_declaration name: (identifier) @scope.name (extends_interfaces (type_list (_) @scope.base))) @scope
 (enum_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
 (record_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
+; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069); super(…) and this(…) are not followed.
+(object_creation_expression type: (_) @new.name) @new
