@@ -41,6 +41,8 @@ CALL, CALL_NAME = "call", "call.name"
 COMMENT = "comment"
 # DEC-TRC-069: the optional captures, merged per captured node.
 CALL_RECEIVER = "call.receiver"                    # the receiver, where the called name is a node of its own (Java)
+SCOPE_BASE = "scope.base"                          # a class, interface or trait a scope derives from (RQ-TRC-126)
+SHOWN_BASES = 10                                   # unknown bases named in the summary line, the others counted
 KINDS = ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (COMMENT, None))
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
 MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
@@ -165,7 +167,7 @@ def captures_of(grammar, api, root):
                     known += [node for node in nodes if node_key(node) not in {node_key(k) for k in known}]
                 break
     return {kind: sorted((entry for entry in found[kind].values() if name is None or name in entry),
-                         key=lambda entry: entry[kind][0].start_byte) for kind, name in KINDS}
+                         key=lambda entry, kind=kind: entry[kind][0].start_byte) for kind, name in KINDS}
 
 
 def first(entry, capture):
@@ -229,7 +231,18 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
                           KEY_NODE: node})
-    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE]), root.has_error
+    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE]), root.has_error, declared_bases(grammar, caps[SCOPE])
+
+
+# RQ-TRC-126, DEC-TRC-072 (TASK-TRC-115)
+def declared_bases(grammar, scopes):
+    """{qualified scope: [base names as written]} of the scopes of one file that declare bases."""
+    bases = {}
+    for entry in scopes:
+        if SCOPE_BASE in entry:
+            qualified = grammar.separator.join(scope_names(entry[SCOPE][0], scopes))
+            bases.setdefault(qualified, []).extend(plain_name(text_of(node)) for node in entry[SCOPE_BASE])
+    return bases
 
 
 # RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
@@ -243,6 +256,14 @@ def declared_scopes(grammar, scopes):
 # RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111): the causes of an unresolved call; the first three make up the external count.
 LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL = "library", "constructor", "cross-language", "unnamed", "top-level"
 CAUSES = (LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL)
+
+
+# RQ-TRC-124, DEC-TRC-069 (TASK-TRC-113)
+def called(entry, expression):
+    """(receiver, name) of a call: what stands before the called name, or the receiver captured beside it."""
+    receiver, name = split_call(plain_name(text_of(expression)))
+    receiver_node = first(entry, CALL_RECEIVER)
+    return (receiver if receiver_node is None else plain_name(text_of(receiver_node))), name
 
 
 def call_sites(functions, calls, unresolved):
@@ -260,10 +281,7 @@ def call_sites(functions, calls, unresolved):
             stack.append(function)
         while stack and stack[-1][KEY_NODE].end_byte <= call.start_byte:
             stack.pop()
-        receiver, name = split_call(plain_name(text_of(expression)))
-        receiver_node = first(entry, CALL_RECEIVER)
-        if receiver_node is not None:
-            receiver = plain_name(text_of(receiver_node))
+        receiver, name = called(entry, expression)
         if not stack:
             unresolved[TOP_LEVEL] += 1
         elif not NAME_RE.match(name):
@@ -278,13 +296,14 @@ def folder_of(path):
     return path.rpartition(FOLDER_SEPARATOR)[0]
 
 
-def preferred(caller, candidates, separator):
-    """The candidates of the first non-empty level: the caller's class, its namespace, its file, its folder, the
-    project (DEC-TRC-015, RQ-TRC-029)."""
+def preferred(caller, candidates, separator, ancestors=()):
+    """The candidates of the first non-empty level: the caller's class, its ancestor classes nearest first
+    (RQ-TRC-126), its namespace, its file, its folder, the project (DEC-TRC-015, RQ-TRC-029)."""
     scope = caller[KEY_SCOPE]
     namespace = scope.rpartition(separator)[0]
     levels = (
         lambda f: scope and f[KEY_SCOPE] == scope,
+        *(lambda f, level=level: f[KEY_SCOPE] in level for level in ancestors),
         lambda f: namespace and f[KEY_SCOPE] == namespace,
         lambda f: f[KEY_FILE] == caller[KEY_FILE],
         lambda f: folder_of(f[KEY_FILE]) == folder_of(caller[KEY_FILE]),
@@ -317,6 +336,18 @@ class Hierarchy:
             last = scope.split(separators[language])[-1] if separators else scope
             self.by_last.setdefault((language, last), set()).add(scope)
         self.parents = {}                              # {(language, class): {qualified scope it derives from}}
+        self.unknown = set()                           # the base names no scanned scope matches (RQ-TRC-126)
+
+    def derive(self, language, scope, base, separator):
+        """Records that scope derives from the base written base: the scopes of its last part, one of the scope's own
+        namespace preferred; none: an unknown base."""
+        found = self.named(language, split_call(base)[1]) - {scope}
+        namespace = scope.rpartition(separator)[0]
+        near = {s for s in found if s.rpartition(separator)[0] == namespace}
+        if found:
+            self.parents.setdefault((language, scope), set()).update(near or found)
+        else:
+            self.unknown.add(base)
 
     def is_class(self, language, scope):
         return self.kinds.get((language, scope)) == CLASS_KIND
@@ -368,7 +399,10 @@ def choose(caller, signature, grammar, definitions, hierarchy):
     levels = restriction(caller, receiver, grammar, hierarchy) if candidates else None
     if levels is not None:
         candidates = nearest(candidates, levels)
-    return (preferred(caller, candidates, grammar.separator) if candidates else []), levels is not None
+    if not candidates:
+        return [], levels is not None
+    ancestors = hierarchy.ancestors(grammar.name, {caller[KEY_SCOPE]}) if caller[KEY_SCOPE] else []
+    return preferred(caller, candidates, grammar.separator, ancestors), levels is not None
 
 
 # RQ-TRC-029, RQ-TRC-030, RQ-TRC-040, RQ-TRC-123, RQ-TRC-124 (TASK-TRC-011, TASK-TRC-111, TASK-TRC-113)
@@ -447,17 +481,21 @@ def assign_scopes(graph, declared, grammars):
         function[KEY_SCOPE_INDEX] = index.get(function[KEY_SCOPE], NO_SCOPE) if scoped else NO_SCOPE
 
 
-# RQ-TRC-124, DEC-TRC-072 (TASK-TRC-113)
-def scope_hierarchy(graph, declared, grammars):
+# RQ-TRC-124, RQ-TRC-126, DEC-TRC-072 (TASK-TRC-113, TASK-TRC-115)
+def scope_hierarchy(graph, declared, grammars, bases=None):
     """The Hierarchy of the declared scopes {(language, qualified): kind} and of the scopes holding a function, with the
-    kinds assign_scopes gave them."""
+    kinds assign_scopes gave them; bases: {(language, qualified class): [base names as written]}."""
     kinds = dict(declared)
     given = {name: kind for name, kind, _ in graph.scopes}
     for function in graph.functions:
         scope, language = function[KEY_SCOPE], function[LANGUAGE_FUNCTION]
         if scope and scope in given:
             kinds.setdefault((language, scope), given[scope])
-    return Hierarchy(kinds, {name: grammar.separator for name, grammar in grammars.items()})
+    hierarchy = Hierarchy(kinds, {name: grammar.separator for name, grammar in grammars.items()})
+    for (language, scope), names in (bases or {}).items():
+        for base in names:
+            hierarchy.derive(language, scope, base, grammars[language].separator)
+    return hierarchy
 
 
 # ---- the call graph ----------------------------------------------------------------------------------------------
@@ -474,6 +512,7 @@ class CallGraph:
         self.parsed = []
         self.unparsed = []
         self.unresolved = dict.fromkeys(CAUSES, 0)            # RQ-TRC-123, DEC-TRC-068
+        self.unknown_bases = []                               # RQ-TRC-126, DEC-TRC-072
         self.core_missing = False
         self.missing = []
 
@@ -483,6 +522,10 @@ class CallGraph:
             return f"call graph skipped: {CORE_PACKAGE} not installed, run: {install_command()}"
         line = (f"call graph: {len(self.functions)} functions, {len(self.calls)} calls, ambiguous {self.ambiguous}, "
                 f"external {self.external}, unparsed {len(self.unparsed)}")    # RQ-TRC-122
+        if self.unknown_bases:                                                  # RQ-TRC-126
+            shown = ", ".join(self.unknown_bases[:SHOWN_BASES])
+            more = len(self.unknown_bases) - SHOWN_BASES
+            line += f", unknown bases {len(self.unknown_bases)}: {shown}" + (f" and {more} more" if more > 0 else "")
         if self.missing:
             line += f"; skipped: {', '.join(self.missing)} not installed, run: {install_command()}"
         return line
@@ -513,6 +556,7 @@ class CallGraph:
         ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
                for target, proofs in sorted(f["ids"].items())]
         return {KEY_FUNCTIONS: functions, "languages": languages, KEY_SCOPES: self.scopes, KEY_CALLS: calls, "ids": ids,
+                "unknownBases": list(self.unknown_bases),                                # RQ-TRC-126
                 "counts": {KEY_FUNCTIONS: len(self.functions), KEY_CALLS: len(self.calls), "ambiguous": self.ambiguous,
                            "external": self.external, "parsed": len(self.parsed),
                            "unparsed": len(self.unparsed),                               # RQ-TRC-122
@@ -531,11 +575,14 @@ def analyse(files, cited, evidence, table=None):
         graph.core_missing = True
         return graph
     grammars, graph.missing = load_grammars(load_table() if table is None else table, api)
-    sites, declared, scope_names, kinds = [], {}, set(), {}
+    sites, declared, scope_names, kinds, bases = [], {}, set(), {}, {}
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
-            functions, calls, scopes, broken = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            functions, calls, scopes, broken, file_bases = file_functions(shown, grammar, api, path.read_bytes(), cited,
+                                                                          evidence)
+            for name, names in file_bases.items():                                     # RQ-TRC-126
+                bases.setdefault((grammar.name, name), []).extend(names)
             graph.parsed.append(shown)                     # RQ-TRC-122, DEC-TRC-067: the population of files-parsed
             if broken:
                 graph.unparsed.append(shown)
@@ -548,7 +595,9 @@ def analyse(files, cited, evidence, table=None):
     assign_keys(graph.functions)
     by_name = {g.name: g for g in grammars.values()}
     assign_scopes(graph, declared, by_name)
-    resolve(graph, sites, by_name, scope_names, scope_hierarchy(graph, kinds, by_name))
+    hierarchy = scope_hierarchy(graph, kinds, by_name, bases)
+    graph.unknown_bases = sorted(hierarchy.unknown)                                    # RQ-TRC-126
+    resolve(graph, sites, by_name, scope_names, hierarchy)
     for function in graph.functions:
         del function[KEY_NODE]
     return graph

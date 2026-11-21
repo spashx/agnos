@@ -14,3 +14,8 @@
 (record_declaration name: (identifier) @scope.name) @scope
 (invocation_expression function: (_) @call.name) @call
 (comment) @comment
+; The bases a class, struct, interface or record derives from (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(class_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(struct_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(interface_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(record_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope

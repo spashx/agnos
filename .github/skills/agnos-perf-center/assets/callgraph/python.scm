@@ -7,3 +7,5 @@
 (comment) @comment
 ; A decorator stands between the comment block and its def: taken as part of the block, it lets the block reach the def.
 (decorator) @comment
+; The bases a class derives from (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072); a keyword argument (metaclass=) is none.
+(class_definition name: (identifier) @scope.name superclasses: (argument_list [(identifier) (attribute)] @scope.base)) @scope

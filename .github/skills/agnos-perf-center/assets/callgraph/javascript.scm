@@ -17,3 +17,5 @@
 (class_declaration name: (identifier) @scope.name) @scope
 (call_expression function: (_) @call.name) @call
 (comment) @comment
+; The class a class extends (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(class_declaration name: (identifier) @scope.name (class_heritage (_) @scope.base)) @scope

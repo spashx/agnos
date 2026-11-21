@@ -1477,7 +1477,10 @@
         item("External calls", c.external, "a name defined in no scanned file", null, causes),
         item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK)),
         // RQ-TRC-122, DEC-TRC-067: the files whose functions may be missing
-        item("Unparsed files", parsedCheck.findings.length, `a syntax error in the file · ${parsedCheck.risk}`, () => openCheck(PARSED_CHECK))));
+        item("Unparsed files", parsedCheck.findings.length, `a syntax error in the file · ${parsedCheck.risk}`, () => openCheck(PARSED_CHECK)),
+        // RQ-TRC-126, DEC-TRC-072: a library class, or a folder of the project left out of the scanned ones
+        item("Unknown base classes", (CALL_GRAPH.unknownBases || []).length, "a base no scanned file defines", null,
+          CALL_GRAPH.unknownBases || [])));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------

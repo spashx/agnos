@@ -63,7 +63,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-115: Add ancestor classes to resolution
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Capture `@scope.base` in the query files of the languages with classes, build the ancestors breadth
   first, add their level, list the unknown base names in the summary line and the call graph card, documentation.
 - **Requirement refs**: RQ-TRC-126, RQ-TRC-124
@@ -72,8 +72,13 @@ This plan implements the tasks in the format specified below.
   skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-113
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: `AncestorTest` 11 failures and 1 error (`no attribute 'unknown_bases'`), six languages.
+  After: `test_resolution.py` 13 run, OK (the card's tooltip test in headless Edge included); full suite 436 run, OK,
+  3 skipped (opt-in performance tests, `AGNOS_PERF_CENTER_PERF=1`, not measured); `node --check assets/matrix.js` exit 0.
+  Demo: `ReservationConflict.__init__` now linked to `RoombookError.__init__`; unknown bases are library classes only.
+- **Assumptions**: the summary line names the first 10 unknown bases and counts the others; the card's figure is
+  "Unknown base classes", its tooltip listing them all; a Python base other than a name or an attribute (`Generic[T]`,
+  `metaclass=`) is not read.
 
 ### TASK-TRC-116: Filter candidates by arity
 - **Tier**: M

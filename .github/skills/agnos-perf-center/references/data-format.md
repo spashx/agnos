@@ -61,6 +61,7 @@ count, `score`) and `checks`, each with `key`, `title`, `label`, `rule`, `risk`,
 - `calls`: one flat list of integers over all callers, in function order; per caller: caller - previous caller, callee count, then per callee: callee -
   caller, ambiguous + 2 * line count, each call-site line - the caller's first line.
 - `ids`, each `[function index, ID, [lines]]`.
+- `unknownBases`: the base classes declared and matching no scanned scope, by name as written, sorted. <!-- RQ-TRC-126, DEC-TRC-072 -->
 - `counts`: `functions`, `calls`, `ambiguous`, `external`, `parsed` (files the call graph read) and `unparsed` (those whose
   tree holds a syntax error, the findings of the `files-parsed` check). <!-- RQ-TRC-122, DEC-TRC-067 -->
   `unresolved`: `{library, constructor, cross-language, unnamed, top-level}`, the unresolved calls by cause; `external` is

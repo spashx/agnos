@@ -16,3 +16,6 @@
 (union_specifier name: (_) @scope.name body: (_)) @scope
 (call_expression function: (_) @call.name) @call
 (comment) @comment
+; The bases a class derives from, not their access specifiers (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(class_specifier name: (_) @scope.name (base_class_clause [(type_identifier) (qualified_identifier) (template_type)] @scope.base) body: (_)) @scope
+(struct_specifier name: (_) @scope.name (base_class_clause [(type_identifier) (qualified_identifier) (template_type)] @scope.base) body: (_)) @scope

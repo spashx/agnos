@@ -59,6 +59,10 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   `A.f`) in that scope, then its ancestors. Found nowhere there: external, `library`, never a guess elsewhere. Through
   any other receiver (`other.f()`), or `this` in a function of no class: by name, as above. Counts are per caller and
   call signature (name, receiver).
+- A class's ancestors are the scopes named by the bases it declares (`extends`, `implements`, `: Base`, `class B(A)`,
+  `impl Trait for T`), one of its own namespace preferred, walked nearest first, each once <!-- RQ-TRC-126, DEC-TRC-072 -->;
+  they come between the caller's class and its namespace. A base matching no scanned scope is listed by name in the summary
+  line and the call graph card: a library class (`Exception`, `object`), or a folder of the project left out of `--sources`.
 - A call never traces a function <!-- RQ-TRC-128, DEC-TRC-018 -->: `functions-traced` reads only the IDs of a function's
   own lines and of the comment block just above it, never those of its class, namespace, callers or callees.
 - An unresolved call is counted by cause <!-- RQ-TRC-123, DEC-TRC-068 -->: `constructor` (the name of a class or other
@@ -68,7 +72,8 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
-  a node of its own (Java); the captures of all the matches of one node are merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
+  a node of its own (Java), `@scope.base` (each base a scope declares); the captures of all the matches of one node are
+  merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs

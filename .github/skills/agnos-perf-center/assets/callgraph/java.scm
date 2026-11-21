@@ -14,3 +14,9 @@
 (method_invocation object: (_)? @call.receiver name: (identifier) @call.name) @call
 (line_comment) @comment
 (block_comment) @comment
+; The bases a class or interface derives from (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(class_declaration name: (identifier) @scope.name (superclass (_) @scope.base)) @scope
+(class_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
+(interface_declaration name: (identifier) @scope.name (extends_interfaces (type_list (_) @scope.base))) @scope
+(enum_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
+(record_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
