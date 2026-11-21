@@ -10,6 +10,7 @@
 (interface_declaration name: (identifier) @scope.name) @scope
 (enum_declaration name: (identifier) @scope.name) @scope
 (record_declaration name: (identifier) @scope.name) @scope
-(method_invocation name: (identifier) @call.name) @call
+; The invoked name is a node of its own: its receiver is captured beside it (RQ-TRC-124, DEC-TRC-069).
+(method_invocation object: (_)? @call.receiver name: (identifier) @call.name) @call
 (line_comment) @comment
 (block_comment) @comment

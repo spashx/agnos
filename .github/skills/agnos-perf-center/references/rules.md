@@ -53,13 +53,22 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
   each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function
   pointers and callbacks are not followed.
+- A certain receiver comes first <!-- RQ-TRC-124, DEC-TRC-071 -->: through the caller's own object (`self`, `this`,
+  `Self`, the `self` words of the language table) the callee is looked for in the caller's class, then its ancestors;
+  through its parent (`super`, `base`, `super()`) in its ancestors only; through a qualifier naming a scope (`A::f`,
+  `A.f`) in that scope, then its ancestors. Found nowhere there: external, `library`, never a guess elsewhere. Through
+  any other receiver (`other.f()`), or `this` in a function of no class: by name, as above. Counts are per caller and
+  call signature (name, receiver).
+- A call never traces a function <!-- RQ-TRC-128, DEC-TRC-018 -->: `functions-traced` reads only the IDs of a function's
+  own lines and of the comment block just above it, never those of its class, namespace, callers or callees.
 - An unresolved call is counted by cause <!-- RQ-TRC-123, DEC-TRC-068 -->: `constructor` (the name of a class or other
   scope of the caller's language, as Python's `Greeter()`), `cross-language` (defined only in another language),
   `library` (defined in no scanned file), which make up `external`; and, outside it, `unnamed` (a call through an
   expression that is no name, as `(*fp)()`) and `top-level` (a call outside any function, as module-level code).
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
-  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. To add a language: one table entry, one query file, its
+  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
+  a node of its own (Java); the captures of all the matches of one node are merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs

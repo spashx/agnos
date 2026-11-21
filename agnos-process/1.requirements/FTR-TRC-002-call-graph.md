@@ -285,9 +285,9 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Rationale**: the receiver says, with certainty, where the callee is; dropping it turns certain calls into ambiguous or
   lost ones (callgraph operational analysis, R3).
 - **Priority**: Should
-- **Acceptance Criteria**: Given two classes each defining `f`, and a method of the first calling `self.f()` (`this.f()`)
-  and `other.f()`, When analysed, Then `self.f()` is one plain link to the first class's `f` and `other.f()` stays two
-  ambiguous links; Given six classes defining `__init__` and `super().__init__()` in a subclass of one of them, Then one
+- **Acceptance Criteria**: Given two classes `A` and `B` each defining `f`, and a third class calling `A.f()` (`A::f()`)
+  in one method and `other.f()` in another, When analysed, Then `A.f()` is one plain link to `A`'s `f` and `other.f()`
+  stays two ambiguous links (amended by TASK-TRC-113: from a method of `A`, the class preference already picks `A.f`); Given six classes defining `__init__` and `super().__init__()` in a subclass of one of them, Then one
   link joins the call to the parent's `__init__`; Given `self.g()` where neither the class nor its ancestors define `g`
   and another class does, Then no link is made and `library` counts it; Given a Java `obj.f()`, Then its receiver is read.
 - **Dependencies**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-123, RQ-TRC-126, DEC-TRC-069, DEC-TRC-070, DEC-TRC-071

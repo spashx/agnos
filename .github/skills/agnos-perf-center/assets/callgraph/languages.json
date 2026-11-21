@@ -1,6 +1,7 @@
 {
   "_comment": "agnos-perf-center call graph languages (RQ-TRC-032, DEC-TRC-014): extensions, grammar wheel and module, query file, scope separator. An extension belongs to one language.",
   "_scopes": "scopes (RQ-TRC-047, DEC-TRC-019): the box kind, namespace or class, of each scope node type of the grammar; a language without scopes gives functions without box.",
+  "_receivers": "self, super (RQ-TRC-124, DEC-TRC-070): the receiver words naming the caller's own object and its parent object; a call through them is looked for in the caller's class and its ancestors, or its ancestors only.",
   "c": {
     "extensions": [".c"],
     "package": "tree-sitter-c",
@@ -10,6 +11,7 @@
     "scopes": {}
   },
   "cpp": {
+    "self": ["this"],
     "extensions": [".cc", ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx", ".h++", ".inl", ".ipp", ".tpp"],
     "package": "tree-sitter-cpp",
     "module": "tree_sitter_cpp",
@@ -23,6 +25,7 @@
     }
   },
   "csharp": {
+    "self": ["this"], "super": ["base"],
     "extensions": [".cs"],
     "package": "tree-sitter-c-sharp",
     "module": "tree_sitter_c_sharp",
@@ -38,6 +41,7 @@
     }
   },
   "java": {
+    "self": ["this"], "super": ["super"],
     "extensions": [".java"],
     "package": "tree-sitter-java",
     "module": "tree_sitter_java",
@@ -52,6 +56,7 @@
     }
   },
   "javascript": {
+    "self": ["this"], "super": ["super"],
     "extensions": [".js", ".jsx", ".mjs", ".cjs"],
     "package": "tree-sitter-javascript",
     "module": "tree_sitter_javascript",
@@ -62,6 +67,7 @@
     }
   },
   "python": {
+    "self": ["self", "cls"], "super": ["super()"],
     "extensions": [".py", ".pyw"],
     "package": "tree-sitter-python",
     "module": "tree_sitter_python",
@@ -72,6 +78,7 @@
     }
   },
   "rust": {
+    "self": ["self", "Self"],
     "extensions": [".rs"],
     "package": "tree-sitter-rust",
     "module": "tree_sitter_rust",

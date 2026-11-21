@@ -32,7 +32,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-113: Resolve calls by their receiver
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Merge captures per node, read the receiver of each call (`@call.receiver` in Java), the `self` and
   `super` words of the language table, restrict the candidates before the preferences, documentation.
 - **Requirement refs**: RQ-TRC-124, RQ-TRC-128, RQ-TRC-029
@@ -41,8 +41,12 @@ This plan implements the tasks in the format specified below.
   and of RQ-TRC-128; Given the skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-112
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: `test_resolution.py` 12 sub-cases failed (class-name receiver and own-object receiver, six
+  languages each). After: `test_resolution.py` 6 run, OK; full suite 429 run, OK, 3 skipped (opt-in performance tests,
+  `AGNOS_PERF_CENTER_PERF=1`, not measured); fixtures' pinned counts unchanged. Demo (client + service): 2 links removed,
+  both `super().__init__()` linked to the method itself.
+- **Assumptions**: RQ-TRC-124's first criterion amended (from a method of `A`, the class preference already picks `A.f`);
+  Python's `cls` is an own-object word; a receiver names a scope when its last part is a scope's last part.
 
 ### TASK-TRC-114: Link constructions to constructors
 - **Tier**: M
