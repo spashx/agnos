@@ -21,3 +21,12 @@
 (class_declaration name: (identifier) @scope.name (class_heritage (_) @scope.base)) @scope
 ; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069).
 (new_expression constructor: (_) @new.name) @new
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(function_declaration parameters: (_) @definition.parameters) @definition
+(generator_function_declaration parameters: (_) @definition.parameters) @definition
+(method_definition parameters: (_) @definition.parameters) @definition
+(variable_declarator value: [(arrow_function parameters: (_) @definition.parameters) (function_expression parameters: (_) @definition.parameters)]) @definition
+(pair value: [(arrow_function parameters: (_) @definition.parameters) (function_expression parameters: (_) @definition.parameters)]) @definition
+(assignment_expression right: [(arrow_function parameters: (_) @definition.parameters) (function_expression parameters: (_) @definition.parameters)]) @definition
+(call_expression arguments: (arguments) @call.arguments) @call
+(new_expression arguments: (arguments) @call.arguments) @new

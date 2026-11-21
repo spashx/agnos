@@ -86,7 +86,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-116: Filter candidates by arity
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Capture `@definition.parameters` and `@call.arguments`, give the `arity` node types in the language
   table, keep the compatible candidates when there are several, documentation.
 - **Requirement refs**: RQ-TRC-127
@@ -94,5 +94,9 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria** (Gherkin): the acceptance criteria of RQ-TRC-127; Given the skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-113
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: `ArityTest` 6 failures (six languages, both overloads linked as ambiguous). After:
+  `test_resolution.py` 20 run, OK; full suite 443 run, OK, 3 skipped (opt-in performance tests, `AGNOS_PERF_CENTER_PERF=1`,
+  not measured); `test_skill*` 9 run, OK after the last edit of `rules.md`; `node --check assets/matrix.js` exit 0. Demo:
+  no link changed, the 243 ambiguous links being calls on injected objects whose implementations share one signature.
+- **Assumptions**: the table's `arity` also gives `none` (C's `(void)`) and `default` (the `=` token) beyond the kinds
+  DEC-TRC-070 names; a JavaScript arrow with one bare parameter has no parameter node and accepts any count.

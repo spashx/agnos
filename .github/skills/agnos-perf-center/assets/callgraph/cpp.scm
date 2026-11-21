@@ -21,3 +21,9 @@
 (struct_specifier name: (_) @scope.name (base_class_clause [(type_identifier) (qualified_identifier) (template_type)] @scope.base) body: (_)) @scope
 ; An object's creation by new, by its class (RQ-TRC-125, DEC-TRC-069); one declared on the stack is no call.
 (new_expression type: (_) @new.name) @new
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(function_definition declarator: (function_declarator parameters: (_) @definition.parameters)) @definition
+(function_definition declarator: (pointer_declarator declarator: (function_declarator parameters: (_) @definition.parameters))) @definition
+(call_expression arguments: (argument_list) @call.arguments) @call
+(function_definition declarator: (reference_declarator (function_declarator parameters: (_) @definition.parameters))) @definition
+(new_expression arguments: (argument_list) @call.arguments) @new

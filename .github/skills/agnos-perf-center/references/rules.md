@@ -73,7 +73,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
   a node of its own (Java), `@scope.base` (each base a scope declares), `@new` and `@new.name` (an object's creation, its
-  class); the captures of all the matches of one node are
+  class), `@definition.parameters` and `@call.arguments` (for the arity); the captures of all the matches of one node are
   merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
@@ -85,6 +85,10 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   `T(1)`) link to the constructors of `T`: its functions named `T`, or named the `constructor` of the language table
   (`__init__`, `constructor`); none: external, `constructor` <!-- RQ-TRC-125, DEC-TRC-070 -->. Not followed: a C++ object
   declared on the stack (`T t(1);`), C#'s `new()` without type, Java's `super(…)` and `this(…)`.
+- Two or more candidates left: those whose parameters accept the call's number of arguments are kept, a parameter with a
+  default value being optional, a variadic one unbounded, Python's `self` and Rust's `&self` not counted; none accepting
+  it, or a spread argument (`*args`, `...xs`): all are kept <!-- RQ-TRC-127, DEC-TRC-073 -->. The node types are the
+  `arity` of the language table.
 - What differs between languages is settled in their query files <!-- DEC-TRC-026 -->: Java's `package a.b;` and C#'s
   `namespace A.B;` stand before the classes, so the file's root node is captured as that namespace's scope; Python's
   decorators and Rust's attributes are captured as `@comment`, so the comment block above them reaches the definition.

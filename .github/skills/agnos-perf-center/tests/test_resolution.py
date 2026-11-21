@@ -206,6 +206,55 @@ class UnknownBasePageTest(unittest.TestCase):
         self.assertIn("Unknown base classes", dom)
 
 
+def callee_lines(graph, caller):
+    """{(callee, its first line): ambiguous} of one caller, overloads told apart by their line."""
+    functions = graph.functions
+    return {(functions[b]["qualified"], functions[b]["first"]): ambiguous for a, b, ambiguous, _ in graph.calls
+            if functions[a]["qualified"] == caller}
+
+
+# RQ-TRC-127: per language, two candidates and a caller whose call only the second accepts:
+# (file, text, caller, callee, the callee's first line).
+ARITY = {
+    "cpp": ("m.cpp", "struct A { int f(int a) { return a; }\nint f(int a, int b = 0, int c = 0) { return b; }\n"
+                     "int g() { return f(1, 2); } };\n", "A::g", "A::f", 2),
+    "java": ("M.java", "class A { int f(int a) { return a; }\nint f(int a, String... r) { return 0; }\n"
+                       "int g() { return f(1, \"x\", \"y\"); } }\n", "A.g", "A.f", 2),
+    "csharp": ("M.cs", "class A { int f(int a) { return a; }\nint f(int a, params int[] r) { return 0; }\n"
+                       "int g() { return f(1, 2, 3); } }\n", "A.g", "A.f", 2),
+    "javascript": ("m.js", "class A { f(a) { return a; } }\nclass B { f(a, ...r) { return 0; } }\n"
+                           "function g(x) { return x.f(1, 2, 3); }\n", "g", "B.f", 2),
+    "python": ("m.py", "class A:\n    def f(self): return 0\nclass B:\n    def f(self, a, b=0): return a\n"
+                       "def g(x):\n    return x.f(1)\n", "g", "B.f", 4),
+    "rust": ("m.rs", "struct A; impl A { fn f(&self) -> u8 { 0 } }\nstruct B; impl B { fn f(&self, x: u8) -> u8 { x } }\n"
+                     "fn g(x: &B) -> u8 { x.f(1) }\n", "g", "B::f", 2),
+}
+
+
+@unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
+class ArityTest(unittest.TestCase):
+    """TASK-TRC-116: RQ-TRC-127 (DEC-TRC-069, DEC-TRC-070, DEC-TRC-073)."""
+
+    def test_RQ_TRC_127_given_two_candidates_and_a_call_only_one_accepts_when_analysed_then_one_plain_link(self):
+        for language, (name, text, caller, callee, line) in ARITY.items():
+            with self.subTest(language):
+                self.assertEqual({(callee, line): False}, callee_lines(graph_of({name: text}), caller))
+
+    def test_RQ_TRC_127_given_a_spread_argument_when_analysed_then_no_candidate_is_dropped(self):
+        graph = graph_of({"m.py": "class A:\n    def f(self): return 0\nclass B:\n    def f(self, a): return a\n"
+                                  "def g(x, args):\n    return x.f(*args)\n"})
+        self.assertEqual({("A.f", 2): True, ("B.f", 4): True}, callee_lines(graph, "g"))
+
+    def test_RQ_TRC_127_given_no_candidate_accepting_the_call_when_analysed_then_all_are_kept(self):
+        graph = graph_of({"m.py": "class A:\n    def f(self): return 0\nclass B:\n    def f(self): return 1\n"
+                                  "def g(x):\n    return x.f(1, 2)\n"})
+        self.assertEqual({("A.f", 2): True, ("B.f", 4): True}, callee_lines(graph, "g"))
+
+    def test_RQ_TRC_127_given_a_single_candidate_not_accepting_the_call_when_analysed_then_it_is_still_linked(self):
+        graph = graph_of({"m.c": "int h(void) { return 0; }\nint g(void) { return h(1, 2); }\n"})
+        self.assertEqual({("h", 1): False}, callee_lines(graph, "g"))
+
+
 @unittest.skipUnless(HAS_TREE_SITTER, NEEDS_TREE_SITTER)
 class ConformanceTest(unittest.TestCase):
     """TASK-TRC-113: RQ-TRC-128 (DEC-TRC-018): neither the enclosing class nor the callers trace a function."""

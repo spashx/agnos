@@ -3,7 +3,9 @@
   "_scopes": "scopes (RQ-TRC-047, DEC-TRC-019): the box kind, namespace or class, of each scope node type of the grammar; a language without scopes gives functions without box.",
   "_receivers": "self, super (RQ-TRC-124, DEC-TRC-070): the receiver words naming the caller's own object and its parent object; a call through them is looked for in the caller's class and its ancestors, or its ancestors only.",
   "_constructor": "constructor (RQ-TRC-125, DEC-TRC-070): the name of a class's constructor where it is not the class's own name; a creation, or a call to a class's name, links to the class's functions of either name.",
+  "_arity": "arity (RQ-TRC-127, DEC-TRC-070, DEC-TRC-073): the node types counted as parameters; a variadic node or token makes the count unbounded; a parameter holding a default token is optional; a first parameter written as a receiver word, or a parameter written as a none word (void), is not counted; a spread argument makes the call's count unknown.",
   "c": {
+    "arity": {"parameters": ["parameter_declaration"], "variadic": ["variadic_parameter"], "none": ["void"]},
     "extensions": [".c"],
     "package": "tree-sitter-c",
     "module": "tree_sitter_c",
@@ -12,6 +14,7 @@
     "scopes": {}
   },
   "cpp": {
+    "arity": {"parameters": ["parameter_declaration", "optional_parameter_declaration", "variadic_parameter_declaration"], "variadic": ["variadic_parameter", "variadic_parameter_declaration", "..."], "default": ["="], "none": ["void"]},
     "self": ["this"],
     "extensions": [".cc", ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx", ".h++", ".inl", ".ipp", ".tpp"],
     "package": "tree-sitter-cpp",
@@ -26,6 +29,7 @@
     }
   },
   "csharp": {
+    "arity": {"parameters": ["parameter"], "variadic": ["params"], "default": ["="]},
     "self": ["this"], "super": ["base"],
     "extensions": [".cs"],
     "package": "tree-sitter-c-sharp",
@@ -42,6 +46,7 @@
     }
   },
   "java": {
+    "arity": {"parameters": ["formal_parameter"], "variadic": ["spread_parameter"]},
     "self": ["this"], "super": ["super"],
     "extensions": [".java"],
     "package": "tree-sitter-java",
@@ -57,6 +62,7 @@
     }
   },
   "javascript": {
+    "arity": {"parameters": ["identifier", "assignment_pattern", "object_pattern", "array_pattern"], "variadic": ["rest_pattern"], "default": ["="], "spread": ["spread_element"]},
     "self": ["this"], "super": ["super"], "constructor": "constructor",
     "extensions": [".js", ".jsx", ".mjs", ".cjs"],
     "package": "tree-sitter-javascript",
@@ -68,6 +74,7 @@
     }
   },
   "python": {
+    "arity": {"parameters": ["identifier", "typed_parameter", "default_parameter", "typed_default_parameter"], "variadic": ["list_splat_pattern", "dictionary_splat_pattern"], "default": ["="], "receiver": ["self", "cls"], "spread": ["list_splat", "dictionary_splat"]},
     "self": ["self", "cls"], "super": ["super()"], "constructor": "__init__",
     "extensions": [".py", ".pyw"],
     "package": "tree-sitter-python",
@@ -79,6 +86,7 @@
     }
   },
   "rust": {
+    "arity": {"parameters": ["parameter"]},
     "self": ["self", "Self"],
     "extensions": [".rs"],
     "package": "tree-sitter-rust",

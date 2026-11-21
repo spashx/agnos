@@ -22,3 +22,8 @@
 (record_declaration name: (identifier) @scope.name (super_interfaces (type_list (_) @scope.base))) @scope
 ; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069); super(…) and this(…) are not followed.
 (object_creation_expression type: (_) @new.name) @new
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(method_declaration parameters: (_) @definition.parameters) @definition
+(constructor_declaration parameters: (_) @definition.parameters) @definition
+(method_invocation arguments: (_) @call.arguments) @call
+(object_creation_expression arguments: (_) @call.arguments) @new

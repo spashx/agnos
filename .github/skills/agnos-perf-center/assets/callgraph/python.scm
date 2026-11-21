@@ -9,3 +9,6 @@
 (decorator) @comment
 ; The bases a class derives from (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072); a keyword argument (metaclass=) is none.
 (class_definition name: (identifier) @scope.name superclasses: (argument_list [(identifier) (attribute)] @scope.base)) @scope
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(function_definition parameters: (parameters) @definition.parameters) @definition
+(call arguments: (argument_list) @call.arguments) @call

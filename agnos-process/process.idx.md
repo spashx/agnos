@@ -1115,12 +1115,12 @@ TASK-TRC-109|17-31|Done|Specify call graph measurement
 TASK-TRC-110|32-50|Done|Score files that fail to parse
 TASK-TRC-111|51-68|Done|Count unresolved calls by cause
 @agnos-process/3.plan/PLAN-TRC-022-call-resolution-accuracy.md
-PLAN-TRC-022|1-98||Call resolution accuracy
+PLAN-TRC-022|1-102||Call resolution accuracy
 TASK-TRC-112|17-32|Done|Specify call resolution accuracy
 TASK-TRC-113|33-50|Done|Resolve calls by their receiver
 TASK-TRC-114|51-67|Done|Link constructions to constructors
 TASK-TRC-115|68-86|Done|Add ancestor classes to resolution
-TASK-TRC-116|87-98|Not Started|Filter candidates by arity
+TASK-TRC-116|87-102|Done|Filter candidates by arity
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

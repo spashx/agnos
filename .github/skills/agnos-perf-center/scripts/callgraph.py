@@ -45,6 +45,8 @@ CALL_RECEIVER = "call.receiver"                    # the receiver, where the cal
 SCOPE_BASE = "scope.base"                          # a class, interface or trait a scope derives from (RQ-TRC-126)
 SHOWN_BASES = 10                                   # unknown bases named in the summary line, the others counted
 NEW, NEW_NAME = "new", "new.name"                  # an object's creation and the class created (RQ-TRC-125)
+DEFINITION_PARAMETERS, CALL_ARGUMENTS = "definition.parameters", "call.arguments"     # RQ-TRC-127
+KEY_ARITY = "arity"                                # a function's (fewest, most or None) arguments, a table entry's key
 KINDS = ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (NEW, NEW_NAME), (COMMENT, None))
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
 MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
@@ -94,7 +96,8 @@ class Grammar:
         self.scopes = entry.get(KEY_SCOPES, {})
         self.self_words = frozenset(entry.get("self", ()))      # the receiver naming the caller's own object
         self.super_words = frozenset(entry.get("super", ()))    # the receiver naming its parent object
-        self.constructor = entry.get(KEY_CONSTRUCTOR)             # a constructor's name, when not the class's (RQ-TRC-125)
+        self.constructor = entry.get(KEY_CONSTRUCTOR)
+        self.arity = {key: frozenset(types) for key, types in entry.get(KEY_ARITY, {}).items()}     # RQ-TRC-127             # a constructor's name, when not the class's (RQ-TRC-125)
 
 
 def load_table(path=LANGUAGES_PATH):
@@ -173,9 +176,46 @@ def captures_of(grammar, api, root):
                          key=lambda entry, kind=kind: entry[kind][0].start_byte) for kind, name in KINDS}
 
 
-def first(entry, capture):
+def first_node(entry, capture):
     """The first node of a capture of an entry, None when the match had none."""
     return entry.get(capture, (None,))[0]
+
+
+# RQ-TRC-127, DEC-TRC-073 (TASK-TRC-116)
+def parameter_range(node, grammar):
+    """(fewest, most or None for unbounded) arguments a definition's parameter node accepts, after the language table's
+    arity; None when it is unknown."""
+    arity = grammar.arity
+    if node is None or not arity:
+        return None
+    fewest = most = 0
+    unbounded = False
+    for child in node.children:
+        text = text_of(child)
+        if child.type in arity.get("variadic", ()):
+            unbounded = True
+        elif child.is_named and child.type in arity.get("parameters", ()) and text not in arity.get("none", ()):
+            if most == 0 and text in arity.get("receiver", ()):
+                continue                       # Python's self: the receiver passes it
+            most += 1
+            fewest += not any(part.type in arity.get("default", ()) for part in child.children)
+    return fewest, None if unbounded else most
+
+
+def argument_count(node, grammar):
+    """The number of arguments of a call's argument node; None when it is unknown (no node, a spread argument)."""
+    if node is None or not grammar.arity:
+        return None
+    arguments = [child for child in node.named_children if COMMENT not in child.type]
+    if any(child.type in grammar.arity.get("spread", ()) for child in arguments):
+        return None
+    return len(arguments)
+
+
+def accepts(function, count):
+    """Whether a function's parameters accept count arguments (an unknown range accepts any)."""
+    bounds = function.get(KEY_ARITY)
+    return bounds is None or (bounds[0] <= count and (bounds[1] is None or count <= bounds[1]))
 
 
 def comment_tops(comments, lines):
@@ -233,7 +273,7 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           KEY_NAME: qualified.split(separator)[-1],
                           KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
-                          KEY_NODE: node})
+                          KEY_NODE: node, KEY_ARITY: parameter_range(first_node(entry, DEFINITION_PARAMETERS), grammar)})
     calls = sorted(caps[CALL] + caps[NEW], key=lambda entry: call_node(entry).start_byte)       # RQ-TRC-125
     return functions, calls, declared_scopes(grammar, caps[SCOPE]), root.has_error, declared_bases(grammar, caps[SCOPE])
 
@@ -274,7 +314,7 @@ def called(entry, expression):
     receiver, name = split_call(plain_name(text_of(expression)))
     if NEW in entry:
         return "", name
-    receiver_node = first(entry, CALL_RECEIVER)
+    receiver_node = first_node(entry, CALL_RECEIVER)
     return (receiver if receiver_node is None else plain_name(text_of(receiver_node))), name
 
 
@@ -289,10 +329,10 @@ def open_functions(stack, pending, start):
         stack.pop()
 
 
-def call_sites(functions, calls, unresolved):
-    """(caller, called name, line, receiver, creation) of each call whose name can be resolved, the caller being the
-    innermost function holding the call, the receiver what stands before the name ('' for none, RQ-TRC-124), creation
-    whether it creates an object (RQ-TRC-125); nodes in start order, one sweep with a stack of the open functions. A call
+def call_sites(functions, calls, unresolved, grammar):
+    """(caller, called name, line, receiver, creation, argument count) of each call whose name can be resolved, the
+    caller being the innermost function holding the call, the receiver what stands before the name ('' for none,
+    RQ-TRC-124), creation whether it creates an object (RQ-TRC-125), the count None when unknown (RQ-TRC-127); nodes in start order, one sweep with a stack of the open functions. A call
     outside any function counts as top-level, one whose expression is no name as unnamed, in unresolved (RQ-TRC-123)."""
     sites, stack, pending = [], [], list(reversed(functions))
     for entry in calls:
@@ -304,7 +344,8 @@ def call_sites(functions, calls, unresolved):
         elif not NAME_RE.match(name):
             unresolved[UNNAMED] += 1
         else:
-            sites.append((stack[-1], name, call.start_point[0] + 1, receiver, NEW in entry))
+            sites.append((stack[-1], name, call.start_point[0] + 1, receiver, NEW in entry,
+                          argument_count(first_node(entry, CALL_ARGUMENTS), grammar)))           # RQ-TRC-127
     return sites
 
 
@@ -407,12 +448,28 @@ def nearest(candidates, levels):
     return []
 
 
-# RQ-TRC-029, RQ-TRC-124 (TASK-TRC-113)
+# RQ-TRC-127, DEC-TRC-073 (TASK-TRC-116)
+def by_arity(candidates, count):
+    """Among two or more candidates, those accepting count arguments; all when none does or count is unknown."""
+    if len(candidates) < 2 or count is None:
+        return candidates
+    return [f for f in candidates if accepts(f, count)] or candidates
+
+
+# RQ-TRC-029, RQ-TRC-124, RQ-TRC-125, RQ-TRC-127 (TASK-TRC-113, TASK-TRC-114, TASK-TRC-116)
 def choose(caller, signature, grammar, definitions, hierarchy):
-    """(the candidates of one call signature (name, receiver, creation), whether a certain receiver confined them): for
-    the creation of a class or a call to a class's name, its constructors; else those of the receiver's scopes first,
-    then the preferred ones (DEC-TRC-071)."""
-    name, receiver, creation = signature
+    """(the candidates of one call signature (name, receiver, creation, argument count), whether a certain receiver
+    confined them), those accepting the arguments kept when there are several (RQ-TRC-127)."""
+    *found, count = signature
+    chosen, certain = by_name(caller, found, grammar, definitions, hierarchy)
+    return by_arity(chosen, count), certain
+
+
+def by_name(caller, found, grammar, definitions, hierarchy):
+    """(the candidates of a (name, receiver, creation), whether a certain receiver confined them): for the creation of a
+    class or a call to a class's name, its constructors; else those of the receiver's scopes first, then the preferred
+    ones (DEC-TRC-071)."""
+    name, receiver, creation = found
     classes = {s for s in hierarchy.named(grammar.name, name) if hierarchy.is_class(grammar.name, s)}
     if classes or creation:                                             # RQ-TRC-125: a creation, or a class called
         names = (name, grammar.constructor)
@@ -610,7 +667,7 @@ def analyse(files, cited, evidence, table=None):
             if broken:
                 graph.unparsed.append(shown)
             graph.functions += functions
-            sites += call_sites(functions, calls, graph.unresolved)
+            sites += call_sites(functions, calls, graph.unresolved, grammar)
             for name, kind in scopes.items():
                 declared.setdefault(name, kind)
                 kinds.setdefault((grammar.name, name), kind)                           # RQ-TRC-124
