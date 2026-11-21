@@ -1,5 +1,5 @@
 {
-  "_comment": "FTR-TRC-003, ADR-TRC-008 (DEC-TRC-032): the checks of the quality scorecard, their risk weights, the grade thresholds and the attention threshold. Read by scripts/scorecard.py; change a number here, never in the code.",
+  "_comment": "FTR-TRC-003, ADR-TRC-008 (DEC-TRC-032); files-parsed: RQ-TRC-122, DEC-TRC-067. The checks of the quality scorecard, their risk weights, the grade thresholds and the attention threshold. Read by scripts/scorecard.py; change a number here, never in the code.",
   "risks": {"critical": 10, "high": 7.5, "medium": 5, "low": 2.5, "informational": 0},
   "grades": [["A", 9], ["B", 7.5], ["C", 6], ["D", 4], ["E", 0]],
   "verdicts": {"A": "Excellent", "B": "Good", "C": "Fair", "D": "Weak", "E": "Poor"},
@@ -31,6 +31,9 @@
      "rule": "Every scanned source file cites at least one ID."},
     {"key": "functions-traced", "label": "Functions", "title": "Functions traced", "risk": "medium", "population": "functions",
      "findings": "untraced-functions", "items": "function",
-     "rule": "Every function cites an ID in its lines or in the comment just above it."}
+     "rule": "Every function cites an ID in its lines or in the comment just above it."},
+    {"key": "files-parsed", "label": "Parsed", "title": "Files parsed", "risk": "medium", "population": "parsed-files",
+     "findings": "unparsed-files", "items": "file",
+     "rule": "Every file the call graph reads parses without error, so its functions are all found."}
   ]
 }

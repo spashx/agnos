@@ -40,24 +40,55 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 | Elements connected (`connected`) | medium | defined elements | `isolated` |
 | Source files traced (`files-traced`) | medium | scanned files | `untraced-files` |
 | Functions traced (`functions-traced`) | medium | functions (with `--call-graph`; no score without it) | functions citing no ID |
+| Files parsed (`files-parsed`) <!-- RQ-TRC-122, DEC-TRC-067 --> | medium | files the call graph read (with `--call-graph`) | files whose tree holds an `ERROR` or `MISSING` node |
 
 ## Call graph <!-- DEC-TRC-013 to DEC-TRC-018 -->
 
 - A function is a definition with a body; its key is `fn:<file>:<first line>`. It cites the IDs of its lines and of the
   comment block just above it. Coverage and the findings stay file-based: the call graph changes none of them.
+- A file whose syntax tree-sitter cannot fully read (a syntax error, a dialect its grammar lacks) still gives the functions
+  found in it, and is a finding of `files-parsed`: some of its functions may be missing, and with them their findings
+  of `functions-traced`. <!-- RQ-TRC-122, DEC-TRC-067 -->
 - Calls are resolved by name: among the definitions of that name in the caller's language, the first non-empty set of
   the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
   each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function
   pointers and callbacks are not followed.
+- A certain receiver comes first <!-- RQ-TRC-124, DEC-TRC-071 -->: through the caller's own object (`self`, `this`,
+  `Self`, the `self` words of the language table) the callee is looked for in the caller's class, then its ancestors;
+  through its parent (`super`, `base`, `super()`) in its ancestors only; through a qualifier naming a scope (`A::f`,
+  `A.f`) in that scope, then its ancestors. Found nowhere there: external, `library`, never a guess elsewhere. Through
+  any other receiver (`other.f()`), or `this` in a function of no class: by name, as above. Counts are per caller and
+  call signature (name, receiver).
+- A class's ancestors are the scopes named by the bases it declares (`extends`, `implements`, `: Base`, `class B(A)`,
+  `impl Trait for T`), one of its own namespace preferred, walked nearest first, each once <!-- RQ-TRC-126, DEC-TRC-072 -->;
+  they come between the caller's class and its namespace. A base matching no scanned scope is listed by name in the summary
+  line and the call graph card: a library class (`Exception`, `object`), or a folder of the project left out of `--sources`.
+- A call never traces a function <!-- RQ-TRC-128, DEC-TRC-018 -->: `functions-traced` reads only the IDs of a function's
+  own lines and of the comment block just above it, never those of its class, namespace, callers or callees.
+- An unresolved call is counted by cause <!-- RQ-TRC-123, DEC-TRC-068 -->: `constructor` (the name of a class or other
+  scope of the caller's language, as Python's `Greeter()`), `cross-language` (defined only in another language),
+  `library` (defined in no scanned file), which make up `external`; and, outside it, `unnamed` (a call through an
+  expression that is no name, as `(*fp)()`) and `top-level` (a call outside any function, as module-level code).
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
-  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. To add a language: one table entry, one query file, its
+  `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
+  a node of its own (Java), `@scope.base` (each base a scope declares), `@new` and `@new.name` (an object's creation, its
+  class), `@definition.parameters` and `@call.arguments` (for the arity); the captures of all the matches of one node are
+  merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
   grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs
   `.pyi` are not read) and Rust (`.rs`). A definition is a function or method with a body: in JavaScript also a function
   or arrow given to a name, an object key or a member (`exports.f = function`); a Rust trait's default method; not an
-  interface or abstract method. `new`, macros (`println!`) and calls outside any function are not calls.
+  interface or abstract method. Macros (`println!`) and calls outside any function are not calls.
+- An object's creation (`new T(…)` in Java, C#, C++ and JavaScript) and a call to a class's name (Python's `T()`, C++'s
+  `T(1)`) link to the constructors of `T`: its functions named `T`, or named the `constructor` of the language table
+  (`__init__`, `constructor`); none: external, `constructor` <!-- RQ-TRC-125, DEC-TRC-070 -->. Not followed: a C++ object
+  declared on the stack (`T t(1);`), C#'s `new()` without type, Java's `super(…)` and `this(…)`.
+- Two or more candidates left: those whose parameters accept the call's number of arguments are kept, a parameter with a
+  default value being optional, a variadic one unbounded, Python's `self` and Rust's `&self` not counted; none accepting
+  it, or a spread argument (`*args`, `...xs`): all are kept <!-- RQ-TRC-127, DEC-TRC-073 -->. The node types are the
+  `arity` of the language table.
 - What differs between languages is settled in their query files <!-- DEC-TRC-026 -->: Java's `package a.b;` and C#'s
   `namespace A.B;` stand before the classes, so the file's root node is captured as that namespace's scope; Python's
   decorators and Rust's attributes are captured as `@comment`, so the comment block above them reaches the definition.

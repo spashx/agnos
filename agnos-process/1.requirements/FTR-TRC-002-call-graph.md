@@ -66,6 +66,10 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Acceptance Criteria**: Given `a()` calling `b()` on lines 4 and 9 with one `b` defined in the project, When the page is
   built, Then one call link joins `a` to `b` with lines 4 and 9.
 - **Dependencies**: RQ-TRC-028, DEC-TRC-015
+- **Amendment**: Amended by TASK-TRC-112 (owner, 2026-11-21): the receiver restricts the candidates first (RQ-TRC-124),
+  the caller's ancestor classes come between its class and its namespace (RQ-TRC-126), the arity filters what is left
+  (RQ-TRC-127); the ambiguous and external counts are per caller and call signature (name, receiver, construction,
+  argument count) rather than per caller and name.
 
 ### RQ-TRC-030: Ambiguous and external calls
 - **Category**: Functional
@@ -235,6 +239,126 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   outside any declared namespace is in `(global)`.
 - **Dependencies**: RQ-TRC-032, RQ-TRC-047, DEC-TRC-025, DEC-TRC-026
 
+### RQ-TRC-122: Parse failures as findings
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF the parse tree of a scanned file of a supported language holds an error or a missing node, THEN the
+  trace generator SHALL still read its functions, and SHALL make the file a finding of a medium-risk check "Files parsed",
+  whose population is the files the call graph read, give their count in the call graph's counts and summary line, and
+  show it in the page's call graph card, a click opening the check.
+- **Rationale**: a file the parser cannot read yields few or no functions, so fewer untraced ones: without this check, a
+  broken file raises the "Functions traced" score (callgraph operational analysis, R1).
+- **Priority**: Must
+- **Acceptance Criteria**: Given one syntactically broken fixture file per supported language, When analysed, Then each is
+  a finding of "Files parsed" and the counts give their number; Given the call-graph fixture, whose files all parse, Then
+  "Files parsed" scores 10 with no finding; Given a run without `--call-graph`, Then there is no "Files parsed" check;
+  Given the page with a broken file, When its call graph card's "Unparsed files" is clicked, Then the check opens.
+- **Dependencies**: RQ-TRC-026, RQ-TRC-035, RQ-TRC-058, RQ-PLG-024, DEC-TRC-067
+
+### RQ-TRC-123: Unresolved calls by cause
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The trace generator SHALL count, beside the external total of RQ-TRC-030, each unresolved call by cause:
+  `constructor` (the name of a scope of the caller's language and of no function), `cross-language` (a name defined only in
+  another language), `library` (a name defined nowhere), and, outside the external total, `unnamed` (an expression that is
+  no name, as a function pointer) and `top-level` (a call outside any function); the page SHALL show these counts in the
+  tooltip of its "External calls" figure.
+- **Rationale**: one external count mixes a normal library call with a missed internal edge; the causes tell which
+  improvement of the resolution is worth its cost (callgraph operational analysis, R2 and R7).
+- **Priority**: Should
+- **Acceptance Criteria**: Given the Python fixture calling `print` and instantiating `Greeter()`, When analysed, Then
+  `library` is 1, `constructor` is 1 and external stays 2; Given the C++ fixture's call through a function pointer, Then
+  `unnamed` is 1; Given a call at module level, Then `top-level` counts it and no link is made; Given a C file calling a
+  name only a Python file defines, Then `cross-language` is 1.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-035, DEC-TRC-068
+
+### RQ-TRC-124: Call resolution by receiver
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN a call is made through a receiver word of the caller's language that names its own object (`self`,
+  `this`, `Self`) from a function of a class, the trace generator SHALL look for the callee in that class, then in its
+  ancestor classes (RQ-TRC-126); WHEN it is made through a word that names the parent object (`super`, `base`, `super()`),
+  in the ancestor classes only; WHEN it is made through a qualifier that is the name of a scope of the caller's language
+  (`Type::f`, `Type.f`), in that scope, then in its ancestors; a call through any other receiver SHALL be resolved as
+  RQ-TRC-029 says. A call whose receiver named a class or scope, with no candidate there, SHALL count as external of cause
+  `library` and make no link, never falling back to the whole project.
+- **Rationale**: the receiver says, with certainty, where the callee is; dropping it turns certain calls into ambiguous or
+  lost ones (callgraph operational analysis, R3).
+- **Priority**: Should
+- **Acceptance Criteria**: Given two classes `A` and `B` each defining `f`, and a third class calling `A.f()` (`A::f()`)
+  in one method and `other.f()` in another, When analysed, Then `A.f()` is one plain link to `A`'s `f` and `other.f()`
+  stays two ambiguous links (amended by TASK-TRC-113: from a method of `A`, the class preference already picks `A.f`); Given six classes defining `__init__` and `super().__init__()` in a subclass of one of them, Then one
+  link joins the call to the parent's `__init__`; Given `self.g()` where neither the class nor its ancestors define `g`
+  and another class does, Then no link is made and `library` counts it; Given a Java `obj.f()`, Then its receiver is read.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-123, RQ-TRC-126, DEC-TRC-069, DEC-TRC-070, DEC-TRC-071
+
+### RQ-TRC-125: Constructor calls linked to constructors
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN a function creates an object of a class of the caller's language, by `new T(…)` (Java, C#, C++,
+  JavaScript) or by calling the class's name (Python, C++), the trace generator SHALL link the call to the constructors of
+  `T`: the functions of the scope `T` named `T` or named the constructor name the language table gives (`__init__`,
+  `constructor`); IF `T` has none, THEN the call SHALL count as external of cause `constructor`, as RQ-TRC-123 says. A C++
+  object declared on the stack (`T t(1);`), a C# `new()` without a type and a Java `super(…)` or `this(…)` constructor
+  call SHALL stay out of the graph.
+- **Rationale**: an object's creation runs its constructor, where much of the initialisation, and of the requirements,
+  is; a constructor with no caller misleads the reader into taking it as a root (callgraph operational analysis, R4).
+- **Priority**: Should
+- **Acceptance Criteria**: Given a Java or C# class `Greeter` with a constructor and `new Greeter()` in another class, When
+  analysed, Then one link joins the caller to `Greeter.Greeter`; Given a JavaScript `new Panel()` and a class `Panel`
+  with a `constructor`, Then the link goes to `Panel.constructor`; Given a Python `Shape()` and a class `Shape` with an
+  `__init__`, Then the link goes to `Shape.__init__`; Given a C++ `new Session(1)`, Then the link goes to
+  `Session::Session`; Given the Python fixture's `Greeter()`, whose class has no `__init__`, Then `constructor` still
+  counts it.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-123, RQ-TRC-124, DEC-TRC-069, DEC-TRC-070
+
+### RQ-TRC-126: Ancestor classes in call resolution
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The trace generator SHALL read the base classes, interfaces and traits each class declares, SHALL add to
+  the order of preference of RQ-TRC-029, between the caller's class and its namespace, the caller's ancestor classes,
+  nearest first, and SHALL give, in its summary line and in the page's call graph card, the names of the declared base
+  classes no scanned file defines.
+- **Rationale**: an inherited method's scope is never the caller's class, so the call falls to the whole project and is
+  often lost (callgraph operational analysis, R5); a base class of the project left out of the scanned folders shows by
+  its name which folder is missing.
+- **Priority**: Should
+- **Acceptance Criteria**: Given a class `B` deriving from `A`, a method of `B` calling `g()` that only `A` and an
+  unrelated class `C` define, When analysed, Then one plain link joins it to `A.g`; Given `class C(D)` with no `D` in the
+  scanned files, Then the summary line and the call graph card name `D`; Given `A` deriving from `B` and `B` from `A`,
+  Then the analysis ends.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-035, RQ-TRC-047, DEC-TRC-069, DEC-TRC-072
+
+### RQ-TRC-127: Candidates filtered by arity
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF a called name still has several candidates after RQ-TRC-029, RQ-TRC-124 and RQ-TRC-126, THEN the trace
+  generator SHALL keep those whose parameters accept the number of arguments of the call, counting parameters with a
+  default value, variadic parameters and the receiver parameter (`self`, `&self`); IF none accepts it, or the number of
+  arguments cannot be known (a spread or unpacked argument), THEN it SHALL keep them all.
+- **Rationale**: overloads of one name are told apart by their parameters; a filter that could empty the list would hide a
+  real call (callgraph operational analysis, R6).
+- **Priority**: Could
+- **Acceptance Criteria**: Given `f(int)` and `f(int, int)` in one class and a call `f(1, 2)`, When analysed, Then one plain
+  link joins it to `f(int, int)`; Given `def f(self, a, b=0)` and a call `self.f(1)`, Then `f` is a candidate; Given a call
+  `f(*args)`, Then no candidate is dropped; Given a single candidate whose parameters do not accept the call, Then it is
+  still linked.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-030, DEC-TRC-069, DEC-TRC-070, DEC-TRC-073
+
+### RQ-TRC-128: Calls never a source of conformance
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The "Functions traced" check SHALL count a function as traced only by the IDs RQ-TRC-031 links to it,
+  whatever the IDs of the class or namespace enclosing it and of the functions calling it or called by it.
+- **Rationale**: the perf center measures the implementation; an ID on a class or on a caller proves nothing about the body
+  that runs, and a call link can be a guess (RQ-TRC-030): it supports exploration, never conformance (callgraph
+  operational analysis, §3).
+- **Priority**: Must
+- **Acceptance Criteria**: Given a class whose comment cites an ID and whose method cites none, When analysed, Then the
+  method is a finding of "Functions traced"; Given a function citing no ID called only by functions citing one, Then it is
+  a finding too.
+- **Dependencies**: RQ-TRC-031, RQ-PLG-024, DEC-TRC-018
+
 ---
 
 ## Non-Functional Requirements
@@ -269,12 +393,15 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
 - **Category**: Non-Functional
 - **NFR Type**: Performance
 - **EARS Type**: Ubiquitous
-- **Statement**: The call graph SHALL add to the page at most 120 bytes per function and 16 bytes per call link on average.
-- **Metric**: (page size with − page size without) ≤ 120 × functions + 16 × calls.
+- **Statement**: The call graph SHALL add to the page at most 1,024 bytes, plus 120 bytes per function and 16 bytes per call
+  link on average.
+- **Metric**: (page size with − page size without) ≤ 1,024 + 120 × functions + 16 × calls.
 - **Measurement Method**: generate both pages of this repository and of the generated fixture, compare their sizes.
 - **Priority**: Should
 - **Acceptance Criteria**: Given 20,000 functions and 100,000 calls, Then the call graph adds at most 4 MB.
 - **Dependencies**: DEC-TRC-016
+- **Amendment**: Amended by TASK-TRC-110 (owner, 2026-11-21): a fixed 1,024 bytes for the call graph's checks and counts
+  (RQ-TRC-122, RQ-TRC-123), which no longer fit the per-function budget of a small fixture.
 
 ### RQ-TRC-039: Optional dependency, unchanged independence
 - **Category**: Non-Functional

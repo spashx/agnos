@@ -291,6 +291,7 @@
   const ITEMS_FILE = "file";
   const ITEMS_FUNCTION = "function";
   const FUNCTIONS_CHECK = "functions-traced";
+  const PARSED_CHECK = "files-parsed";            // RQ-TRC-122
   const SCORE_MAX = 10;
   const SCORE_DECIMALS = 1;
   const FIX_FIRST_SHOWN = 3;
@@ -1459,10 +1460,13 @@
   function callGraphCard() {
     const c = CALL_GRAPH.counts;
     const functionsCheck = CHECKS.find((check) => check.key === FUNCTIONS_CHECK);
-    const item = (label, value, hint, onClick) => richTip(el(onClick ? TAG_BUTTON : "div",
+    const parsedCheck = CHECKS.find((check) => check.key === PARSED_CHECK);
+    const item = (label, value, hint, onClick, more = []) => richTip(el(onClick ? TAG_BUTTON : "div",
       { class: VALUE_COVERAGE_ITEM, type: onClick ? TAG_BUTTON : null, on: onClick ? { click: onClick } : null },
       el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_LABEL, text: label }), el(TAG_SPAN, { class: VALUE_COVERAGE_ITEM_VALUE, text: value }),
-      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint })), () => ({ head: `${label}: ${value}`, lines: [hint] }));
+      el(TAG_SPAN, { class: VALUE_KPI_SUB, text: hint })), () => ({ head: `${label}: ${value}`, lines: [hint, ...more] }));
+    // RQ-TRC-123, DEC-TRC-068: the unresolved calls by cause, the last two outside the external count
+    const causes = Object.entries(c.unresolved || {}).map(([cause, count]) => `${cause} ${count}`);
     return el(TAG_ARTICLE, { class: "card call-graph-card", id: CALL_GRAPH_CARD },
       el(TAG_HEADER, { class: "card-header" }, el("h2", { class: "card-title", text: "Call graph" }),
         el(TAG_SPAN, { class: "card-hint", text: `${c.calls} call links between ${c.functions} functions` })),
@@ -1470,8 +1474,13 @@
         item("Functions", c.functions, "search them by name", () => searchFor("", "FN")),
         item("Call links", c.calls, "one per caller and callee"),
         item("Ambiguous calls", c.ambiguous, "a name matching several definitions"),
-        item("External calls", c.external, "a name defined in no scanned file"),
-        item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK))));
+        item("External calls", c.external, "a name defined in no scanned file", null, causes),
+        item("Untraced functions", functionsCheck.findings.length, `citing no ID · ${functionsCheck.risk}`, () => openCheck(FUNCTIONS_CHECK)),
+        // RQ-TRC-122, DEC-TRC-067: the files whose functions may be missing
+        item("Unparsed files", parsedCheck.findings.length, `a syntax error in the file · ${parsedCheck.risk}`, () => openCheck(PARSED_CHECK)),
+        // RQ-TRC-126, DEC-TRC-072: a library class, or a folder of the project left out of the scanned ones
+        item("Unknown base classes", (CALL_GRAPH.unknownBases || []).length, "a base no scanned file defines", null,
+          CALL_GRAPH.unknownBases || [])));
   }
 
   // ---- sidebar ------------------------------------------------------------------------------------------------

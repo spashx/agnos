@@ -14,3 +14,16 @@
 (record_declaration name: (identifier) @scope.name) @scope
 (invocation_expression function: (_) @call.name) @call
 (comment) @comment
+; The bases a class, struct, interface or record derives from (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(class_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(struct_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(interface_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+(record_declaration name: (identifier) @scope.name (base_list [(identifier) (qualified_name) (generic_name)] @scope.base)) @scope
+; An object's creation, by its class (RQ-TRC-125, DEC-TRC-069); a target-typed new() names none.
+(object_creation_expression type: (_) @new.name) @new
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(method_declaration parameters: (_) @definition.parameters) @definition
+(constructor_declaration parameters: (_) @definition.parameters) @definition
+(local_function_statement parameters: (_) @definition.parameters) @definition
+(invocation_expression arguments: (_) @call.arguments) @call
+(object_creation_expression arguments: (_) @call.arguments) @new

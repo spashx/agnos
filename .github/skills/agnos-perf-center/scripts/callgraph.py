@@ -24,6 +24,7 @@ KEY_LAST = "last"
 KEY_QUALIFIED = "qualified"
 KEY_NAME = "name"
 KEY_TEXT = "text"
+KEY_CONSTRUCTOR = "constructor"    # a language table key (RQ-TRC-125), and the word of its unresolved cause (RQ-TRC-123)
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = SKILL_DIR / "assets" / "callgraph"
@@ -39,6 +40,14 @@ DEFINITION, DEFINITION_NAME = "definition", "definition.name"
 SCOPE, SCOPE_NAME = KEY_SCOPE, "scope.name"
 CALL, CALL_NAME = "call", "call.name"
 COMMENT = "comment"
+# DEC-TRC-069: the optional captures, merged per captured node.
+CALL_RECEIVER = "call.receiver"                    # the receiver, where the called name is a node of its own (Java)
+SCOPE_BASE = "scope.base"                          # a class, interface or trait a scope derives from (RQ-TRC-126)
+SHOWN_BASES = 10                                   # unknown bases named in the summary line, the others counted
+NEW, NEW_NAME = "new", "new.name"                  # an object's creation and the class created (RQ-TRC-125)
+DEFINITION_PARAMETERS, CALL_ARGUMENTS = "definition.parameters", "call.arguments"     # RQ-TRC-127
+KEY_ARITY = "arity"                                # a function's (fewest, most or None) arguments, a table entry's key
+KINDS = ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (NEW, NEW_NAME), (COMMENT, None))
 KEY_PREFIX = "fn"                                  # a function's key: fn:<file>:<first line> (DEC-TRC-016)
 MAX_AMBIGUOUS = 5                                  # candidates linked at most for one ambiguous call (DEC-TRC-015)
 NAMESPACE_KIND, CLASS_KIND = "namespace", "class"  # the box kinds of a scope (DEC-TRC-019)
@@ -77,7 +86,7 @@ class TreeSitter:
 # RQ-TRC-032, DEC-TRC-014
 class Grammar:
     """One language of the table, loaded: its name, tree-sitter language, compiled query, scope separator and the box
-    kind of each scope node type (RQ-TRC-047, DEC-TRC-019)."""
+    kind of each scope node type (RQ-TRC-047, DEC-TRC-019), and its receiver words (RQ-TRC-124, DEC-TRC-070)."""
 
     def __init__(self, name, entry, language, query):
         self.name = name
@@ -85,6 +94,10 @@ class Grammar:
         self.query = query
         self.separator = entry["separator"]
         self.scopes = entry.get(KEY_SCOPES, {})
+        self.self_words = frozenset(entry.get("self", ()))      # the receiver naming the caller's own object
+        self.super_words = frozenset(entry.get("super", ()))    # the receiver naming its parent object
+        self.constructor = entry.get(KEY_CONSTRUCTOR)
+        self.arity = {key: frozenset(types) for key, types in entry.get(KEY_ARITY, {}).items()}     # RQ-TRC-127             # a constructor's name, when not the class's (RQ-TRC-125)
 
 
 def load_table(path=LANGUAGES_PATH):
@@ -132,22 +145,77 @@ def plain_name(text):
         text = stripped
 
 
-def last_part(name):
-    """The name a call is looked up by: the last part of 'a.b->c::d'."""
-    return MEMBER_RE.split(name)[-1]
+# RQ-TRC-124, DEC-TRC-071
+def split_call(name):
+    """(receiver or qualifier, name a call is looked up by) of 'a.b->c::d': ('a.b->c', 'd'); ('', 'd') of 'd'."""
+    separators = list(MEMBER_RE.finditer(name))
+    if not separators:
+        return "", name
+    return name[:separators[-1].start()], name[separators[-1].end():]
 
 
+def node_key(node):
+    return node.start_byte, node.end_byte, node.type
+
+
+# DEC-TRC-069 (TASK-TRC-113)
 def captures_of(grammar, api, root):
-    """The query's captures under the root, by kind: definitions and scopes as (node, name node), calls as (node,
-    called expression node), comments as nodes; each node once."""
-    found = {DEFINITION: {}, SCOPE: {}, CALL: {}, COMMENT: {}}
+    """The query's captures under the root, by kind, in start order: one entry {capture name: [nodes]} per captured
+    definition, scope, call or comment node, the captures of all the matches of that node merged, so that an optional
+    capture or several bases of one scope are all kept; an entry without the name capture of its kind is dropped."""
+    found = {kind: {} for kind, _ in KINDS}
     for _, caps in api.matches(grammar.query, root):
-        for kind, name in ((DEFINITION, DEFINITION_NAME), (SCOPE, SCOPE_NAME), (CALL, CALL_NAME), (COMMENT, None)):
+        for kind, _ in KINDS:
             if kind in caps:
-                node = caps[kind][0]
-                found[kind][(node.start_byte, node.end_byte)] = (node, caps[name][0] if name else None)
+                entry = found[kind].setdefault(node_key(caps[kind][0]), {})
+                for capture, nodes in caps.items():
+                    known = entry.setdefault(capture, [])
+                    known += [node for node in nodes if node_key(node) not in {node_key(k) for k in known}]
                 break
-    return {kind: sorted(nodes.values(), key=lambda pair: pair[0].start_byte) for kind, nodes in found.items()}
+    return {kind: sorted((entry for entry in found[kind].values() if name is None or name in entry),
+                         key=lambda entry, kind=kind: entry[kind][0].start_byte) for kind, name in KINDS}
+
+
+def first_node(entry, capture):
+    """The first node of a capture of an entry, None when the match had none."""
+    return entry.get(capture, (None,))[0]
+
+
+# RQ-TRC-127, DEC-TRC-073 (TASK-TRC-116)
+def parameter_range(node, grammar):
+    """(fewest, most or None for unbounded) arguments a definition's parameter node accepts, after the language table's
+    arity; None when it is unknown."""
+    arity = grammar.arity
+    if node is None or not arity:
+        return None
+    fewest = most = 0
+    unbounded = False
+    for child in node.children:
+        text = text_of(child)
+        if child.type in arity.get("variadic", ()):
+            unbounded = True
+        elif child.is_named and child.type in arity.get("parameters", ()) and text not in arity.get("none", ()):
+            if most == 0 and text in arity.get("receiver", ()):
+                continue                       # Python's self: the receiver passes it
+            most += 1
+            fewest += not any(part.type in arity.get("default", ()) for part in child.children)
+    return fewest, None if unbounded else most
+
+
+def argument_count(node, grammar):
+    """The number of arguments of a call's argument node; None when it is unknown (no node, a spread argument)."""
+    if node is None or not grammar.arity:
+        return None
+    arguments = [child for child in node.named_children if COMMENT not in child.type]
+    if any(child.type in grammar.arity.get("spread", ()) for child in arguments):
+        return None
+    return len(arguments)
+
+
+def accepts(function, count):
+    """Whether a function's parameters accept count arguments (an unknown range accepts any)."""
+    bounds = function.get(KEY_ARITY)
+    return bounds is None or (bounds[0] <= count and (bounds[1] is None or count <= bounds[1]))
 
 
 def comment_tops(comments, lines):
@@ -155,7 +223,8 @@ def comment_tops(comments, lines):
     comment that holds its line's end, as Rust's line comments do, ends at column 0 of the next row: its last row is the
     one before (DEC-TRC-026)."""
     tops = {}
-    for node, _ in comments:
+    for entry in comments:
+        node = entry[COMMENT][0]
         row, column = node.start_point
         if lines[row][:column].strip():
             continue                       # a comment after code on its line ends no block above a definition
@@ -176,21 +245,23 @@ def text_of(node):
 
 def scope_names(node, scopes):
     """The names of the scopes enclosing the node, outermost first."""
-    return [plain_name(text_of(name)) for scope, name in scopes
-            if scope.start_byte <= node.start_byte and node.end_byte <= scope.end_byte]
+    return [plain_name(text_of(entry[SCOPE_NAME][0])) for entry in scopes
+            if entry[SCOPE][0].start_byte <= node.start_byte and node.end_byte <= entry[SCOPE][0].end_byte]
 
 
 # RQ-TRC-028, RQ-TRC-031, DEC-TRC-016 (TASK-TRC-010)
 def file_functions(shown, grammar, api, data, cited, evidence):
     """The functions defined in one file, in line order, each with the IDs of its lines and of the comment block just
-    above it; and the file's calls as (call node, called expression node)."""
+    above it; the file's calls as (call node, called expression node); its declared scopes; and whether its tree holds an
+    error or a missing node (RQ-TRC-122, DEC-TRC-067)."""
     root = api.parse(grammar.language, data)
     lines = data.decode(ENCODING, KEY_REPLACE).split("\n")
     caps = captures_of(grammar, api, root)
     tops = comment_tops(caps[COMMENT], lines)
     functions = []
     separator = grammar.separator
-    for node, name_node in caps[DEFINITION]:
+    for entry in caps[DEFINITION]:
+        node, name_node = entry[DEFINITION][0], entry[DEFINITION_NAME][0]
         qualified = separator.join(scope_names(node, caps[SCOPE]) + [plain_name(text_of(name_node))])
         first, last = node.start_point[0] + 1, node.end_point[0] + 1
         top = block_top(tops, first - 1) + 1
@@ -202,32 +273,79 @@ def file_functions(shown, grammar, api, data, cited, evidence):
                           KEY_NAME: qualified.split(separator)[-1],
                           KEY_SCOPE: separator.join(qualified.split(separator)[:-1]),
                           LANGUAGE_FUNCTION: grammar.name, KEY_TEXT: evidence(first, lines[first - 1])[1], "ids": ids,
-                          KEY_NODE: node})
-    return functions, caps[CALL], declared_scopes(grammar, caps[SCOPE])
+                          KEY_NODE: node, KEY_ARITY: parameter_range(first_node(entry, DEFINITION_PARAMETERS), grammar)})
+    calls = sorted(caps[CALL] + caps[NEW], key=lambda entry: call_node(entry).start_byte)       # RQ-TRC-125
+    return functions, calls, declared_scopes(grammar, caps[SCOPE]), root.has_error, declared_bases(grammar, caps[SCOPE])
+
+
+def call_node(entry):
+    """The call or creation node of a call entry."""
+    return entry[NEW if NEW in entry else CALL][0]
+
+
+# RQ-TRC-126, DEC-TRC-072 (TASK-TRC-115)
+def declared_bases(grammar, scopes):
+    """{qualified scope: [base names as written]} of the scopes of one file that declare bases."""
+    bases = {}
+    for entry in scopes:
+        if SCOPE_BASE in entry:
+            qualified = grammar.separator.join(scope_names(entry[SCOPE][0], scopes))
+            bases.setdefault(qualified, []).extend(plain_name(text_of(node)) for node in entry[SCOPE_BASE])
+    return bases
 
 
 # RQ-TRC-047, DEC-TRC-019 (TASK-TRC-023)
 def declared_scopes(grammar, scopes):
     """{qualified name: kind} of the scopes of one file whose node type has a box kind in the language table."""
+    nodes = [entry[SCOPE][0] for entry in scopes]
     return {grammar.separator.join(scope_names(node, scopes)): grammar.scopes[node.type]
-            for node, _ in scopes if node.type in grammar.scopes}
+            for node in nodes if node.type in grammar.scopes}
 
 
-def call_sites(functions, calls):
-    """(caller, called name, line) of each call whose name can be resolved, the caller being the innermost function
-    holding the call; nodes in start order, one sweep with a stack of the open functions."""
-    sites, stack, pending = [], [], list(reversed(functions))
-    for call, expression in calls:
-        while pending and pending[-1][KEY_NODE].start_byte <= call.start_byte:
-            function = pending.pop()
-            while stack and stack[-1][KEY_NODE].end_byte <= function[KEY_NODE].start_byte:
-                stack.pop()
-            stack.append(function)
-        while stack and stack[-1][KEY_NODE].end_byte <= call.start_byte:
+# RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111): the causes of an unresolved call; the first three make up the external count.
+LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL = "library", KEY_CONSTRUCTOR, "cross-language", "unnamed", "top-level"
+CAUSES = (LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL)
+
+
+# RQ-TRC-124, DEC-TRC-069 (TASK-TRC-113)
+def called(entry, expression):
+    """(receiver, name) of a call: what stands before the called name, or the receiver captured beside it; of a
+    creation, ('', the class's last part) (RQ-TRC-125)."""
+    receiver, name = split_call(plain_name(text_of(expression)))
+    if NEW in entry:
+        return "", name
+    receiver_node = first_node(entry, CALL_RECEIVER)
+    return (receiver if receiver_node is None else plain_name(text_of(receiver_node))), name
+
+
+def open_functions(stack, pending, start):
+    """Moves to the stack the pending functions starting before start, and drops from it those ending before."""
+    while pending and pending[-1][KEY_NODE].start_byte <= start:
+        function = pending.pop()
+        while stack and stack[-1][KEY_NODE].end_byte <= function[KEY_NODE].start_byte:
             stack.pop()
-        name = last_part(plain_name(text_of(expression)))
-        if stack and NAME_RE.match(name):
-            sites.append((stack[-1], name, call.start_point[0] + 1))
+        stack.append(function)
+    while stack and stack[-1][KEY_NODE].end_byte <= start:
+        stack.pop()
+
+
+def call_sites(functions, calls, unresolved, grammar):
+    """(caller, called name, line, receiver, creation, argument count) of each call whose name can be resolved, the
+    caller being the innermost function holding the call, the receiver what stands before the name ('' for none,
+    RQ-TRC-124), creation whether it creates an object (RQ-TRC-125), the count None when unknown (RQ-TRC-127); nodes in start order, one sweep with a stack of the open functions. A call
+    outside any function counts as top-level, one whose expression is no name as unnamed, in unresolved (RQ-TRC-123)."""
+    sites, stack, pending = [], [], list(reversed(functions))
+    for entry in calls:
+        call = call_node(entry)
+        open_functions(stack, pending, call.start_byte)
+        receiver, name = called(entry, entry[NEW_NAME if NEW in entry else CALL_NAME][0])
+        if not stack:
+            unresolved[TOP_LEVEL] += 1
+        elif not NAME_RE.match(name):
+            unresolved[UNNAMED] += 1
+        else:
+            sites.append((stack[-1], name, call.start_point[0] + 1, receiver, NEW in entry,
+                          argument_count(first_node(entry, CALL_ARGUMENTS), grammar)))           # RQ-TRC-127
     return sites
 
 
@@ -236,13 +354,14 @@ def folder_of(path):
     return path.rpartition(FOLDER_SEPARATOR)[0]
 
 
-def preferred(caller, candidates, separator):
-    """The candidates of the first non-empty level: the caller's class, its namespace, its file, its folder, the
-    project (DEC-TRC-015, RQ-TRC-029)."""
+def preferred(caller, candidates, separator, ancestors=()):
+    """The candidates of the first non-empty level: the caller's class, its ancestor classes nearest first
+    (RQ-TRC-126), its namespace, its file, its folder, the project (DEC-TRC-015, RQ-TRC-029)."""
     scope = caller[KEY_SCOPE]
     namespace = scope.rpartition(separator)[0]
     levels = (
         lambda f: scope and f[KEY_SCOPE] == scope,
+        *(lambda f, level=level: f[KEY_SCOPE] in level for level in ancestors),
         lambda f: namespace and f[KEY_SCOPE] == namespace,
         lambda f: f[KEY_FILE] == caller[KEY_FILE],
         lambda f: folder_of(f[KEY_FILE]) == folder_of(caller[KEY_FILE]),
@@ -254,24 +373,143 @@ def preferred(caller, candidates, separator):
     return candidates
 
 
-# RQ-TRC-029, RQ-TRC-030, RQ-TRC-040 (TASK-TRC-011)
-def resolve(graph, sites, separators):
-    """Links each (caller, called name) to its definitions, in the caller's language: one plain link, two to five
-    ambiguous ones, else none and counted as ambiguous; no definition counts as external."""
+# RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111)
+def unresolved_cause(language, name, scope_names, defined_names):
+    """Why a name with no definition in the caller's language is unresolved: a scope of that language is instantiated,
+    another language defines it, or nothing scanned does."""
+    if (language, name) in scope_names:
+        return CONSTRUCTOR
+    return CROSS_LANGUAGE if name in defined_names else LIBRARY
+
+
+# RQ-TRC-124, RQ-TRC-126, DEC-TRC-071, DEC-TRC-072 (TASK-TRC-113)
+class Hierarchy:
+    """The scopes of each language, by qualified name and by last part, their kind, and the classes each class derives
+    from; walked breadth first, nearest ancestors first, each class once."""
+
+    def __init__(self, kinds=None, separators=None):
+        self.kinds = dict(kinds or {})                 # {(language, qualified scope): kind}
+        self.by_last = {}
+        for language, scope in self.kinds:
+            last = scope.split(separators[language])[-1] if separators else scope
+            self.by_last.setdefault((language, last), set()).add(scope)
+        self.parents = {}                              # {(language, class): {qualified scope it derives from}}
+        self.unknown = set()                           # the base names no scanned scope matches (RQ-TRC-126)
+
+    def derive(self, language, scope, base, separator):
+        """Records that scope derives from the base written base: the scopes of its last part, one of the scope's own
+        namespace preferred; none: an unknown base."""
+        found = self.named(language, split_call(base)[1]) - {scope}
+        namespace = scope.rpartition(separator)[0]
+        near = {s for s in found if s.rpartition(separator)[0] == namespace}
+        if found:
+            self.parents.setdefault((language, scope), set()).update(near or found)
+        else:
+            self.unknown.add(base)
+
+    def is_class(self, language, scope):
+        return self.kinds.get((language, scope)) == CLASS_KIND
+
+    def named(self, language, name):
+        """The qualified scopes whose last part is name."""
+        return set(self.by_last.get((language, name), ()))
+
+    def ancestors(self, language, scopes):
+        """[{scopes}] of the ancestors of the given scopes, one set per generation, nearest first."""
+        seen, levels, current = set(scopes), [], set(scopes)
+        while current:
+            current = {parent for scope in current for parent in self.parents.get((language, scope), ())} - seen
+            seen |= current
+            if current:
+                levels.append(current)
+        return levels
+
+
+def restriction(caller, receiver, grammar, hierarchy):
+    """The levels of scopes [{scope}] a certain receiver confines the callee to, nearest first: the caller's class then
+    its ancestors for its own object, its ancestors for its parent, a named scope then its ancestors; None for no
+    receiver or one of unknown type (RQ-TRC-124, DEC-TRC-071)."""
+    language, scope = grammar.name, caller[KEY_SCOPE]
+    if receiver in grammar.self_words or receiver in grammar.super_words:
+        if not hierarchy.is_class(language, scope):
+            return None                               # 'this' in a function of no class: nothing is certain
+        ancestors = hierarchy.ancestors(language, {scope})
+        return ancestors if receiver in grammar.super_words else [{scope}, *ancestors]
+    targets = hierarchy.named(language, split_call(receiver)[1]) if receiver else set()
+    return [targets, *hierarchy.ancestors(language, targets)] if targets else None
+
+
+def nearest(candidates, levels):
+    """The candidates of the first level holding one, else none."""
+    for level in levels:
+        chosen = [f for f in candidates if f[KEY_SCOPE] in level]
+        if chosen:
+            return chosen
+    return []
+
+
+# RQ-TRC-127, DEC-TRC-073 (TASK-TRC-116)
+def by_arity(candidates, count):
+    """Among two or more candidates, those accepting count arguments; all when none does or count is unknown."""
+    if len(candidates) < 2 or count is None:
+        return candidates
+    return [f for f in candidates if accepts(f, count)] or candidates
+
+
+# RQ-TRC-029, RQ-TRC-124, RQ-TRC-125, RQ-TRC-127 (TASK-TRC-113, TASK-TRC-114, TASK-TRC-116)
+def choose(caller, signature, grammar, definitions, hierarchy):
+    """(the candidates of one call signature (name, receiver, creation, argument count), whether a certain receiver
+    confined them), those accepting the arguments kept when there are several (RQ-TRC-127)."""
+    *found, count = signature
+    chosen, certain = by_name(caller, found, grammar, definitions, hierarchy)
+    return by_arity(chosen, count), certain
+
+
+def by_name(caller, found, grammar, definitions, hierarchy):
+    """(the candidates of a (name, receiver, creation), whether a certain receiver confined them): for the creation of a
+    class or a call to a class's name, its constructors; else those of the receiver's scopes first, then the preferred
+    ones (DEC-TRC-071)."""
+    name, receiver, creation = found
+    classes = {s for s in hierarchy.named(grammar.name, name) if hierarchy.is_class(grammar.name, s)}
+    if classes or creation:                                             # RQ-TRC-125: a creation, or a class called
+        names = (name, grammar.constructor)
+        candidates = [f for n in names for f in definitions.get((grammar.name, n), []) if f[KEY_SCOPE] in classes]
+        return (preferred(caller, candidates, grammar.separator) if candidates else []), False
+    candidates = definitions.get((grammar.name, name), [])
+    levels = restriction(caller, receiver, grammar, hierarchy) if candidates else None
+    if levels is not None:
+        candidates = nearest(candidates, levels)
+    if not candidates:
+        return [], levels is not None
+    ancestors = hierarchy.ancestors(grammar.name, {caller[KEY_SCOPE]}) if caller[KEY_SCOPE] else []
+    return preferred(caller, candidates, grammar.separator, ancestors), levels is not None
+
+
+# RQ-TRC-029, RQ-TRC-030, RQ-TRC-040, RQ-TRC-123, RQ-TRC-124 (TASK-TRC-011, TASK-TRC-111, TASK-TRC-113)
+def resolve(graph, sites, grammars, scope_names=frozenset(), hierarchy=None):
+    """Links each (caller, call signature) to its definitions, in the caller's language: those a certain receiver
+    confines it to first, then the preferred ones; one plain link, two to five ambiguous ones, else none and counted as
+    ambiguous; no definition counts as external, by cause, a certain receiver with none in its scopes as library;
+    grammars: {language: Grammar}; scope_names: {(language, last part of a declared scope)}."""
+    hierarchy = hierarchy or Hierarchy()
     index = {id(f): n for n, f in enumerate(graph.functions)}
     definitions = {}
     for function in graph.functions:
         definitions.setdefault((function[LANGUAGE_FUNCTION], function[KEY_NAME]), []).append(function)
+    defined_names = {key[1] for key in definitions}
     grouped = {}
-    for caller, name, line in sites:
-        grouped.setdefault((index[id(caller)], name), []).append(line)
+    for caller, name, line, *rest in sites:
+        grouped.setdefault((index[id(caller)], (name, *rest)), []).append(line)
     links = {}
-    for (caller_index, name), lines in grouped.items():
+    for (caller_index, signature), lines in grouped.items():
         caller = graph.functions[caller_index]
-        candidates = definitions.get((caller[LANGUAGE_FUNCTION], name), [])
-        chosen = preferred(caller, candidates, separators[caller[LANGUAGE_FUNCTION]]) if candidates else []
+        grammar = grammars[caller[LANGUAGE_FUNCTION]]
+        chosen, certain = choose(caller, signature, grammar, definitions, hierarchy)
         if not chosen:
             graph.external += 1
+            name = signature[0]
+            cause = LIBRARY if certain else unresolved_cause(grammar.name, name, scope_names, defined_names)
+            graph.unresolved[cause] += 1
         elif len(chosen) > MAX_AMBIGUOUS:
             graph.ambiguous += 1
         else:
@@ -323,9 +561,27 @@ def assign_scopes(graph, declared, grammars):
         function[KEY_SCOPE_INDEX] = index.get(function[KEY_SCOPE], NO_SCOPE) if scoped else NO_SCOPE
 
 
+# RQ-TRC-124, RQ-TRC-126, DEC-TRC-072 (TASK-TRC-113, TASK-TRC-115)
+def scope_hierarchy(graph, declared, grammars, bases=None):
+    """The Hierarchy of the declared scopes {(language, qualified): kind} and of the scopes holding a function, with the
+    kinds assign_scopes gave them; bases: {(language, qualified class): [base names as written]}."""
+    kinds = dict(declared)
+    given = {name: kind for name, kind, _ in graph.scopes}
+    for function in graph.functions:
+        scope, language = function[KEY_SCOPE], function[LANGUAGE_FUNCTION]
+        if scope and scope in given:
+            kinds.setdefault((language, scope), given[scope])
+    hierarchy = Hierarchy(kinds, {name: grammar.separator for name, grammar in grammars.items()})
+    for (language, scope), names in (bases or {}).items():
+        for base in names:
+            hierarchy.derive(language, scope, base, grammars[language].separator)
+    return hierarchy
+
+
 # ---- the call graph ----------------------------------------------------------------------------------------------
 class CallGraph:
-    """The functions and calls found, the ambiguous and external call counts, and the packages that were missing."""
+    """The functions and calls found, the ambiguous and external call counts, the files read and those that did not
+    parse (RQ-TRC-122), the unresolved calls by cause (RQ-TRC-123), and the packages that were missing."""
 
     def __init__(self):
         self.functions = []
@@ -333,6 +589,10 @@ class CallGraph:
         self.scopes = []
         self.ambiguous = 0
         self.external = 0
+        self.parsed = []
+        self.unparsed = []
+        self.unresolved = dict.fromkeys(CAUSES, 0)            # RQ-TRC-123, DEC-TRC-068
+        self.unknown_bases = []                               # RQ-TRC-126, DEC-TRC-072
         self.core_missing = False
         self.missing = []
 
@@ -341,7 +601,11 @@ class CallGraph:
         if self.core_missing:
             return f"call graph skipped: {CORE_PACKAGE} not installed, run: {install_command()}"
         line = (f"call graph: {len(self.functions)} functions, {len(self.calls)} calls, ambiguous {self.ambiguous}, "
-                f"external {self.external}")
+                f"external {self.external}, unparsed {len(self.unparsed)}")    # RQ-TRC-122
+        if self.unknown_bases:                                                  # RQ-TRC-126
+            shown = ", ".join(self.unknown_bases[:SHOWN_BASES])
+            more = len(self.unknown_bases) - SHOWN_BASES
+            line += f", unknown bases {len(self.unknown_bases)}: {shown}" + (f" and {more} more" if more > 0 else "")
         if self.missing:
             line += f"; skipped: {', '.join(self.missing)} not installed, run: {install_command()}"
         return line
@@ -372,11 +636,14 @@ class CallGraph:
         ids = [[n, target, [proof[0] for proof in proofs]] for n, f in enumerate(self.functions)
                for target, proofs in sorted(f["ids"].items())]
         return {KEY_FUNCTIONS: functions, "languages": languages, KEY_SCOPES: self.scopes, KEY_CALLS: calls, "ids": ids,
+                "unknownBases": list(self.unknown_bases),                                # RQ-TRC-126
                 "counts": {KEY_FUNCTIONS: len(self.functions), KEY_CALLS: len(self.calls), "ambiguous": self.ambiguous,
-                           "external": self.external}}
+                           "external": self.external, "parsed": len(self.parsed),
+                           "unparsed": len(self.unparsed),                               # RQ-TRC-122
+                           "unresolved": dict(self.unresolved)}}                         # RQ-TRC-123
 
 
-# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040 (TASK-TRC-009, TASK-TRC-010)
+# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040, RQ-TRC-122, RQ-TRC-123 (TASK-TRC-009, TASK-TRC-010, TASK-TRC-110, TASK-TRC-111)
 def analyse(files, cited, evidence, table=None):
     """The call graph of the scanned files [(shown path, path)], for the languages whose packages are installed;
     cited: {shown path: [(line, ID, proof)]}, the file's ID citations; evidence(line, text): a proof line. Functions
@@ -388,18 +655,29 @@ def analyse(files, cited, evidence, table=None):
         graph.core_missing = True
         return graph
     grammars, graph.missing = load_grammars(load_table() if table is None else table, api)
-    sites, declared = [], {}
+    sites, declared, scope_names, kinds, bases = [], {}, set(), {}, {}
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
-            functions, calls, scopes = file_functions(shown, grammar, api, path.read_bytes(), cited, evidence)
+            functions, calls, scopes, broken, file_bases = file_functions(shown, grammar, api, path.read_bytes(), cited,
+                                                                          evidence)
+            for name, names in file_bases.items():                                     # RQ-TRC-126
+                bases.setdefault((grammar.name, name), []).extend(names)
+            graph.parsed.append(shown)                     # RQ-TRC-122, DEC-TRC-067: the population of files-parsed
+            if broken:
+                graph.unparsed.append(shown)
             graph.functions += functions
-            sites += call_sites(functions, calls)
+            sites += call_sites(functions, calls, graph.unresolved, grammar)
             for name, kind in scopes.items():
                 declared.setdefault(name, kind)
+                kinds.setdefault((grammar.name, name), kind)                           # RQ-TRC-124
+                scope_names.add((grammar.name, name.split(grammar.separator)[-1]))     # RQ-TRC-123
     assign_keys(graph.functions)
-    assign_scopes(graph, declared, {g.name: g for g in grammars.values()})
-    resolve(graph, sites, {g.name: g.separator for g in grammars.values()})
+    by_name = {g.name: g for g in grammars.values()}
+    assign_scopes(graph, declared, by_name)
+    hierarchy = scope_hierarchy(graph, kinds, by_name, bases)
+    graph.unknown_bases = sorted(hierarchy.unknown)                                    # RQ-TRC-126
+    resolve(graph, sites, by_name, scope_names, hierarchy)
     for function in graph.functions:
         del function[KEY_NODE]
     return graph

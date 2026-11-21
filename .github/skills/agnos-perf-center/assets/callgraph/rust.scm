@@ -11,3 +11,8 @@
 (block_comment) @comment
 ; An attribute stands between the doc comment and its fn: taken as part of the block, it lets the block reach the fn.
 (attribute_item) @comment
+; The trait an impl block implements is a base of its type (RQ-TRC-126, DEC-TRC-069, DEC-TRC-072).
+(impl_item trait: (_) @scope.base type: (_) @scope.name body: (declaration_list)) @scope
+; The parameters of a definition and the arguments of a call, for the arity (RQ-TRC-127, DEC-TRC-069, DEC-TRC-073).
+(function_item parameters: (parameters) @definition.parameters) @definition
+(call_expression arguments: (arguments) @call.arguments) @call
