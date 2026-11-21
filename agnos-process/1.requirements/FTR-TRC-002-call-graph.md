@@ -235,6 +235,39 @@ through function pointers or callbacks, a call graph across languages (ADR-TRC-0
   outside any declared namespace is in `(global)`.
 - **Dependencies**: RQ-TRC-032, RQ-TRC-047, DEC-TRC-025, DEC-TRC-026
 
+### RQ-TRC-122: Parse failures as findings
+- **Category**: Functional
+- **EARS Type**: Unwanted-behavior
+- **Statement**: IF the parse tree of a scanned file of a supported language holds an error or a missing node, THEN the
+  trace generator SHALL still read its functions, and SHALL make the file a finding of a medium-risk check "Files parsed",
+  whose population is the files the call graph read, give their count in the call graph's counts and summary line, and
+  show it in the page's call graph card, a click opening the check.
+- **Rationale**: a file the parser cannot read yields few or no functions, so fewer untraced ones: without this check, a
+  broken file raises the "Functions traced" score (callgraph operational analysis, R1).
+- **Priority**: Must
+- **Acceptance Criteria**: Given one syntactically broken fixture file per supported language, When analysed, Then each is
+  a finding of "Files parsed" and the counts give their number; Given the call-graph fixture, whose files all parse, Then
+  "Files parsed" scores 10 with no finding; Given a run without `--call-graph`, Then there is no "Files parsed" check;
+  Given the page with a broken file, When its call graph card's "Unparsed files" is clicked, Then the check opens.
+- **Dependencies**: RQ-TRC-026, RQ-TRC-035, RQ-TRC-058, RQ-PLG-024, DEC-TRC-067
+
+### RQ-TRC-123: Unresolved calls by cause
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The trace generator SHALL count, beside the external total of RQ-TRC-030, each unresolved call by cause:
+  `constructor` (the name of a scope of the caller's language and of no function), `cross-language` (a name defined only in
+  another language), `library` (a name defined nowhere), and, outside the external total, `unnamed` (an expression that is
+  no name, as a function pointer) and `top-level` (a call outside any function); the page SHALL show these counts in the
+  tooltip of its "External calls" figure.
+- **Rationale**: one external count mixes a normal library call with a missed internal edge; the causes tell which
+  improvement of the resolution is worth its cost (callgraph operational analysis, R2 and R7).
+- **Priority**: Should
+- **Acceptance Criteria**: Given the Python fixture calling `print` and instantiating `Greeter()`, When analysed, Then
+  `library` is 1, `constructor` is 1 and external stays 2; Given the C++ fixture's call through a function pointer, Then
+  `unnamed` is 1; Given a call at module level, Then `top-level` counts it and no link is made; Given a C file calling a
+  name only a Python file defines, Then `cross-language` is 1.
+- **Dependencies**: RQ-TRC-029, RQ-TRC-030, RQ-TRC-035, DEC-TRC-068
+
 ---
 
 ## Non-Functional Requirements
