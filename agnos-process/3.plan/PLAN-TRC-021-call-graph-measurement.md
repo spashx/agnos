@@ -50,7 +50,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-111: Count unresolved calls by cause
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Classify unresolved calls in `callgraph.py` into `library`, `constructor`, `cross-language`, `unnamed`,
   `top-level`, expose them in `callGraph.counts.unresolved`, show them in the "External calls" tooltip, documentation.
 - **Requirement refs**: RQ-TRC-123, RQ-TRC-030
@@ -58,5 +58,11 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria** (Gherkin): the acceptance criteria of RQ-TRC-123; Given the skill's suite, Then all pass.
 - **Dependencies**: TASK-TRC-109
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: tests first: the five RQ-TRC-123 tests and the counts test failed (`no attribute 'unresolved'`,
+  `KeyError: 'unresolved'`, tooltip without the causes). After: `test_callgraph test_languages test_scorecard` 122 run, OK,
+  1 skipped; full suite 423 run, OK, 3 skipped (opt-in performance tests, `AGNOS_PERF_CENTER_PERF=1`, not measured);
+  `node --check assets/matrix.js` exit 0. Python fixture: library 1, constructor 1, external 2 unchanged; C/C++ fixture:
+  library 2, unnamed 1. During the task, `callgraph.py` lost TASK-TRC-110's lines on disk (not by this agent); restored
+  from commit 74a4976 with the owner's consent, the diff to HEAD re-read.
+- **Assumptions**: a constructor is the last part of a scope declared in a scanned file of the caller's language; the
+  causes are shown in the "External calls" tooltip, not in the summary line, which RQ-TRC-123 does not ask for.

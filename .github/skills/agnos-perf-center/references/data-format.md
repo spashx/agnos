@@ -63,3 +63,5 @@ count, `score`) and `checks`, each with `key`, `title`, `label`, `rule`, `risk`,
 - `ids`, each `[function index, ID, [lines]]`.
 - `counts`: `functions`, `calls`, `ambiguous`, `external`, `parsed` (files the call graph read) and `unparsed` (those whose
   tree holds a syntax error, the findings of the `files-parsed` check). <!-- RQ-TRC-122, DEC-TRC-067 -->
+  `unresolved`: `{library, constructor, cross-language, unnamed, top-level}`, the unresolved calls by cause; `external` is
+  the sum of the first three (`(caller, name)` pairs), the last two count call sites. <!-- RQ-TRC-123, DEC-TRC-068 -->

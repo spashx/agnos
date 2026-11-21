@@ -1098,10 +1098,10 @@ TASK-TRC-106|18-39|Done|Find why the headless-browser tests read nothing, and fi
 PLAN-TRC-020|1-34||Deep links to a view
 TASK-TRC-108|16-34|Done|Open the view named in the URL fragment
 @agnos-process/3.plan/PLAN-TRC-021-call-graph-measurement.md
-PLAN-TRC-021|1-62||Call graph measurement
+PLAN-TRC-021|1-68||Call graph measurement
 TASK-TRC-109|17-31|Done|Specify call graph measurement
 TASK-TRC-110|32-50|Done|Score files that fail to parse
-TASK-TRC-111|51-62|Not Started|Count unresolved calls by cause
+TASK-TRC-111|51-68|Done|Count unresolved calls by cause
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

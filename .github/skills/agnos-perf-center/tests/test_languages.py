@@ -139,6 +139,10 @@ class PythonTest(unittest.TestCase):
                          call_links(self.graph))
         self.assertEqual((0, 2), (self.graph.ambiguous, self.graph.external))      # print, the class Greeter()
 
+    def test_RQ_TRC_123_given_print_and_an_instantiation_when_analysed_then_one_is_library_and_one_constructor(self):
+        self.assertEqual({"library": 1, "constructor": 1, "cross-language": 0, "unnamed": 0, "top-level": 0},
+                         self.graph.unresolved)
+
     def test_RQ_TRC_031_given_an_id_above_a_decorator_when_analysed_then_the_decorated_method_cites_it(self):
         self.assertEqual({CITED}, set(self.functions["Greeter.name"]["ids"]))
         self.assertEqual({}, self.functions["Greeter.greet"]["ids"])

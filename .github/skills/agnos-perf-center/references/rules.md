@@ -53,6 +53,10 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   the caller's class, its namespace, its file, its folder, the project. One left: a call link; two to five: one link to
   each, marked ambiguous; more: counted as ambiguous; none: counted as external. Macros, virtual dispatch, function
   pointers and callbacks are not followed.
+- An unresolved call is counted by cause <!-- RQ-TRC-123, DEC-TRC-068 -->: `constructor` (the name of a class or other
+  scope of the caller's language, as Python's `Greeter()`), `cross-language` (defined only in another language),
+  `library` (defined in no scanned file), which make up `external`; and, outside it, `unnamed` (a call through an
+  expression that is no name, as `(*fp)()`) and `top-level` (a call outside any function, as module-level code).
 - Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`. To add a language: one table entry, one query file, its

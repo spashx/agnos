@@ -212,6 +212,26 @@ class CallResolutionTest(unittest.TestCase):
         self.assertEqual((2, 2), (self.graph.ambiguous, self.graph.external))
         self.assertIn("call graph: 11 functions, 8 calls, ambiguous 2, external 2", self.graph.summary())
 
+    def test_RQ_TRC_123_given_a_call_through_a_function_pointer_when_analysed_then_it_counts_as_unnamed(self):
+        self.assertEqual({"library": 2, "constructor": 0, "cross-language": 0, "unnamed": 1, "top-level": 0},
+                         self.graph.unresolved)                 # puts, printf; (*fp)()
+
+    def test_RQ_TRC_123_given_module_level_calls_when_analysed_then_they_count_as_top_level_and_make_no_link(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "boot.py"
+            path.write_text("def f():\n    return 0\n\n\nf()\nprint(f())\n", encoding="utf-8")
+            graph = cg.analyse([("boot.py", path)], {}, tm.evidence)
+        self.assertEqual(([], 0, 3), (graph.calls, graph.external, graph.unresolved["top-level"]))
+
+    def test_RQ_TRC_123_given_a_c_call_to_a_name_only_python_defines_when_analysed_then_it_counts_as_cross_language(
+            self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "main.c").write_text("int run(void) { return py_only(); }\n", encoding="utf-8")
+            (root / "lib.py").write_text("def py_only():\n    return 0\n", encoding="utf-8")
+            graph = cg.analyse(sorted((p.name, p) for p in root.iterdir()), {}, tm.evidence)
+        self.assertEqual((1, 1), (graph.external, graph.unresolved["cross-language"]))
+
     def test_RQ_TRC_030_given_more_than_five_candidates_when_called_then_no_link_is_made_and_it_counts_as_ambiguous(
             self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -320,8 +340,11 @@ class PageDataTest(unittest.TestCase):
         self.assertEqual((7, 7, "net::Port::send"), (first, last, name))
         self.assertEqual("cpp", graph["languages"][language])
         self.assertTrue(all(isinstance(n, int) for n in graph["calls"]))
+        unresolved = graph["counts"].pop("unresolved")          # RQ-TRC-123 (TASK-TRC-111)
         self.assertEqual({"functions": 14, "calls": 8, "ambiguous": 2, "external": 2, "parsed": 8, "unparsed": 0},
                          graph["counts"])                       # parsed, unparsed: RQ-TRC-122 (TASK-TRC-110)
+        self.assertEqual(graph["counts"]["external"],
+                         sum(unresolved[k] for k in ("library", "constructor", "cross-language")))
 
     def test_RQ_TRC_038_given_the_call_graph_when_embedded_then_it_adds_at_most_120_bytes_per_function_and_16_per_call(
             self):
@@ -918,6 +941,15 @@ class FunctionMatrixTest(unittest.TestCase):
         dom = rendered_dom_after(self.path, script)
         self.assertIn('data-found="true"', dom)
         self.assertIn('<article class="card check-card is-open" id="check-files-parsed"', dom)
+
+    def test_RQ_TRC_123_given_the_call_graph_card_when_external_calls_is_focused_then_its_tooltip_gives_each_cause(self):
+        script = ("agnosTrace.showView('graph');"
+                  "const item = [...document.querySelectorAll('#call-graph-card [data-rich-tip]')]"
+                  ".find((b) => b.textContent.startsWith('External calls'));"
+                  "item.dispatchEvent(new Event('focus')); document.documentElement.dataset.tip = document.getElementById('tip').textContent;")
+        dom = rendered_dom_after(self.path, script)
+        for cause in ("library 2", "constructor 0", "cross-language 0", "unnamed 1", "top-level 0"):
+            self.assertIn(cause, dom)
 
     def test_RQ_TRC_063_given_the_call_graph_in_a_1440_by_900_window_then_all_ten_checks_are_reached_by_scrolling(self):
         import re

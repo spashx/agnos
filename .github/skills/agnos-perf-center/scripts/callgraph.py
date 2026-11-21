@@ -214,9 +214,15 @@ def declared_scopes(grammar, scopes):
             for node, _ in scopes if node.type in grammar.scopes}
 
 
-def call_sites(functions, calls):
+# RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111): the causes of an unresolved call; the first three make up the external count.
+LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL = "library", "constructor", "cross-language", "unnamed", "top-level"
+CAUSES = (LIBRARY, CONSTRUCTOR, CROSS_LANGUAGE, UNNAMED, TOP_LEVEL)
+
+
+def call_sites(functions, calls, unresolved):
     """(caller, called name, line) of each call whose name can be resolved, the caller being the innermost function
-    holding the call; nodes in start order, one sweep with a stack of the open functions."""
+    holding the call; nodes in start order, one sweep with a stack of the open functions. A call outside any function
+    counts as top-level, one whose expression is no name as unnamed, in unresolved (RQ-TRC-123)."""
     sites, stack, pending = [], [], list(reversed(functions))
     for call, expression in calls:
         while pending and pending[-1][KEY_NODE].start_byte <= call.start_byte:
@@ -227,7 +233,11 @@ def call_sites(functions, calls):
         while stack and stack[-1][KEY_NODE].end_byte <= call.start_byte:
             stack.pop()
         name = last_part(plain_name(text_of(expression)))
-        if stack and NAME_RE.match(name):
+        if not stack:
+            unresolved[TOP_LEVEL] += 1
+        elif not NAME_RE.match(name):
+            unresolved[UNNAMED] += 1
+        else:
             sites.append((stack[-1], name, call.start_point[0] + 1))
     return sites
 
@@ -255,14 +265,25 @@ def preferred(caller, candidates, separator):
     return candidates
 
 
-# RQ-TRC-029, RQ-TRC-030, RQ-TRC-040 (TASK-TRC-011)
-def resolve(graph, sites, separators):
+# RQ-TRC-123, DEC-TRC-068 (TASK-TRC-111)
+def unresolved_cause(language, name, scope_names, defined_names):
+    """Why a name with no definition in the caller's language is unresolved: a scope of that language is instantiated,
+    another language defines it, or nothing scanned does."""
+    if (language, name) in scope_names:
+        return CONSTRUCTOR
+    return CROSS_LANGUAGE if name in defined_names else LIBRARY
+
+
+# RQ-TRC-029, RQ-TRC-030, RQ-TRC-040, RQ-TRC-123 (TASK-TRC-011, TASK-TRC-111)
+def resolve(graph, sites, separators, scope_names=frozenset()):
     """Links each (caller, called name) to its definitions, in the caller's language: one plain link, two to five
-    ambiguous ones, else none and counted as ambiguous; no definition counts as external."""
+    ambiguous ones, else none and counted as ambiguous; no definition counts as external, by cause; scope_names:
+    {(language, last part of a declared scope)}."""
     index = {id(f): n for n, f in enumerate(graph.functions)}
     definitions = {}
     for function in graph.functions:
         definitions.setdefault((function[LANGUAGE_FUNCTION], function[KEY_NAME]), []).append(function)
+    defined_names = {key[1] for key in definitions}
     grouped = {}
     for caller, name, line in sites:
         grouped.setdefault((index[id(caller)], name), []).append(line)
@@ -273,6 +294,7 @@ def resolve(graph, sites, separators):
         chosen = preferred(caller, candidates, separators[caller[LANGUAGE_FUNCTION]]) if candidates else []
         if not chosen:
             graph.external += 1
+            graph.unresolved[unresolved_cause(caller[LANGUAGE_FUNCTION], name, scope_names, defined_names)] += 1
         elif len(chosen) > MAX_AMBIGUOUS:
             graph.ambiguous += 1
         else:
@@ -327,7 +349,7 @@ def assign_scopes(graph, declared, grammars):
 # ---- the call graph ----------------------------------------------------------------------------------------------
 class CallGraph:
     """The functions and calls found, the ambiguous and external call counts, the files read and those that did not
-    parse (RQ-TRC-122), and the packages that were missing."""
+    parse (RQ-TRC-122), the unresolved calls by cause (RQ-TRC-123), and the packages that were missing."""
 
     def __init__(self):
         self.functions = []
@@ -337,6 +359,7 @@ class CallGraph:
         self.external = 0
         self.parsed = []
         self.unparsed = []
+        self.unresolved = dict.fromkeys(CAUSES, 0)            # RQ-TRC-123, DEC-TRC-068
         self.core_missing = False
         self.missing = []
 
@@ -378,10 +401,11 @@ class CallGraph:
         return {KEY_FUNCTIONS: functions, "languages": languages, KEY_SCOPES: self.scopes, KEY_CALLS: calls, "ids": ids,
                 "counts": {KEY_FUNCTIONS: len(self.functions), KEY_CALLS: len(self.calls), "ambiguous": self.ambiguous,
                            "external": self.external, "parsed": len(self.parsed),
-                           "unparsed": len(self.unparsed)}}                              # RQ-TRC-122
+                           "unparsed": len(self.unparsed),                               # RQ-TRC-122
+                           "unresolved": dict(self.unresolved)}}                         # RQ-TRC-123
 
 
-# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040, RQ-TRC-122 (TASK-TRC-009, TASK-TRC-010, TASK-TRC-110)
+# RQ-TRC-026, RQ-TRC-027, RQ-TRC-040, RQ-TRC-122, RQ-TRC-123 (TASK-TRC-009, TASK-TRC-010, TASK-TRC-110, TASK-TRC-111)
 def analyse(files, cited, evidence, table=None):
     """The call graph of the scanned files [(shown path, path)], for the languages whose packages are installed;
     cited: {shown path: [(line, ID, proof)]}, the file's ID citations; evidence(line, text): a proof line. Functions
@@ -393,7 +417,7 @@ def analyse(files, cited, evidence, table=None):
         graph.core_missing = True
         return graph
     grammars, graph.missing = load_grammars(load_table() if table is None else table, api)
-    sites, declared = [], {}
+    sites, declared, scope_names = [], {}, set()
     for shown, path in sorted(files):
         grammar = grammars.get(path.suffix.lower())
         if grammar is not None:
@@ -402,12 +426,13 @@ def analyse(files, cited, evidence, table=None):
             if broken:
                 graph.unparsed.append(shown)
             graph.functions += functions
-            sites += call_sites(functions, calls)
+            sites += call_sites(functions, calls, graph.unresolved)
             for name, kind in scopes.items():
                 declared.setdefault(name, kind)
+                scope_names.add((grammar.name, name.split(grammar.separator)[-1]))     # RQ-TRC-123
     assign_keys(graph.functions)
     assign_scopes(graph, declared, {g.name: g for g in grammars.values()})
-    resolve(graph, sites, {g.name: g.separator for g in grammars.values()})
+    resolve(graph, sites, {g.name: g.separator for g in grammars.values()}, scope_names)
     for function in graph.functions:
         del function[KEY_NODE]
     return graph
