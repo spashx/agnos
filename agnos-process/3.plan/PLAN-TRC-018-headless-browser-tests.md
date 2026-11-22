@@ -7,9 +7,9 @@ tests are those that render the page in a headless Chromium-family browser and r
 so the cause predates FTR-INI-002; TASK-INI-004 had recorded 361 run, OK, on 2026-10-31. The cause was not investigated.
 
 ## References
-- **Requirements**: the requirements of the failing tests, among them RQ-TRC-089, RQ-TRC-101, RQ-TRC-109, RQ-TRC-111, RQ-TRC-113,
+- **Requirement refs**: the requirements of the failing tests, among them RQ-TRC-089, RQ-TRC-101, RQ-TRC-109, RQ-TRC-111, RQ-TRC-113,
   RQ-TRC-114, RQ-TRC-116, RQ-HST-016
-- **ADRs**: None (no architectural choice expected; to be reassessed once the cause is known)
+- **ADR refs**: None (no architectural choice expected; to be reassessed once the cause is known)
 
 ---
 

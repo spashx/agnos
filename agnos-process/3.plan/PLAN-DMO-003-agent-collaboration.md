@@ -6,8 +6,8 @@ Center shows humans and agents working together. The engine gains agent identiti
 assigns them, `verify` checks them; the rebuild itself is TASK-DMO-018 (PLAN-DMO-004).
 
 ## References
-- **Requirements**: RQ-DMO-023, RQ-DMO-024, RQ-DMO-025; amended RQ-DMO-011, RQ-DMO-014; RQ-DMO-021; RQ-HST-005, RQ-HST-030
-- **ADRs**: ADR-DMO-002 (DEC-DMO-008, DEC-DMO-009); ADR-DMO-001 (DEC-DMO-002, DEC-DMO-005)
+- **Requirement refs**: RQ-DMO-023, RQ-DMO-024, RQ-DMO-025; amended RQ-DMO-011, RQ-DMO-014; RQ-DMO-021; RQ-HST-005, RQ-HST-030
+- **ADR refs**: ADR-DMO-002 (DEC-DMO-008, DEC-DMO-009); ADR-DMO-001 (DEC-DMO-002, DEC-DMO-005)
 
 This plan implements the tasks in the format specified below.
 ---

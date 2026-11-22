@@ -5,8 +5,8 @@ Make the first stop of the tour the Matrix view, name each content section after
 Matrix screenshot to the demo's Matrix (RQ-TRC-121), and rebuild the site (owner request of 2026-11-12).
 
 ## References
-- **Requirements**: RQ-WEB-009, RQ-WEB-011, RQ-WEB-012, RQ-WEB-017 (amended 2026-11-12); RQ-TRC-121; RQ-WEB-001, RQ-WEB-002
-- **ADRs**: ADR-WEB-001 (DEC-WEB-004, DEC-WEB-005); ADR-TRC-019 (DEC-TRC-066)
+- **Requirement refs**: RQ-WEB-009, RQ-WEB-011, RQ-WEB-012, RQ-WEB-017 (amended 2026-11-12); RQ-TRC-121; RQ-WEB-001, RQ-WEB-002
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-004, DEC-WEB-005); ADR-TRC-019 (DEC-TRC-066)
 
 This plan implements the tasks in the format specified below.
 ---

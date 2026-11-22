@@ -5,8 +5,8 @@ Separates the construction of the project's state graph from the performance cen
 `4.knowledge/agnos-graph.json`, and `agnos-perf-center` reads it, building it first when it is absent or when asked.
 
 ## References
-- **Requirements**: RQ-TRC-129, RQ-TRC-130, RQ-TRC-131, RQ-TRC-132, RQ-TRC-133
-- **ADRs**: ADR-TRC-022 (DEC-TRC-074 to DEC-TRC-077); amends DEC-TRC-002, DEC-TRC-013; extends ADR-PLG-010
+- **Requirement refs**: RQ-TRC-129, RQ-TRC-130, RQ-TRC-131, RQ-TRC-132, RQ-TRC-133
+- **ADR refs**: ADR-TRC-022 (DEC-TRC-074 to DEC-TRC-077); amends DEC-TRC-002, DEC-TRC-013; extends ADR-PLG-010
 
 This plan implements the tasks in the format specified below.
 ---

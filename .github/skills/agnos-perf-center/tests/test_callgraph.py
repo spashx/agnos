@@ -28,9 +28,10 @@ CALLS = FIXTURE / "calls"
 
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-graph/requirements-callgraph.txt)"
-DATA_BEFORE_PLAN_SHA256 = "b3e71cd10842e48aec7851af03db63ea48752ae3b3a8ea2cf7bb67d6c7f01039"   # the fixture page's data;
+DATA_BEFORE_PLAN_SHA256 = "57d90966efede4a8f5e37a564d4f0a95a1d48a42570288da15c3a2557ea49068"   # the fixture page's data;
 # re-pinned by TASK-TRC-064: meta.library became meta.libraries (RQ-TRC-082);
-# re-pinned by TASK-TRC-089: meta.summary starts with the skill's new name (RQ-TRC-105)
+# re-pinned by TASK-TRC-089: meta.summary starts with the skill's new name (RQ-TRC-105);
+# re-pinned by TASK-INI-022: the fixture plan's proof reads `ADR refs`, the converted field name (RQ-INI-022)
 # without --call-graph, with its two machine-dependent fields (the process and source paths given) blanked; re-pinned
 # on purpose by TASK-TRC-046 and TASK-TRC-050 (ADR-TRC-008, DEC-TRC-033): the `quality` block replaced the finding lists, then gained labels.
 

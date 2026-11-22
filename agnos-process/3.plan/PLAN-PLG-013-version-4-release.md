@@ -6,8 +6,8 @@ prove the marketplace, and regenerate the marketplace folder from the proved out
 repositories are committed locally; the merge, tag and push stay with the owner.
 
 ## References
-- **Requirements**: RQ-DMO-020, RQ-DMO-021, RQ-WEB-001, RQ-WEB-002, RQ-PLG-001, RQ-PLG-002, RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032
-- **ADRs**: ADR-DMO-001, ADR-WEB-001, ADR-PLG-001, ADR-PLG-005
+- **Requirement refs**: RQ-DMO-020, RQ-DMO-021, RQ-WEB-001, RQ-WEB-002, RQ-PLG-001, RQ-PLG-002, RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032
+- **ADR refs**: ADR-DMO-001, ADR-WEB-001, ADR-PLG-001, ADR-PLG-005
 
 This plan implements the tasks in the format specified below.
 ---

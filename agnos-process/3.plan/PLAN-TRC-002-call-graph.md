@@ -6,8 +6,8 @@ language table, C/C++ functions and function-level IDs, call resolution, the pag
 then the graph and its performance limits, and the skill's documentation.
 
 ## References
-- **Requirements**: RQ-TRC-026 to RQ-TRC-040 (FTR-TRC-002)
-- **ADRs**: ADR-TRC-004; ADR-TRC-001, ADR-TRC-002, ADR-TRC-003 (extended)
+- **Requirement refs**: RQ-TRC-026 to RQ-TRC-040 (FTR-TRC-002)
+- **ADR refs**: ADR-TRC-004; ADR-TRC-001, ADR-TRC-002, ADR-TRC-003 (extended)
 
 This plan implements the tasks in the format specified below.
 ---

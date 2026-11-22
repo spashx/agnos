@@ -5,8 +5,8 @@ Let the Performance Center open on the view named by a `#view=<name>` fragment, 
 that any later view is linkable with no code change (owner request of 2026-11-12).
 
 ## References
-- **Requirements**: RQ-TRC-121, RQ-TRC-016
-- **ADRs**: ADR-TRC-019 (DEC-TRC-066), ADR-TRC-003 (DEC-TRC-007)
+- **Requirement refs**: RQ-TRC-121, RQ-TRC-016
+- **ADR refs**: ADR-TRC-019 (DEC-TRC-066), ADR-TRC-003 (DEC-TRC-007)
 
 This plan implements the tasks in the format specified below.
 ---

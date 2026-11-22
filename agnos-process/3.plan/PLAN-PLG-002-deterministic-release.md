@@ -5,8 +5,8 @@ Make `agnos-meta-release` give the same verdict whoever runs it, and write a pag
 (DEC-PLG-007). The order: what the output holds, then what is said, then the page.
 
 ## References
-- **Requirements**: RQ-PLG-012 to RQ-PLG-017, RQ-MTA-012, RQ-TRC-018
-- **ADRs**: ADR-PLG-002, ADR-TRC-002, ADR-MTA-002
+- **Requirement refs**: RQ-PLG-012 to RQ-PLG-017, RQ-MTA-012, RQ-TRC-018
+- **ADR refs**: ADR-PLG-002, ADR-TRC-002, ADR-MTA-002
 
 This plan implements the tasks in the format specified below.
 ---

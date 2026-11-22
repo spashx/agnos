@@ -6,8 +6,8 @@ scoring and the data first, then the vocabulary and the page reading the new blo
 and its palette, the charts, and last the fit in the window, the speed and the wording of the older requirements.
 
 ## References
-- **Requirements**: RQ-TRC-057 to RQ-TRC-067; RQ-TRC-009, RQ-TRC-015, RQ-TRC-017, RQ-TRC-035, RQ-TRC-045 (reworded)
-- **ADRs**: ADR-TRC-008 (DEC-TRC-032 to DEC-TRC-035)
+- **Requirement refs**: RQ-TRC-057 to RQ-TRC-067; RQ-TRC-009, RQ-TRC-015, RQ-TRC-017, RQ-TRC-035, RQ-TRC-045 (reworded)
+- **ADR refs**: ADR-TRC-008 (DEC-TRC-032 to DEC-TRC-035)
 
 This plan implements the tasks in the format specified below.
 ---

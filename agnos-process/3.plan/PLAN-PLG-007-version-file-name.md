@@ -4,8 +4,8 @@
 Rename the version file `VERSION` to `VERSION.txt` everywhere AGNOS names it, per DEC-PLG-032.
 
 ## References
-- **Requirements**: RQ-PLG-032, RQ-PLG-033, RQ-PLG-036
-- **ADRs**: ADR-PLG-007 (DEC-PLG-032), ADR-PLG-005 (DEC-PLG-025, DEC-PLG-026), ADR-PLG-006
+- **Requirement refs**: RQ-PLG-032, RQ-PLG-033, RQ-PLG-036
+- **ADR refs**: ADR-PLG-007 (DEC-PLG-032), ADR-PLG-005 (DEC-PLG-025, DEC-PLG-026), ADR-PLG-006
 
 This plan implements the tasks in the format specified below.
 ---

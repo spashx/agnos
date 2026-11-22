@@ -5,8 +5,8 @@ Delivers `agnos-init`, states where it must be called, and makes the demo an ini
 `feature/TRC`: nothing is pushed.
 
 ## References
-- **Requirements**: RQ-INI-001 to RQ-INI-009; amended: RQ-IDX-008, RQ-MTA-005, RQ-DMO-002
-- **ADRs**: ADR-INI-001 (DEC-INI-001 to DEC-INI-006); amended: DEC-MTA-005, DEC-MTA-006
+- **Requirement refs**: RQ-INI-001 to RQ-INI-009; amended: RQ-IDX-008, RQ-MTA-005, RQ-DMO-002
+- **ADR refs**: ADR-INI-001 (DEC-INI-001 to DEC-INI-006); amended: DEC-MTA-005, DEC-MTA-006
 
 This plan implements the tasks in the format specified below.
 ---

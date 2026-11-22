@@ -5,8 +5,8 @@ Replaces the in-memory storage by a JSON file written atomically, selectable by 
 ADR-BKG-003.
 
 ## References
-- **Requirements**: RQ-BKG-007
-- **ADRs**: ADR-BKG-003 (DEC-BKG-004)
+- **Requirement refs**: RQ-BKG-007
+- **ADR refs**: ADR-BKG-003 (DEC-BKG-004)
 
 This plan implements the tasks in the format specified below.
 ---

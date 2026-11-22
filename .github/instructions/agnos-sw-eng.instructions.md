@@ -326,8 +326,8 @@ Every plan file in `agnos-process/3.plan/` SHALL follow this structure:
 Brief description of the plan's purpose and scope.
 
 ## References
-- **Requirements**: [List of RQ IDs this plan covers]
-- **ADRs**: [List of ADR IDs relevant to this plan, or "None"]
+- **Requirement refs**: [List of RQ IDs this plan covers]
+- **ADR refs**: [List of ADR IDs relevant to this plan, or "None"]
 
 This plan implements the tasks in the format specified below. 
 ---

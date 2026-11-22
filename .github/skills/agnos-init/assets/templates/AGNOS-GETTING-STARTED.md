@@ -362,8 +362,8 @@ Plan the implementation of FTR-EXP-001.
 Implements the streaming CSV exporter and exposes it on the orders API.
 
 ## References
-- **Requirements**: RQ-EXP-001, RQ-EXP-002
-- **ADRs**: ADR-EXP-001 (DEC-EXP-001, DEC-EXP-002)
+- **Requirement refs**: RQ-EXP-001, RQ-EXP-002
+- **ADR refs**: ADR-EXP-001 (DEC-EXP-001, DEC-EXP-002)
 
 ---
 

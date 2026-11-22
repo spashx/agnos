@@ -5,8 +5,8 @@ Implements FTR-DSY-001: the `agnos-design-system` skill and the update of every 
 former template path.
 
 ## References
-- **Requirements**: RQ-DSY-001
-- **ADRs**: ADR-DSY-001 (DEC-DSY-001)
+- **Requirement refs**: RQ-DSY-001
+- **ADR refs**: ADR-DSY-001 (DEC-DSY-001)
 
 ---
 

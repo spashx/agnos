@@ -8,9 +8,9 @@ dot (FTR-HST-001: RQ-HST-022 to RQ-HST-026, RQ-HST-006, RQ-HST-007 and RQ-HST-01
 to DEC-HST-011).
 
 ## References
-- **Requirements**: RQ-HST-022, RQ-HST-023, RQ-HST-024, RQ-HST-025, RQ-HST-026; RQ-HST-006, RQ-HST-007, RQ-HST-014
+- **Requirement refs**: RQ-HST-022, RQ-HST-023, RQ-HST-024, RQ-HST-025, RQ-HST-026; RQ-HST-006, RQ-HST-007, RQ-HST-014
   (amended); RQ-HST-013 (measured again)
-- **ADRs**: ADR-HST-001 (DEC-HST-009, DEC-HST-010, DEC-HST-011; DEC-HST-005, DEC-HST-007); ADR-TRC-002 (design system)
+- **ADR refs**: ADR-HST-001 (DEC-HST-009, DEC-HST-010, DEC-HST-011; DEC-HST-005, DEC-HST-007); ADR-TRC-002 (design system)
 
 This plan implements the tasks in the format specified below.
 ---

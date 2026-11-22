@@ -5,8 +5,8 @@ Implement RQ-TRC-053 to RQ-TRC-056 after ADR-TRC-007, in the skill's `assets/` (
 `tokens.json`) and its tests.
 
 ## References
-- **Requirements**: RQ-TRC-053, RQ-TRC-054, RQ-TRC-055, RQ-TRC-056; RQ-TRC-016, RQ-TRC-045 (kept)
-- **ADRs**: ADR-TRC-007 (DEC-TRC-029, DEC-TRC-030, DEC-TRC-031)
+- **Requirement refs**: RQ-TRC-053, RQ-TRC-054, RQ-TRC-055, RQ-TRC-056; RQ-TRC-016, RQ-TRC-045 (kept)
+- **ADR refs**: ADR-TRC-007 (DEC-TRC-029, DEC-TRC-030, DEC-TRC-031)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -4,8 +4,8 @@
 Deliver the catalogue's metadata block, the plugin's listing fields and its logo, then prove the install in both tools.
 
 ## References
-- **Requirements**: RQ-PLG-044, RQ-PLG-045, RQ-PLG-046
-- **ADRs**: ADR-PLG-009
+- **Requirement refs**: RQ-PLG-044, RQ-PLG-045, RQ-PLG-046
+- **ADR refs**: ADR-PLG-009
 
 This plan implements the tasks in the format specified below.
 ---

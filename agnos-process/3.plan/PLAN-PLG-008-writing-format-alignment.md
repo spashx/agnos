@@ -5,8 +5,8 @@ Record the owner's writing rules (FTR-PLG-007), correct the title range, align t
 3.4.0, rebuild the demo on it and rehearse its marketplace.
 
 ## References
-- **Requirements**: RQ-PLG-039, RQ-PLG-040, RQ-PLG-041, RQ-DMO-005, RQ-DMO-008, RQ-DMO-021, RQ-PLG-027 to RQ-PLG-033, RQ-PLG-012, RQ-WEB-003, RQ-WEB-005
-- **ADRs**: ADR-DMO-001, ADR-PLG-005, ADR-PLG-002, ADR-WEB-001
+- **Requirement refs**: RQ-PLG-039, RQ-PLG-040, RQ-PLG-041, RQ-DMO-005, RQ-DMO-008, RQ-DMO-021, RQ-PLG-027 to RQ-PLG-033, RQ-PLG-012, RQ-WEB-003, RQ-WEB-005
+- **ADR refs**: ADR-DMO-001, ADR-PLG-005, ADR-PLG-002, ADR-WEB-001
 
 This plan implements the tasks in the format specified below.
 ---

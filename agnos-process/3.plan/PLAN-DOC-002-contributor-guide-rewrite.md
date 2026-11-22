@@ -5,8 +5,8 @@ Implement RQ-DOC-005 and RQ-DOC-006 in one task: replace `CONTRIBUTING.md` with 
 "a pull request is accepted only if it was made with AGNOS" and the branch roles.
 
 ## References
-- **Requirements**: RQ-DOC-005, RQ-DOC-006
-- **ADRs**: None (Tier M task)
+- **Requirement refs**: RQ-DOC-005, RQ-DOC-006
+- **ADR refs**: None (Tier M task)
 
 This plan implements the tasks in the format specified below.
 ---

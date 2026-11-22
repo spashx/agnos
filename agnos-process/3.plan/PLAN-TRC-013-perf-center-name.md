@@ -4,8 +4,8 @@
 Rename the skill, its script and its outputs, and align every live file, with a test guarding the result.
 
 ## References
-- **Requirements**: RQ-TRC-104 to RQ-TRC-107; amended: RQ-TRC-001
-- **ADRs**: ADR-TRC-013 (DEC-TRC-053 to DEC-TRC-055)
+- **Requirement refs**: RQ-TRC-104 to RQ-TRC-107; amended: RQ-TRC-001
+- **ADR refs**: ADR-TRC-013 (DEC-TRC-053 to DEC-TRC-055)
 
 This plan implements the tasks in the format specified below.
 ---

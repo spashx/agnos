@@ -5,8 +5,8 @@ Read the friction log from git, show its figure and the words on the variations,
 points over time, behind two tags. Each step leaves the page and its tests working. Page tests need the network.
 
 ## References
-- **Requirements**: RQ-TRC-090 to RQ-TRC-096; amended: RQ-TRC-074, RQ-TRC-076, RQ-TRC-083
-- **ADRs**: ADR-TRC-011 (DEC-TRC-045 to DEC-TRC-049); ADR-TRC-002 (design system); extended: DEC-TRC-037, DEC-TRC-043
+- **Requirement refs**: RQ-TRC-090 to RQ-TRC-096; amended: RQ-TRC-074, RQ-TRC-076, RQ-TRC-083
+- **ADR refs**: ADR-TRC-011 (DEC-TRC-045 to DEC-TRC-049); ADR-TRC-002 (design system); extended: DEC-TRC-037, DEC-TRC-043
 
 This plan implements the tasks in the format specified below.
 ---

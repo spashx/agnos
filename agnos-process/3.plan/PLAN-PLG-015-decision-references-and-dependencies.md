@@ -6,8 +6,8 @@ references and the DECs it depends on, and its rationale may no longer be "None"
 the user's guide and the changelog. Out of scope: rewriting the existing DECs of this repository's `agnos-process/`.
 
 ## References
-- **Requirements**: RQ-PLG-040, RQ-DMO-005
-- **ADRs**: None
+- **Requirement refs**: RQ-PLG-040, RQ-DMO-005
+- **ADR refs**: None
 
 This plan implements the tasks in the format specified below.
 ---

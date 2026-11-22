@@ -7,9 +7,9 @@ History tab the files in a folder tree, a resizable label column and a filter on
 TASK-HST-007 of PLAN-HST-001 (speed, accessibility, documentation) follows this plan, to measure the final state.
 
 ## References
-- **Requirements**: RQ-HST-016, RQ-HST-017, RQ-HST-018, RQ-HST-019, RQ-HST-020, RQ-HST-021; RQ-HST-010 and RQ-HST-014
+- **Requirement refs**: RQ-HST-016, RQ-HST-017, RQ-HST-018, RQ-HST-019, RQ-HST-020, RQ-HST-021; RQ-HST-010 and RQ-HST-014
   as amended; RQ-TRC-018, RQ-TRC-049, RQ-TRC-065 (design system, tooltips, charts' accessible names)
-- **ADRs**: ADR-HST-001 (DEC-HST-007, DEC-HST-008); ADR-TRC-002 (design system), ADR-TRC-008 (DEC-TRC-035, charts)
+- **ADR refs**: ADR-HST-001 (DEC-HST-007, DEC-HST-008); ADR-TRC-002 (design system), ADR-TRC-008 (DEC-TRC-035, charts)
 
 This plan implements the tasks in the format specified below.
 ---

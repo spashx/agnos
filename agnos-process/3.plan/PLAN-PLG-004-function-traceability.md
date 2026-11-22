@@ -5,8 +5,8 @@ Make "Functions traced" weigh in the perf center's score and name functions in t
 the release again for the next owner's checks. No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-024, RQ-PLG-025, RQ-PLG-026, RQ-TRC-035 and RQ-TRC-059 (amended)
-- **ADRs**: ADR-PLG-004, ADR-TRC-008
+- **Requirement refs**: RQ-PLG-024, RQ-PLG-025, RQ-PLG-026, RQ-TRC-035 and RQ-TRC-059 (amended)
+- **ADR refs**: ADR-PLG-004, ADR-TRC-008
 
 This plan implements the tasks in the format specified below.
 ---

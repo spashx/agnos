@@ -6,8 +6,8 @@ arity, without ever tracing a function by its calls (recommendations R3 to R6 of
 `insights/callgraph-operational-analysis.md`, owner choice of 2026-11-21).
 
 ## References
-- **Requirements**: RQ-TRC-124, RQ-TRC-125, RQ-TRC-126, RQ-TRC-127, RQ-TRC-128, RQ-TRC-029, RQ-TRC-123
-- **ADRs**: ADR-TRC-021 (DEC-TRC-069 to DEC-TRC-073), ADR-TRC-004 (DEC-TRC-014, DEC-TRC-015, DEC-TRC-018)
+- **Requirement refs**: RQ-TRC-124, RQ-TRC-125, RQ-TRC-126, RQ-TRC-127, RQ-TRC-128, RQ-TRC-029, RQ-TRC-123
+- **ADR refs**: ADR-TRC-021 (DEC-TRC-069 to DEC-TRC-073), ADR-TRC-004 (DEC-TRC-014, DEC-TRC-015, DEC-TRC-018)
 
 This plan implements the tasks in the format specified below.
 ---

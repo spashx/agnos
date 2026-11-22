@@ -4,8 +4,8 @@
 Withdraw OpenAI Codex from what the release delivers, and deliver a README in the plugin's folder, which VS Code shows.
 
 ## References
-- **Requirements**: RQ-PLG-042, RQ-PLG-043
-- **ADRs**: ADR-PLG-008
+- **Requirement refs**: RQ-PLG-042, RQ-PLG-043
+- **ADR refs**: ADR-PLG-008
 
 This plan implements the tasks in the format specified below.
 ---

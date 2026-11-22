@@ -9,8 +9,8 @@ own tests are deliverable content (RQ-DMO-004). The generator is the maintainer 
 rebuilt and verified again when AGNOS evolves.
 
 ## References
-- **Requirements**: RQ-DMO-001 to RQ-DMO-021
-- **ADRs**: ADR-DMO-001 (DEC-DMO-001 to DEC-DMO-006)
+- **Requirement refs**: RQ-DMO-001 to RQ-DMO-021
+- **ADR refs**: ADR-DMO-001 (DEC-DMO-001 to DEC-DMO-006)
 
 ---
 

@@ -6,8 +6,8 @@ and read by every agent through `CLAUDE.md` and `AGENTS.md`. The declared improv
 (owner, 2026-11-22).
 
 ## References
-- **Requirements**: RQ-PLG-018, RQ-RSI-001
-- **ADRs**: None
+- **Requirement refs**: RQ-PLG-018, RQ-RSI-001
+- **ADR refs**: None
 
 This plan implements the tasks in the format specified below.
 ---

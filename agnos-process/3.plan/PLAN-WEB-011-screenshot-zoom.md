@@ -5,8 +5,8 @@ Enlarge each tour screenshot on click, as the three examples of the Matrix stop,
 their presence and size only, the owner's real screenshots replacing the placeholders (owner request of 2026-11-14).
 
 ## References
-- **Requirements**: RQ-WEB-011, RQ-WEB-012, RQ-WEB-017
-- **ADRs**: ADR-WEB-001 (DEC-WEB-004)
+- **Requirement refs**: RQ-WEB-011, RQ-WEB-012, RQ-WEB-017
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-004)
 
 This plan implements the tasks in the format specified below.
 ---

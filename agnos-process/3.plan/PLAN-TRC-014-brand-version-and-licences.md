@@ -4,8 +4,8 @@
 Give the page a coloured brand mark in the design system, a foot naming the application and its version, a Licenses topic of local badges in the Help dialog, and About links showing their addresses. Each task writes its Gherkin-named tests first.
 
 ## References
-- **Requirements**: RQ-TRC-109 to RQ-TRC-116; amended: RQ-TRC-082, RQ-TRC-103
-- **ADRs**: ADR-TRC-014 (DEC-TRC-056 to DEC-TRC-059); uses ADR-TRC-002 (the design system), ADR-TRC-012 (the Help dialog)
+- **Requirement refs**: RQ-TRC-109 to RQ-TRC-116; amended: RQ-TRC-082, RQ-TRC-103
+- **ADR refs**: ADR-TRC-014 (DEC-TRC-056 to DEC-TRC-059); uses ADR-TRC-002 (the design system), ADR-TRC-012 (the Help dialog)
 
 This plan implements the tasks in the format specified below.
 ---

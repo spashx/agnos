@@ -5,8 +5,8 @@ Show under each of the three start steps of the site's close an example of what 
 addressing the reader with "vous" (owner request of 2026-11-13).
 
 ## References
-- **Requirements**: RQ-WEB-009 (amended 2026-11-13), RQ-WEB-003, RQ-WEB-014, RQ-WEB-015
-- **ADRs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Requirement refs**: RQ-WEB-009 (amended 2026-11-13), RQ-WEB-003, RQ-WEB-014, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
 
 This plan implements the tasks in the format specified below.
 ---

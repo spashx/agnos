@@ -6,8 +6,8 @@ requirement, decision or task, with their citations, and proves that every other
 The perf center is out of scope.
 
 ## References
-- **Requirements**: RQ-TRC-134, RQ-TRC-135, RQ-TRC-136, RQ-TRC-137
-- **ADRs**: ADR-TRC-023 (DEC-TRC-078, DEC-TRC-079, DEC-TRC-080); extends ADR-TRC-022 (DEC-TRC-074, DEC-TRC-075)
+- **Requirement refs**: RQ-TRC-134, RQ-TRC-135, RQ-TRC-136, RQ-TRC-137
+- **ADR refs**: ADR-TRC-023 (DEC-TRC-078, DEC-TRC-079, DEC-TRC-080); extends ADR-TRC-022 (DEC-TRC-074, DEC-TRC-075)
 - **Requirements handed to another component**: None; RQ-TRC-129 and RQ-TRC-130 (the graph file) are extended by a new block, not amended.
 
 This plan implements the tasks in the format specified below.

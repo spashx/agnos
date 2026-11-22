@@ -6,8 +6,8 @@ preparation once on this repository. Runs after PLAN-PLG-006: the process folder
 (RQ-PLG-034, RQ-PLG-036). No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032, RQ-PLG-033
-- **ADRs**: ADR-PLG-005, ADR-PLG-002, ADR-PLG-003
+- **Requirement refs**: RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032, RQ-PLG-033
+- **ADR refs**: ADR-PLG-005, ADR-PLG-002, ADR-PLG-003
 
 This plan implements the tasks in the format specified below.
 ---

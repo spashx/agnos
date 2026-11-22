@@ -6,8 +6,8 @@ and explain the risks in the README. Order: TASK-INI-013, 014, 015, 016, 017, 01
 Everything stays local, on `feature/PLG`.
 
 ## References
-- **Requirements**: RQ-INI-019, RQ-INI-020, RQ-INI-021
-- **ADRs**: ADR-INI-003 (DEC-INI-014, DEC-INI-015)
+- **Requirement refs**: RQ-INI-019, RQ-INI-020, RQ-INI-021
+- **ADR refs**: ADR-INI-003 (DEC-INI-014, DEC-INI-015)
 
 This plan implements the tasks in the format specified below.
 ---

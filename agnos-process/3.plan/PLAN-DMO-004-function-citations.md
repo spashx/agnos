@@ -6,8 +6,8 @@ Bring the demo's "Functions traced" score from 3.0 (154 of 219 functions uncited
 with the agent collaboration of PLAN-DMO-003.
 
 ## References
-- **Requirements**: RQ-DMO-026; RQ-DMO-004, RQ-DMO-008, RQ-DMO-021; RQ-PLG-025, RQ-PLG-026; RQ-DMO-023 to RQ-DMO-025
-- **ADRs**: ADR-DMO-001 (DEC-DMO-004, DEC-DMO-005, DEC-DMO-006); ADR-DMO-002
+- **Requirement refs**: RQ-DMO-026; RQ-DMO-004, RQ-DMO-008, RQ-DMO-021; RQ-PLG-025, RQ-PLG-026; RQ-DMO-023 to RQ-DMO-025
+- **ADR refs**: ADR-DMO-001 (DEC-DMO-004, DEC-DMO-005, DEC-DMO-006); ADR-DMO-002
 
 This plan implements the tasks in the format specified below.
 ---

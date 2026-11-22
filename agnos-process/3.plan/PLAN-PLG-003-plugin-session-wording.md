@@ -5,8 +5,8 @@ Correct the three findings of the owner's Claude Code session of 2026-11-04 (FTR
 and rehearse the release again for the Copilot checks of TASK-PLG-007. No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-018 to RQ-PLG-023, RQ-PLG-004, RQ-DOC-001, RQ-DOC-002, RQ-INI-007 (amended), RQ-PLG-008, RQ-PLG-009
-- **ADRs**: ADR-PLG-003, ADR-PLG-001, ADR-PLG-002
+- **Requirement refs**: RQ-PLG-018 to RQ-PLG-023, RQ-PLG-004, RQ-DOC-001, RQ-DOC-002, RQ-INI-007 (amended), RQ-PLG-008, RQ-PLG-009
+- **ADR refs**: ADR-PLG-003, ADR-PLG-001, ADR-PLG-002
 
 This plan implements the tasks in the format specified below.
 ---

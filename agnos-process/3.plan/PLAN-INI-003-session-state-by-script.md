@@ -6,8 +6,8 @@ repository's copy, align the demo, then sync the documents. Order: TASK-INI-006,
 prepared afterwards with `agnos-meta-release-prep`, outside this plan. Everything stays local.
 
 ## References
-- **Requirements**: RQ-INI-011 to RQ-INI-018; amended: RQ-DMO-006
-- **ADRs**: ADR-INI-002 (DEC-INI-008 to DEC-INI-013)
+- **Requirement refs**: RQ-INI-011 to RQ-INI-018; amended: RQ-DMO-006
+- **ADR refs**: ADR-INI-002 (DEC-INI-008 to DEC-INI-013)
 
 This plan implements the tasks in the format specified below.
 ---

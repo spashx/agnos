@@ -6,8 +6,8 @@ and the call graph's counts belong with the graph. One chart is shown in both vi
 the graph's frame, shown only while the implementation is drawn.
 
 ## References
-- **Requirements**: amended: RQ-TRC-015, RQ-TRC-035, RQ-TRC-062; RQ-TRC-061, RQ-TRC-048, RQ-TRC-087
-- **ADRs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-008 (DEC-TRC-035); ADR-TRC-005 (DEC-TRC-023); ADR-TRC-002 (design system)
+- **Requirement refs**: amended: RQ-TRC-015, RQ-TRC-035, RQ-TRC-062; RQ-TRC-061, RQ-TRC-048, RQ-TRC-087
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-043); ADR-TRC-008 (DEC-TRC-035); ADR-TRC-005 (DEC-TRC-023); ADR-TRC-002 (design system)
 
 This plan implements the tasks in the format specified below.
 ---

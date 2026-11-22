@@ -44,7 +44,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-022: Rename plan fields across repository
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Rename the fields in the process file's template and the guide, convert this repository's plans, the demo's and the fixtures' with `agnos-init`'s conversion, verify the demo and add the changelog entry.
 - **Requirement refs**: RQ-INI-022, RQ-INI-023
 - **ADR refs**: ADR-INI-004 (DEC-INI-016)
@@ -55,5 +55,5 @@ This plan implements the tasks in the format specified below.
   - Given the suites of `agnos-init`, `agnos-graph` and `agnos-perf-center`, Then all pass
 - **Dependencies**: TASK-INI-021
 - **Assignee**: AI
-- **Verification**: [filled at closure]
-- **Assumptions**: [filled at closure]
+- **Verification**: process file and guide renamed by hand, process file 397 lines. `init.ps1` run on a copy of each plan folder: 76 plans of this repository, 6 of the demo, 1 per fixture converted; `git grep` of `- **Requirements**:` or `- **ADRs**:` in plans: 0. `build.ps1 -Verify`: "28 passed, 0 failed". Suites: agnos-init 48 OK; agnos-graph 157 OK; agnos-perf-center 325 run, 1 failure, the data hash of `test_callgraph` pinned on the fixture plan proof, which reads `ADR refs` now (the test passes on the unconverted fixture), re-pinned; `test_callgraph` then 50 OK, 1 skipped; 3 skipped in the suite, the performance tests needing `AGNOS_PERF_CENTER_PERF=1`. CHANGELOG `[Unreleased]` Changed entry.
+- **Assumptions**: the plans are converted by the converter itself on a copy of each plan folder, so that this repository is not re-initialised; the pinned data hash is re-pinned as a new expected value, the input text having changed.

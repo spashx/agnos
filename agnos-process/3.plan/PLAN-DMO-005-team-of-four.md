@@ -6,8 +6,8 @@ Replace the demo's seven human identities by four people of the fictitious compa
 2026-11-12).
 
 ## References
-- **Requirements**: amended RQ-DMO-011, RQ-DMO-012, RQ-DMO-023; RQ-DMO-009, RQ-DMO-014, RQ-DMO-021, RQ-DMO-022
-- **ADRs**: ADR-DMO-001 (amended DEC-DMO-003, DEC-DMO-007); ADR-DMO-002 (amended DEC-DMO-009)
+- **Requirement refs**: amended RQ-DMO-011, RQ-DMO-012, RQ-DMO-023; RQ-DMO-009, RQ-DMO-014, RQ-DMO-021, RQ-DMO-022
+- **ADR refs**: ADR-DMO-001 (amended DEC-DMO-003, DEC-DMO-007); ADR-DMO-002 (amended DEC-DMO-009)
 
 This plan implements the tasks in the format specified below.
 ---

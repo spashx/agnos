@@ -5,8 +5,8 @@ Implements FTR-IDX-001: the `agnos-index` skill, its two scripts and tests, and 
 the AGNOS process.
 
 ## References
-- **Requirements**: RQ-IDX-001 to RQ-IDX-018
-- **ADRs**: ADR-IDX-001 (DEC-IDX-001 to DEC-IDX-004)
+- **Requirement refs**: RQ-IDX-001 to RQ-IDX-018
+- **ADR refs**: ADR-IDX-001 (DEC-IDX-001 to DEC-IDX-004)
 
 ---
 

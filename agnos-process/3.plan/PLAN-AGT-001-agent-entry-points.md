@@ -4,8 +4,8 @@
 Implements FTR-AGT-001: `AGENTS.md` and the alignment of `CLAUDE.md` on the four skills.
 
 ## References
-- **Requirements**: RQ-AGT-001
-- **ADRs**: None
+- **Requirement refs**: RQ-AGT-001
+- **ADR refs**: None
 
 ---
 

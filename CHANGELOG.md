@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Every new decision of an ADR names its `Requirement refs` and its `Dependencies` on other decisions, and its `Rationale` may no longer be "None"; the demo and the user's guide show the four fields, existing decisions are not rewritten <!-- TASK-PLG-096, RQ-PLG-040 -->
+- The plan template names its references `Requirement refs` and `ADR refs`, as the task template does; `agnos-init` renames the former `Requirements` and `ADRs` lines of each plan's `## References` section when it updates a project, reported `converted <path>`; this repository, the demo and the user's guide are converted <!-- TASK-INI-021, TASK-INI-022, RQ-INI-022, RQ-INI-023 -->
 
 ### Added
 - `agnos-graph.json` holds a `sections` block: the `##` sections of the features, ADRs and plans that hold no requirement, decision or task, their `###` subsections, and the IDs each cites; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-125, TASK-TRC-126, RQ-TRC-134 to RQ-TRC-137 -->

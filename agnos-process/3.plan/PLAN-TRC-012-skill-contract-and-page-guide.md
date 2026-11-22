@@ -5,8 +5,8 @@ Move the reader's guide into the page and the rest into references first, then c
 the way. Page tests need the network. Full test suites run on a copy, through a subagent.
 
 ## References
-- **Requirements**: RQ-TRC-098 to RQ-TRC-102; refined: RQ-TRC-017
-- **ADRs**: ADR-TRC-012 (DEC-TRC-050 to DEC-TRC-052); ADR-TRC-002 (design system); extended: DEC-TRC-008
+- **Requirement refs**: RQ-TRC-098 to RQ-TRC-102; refined: RQ-TRC-017
+- **ADR refs**: ADR-TRC-012 (DEC-TRC-050 to DEC-TRC-052); ADR-TRC-002 (design system); extended: DEC-TRC-008
 
 This plan implements the tasks in the format specified below.
 ---

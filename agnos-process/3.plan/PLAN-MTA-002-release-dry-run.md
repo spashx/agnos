@@ -5,8 +5,8 @@ Correct the workshop's citations first, then build `agnos-meta-release --dry-run
 Everything stays local on `feature/TRC`, nothing is published (DEC-MTA-004).
 
 ## References
-- **Requirements**: RQ-MTA-006 to RQ-MTA-014
-- **ADRs**: ADR-MTA-002 (DEC-MTA-007 to DEC-MTA-011); adjusted: DEC-MTA-002, DEC-MTA-004, DEC-MTA-006
+- **Requirement refs**: RQ-MTA-006 to RQ-MTA-014
+- **ADR refs**: ADR-MTA-002 (DEC-MTA-007 to DEC-MTA-011); adjusted: DEC-MTA-002, DEC-MTA-004, DEC-MTA-006
 
 This plan implements the tasks in the format specified below.
 ---

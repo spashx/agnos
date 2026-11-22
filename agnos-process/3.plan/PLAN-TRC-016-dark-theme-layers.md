@@ -5,8 +5,8 @@ Lighten the dark theme into four surfaces of increasing lightness and adjust the
 owner retained from the mock-up of 2026-11-07 (candidate "P2", fragile colours adjusted).
 
 ## References
-- **Requirements**: RQ-TRC-117, RQ-TRC-118
-- **ADRs**: ADR-TRC-017 (DEC-TRC-063, DEC-TRC-064), ADR-TRC-002
+- **Requirement refs**: RQ-TRC-117, RQ-TRC-118
+- **ADR refs**: ADR-TRC-017 (DEC-TRC-063, DEC-TRC-064), ADR-TRC-002
 
 ---
 

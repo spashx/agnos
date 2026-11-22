@@ -6,8 +6,8 @@ Performance Center page, given or regenerated. The content, look and structure s
 Everything stays local on `feature/WEB`: nothing is pushed, and the site's repository is not touched.
 
 ## References
-- **Requirements**: RQ-WEB-001 to RQ-WEB-016
-- **ADRs**: ADR-WEB-001 (DEC-WEB-001 to DEC-WEB-006)
+- **Requirement refs**: RQ-WEB-001 to RQ-WEB-016
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-001 to DEC-WEB-006)
 
 This plan implements the tasks in the format specified below.
 ---

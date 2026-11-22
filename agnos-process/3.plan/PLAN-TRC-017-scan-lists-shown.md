@@ -5,8 +5,8 @@ Make the default and user-given scan and exclusion lists visible in the help, on
 (owner request, 2026-11-07, after `--exclude "*.md"` silently dropped the default exclusions).
 
 ## References
-- **Requirements**: RQ-TRC-119
-- **ADRs**: None (no architectural choice; DEC-TRC-001 unchanged)
+- **Requirement refs**: RQ-TRC-119
+- **ADR refs**: None (no architectural choice; DEC-TRC-001 unchanged)
 
 ---
 

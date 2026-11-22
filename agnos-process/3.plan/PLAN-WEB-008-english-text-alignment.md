@@ -5,8 +5,8 @@ Translate again into `en.md` the fields of the site whose French text the owner 
 both languages, and correct four typos of `fr.md` (owner request of 2026-11-13).
 
 ## References
-- **Requirements**: RQ-WEB-003, RQ-WEB-007, RQ-WEB-009
-- **ADRs**: ADR-WEB-001 (DEC-WEB-003)
+- **Requirement refs**: RQ-WEB-003, RQ-WEB-007, RQ-WEB-009
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003)
 
 This plan implements the tasks in the format specified below.
 ---

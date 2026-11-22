@@ -6,8 +6,8 @@ generator of the stylesheet, as decided in ADR-DSN-001. The token file and the d
 the UX designer's deliverables in FTR-DSN-001.
 
 ## References
-- **Requirements**: RQ-DSN-001, RQ-DSN-002, RQ-DSN-003, RQ-DSN-004, RQ-DSN-005
-- **ADRs**: ADR-DSN-001 (DEC-DSN-001, DEC-DSN-002)
+- **Requirement refs**: RQ-DSN-001, RQ-DSN-002, RQ-DSN-003, RQ-DSN-004, RQ-DSN-005
+- **ADR refs**: ADR-DSN-001 (DEC-DSN-001, DEC-DSN-002)
 
 This plan implements the tasks in the format specified below.
 ---
