@@ -32,7 +32,7 @@ Calling the `agnos-init` skill wrote or changed these files, and left everything
 | File | What it holds |
 |---|---|
 | `CLAUDE.md`, `AGENTS.md` | The same delimited AGNOS block, which tells the agent to load the process, the `agnos-instructions` skill. Your own text around it stays yours |
-| `agnos-process/` | Four folders, `1.requirements/`, `2.architecture/`, `3.plan/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
+| `agnos-process/` | Six folders, `0.facts/`, `1.requirements/`, `2.architecture/`, `3.plan/`, `4.knowledge/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
 | `agnos-process/AGNOS-GETTING-STARTED.md` | This guide |
 | `agnos-process/VERSION.txt` | The AGNOS version installed |
 | `.gitignore` | A line ignoring `agnos-process/_sessionstate/session.yaml`, added only when git's rules do not ignore it yet |
@@ -46,9 +46,11 @@ Everything the agent writes for the process lives under `agnos-process/`, and ev
 
 | Phase | Location | Artifacts | Format |
 |---|---|---|---|
+| Facts | `agnos-process/0.facts/` | Normative inputs you place: a protocol, a device specification, a user's guide | Any format; never changed by AGNOS, not in the index; cited by path |
 | Requirements | `agnos-process/1.requirements/` | `FTR-*` features, `RQ-*` requirements | EARS statements, Gherkin acceptance criteria |
 | Architecture | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions | Context, Decision, Consequences, Alternatives, Mermaid diagrams |
 | Planning | `agnos-process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks | Tier, Gherkin criteria, Verification, Assumptions |
+| Knowledge | `agnos-process/4.knowledge/` | Dynamic knowledge written by skills, such as the project's state | Generated and dated; not in the index |
 | Session state | `agnos-process/_sessionstate/` | `session.yaml`, `METRICS_LOG.md` | `session.yaml` is not version-controlled; `METRICS_LOG.md` is |
 
 Every identifier follows `<TYPE>-<TRI>-<NNN>`, where `<TRI>` is a three-letter uppercase trigram for the functional area.

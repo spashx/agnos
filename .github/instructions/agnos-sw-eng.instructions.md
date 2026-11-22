@@ -17,9 +17,11 @@ The process is iteratively based on sessions execution. see [START NEW SESSION A
 
 ## PROCESS FOLDER STRUCTURE
 The whole process artifacts are managed into the `agnos-process/` folder of the workspace:
+- `agnos-process/0.facts/` – Facts: normative input documents the user places, immutable and always true. AGNOS never changes their content; a skill may transform them technically and index them with unique IDs, until then cite a fact by its path. Not in `process.idx.md`. <!-- RQ-PLG-048 / DEC-PLG-040 -->
 - `agnos-process/1.requirements/` – Feature and Requirements files
 - `agnos-process/2.architecture/` – Architecture Decision Records (ADRs) files
 - `agnos-process/3.plan/` – Plan files with PLAN-* and TASK-* definitions
+- `agnos-process/4.knowledge/` – Knowledge: dynamic, of uneven maturity (e.g. the project's state written by a skill); each file a skill writes there states its production date. Not in `process.idx.md`. <!-- RQ-PLG-049 / DEC-PLG-040 -->
 - `agnos-process/_sessionstate/` – Session state YAML file (`session.yaml`, not version-controlled) and the cross-session friction-metrics log (`METRICS_LOG.md`, version-controlled), both written ONLY by the `agnos-session` skill <!-- RQ-INI-016, RQ-INI-017 -->
 - `agnos-process/process.idx.md` – Generated index (ID, line range, status, title) of all artifact definitions, version-controlled. It SHALL be written ONLY by the `agnos-index` skill, NEVER by hand. <!-- RQ-IDX-013 -->
  

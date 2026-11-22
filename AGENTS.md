@@ -71,9 +71,11 @@ default. <!-- RQ-AGT-002 / TASK-AGT-003 -->
 
 | Path | Content |
 |---|---|
+| `agnos-process/0.facts/` | Facts: normative input documents the user places, immutable, never indexed in `process.idx.md` <!-- RQ-PLG-048 --> |
 | `agnos-process/1.requirements/` | `FTR-*` features, `RQ-*` requirements (EARS, Gherkin) |
 | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions |
 | `agnos-process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks |
+| `agnos-process/4.knowledge/` | Knowledge: dynamic, of uneven maturity, dated, never indexed in `process.idx.md` <!-- RQ-PLG-049 --> |
 | `agnos-process/_sessionstate/` | `session.yaml` (session variables, not version-controlled), `METRICS_LOG.md` (friction metrics, version-controlled) <!-- RQ-INI-016 --> |
 | `agnos-process/process.idx.md` | Generated index: read it first, then open documents by line range |
 | [`AGNOS-GETTING-STARTED.md`](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | A complete worked session, for illustration; `agnos-init` writes it into each project |
