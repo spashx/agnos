@@ -259,10 +259,14 @@ repository already exposes cursor-based pagination over orders.
 ### DEC-EXP-001: Streaming CSV generation
 - **Statement**: The exporter SHALL stream the CSV document through a `Readable`, for memory independent of the result size.
 - **Rationale**: A materialised 1,000,000-row CSV is about 120 MB, six times the RQ-EXP-002 budget; the repository already exposes cursor-based pagination, which a stream consumes batch by batch.
+- **Requirement refs**: RQ-EXP-001, RQ-EXP-002
+- **Dependencies**: None
 
 ### DEC-EXP-002: Batched repository fetching
 - **Statement**: The exporter SHALL fetch orders from the repository in batches of 500 rows.
 - **Rationale**: 500 is the smallest batch that keeps the database round-trip count off the critical path at 1,000,000 rows; as a tuning knob it is a named constant, not a literal at a call site.
+- **Requirement refs**: RQ-EXP-002
+- **Dependencies**: DEC-EXP-001
 
 ## Consequences
 

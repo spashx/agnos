@@ -15,6 +15,8 @@ reservations per month.
 ### DEC-BKG-004: Atomic JSON file for reservations
 - **Statement**: A second repository adapter, selected by a configuration value, SHALL use one JSON file, read at start and rewritten on every change through a temporary file renamed over it, for storing reservations; it replaces DEC-BKG-003.
 - **Rationale**: the rename leaves the previous file intact when a save is interrupted; one service process and fewer than 1000 reservations per month need no database server.
+- **Requirement refs**: RQ-BKG-007
+- **Dependencies**: DEC-BKG-001
 
 ## Consequences
 - Reservations survive restarts without a database server.

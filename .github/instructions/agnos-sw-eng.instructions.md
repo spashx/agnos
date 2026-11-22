@@ -238,7 +238,9 @@ Brief description of the feature's purpose and scope.
   ## Decision
   ### DEC-<TRI>-<NNN>: <Decision title>
   - **Statement**: What was decided, and why? one single choice, one sentence, active voice: "The <element> SHALL <use|apply|expose> <mechanism> for <purpose>".
-  - **Rationale**: the reason for the choice, plus the evidence it rests on (analysis, benchmark, spike, constraint), or "None".
+  - **Rationale**: the reason for the choice, plus the evidence it rests on (analysis, benchmark, spike, constraint).
+  - **Requirement refs**: the requirement ID(s) this decision fulfills.
+  - **Dependencies**: [List of DEC IDs this depends on, or "None"]
   ## Consequences
   What becomes easier, harder, or constrained as a result?
   ## Alternatives Considered

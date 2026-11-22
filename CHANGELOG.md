@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+- Every new decision of an ADR names its `Requirement refs` and its `Dependencies` on other decisions, and its `Rationale` may no longer be "None"; the demo and the user's guide show the four fields, existing decisions are not rewritten <!-- TASK-PLG-096, RQ-PLG-040 -->
+
 ## [4.0.0]
 
 ### Changed
