@@ -15,7 +15,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-117: Create graph skill from perf-center code
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Create `.github/skills/agnos-graph/` with `scripts/graph.py` (index parsing, containment, references, source scan, task tiers, extracted from `perf_center.py`), `callgraph.py`, `history.py`, the tree-sitter queries and `requirements-callgraph.txt` moved from `agnos-perf-center`, writing the dated graph file. Write the graph file's tests first in `agnos-graph/tests` and move there the pure unit tests of `callgraph` and `history`; the tests checking the page stay in `agnos-perf-center` and load the moved modules from `agnos-graph/scripts` (owner, 2026-11-22).
 - **Requirement refs**: RQ-TRC-129, RQ-TRC-130, RQ-TRC-133
 - **ADR refs**: ADR-TRC-022 (DEC-TRC-074)
@@ -29,8 +29,8 @@ This plan implements the tasks in the format specified below.
   - Given the page tests left in `agnos-perf-center`, When they load the moved modules from `agnos-graph/scripts`, Then they pass
 - **Dependencies**: None
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `agnos-graph/tests` 124 tests OK, 0 skipped (graph file: state keys and no `coverage`/`quality`; `callGraph`, `history`, `delivery` with `--call-graph --history`; byte-identical twice; `meta.commit` HEAD / null; missing source exit 1, nothing written); `agnos-perf-center/tests` 331 tests: 1 error (`test_literals` read `callgraph.py` in its old folder), fixed by splitting the check per skill, `test_literals` then OK in both, 3 skipped (performance tests, opt-in `AGNOS_PERF_CENTER_PERF=1`); `layout.py --check` 0 findings; meta-release `test_layout` 18 OK.
+- **Assumptions**: `graphFile` and the `agnos-graph` layout copy were added here, not in TASK-TRC-120, because `layout.py --check` forbids the name as a literal in `graph.py`. `agents.json` and `delivery.json` moved with `history.py`, which reads them. Until TASK-TRC-118, `perf_center.py` keeps its model code and loads `callgraph.py`/`history.py` from `../agnos-graph/scripts`. The graph file also holds `callGraph.parsedFiles`/`unparsedFiles` and `meta.summaries`, which the quality checks and the summary line need. Moved tests: `test_languages`, `test_friction`, the module classes of `test_callgraph`, `test_resolution`, `test_history` and a split `test_literals`; the shared helpers of `test_history` are duplicated in both suites; the fixture repository is copied into `agnos-graph/tests/fixtures`. The call graph assertion of the page determinism test of RQ-TRC-040 became its own graph test.
 
 ### TASK-TRC-118: Feed perf-center from graph file
 - **Tier**: L

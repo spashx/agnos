@@ -1,5 +1,5 @@
 {
-  "_comment": "agnos-perf-center call graph languages (RQ-TRC-032, DEC-TRC-014): extensions, grammar wheel and module, query file, scope separator. An extension belongs to one language.",
+  "_comment": "agnos-graph call graph languages (RQ-TRC-032, DEC-TRC-014): extensions, grammar wheel and module, query file, scope separator. An extension belongs to one language.",
   "_scopes": "scopes (RQ-TRC-047, DEC-TRC-019): the box kind, namespace or class, of each scope node type of the grammar; a language without scopes gives functions without box.",
   "_receivers": "self, super (RQ-TRC-124, DEC-TRC-070): the receiver words naming the caller's own object and its parent object; a call through them is looked for in the caller's class and its ancestors, or its ancestors only.",
   "_constructor": "constructor (RQ-TRC-125, DEC-TRC-070): the name of a class's constructor where it is not the class's own name; a creation, or a call to a class's name, links to the class's functions of either name.",

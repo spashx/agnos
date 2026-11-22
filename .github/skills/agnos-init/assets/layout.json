@@ -8,6 +8,7 @@
   "folderReadme": "readme.md",
   "projectRules": "project-rules.md",
   "perfCenterPage": "PERF-CENTER.html",
+  "graphFile": "4.knowledge/agnos-graph.json",
   "guide": "AGNOS-GETTING-STARTED.md",
   "version": "VERSION.txt",
   "legacyFolder": "process",

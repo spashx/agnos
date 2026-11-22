@@ -11,6 +11,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+sys.path.insert(0, str(HERE.parents[1] / "agnos-graph" / "scripts"))   # DEC-TRC-074: the moved modules (TASK-TRC-117)
 sys.path.insert(0, str(HERE))
 
 import history  # noqa: E402

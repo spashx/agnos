@@ -89,9 +89,12 @@ VERSION_PATH = SKILL_DIR.parent / "agnos-init" / "assets" / "templates" / agnos_
 VERSION_PREFIX = "v."
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
                        r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
-CALLGRAPH_PATH = Path(__file__).resolve().parent / "callgraph.py"
+# DEC-TRC-074 (TASK-TRC-117): the call graph and history modules moved to the sibling skill agnos-graph; loaded from there
+# by path until TASK-TRC-118 makes the graph file this generator's only input (DEC-TRC-075).
+GRAPH_SCRIPTS_DIR = SKILL_DIR.parent / "agnos-graph" / "scripts"
+CALLGRAPH_PATH = GRAPH_SCRIPTS_DIR / "callgraph.py"
 CALLGRAPH_MODULE = "agnos_perf_center_callgraph"
-HISTORY_PATH = Path(__file__).resolve().parent / "history.py"        # FTR-HST-001, ADR-HST-001
+HISTORY_PATH = GRAPH_SCRIPTS_DIR / "history.py"        # FTR-HST-001, ADR-HST-001
 HISTORY_MODULE = "agnos_perf_center_history"
 MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES|APP_VERSION)@")
 DATA_JSON_SUFFIX = ".json"          # RQ-TRC-010: the data alone, for any other tool
