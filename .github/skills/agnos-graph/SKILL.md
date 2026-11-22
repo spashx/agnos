@@ -20,7 +20,7 @@ when its graph is absent or when it is given `--rebuild`.
 |---|---|
 | `--process <dir>` | The folder holding `process.idx.md` |
 | `--sources <dir>` | Repeatable: every folder whose files should carry IDs (code, tests, build, CI). Not a documentation folder quoting IDs as examples: they would be counted. |
-| `--out <file>` | Default `<process>/4.knowledge/agnos-graph.json` |
+| `--out <file>` | Default `<process>/4.knowledge/graph/agnos-graph.json` |
 | `--ext .x`, `--exclude <pattern>` | Repeatable; each **replaces** its default list (`--help` shows them), at the user's responsibility <!-- RQ-TRC-119 --> |
 | `--generated-at <t>` | The state's date; a fixed timestamp makes the file byte-identical |
 | `--call-graph` | Adds functions and calls. Needs once `pip install -r <skill-folder>/requirements-callgraph.txt`; without it the graph is written without them |

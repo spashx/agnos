@@ -27,6 +27,7 @@ LIST_KEYS = ("SUBFOLDERS", "PROCESS_INDEXED")
 FACTS, KNOWLEDGE = "0.facts", "4.knowledge"                        # RQ-PLG-048, RQ-PLG-049
 INDEXED = ["1.requirements", "2.architecture", "3.plan"]          # RQ-PLG-050 / DEC-PLG-039
 KEY_SUBFOLDERS, KEY_PROCESS_INDEXED = "subfolders", "process_indexed"
+KEY_GRAPH_FILE, GRAPH_FOLDER_FILE = "graphFile", "4.knowledge/graph/agnos-graph.json"   # RQ-TRC-142 / DEC-TRC-086
 
 
 def bash():
@@ -120,6 +121,11 @@ class LayoutTest(LayoutFixture):
         self.assertEqual(expected[-1], " ".join(INDEXED))
         self.assertEqual(self.printed("ps1"), expected)
         self.assertEqual(self.printed("sh"), expected)
+
+    def test_RQ_TRC_142_given_the_layout_then_the_graph_file_is_in_the_graph_folder(self):
+        """TASK-TRC-131: Given layout.json, Then graphFile is 4.knowledge/graph/agnos-graph.json (RQ-TRC-142, DEC-TRC-086)."""
+        data = json.loads((ROOT / layout.LAYOUT_PATH).read_text(encoding=ENCODING))
+        self.assertEqual(data[KEY_GRAPH_FILE], GRAPH_FOLDER_FILE)
 
     def test_RQ_PLG_037_given_the_copies_as_generated_then_the_check_passes(self):
         """Given the copies as generated and no Markdown, When checked, Then the exit is 0 (RQ-PLG-037)."""

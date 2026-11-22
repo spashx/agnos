@@ -21,6 +21,7 @@ import perf_center as tm  # noqa: E402
 FIXTURE = HERE / "fixtures" / "repo"
 PROCESS = FIXTURE / "process"
 SOURCES = FIXTURE / "src"
+GRAPH_FOLDER_FILE = "4.knowledge/graph/agnos-graph.json"   # RQ-TRC-142 / DEC-TRC-086: the default graph read, stated, not read
 
 
 # RQ-TRC-131 (TASK-TRC-118): the options of the scan go to agnos-graph, which writes the graph the page is made from.
@@ -981,6 +982,17 @@ class OnDemandGraphTest(unittest.TestCase):
         self.assertTrue(self.graph.is_file())
         self.assertTrue(self.out.is_file())
         self.assertRegex(stdout.strip().splitlines()[-1], r"^agnos-perf-center: \d+ elements")
+
+    def test_RQ_TRC_142_given_a_graph_in_the_graph_folder_when_run_without_graph_then_it_is_read_not_rebuilt(self):
+        """TASK-TRC-131: RQ-TRC-142 (DEC-TRC-086): Given the graph in 4.knowledge/graph/, When run without --graph nor
+        --rebuild, Then that graph is read And not rewritten."""
+        self.assertEqual(0, self.generator()[0])
+        graph = self.process / GRAPH_FOLDER_FILE
+        self.assertTrue(graph.is_file())
+        before = graph.read_bytes()
+        code, _, err = self.generator(date="2026-02-02T00:00Z")
+        self.assertEqual(0, code, err)
+        self.assertEqual(before, graph.read_bytes())
 
     def test_RQ_TRC_132_given_options_of_the_scan_when_the_graph_is_built_then_they_reach_it(self):
         code, _, err = self.generator("--ext", ".py", "--exclude", "dist")

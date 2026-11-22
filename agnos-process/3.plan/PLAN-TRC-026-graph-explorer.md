@@ -33,7 +33,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-131: Move graph file into graph folder
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then set `graphFile` to `4.knowledge/graph/agnos-graph.json` in `layout.json`, regenerate its copies, and update every hit of a `git grep` of the former path: scripts, tests, `SKILL.md` files, `graph-format.md`, `AGENTS.md`, the guide, the demo and the release.
 - **Requirement refs**: RQ-TRC-142, RQ-TRC-156
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-086)
@@ -45,8 +45,8 @@ This plan implements the tasks in the format specified below.
   - Given the suites of the skills touched and the demo's `build.ps1 -Verify`, Then all pass
 - **Dependencies**: TASK-TRC-130
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: 3 tests written first, each FAILED before the change (`test_graph` RQ_TRC_142 graph in `4.knowledge/graph/`, `test_perf_center` RQ_TRC_142 read not rebuilt, `test_layout` RQ_TRC_142 `graphFile`), OK after. `layout.py --write` then `--check`: 0 findings, 13 copies regenerated. `git grep 4.knowledge/agnos-graph.json` outside plans, changelog, index: 2 hits, both named former paths (test constant, ADR-TRC-025 consequence). Base `a92a72c` (worktree) vs change, same inputs and date: graph, page, `.json`, `.data.js` byte-identical. Suites: agnos-graph 168 OK; agnos-perf-center 326 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`); agnos-meta-release 153 OK; agnos-init 48 OK; agnos-index `test-build-index.ps1` all passed; demo `build.ps1 -Verify` 28 passed, 0 failed. agnos-session (import of `history` from the perf center's scripts) and agnos-meta-demo `test_citations` (IDs as text in `data-format.md`) fail identically at the base commit: not caused by this task, reported to the owner.
+- **Assumptions**: SKILL.md files, `graph-format.md`, `AGENTS.md` and the guide updated in place, `CLAUDE.md` and the README naming no path; the agnos-session and test_citations failures are left out of scope.
 
 ### TASK-TRC-132: Rename performance center outputs to lowercase
 - **Tier**: L

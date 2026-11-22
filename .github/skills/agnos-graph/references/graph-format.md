@@ -2,7 +2,7 @@
 
 <!-- RQ-TRC-129, RQ-TRC-130, RQ-TRC-133 / ADR-TRC-022 (DEC-TRC-074, DEC-TRC-075) -->
 
-`agnos-process/4.knowledge/agnos-graph.json` by default: one JSON document, keys sorted and no indentation, so that two runs on
+`agnos-process/4.knowledge/graph/agnos-graph.json` by default: one JSON document, keys sorted and no indentation, so that two runs on
 the same inputs and the same `--generated-at` write the same bytes. It holds the state of the project at its date and commit,
 never a judgement of it: no coverage, finding nor score (those are the performance center's). A reader rejects a file that is
 not JSON or that holds no `elements` list.

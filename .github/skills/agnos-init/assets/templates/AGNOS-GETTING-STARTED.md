@@ -677,7 +677,7 @@ Generate the traceability matrix for src and tests.
 ```
 
 **The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders. It first runs the `agnos-graph` skill,
-which writes the project's state, `agnos-process/4.knowledge/agnos-graph.json`, and prints the `scanned extensions`,
+which writes the project's state, `agnos-process/4.knowledge/graph/agnos-graph.json`, and prints the `scanned extensions`,
 `scanned names` and `excluded` lines, each saying whether it is the default or the user's list; the agent reports them,
 then the page is made from that state. Next time, the page is made from the existing state unless you ask to rebuild it.
 The result line follows as it is:

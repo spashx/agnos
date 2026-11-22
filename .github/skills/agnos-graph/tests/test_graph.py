@@ -25,6 +25,8 @@ PROCESS = FIXTURE / "process"
 SOURCES = FIXTURE / "src"
 CALLS = FIXTURE / "calls"
 GENERATED_AT = "2026-11-22T10:00Z"
+GRAPH_FOLDER_FILE = "4.knowledge/graph/agnos-graph.json"   # RQ-TRC-142 / DEC-TRC-086: the default path, stated, not read
+FORMER_GRAPH_FILE = "4.knowledge/agnos-graph.json"         # RQ-TRC-142: the path before TASK-TRC-131
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-graph/requirements-callgraph.txt)"
 STATE_KEYS = {"meta", "elements", "edges", "files", "tasks", "sections",   # sections: RQ-TRC-137, TASK-TRC-125
@@ -143,6 +145,15 @@ class GraphFileTest(unittest.TestCase):
         self.assertEqual(0, code, err)
         self.assertTrue((process / agnos_layout.GRAPH_FILE).is_file())
         self.assertIn("agnos-graph:", stdout.strip().splitlines()[-1])
+
+    def test_RQ_TRC_142_given_no_out_option_then_the_graph_is_written_to_the_graph_folder(self):
+        """TASK-TRC-131: RQ-TRC-142 (DEC-TRC-086): Given no --out, When the graph is built, Then it is in 4.knowledge/graph/."""
+        process = self.tmp / "process"
+        shutil.copytree(PROCESS, process)
+        code, _, err = run_main(["--process", str(process), "--sources", str(SOURCES)])
+        self.assertEqual(0, code, err)
+        self.assertTrue((process / GRAPH_FOLDER_FILE).is_file())
+        self.assertFalse((process / FORMER_GRAPH_FILE).exists())
 
 
 class StateDateTest(unittest.TestCase):
