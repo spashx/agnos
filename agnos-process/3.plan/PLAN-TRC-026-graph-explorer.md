@@ -85,7 +85,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-134: Implement explorer graph view
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then the Cytoscape graph view: type colours, draggable nodes, wheel and button zoom, fit, pan, positions kept across filters, hide, isolate and widen by one hop.
 - **Requirement refs**: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-090, DEC-TRC-091)
@@ -95,8 +95,8 @@ This plan implements the tasks in the format specified below.
   - Given a selected node, When its neighbourhood is isolated then widened, Then the nodes at one then two hops are shown; When it is hidden, Then it is listed as hidden And can be shown again
 - **Dependencies**: TASK-TRC-133
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: `GraphViewTest` written first (6 errors, no graph hooks), then 6 OK in headless Edge with Cytoscape.js from cdnjs: a dragged node keeps its position while a type is hidden then shown; Fit frames every shown node; zoom bounds equal the tokens and 40 zoom-in clicks stay under the maximum; isolate shows the node and its one-hop neighbours (its feature included), widen shows more; a hidden node is listed, its chip shows it again; node colour equals `--s-type-rq`. Brand test: the header holds the five parts of the AGNOS mark and its colours equal the performance center's brand tokens. agnos-graph suite 192 OK, 0 skipped. Screenshots of this repository's graph: a neighbourhood isolated around RQ-TRC-142 laid in circles, readable.
+- **Assumptions**: owner's request of 2026-11-23 during the task: the header's logo is the AGNOS mark "Spans" with the performance center's brand colours (RQ-TRC-114, DEC-TRC-056, copied); the graph view is the default view; the whole graph is laid in one column per type, wrapped every 40 nodes; isolating or widening lays the shown nodes in circles around the selection, one circle per hop, kept as moved positions; shown nodes are read from the hidden class, Cytoscape caching `visible()`; the fit test moves a node 5000 units away, the minimum zoom token framing about 11000.
 
 ### TASK-TRC-135: Implement explorer query language
 - **Tier**: M

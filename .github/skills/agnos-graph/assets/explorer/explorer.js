@@ -18,7 +18,7 @@
   const VIEW_GRAPH = "graph";
   const VIEW_NODES = "nodes";
   const VIEW_RELATIONS = "relations";
-  const DEFAULT_VIEW = VIEW_NODES;
+  const DEFAULT_VIEW = VIEW_GRAPH;
   const LINK_KEY_SEPARATOR = "\u0000";
   const NO_VALUE = "—";
   const ASCENDING = "ascending";
@@ -55,13 +55,41 @@
   const ID_NODE_TABLE = "node-table";
   const ID_RELATION_TABLE = "relation-table";
   const SELECTOR_TAB = ".tab";
+  // RQ-TRC-150, RQ-TRC-154, DEC-TRC-090: the graph view
+  const TYPE_ORDER = ["FTR", "RQ", "ADR", "DEC", "PLAN", "TASK", TYPE_SECTION, TYPE_FILE, "FN", TYPE_UNDEFINED];
+  const CLASS_HIDDEN = "hidden";
+  const CLASS_PICKED = "picked";
+  const DATA_COLOUR = "colour";
+  const EVENT_DRAG_FREE = "dragfree";
+  const TOKEN_ZOOM_STEP = "--c-graph-zoom-step";
+  const MESSAGE_NO_LIBRARY = "Cytoscape.js could not be loaded from cdnjs: the graph view needs the network once; the tables work without it.";
+  const ACTION_HIDE = "hide";
+  const ACTION_ISOLATE = "isolate";
+  const ACTION_WIDEN = "widen";
+  const SELECTOR_NODE = "node";
+  const ID_HIDDEN_LIST = "hidden-list";
+  const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
   const $ = (id) => document.getElementById(id);
   const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const tokenNumber = (name) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
   const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);     // code-point order, as the graph file is sorted
 
-  const state = { model: null, view: DEFAULT_VIEW, selected: null, sort: { [VIEW_NODES]: null, [VIEW_RELATIONS]: null } };
+  const state = { model: null, view: DEFAULT_VIEW, selected: null, sort: { [VIEW_NODES]: null, [VIEW_RELATIONS]: null },
+                  hiddenTypes: new Set(), hiddenNodes: new Set(), isolate: null };   // RQ-TRC-154: what every view hides
+  let cy = null;                                                                       // DEC-TRC-090: the graph view
+
+  // ---- visibility, shared by every view (RQ-TRC-151, RQ-TRC-154) ----------------------------------------------
+  const isShown = (node) => !state.hiddenTypes.has(node.type) && !state.hiddenNodes.has(node.id)
+    && (!state.isolate || state.isolate.has(node.id));
+  const isRelationShown = (relation) => isShown(state.model.nodes.get(relation.source))
+    && isShown(state.model.nodes.get(relation.target));
+
+  function neighbours(id) {
+    /* The node and every node one relation away from it, whatever is shown (RQ-TRC-154). */
+    const node = state.model.nodes.get(id);
+    return new Set([id, ...node.outgoing.map((r) => r.target), ...node.incoming.map((r) => r.source)]);
+  }
 
   // ---- view model (RQ-TRC-146, DEC-TRC-089) -------------------------------------------------------------------
   function linkFields(graph) {
@@ -137,14 +165,14 @@
 
   // ---- tables (RQ-TRC-149) ------------------------------------------------------------------------------------
   function nodeRows() {
-    return [...state.model.nodes.values()].map((n) => ({
+    return [...state.model.nodes.values()].filter(isShown).map((n) => ({
       key: n.id, id: n.id, type: n.type, tri: n.props.tri || NO_VALUE, status: n.props.status || NO_VALUE,
       title: n.props.title || NO_VALUE, location: location(n.props), incoming: n.incoming.length, outgoing: n.outgoing.length,
     }));
   }
 
   function relationRows() {
-    return state.model.relations.map((r) => ({
+    return state.model.relations.filter(isRelationShown).map((r) => ({
       key: r.source, source: r.source, target: r.target, kind: r.kind, field: fieldOf(r),
       line: r.proofs.length ? r.proofs[0].line : NO_VALUE, proof: r.proofs.length ? r.proofs[0].text : NO_VALUE,
     }));
@@ -180,10 +208,12 @@
   }
 
   function renderTables() {
-    renderTable($(ID_NODE_TABLE), NODE_COLUMNS, NODE_CELLS, sorted(nodeRows(), VIEW_NODES));
-    renderTable($(ID_RELATION_TABLE), RELATION_COLUMNS, RELATION_CELLS, sorted(relationRows(), VIEW_RELATIONS));
-    const { nodes, relations } = state.model;
-    $("view-count").textContent = state.view === VIEW_RELATIONS ? `${relations.length} relations` : `${nodes.size} nodes`;
+    const nodes = nodeRows();
+    const relations = relationRows();
+    renderTable($(ID_NODE_TABLE), NODE_COLUMNS, NODE_CELLS, sorted(nodes, VIEW_NODES));
+    renderTable($(ID_RELATION_TABLE), RELATION_COLUMNS, RELATION_CELLS, sorted(relations, VIEW_RELATIONS));
+    $("view-count").textContent = `${nodes.length} / ${state.model.nodes.size} nodes · `
+      + `${relations.length} / ${state.model.relations.length} relations shown`;
   }
 
   function onSort(view, key) {
@@ -219,8 +249,10 @@
     const props = Object.keys(node.props).sort(compare)
       .map((k) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(propertyValue(node.props[k]))}</dd>`).join("");
     const relations = [...node.outgoing.map((r) => relationItem(r, true)), ...node.incoming.map((r) => relationItem(r, false))];
+    const actions = [[ACTION_HIDE, "Hide"], [ACTION_ISOLATE, "Isolate neighbourhood"], [ACTION_WIDEN, "Widen by one hop"]]
+      .map(([action, label]) => `<button type="button" class="button" data-action="${action}">${label}</button>`).join("");
     panel.innerHTML = `${typeLabel(node.type)}<p class="detail-id">${escapeHtml(node.id)}</p>`
-      + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p>`
+      + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p><div class="detail-actions">${actions}</div>`
       + `<h2 class="panel-title">Properties</h2><dl class="properties">${props}</dl>`
       + `<h2 class="panel-title">Relations (${relations.length})</h2><ul class="relations">${relations.join("")}</ul>`;
   }
@@ -229,6 +261,172 @@
     state.selected = id;
     renderTables();
     renderDetail();
+    if (cy) {
+      cy.nodes().removeClass(CLASS_PICKED);
+      cy.$id(id).addClass(CLASS_PICKED);
+    }
+  }
+
+  // ---- graph view (RQ-TRC-147, RQ-TRC-150, DEC-TRC-090) -------------------------------------------------------
+  const cssValue = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const typeColour = (type) => cssValue(`--s-type-${type.toLowerCase()}`);
+
+  function layoutPositions(model) {
+    /* One column per node type, in TYPE_ORDER, wrapped every graph-column-rows nodes; kept in the model, so a moved node
+       stays where the reader put it (DEC-TRC-090). */
+    const column = tokenNumber("--c-graph-column-gap");
+    const row = tokenNumber("--c-graph-row-gap");
+    const rows = tokenNumber("--c-graph-column-rows");
+    let x = 0;
+    for (const type of TYPE_ORDER) {
+      const ids = [...model.nodes.values()].filter((n) => n.type === type).map((n) => n.id).sort(compare);
+      ids.forEach((id, i) => model.positions.set(id, { x: x + Math.floor(i / rows) * column, y: (i % rows) * row }));
+      if (ids.length) x += Math.ceil(ids.length / rows) * column + column;
+    }
+  }
+
+  function graphStyle() {
+    return [
+      { selector: SELECTOR_NODE, style: { "background-color": `data(${DATA_COLOUR})`, label: "data(id)", width: tokenNumber(TOKEN_NODE_SIZE),
+        height: tokenNumber(TOKEN_NODE_SIZE), "font-size": tokenNumber("--c-graph-label-size"), "font-family": cssValue("--s-font-sans"), color: cssValue("--c-graph-label-color"),
+        "min-zoomed-font-size": tokenNumber("--c-graph-label-min-zoomed"), "text-valign": "bottom" } },
+      { selector: "edge", style: { width: tokenNumber("--c-graph-edge-width"), "line-color": `data(${DATA_COLOUR})`,
+        "target-arrow-color": `data(${DATA_COLOUR})`, "target-arrow-shape": "triangle", "curve-style": "straight" } },
+      { selector: `edge[kind = "${KIND_CONTAINS}"]`, style: { "line-style": "dashed" } },
+      { selector: `.${CLASS_PICKED}`, style: { "border-width": tokenNumber("--c-graph-selected-border-width"),
+        "border-color": cssValue("--c-graph-selected-border") } },
+      { selector: `.${CLASS_HIDDEN}`, style: { display: "none" } },
+    ];
+  }
+
+  function graphElements(model) {
+    const kindColour = { contains: "contains", refs: "cites", code: "code", call: "call" };
+    const nodes = [...model.nodes.values()].map((n) => ({ group: "nodes", data: { id: n.id, [DATA_COLOUR]: typeColour(n.type) },
+                                                          position: { ...model.positions.get(n.id) } }));
+    const edges = model.relations.map((r, i) => ({ group: "edges", data: { id: `r${i}`, source: r.source, target: r.target,
+      kind: r.kind, [DATA_COLOUR]: cssValue(`--c-graph-edge-${kindColour[r.kind] || kindColour.refs}`) } }));
+    return [...nodes, ...edges];
+  }
+
+  function applyVisibility() {
+    if (!cy) return;
+    cy.batch(() => cy.nodes().forEach((n) => n.toggleClass(CLASS_HIDDEN, !isShown(state.model.nodes.get(n.id())))));
+  }
+
+  function initGraph() {
+    /* Draws the graph once its view is shown, so that the canvas has a size; a new graph draws a new one. */
+    if (cy || !state.model || state.view !== VIEW_GRAPH) return;
+    if (!window.cytoscape) {
+      $(VIEW_GRAPH).textContent = MESSAGE_NO_LIBRARY;
+      return;
+    }
+    if (!state.model.positions.size) layoutPositions(state.model);
+    cy = window.cytoscape({ container: $(VIEW_GRAPH), elements: graphElements(state.model), layout: { name: "preset" },
+                            style: graphStyle(), minZoom: tokenNumber("--c-graph-zoom-min"), maxZoom: tokenNumber("--c-graph-zoom-max"),
+                            wheelSensitivity: tokenNumber("--c-graph-wheel-sensitivity"), boxSelectionEnabled: false });
+    cy.on("tap", SELECTOR_NODE, (event) => select(event.target.id()));
+    cy.on(EVENT_DRAG_FREE, SELECTOR_NODE, (event) => state.model.positions.set(event.target.id(), { ...event.target.position() }));
+    applyVisibility();
+    if (state.selected) cy.$id(state.selected).addClass(CLASS_PICKED);
+    fitGraph();
+  }
+
+  // The nodes not hidden by a class: Cytoscape caches visible(), so the class is the truth (RQ-TRC-154).
+  const shownNodes = () => cy.nodes().filter((n) => !n.hasClass(CLASS_HIDDEN));
+
+  function fitGraph() {
+    if (cy) cy.fit(shownNodes(), tokenNumber("--c-graph-fit-padding"));
+  }
+
+  function zoomBy(factor) {
+    if (!cy) return;
+    const level = Math.min(cy.maxZoom(), Math.max(cy.minZoom(), cy.zoom() * factor));
+    cy.zoom({ level, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+  }
+
+  // ---- hiding and isolating (RQ-TRC-154) ----------------------------------------------------------------------
+  function renderHidden() {
+    const chips = [...state.hiddenNodes].sort(compare).map((id) => `<button type="button" class="chip" data-unhide="${escapeHtml(id)}"`
+      + ` aria-label="Show ${escapeHtml(id)} again">${escapeHtml(id)} ×</button>`);
+    const parts = [];
+    if (chips.length) parts.push(`<span class="chip-note">Hidden:</span>`, ...chips);
+    if (state.isolate) parts.push(`<span class="chip-note">Neighbourhood isolated: ${state.isolate.size} nodes</span>`);
+    $(ID_HIDDEN_LIST).innerHTML = parts.join("");
+  }
+
+  function refresh() {
+    applyVisibility();
+    renderTables();
+    renderHidden();
+  }
+
+  function hideTypes(types) {
+    state.hiddenTypes = new Set(types);
+    refresh();
+  }
+
+  function hide(id) {
+    state.hiddenNodes.add(id);
+    refresh();
+  }
+
+  function unhide(id) {
+    state.hiddenNodes.delete(id);
+    refresh();
+  }
+
+  function isolate() {
+    if (!state.selected) return;
+    state.isolate = neighbours(state.selected);
+    refresh();
+    arrangeAround(state.selected);
+  }
+
+  function widen() {
+    if (!state.selected) return;
+    const base = state.isolate || new Set([state.selected]);
+    state.isolate = new Set([...base].flatMap((id) => [...neighbours(id)]));
+    refresh();
+    arrangeAround(state.selected);
+  }
+
+  function hopsFrom(id, allowed) {
+    /* The number of relations between id and each node of allowed, breadth first (RQ-TRC-154). */
+    const hops = new Map([[id, 0]]);
+    let frontier = [id];
+    while (frontier.length) {
+      const next = [];
+      for (const current of frontier) {
+        for (const other of neighbours(current)) {
+          if (allowed.has(other) && !hops.has(other)) {
+            hops.set(other, hops.get(current) + 1);
+            next.push(other);
+          }
+        }
+      }
+      frontier = next;
+    }
+    return hops;
+  }
+
+  function arrangeAround(id) {
+    /* Lays the isolated nodes in circles around id, one circle per hop, keeps their positions in the model as a move
+       would (DEC-TRC-090), and frames them. */
+    if (!cy || !state.isolate) return;
+    const hops = hopsFrom(id, state.isolate);
+    const far = Math.max(...hops.values()) + 1;
+    shownNodes().layout({ name: "concentric", animate: false, fit: false, levelWidth: () => 1,
+                          minNodeSpacing: tokenNumber("--c-graph-node-spacing"),
+                          concentric: (n) => far - (hops.has(n.id()) ? hops.get(n.id()) : far) }).run();
+    shownNodes().forEach((n) => state.model.positions.set(n.id(), { ...n.position() }));
+    fitGraph();
+  }
+
+  function showAll() {
+    state.hiddenTypes = new Set();
+    state.hiddenNodes = new Set();
+    state.isolate = null;
+    refresh();
   }
 
   // ---- views --------------------------------------------------------------------------------------------------
@@ -236,20 +434,31 @@
     state.view = view;
     for (const tab of document.querySelectorAll(SELECTOR_TAB)) tab.setAttribute(ATTR_SELECTED, String(tab.dataset.view === view));
     for (const name of [VIEW_GRAPH, VIEW_NODES, VIEW_RELATIONS]) $(`view-${name}`).classList.toggle(CLASS_ACTIVE, name === view);
+    for (const control of document.querySelectorAll(".graph-control")) control.hidden = view !== VIEW_GRAPH;
     if (state.model) renderTables();
+    initGraph();
   }
 
   function render() {
     renderHeader();
     renderTables();
     renderDetail();
+    renderHidden();
   }
 
   // ---- loading (RQ-TRC-145, DEC-TRC-088) ----------------------------------------------------------------------
   function loadGraph(graph) {
     state.model = buildModel(graph);
+    state.model.positions = new Map();
     state.selected = null;
+    state.hiddenNodes = new Set();
+    state.isolate = null;
+    if (cy) {
+      cy.destroy();
+      cy = null;
+    }
     render();
+    initGraph();
   }
 
   function loadText(name, text) {
@@ -331,7 +540,18 @@
     $(ID_DETAIL).addEventListener(EVENT_CLICK, (event) => {
       const link = event.target.closest(".relation-link");
       if (link) select(link.dataset.node);
+      const action = event.target.closest("[data-action]");
+      if (action) ({ [ACTION_HIDE]: () => hide(state.selected), [ACTION_ISOLATE]: isolate, [ACTION_WIDEN]: widen })[action.dataset.action]();
     });
+    $(ID_HIDDEN_LIST).addEventListener(EVENT_CLICK, (event) => {
+      const chip = event.target.closest("[data-unhide]");
+      if (chip) unhide(chip.dataset.unhide);
+    });
+    const step = () => tokenNumber(TOKEN_ZOOM_STEP);
+    $("graph-zoom-in").addEventListener(EVENT_CLICK, () => zoomBy(step()));
+    $("graph-zoom-out").addEventListener(EVENT_CLICK, () => zoomBy(1 / step()));
+    $("graph-fit").addEventListener(EVENT_CLICK, fitGraph);
+    $("show-all").addEventListener(EVENT_CLICK, showAll);
     $("file-input").addEventListener("change", (event) => { if (event.target.files[0]) readFile(event.target.files[0]); });
     const zone = $("drop-zone");
     document.addEventListener("dragover", (event) => { event.preventDefault(); zone.hidden = false; });
@@ -351,7 +571,22 @@
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
 
   window.agnosExplorer = {                         // test hooks (RQ-TRC-145 to RQ-TRC-154)
-    showView, select, loadText,
+    showView, select, loadText, hideTypes, hide, unhide, isolate, widen, showAll,
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
+    graph: {                                       // RQ-TRC-150, DEC-TRC-090
+      cy: () => cy,
+      move(id, x, y) { cy.$id(id).position({ x, y }); cy.$id(id).emit(EVENT_DRAG_FREE); },
+      position: (id) => cy.$id(id).position(),
+      shown: (id) => !cy.$id(id).hasClass(CLASS_HIDDEN),
+      shownIds: () => shownNodes().map((n) => n.id()),
+      colour: (id) => cy.$id(id).data(DATA_COLOUR).toLowerCase(),
+      allInView() {
+        const view = cy.extent();
+        return shownNodes().every((n) => {
+          const box = n.boundingBox();
+          return box.x1 >= view.x1 && box.x2 <= view.x2 && box.y1 >= view.y1 && box.y2 <= view.y2;
+        });
+      },
+    },
   };
 })();

@@ -32,7 +32,12 @@ body {
 }
 .brand { display: flex; align-items: center; gap: var(--s-space-sm); }
 .brand h1 { margin: 0; font-size: var(--s-text-heading); font-weight: var(--s-weight-bold); }
-.brand-mark { width: var(--s-text-title); height: var(--s-text-title); fill: none; stroke: var(--s-accent); stroke-width: var(--s-stroke-focus); stroke-linecap: round; }
+.brand-mark { width: var(--c-brand-mark-size); height: var(--c-brand-mark-size); flex: none; }
+.mark-tile { fill: var(--c-brand-mark-tile); }
+.mark-bar-light { fill: var(--c-brand-mark-bar-light); }
+.mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }
+.mark-bar-green { fill: var(--c-brand-mark-bar-green); }
+.mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
 .graph-meta { margin: 0; color: var(--s-text-muted); font-size: var(--s-text-small); }
 .graph-meta code { font-family: var(--s-font-mono); }
 .header-actions { margin-left: auto; display: flex; gap: var(--s-space-sm); }
@@ -98,6 +103,14 @@ body {
 .tab { font: inherit; font-size: var(--s-text-small); min-height: var(--c-control-height); padding: 0 var(--s-space-md); border: 0; background: var(--s-surface-raised); color: var(--s-text-muted); cursor: pointer; }
 .tab + .tab { border-left: var(--s-stroke-hairline) solid var(--s-border-strong); }
 .tab[aria-selected="true"] { background: var(--s-text); color: var(--s-text-on-accent); }
+.graph-controls { display: flex; gap: var(--s-space-xs); }
+.graph-control[hidden] { display: none; }
+.hidden-list { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs) var(--s-space-sm); padding: 0 var(--s-space-lg); font-size: var(--s-text-small); }
+.hidden-list:not(:empty) { padding-block: var(--s-space-sm); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.chip-note { color: var(--s-text-muted); }
+.chip { font: inherit; font-family: var(--s-font-mono); font-size: var(--s-text-caption); padding: var(--s-space-2xs) var(--s-space-sm); border-radius: var(--s-radius-pill); border: var(--s-stroke-hairline) solid var(--s-border-strong); background: var(--s-surface-raised); color: var(--s-text); cursor: pointer; }
+.chip:hover { background: var(--s-surface-hover); }
+.detail-actions { display: flex; flex-wrap: wrap; gap: var(--s-space-xs); margin-bottom: var(--s-space-lg); }
 .view-count { margin: 0 0 0 auto; font-size: var(--s-text-small); color: var(--s-text-muted); }
 .view { flex: 1 1 auto; min-height: 0; display: none; }
 .view.active { display: flex; flex-direction: column; }

@@ -1,0 +1,14 @@
+{
+  "_comment": "FTR-TRC-014, ADR-TRC-025 (DEC-TRC-090): the library the graph explorer loads from cdnjs, the record copied from agnos-perf-center/assets/libraries.json (owner's option A). To change its version, change its version, URL and integrity together.",
+  "libraries": [
+    {
+      "name": "Cytoscape.js",
+      "version": "3.30.2",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js",
+      "integrity": "sha512-EY3U1MWdgKx0P1dqTE4inlKz2cpXtWpsR1YUyD855Hs6RL/A0cyvrKh60EpE8wDZ814cTe1KgRK+sG0Rn792vQ==",
+      "licence": "MIT",
+      "global": "cytoscape",
+      "use": "the graph view"
+    }
+  ]
+}

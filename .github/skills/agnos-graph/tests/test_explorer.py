@@ -53,6 +53,22 @@ def find_browser():
 
 
 BROWSER = find_browser()
+CDN_PROBE = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"   # the library the graph view loads
+CDN_TIMEOUT_S = 5
+NEEDS_NETWORK = "no Chromium-family browser, or cdnjs unreachable: the graph view loads Cytoscape.js from it (DEC-TRC-090)"
+
+
+def cdn_reachable():
+    """True when cdnjs answers: the graph view loads Cytoscape.js from it (RQ-TRC-150, DEC-TRC-090)."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(urllib.request.Request(CDN_PROBE, method="HEAD"), timeout=CDN_TIMEOUT_S).close()
+        return True
+    except OSError:
+        return False
+
+
+ONLINE = bool(BROWSER) and cdn_reachable()
 
 
 def rendered_dom_after(page, script):
@@ -154,6 +170,17 @@ class ExplorerTokensTest(unittest.TestCase):
                   for kind in NODE_TYPES for bg in BACKGROUNDS}
         self.assertEqual({}, {k: r for k, r in ratios.items() if r < CONTRAST_MIN})
 
+    def test_RQ_TRC_114_given_the_header_then_it_draws_the_agnos_mark_in_the_brand_colours(self):
+        """TASK-TRC-134 (owner's request of 2026-11-23): Given the page, Then its header draws the AGNOS mark "Spans" And its
+        five colours are the performance center's brand colours (RQ-TRC-114, DEC-TRC-056)."""
+        page = (ASSETS / "explorer.html").read_text(encoding="utf-8")
+        parts = ("mark-tile", "mark-bar-light", "mark-bar-blue", "mark-bar-green", "mark-bar-yellow")
+        for part in parts:
+            self.assertIn(f'class="{part}"', page)
+        perf = json.loads((HERE.parents[1] / "agnos-perf-center" / "assets" / "tokens.json").read_text(encoding="utf-8"))
+        for brand in ("brand-tile", "brand-light", "brand-blue", "brand-green", "brand-yellow"):
+            self.assertEqual(perf["global"][perf["semantic"][brand]], self.colour(brand), brand)
+
     def test_DEC_TRC_010_given_the_page_style_and_script_then_no_raw_visual_value_is_written(self):
         for name in ("explorer.css", "explorer.js"):
             text = re.sub(r"/\*.*?\*/|//[^\n]*", "", (ASSETS / name).read_text(encoding="utf-8"), flags=re.S)
@@ -243,6 +270,69 @@ class ExplorerPageTest(unittest.TestCase):
             "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq-text').trim();"
             "const probe = document.createElement('span'); probe.style.color = want; document.body.append(probe);"
             "r('same', getComputedStyle(cell).color === getComputedStyle(probe).color);")
+        self.assertEqual("true", found["same"])
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class GraphViewTest(unittest.TestCase):
+    """TASK-TRC-134: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154 (DEC-TRC-090, DEC-TRC-091), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute("
+                                                     "'data-r-' + k, String(v)); const g = agnosExplorer.graph;"
+                                                     "agnosExplorer.showView('graph');" + script))
+
+    def test_RQ_TRC_150_given_a_dragged_node_when_a_type_is_hidden_then_shown_then_it_keeps_its_position(self):
+        found = self.run_page("g.move('RQ-DEM-001', 4321, -1234); agnosExplorer.hideTypes(['TASK']);"
+                              "r('hidden', g.shown('TASK-DEM-001')); agnosExplorer.hideTypes([]);"
+                              "const p = g.position('RQ-DEM-001'); r('pos', Math.round(p.x) + ',' + Math.round(p.y));"
+                              "r('back', g.shown('TASK-DEM-001'));")
+        self.assertEqual(("false", "4321,-1234", "true"), (found["hidden"], found["pos"], found["back"]))
+
+    def test_RQ_TRC_150_given_the_fit_button_then_every_shown_node_is_in_the_view(self):
+        # 5000 graph units away: within what the minimum zoom token can frame (a view of about 11000 units at 0.08)
+        found = self.run_page("g.move('RQ-DEM-001', 5000, 5000); document.getElementById('graph-fit').click();"
+                              "r('inside', g.allInView());")
+        self.assertEqual("true", found["inside"])
+
+    def test_RQ_TRC_150_given_the_zoom_bounds_then_they_are_the_tokens(self):
+        found = self.run_page(
+            "const css = (n) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));"
+            "const cy = g.cy(); r('min', cy.minZoom() === css('--c-graph-zoom-min')); r('max', cy.maxZoom() === css('--c-graph-zoom-max'));"
+            "for (let i = 0; i < 40; i += 1) document.getElementById('graph-zoom-in').click(); r('top', cy.zoom() <= cy.maxZoom());")
+        self.assertEqual(("true", "true", "true"), (found["min"], found["max"], found["top"]))
+
+    def test_RQ_TRC_154_given_a_selected_node_when_isolated_then_widened_then_one_then_two_hops_are_shown(self):
+        found = self.run_page("agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); r('one', g.shownIds().join(' '));"
+                              "agnosExplorer.widen(); r('two', g.shownIds().length);")
+        one = set(found["one"].split())
+        self.assertIn("RQ-DEM-001", one)
+        self.assertIn("FTR-DEM-001", one)                  # its feature contains it: one hop
+        self.assertGreater(int(found["two"]), len(one))
+
+    def test_RQ_TRC_154_given_a_hidden_node_then_it_is_listed_and_can_be_shown_again(self):
+        found = self.run_page("agnosExplorer.select('RQ-DEM-001'); agnosExplorer.hide('RQ-DEM-001');"
+                              "r('gone', g.shown('RQ-DEM-001')); r('listed', document.getElementById('hidden-list').textContent);"
+                              "document.querySelector('#hidden-list [data-unhide=\"RQ-DEM-001\"]').click(); r('back', g.shown('RQ-DEM-001'));")
+        self.assertEqual("false", found["gone"])
+        self.assertIn("RQ-DEM-001", found["listed"])
+        self.assertEqual("true", found["back"])
+
+    def test_RQ_TRC_147_given_a_node_in_the_graph_then_its_colour_is_its_type_token(self):
+        found = self.run_page(
+            "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq').trim().toLowerCase();"
+            "r('same', g.colour('RQ-DEM-001') === want);")
         self.assertEqual("true", found["same"])
 
 
