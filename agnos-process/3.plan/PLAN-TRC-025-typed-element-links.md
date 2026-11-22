@@ -28,7 +28,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-128: Implement link fields in the graph
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests on fixtures first, then the `links` block in `graph.py`, and describe it in `graph-format.md`.
 - **Requirement refs**: RQ-TRC-138, RQ-TRC-139, RQ-TRC-140, RQ-TRC-141
 - **ADR refs**: ADR-TRC-024 (DEC-TRC-081, DEC-TRC-082, DEC-TRC-083)
@@ -42,12 +42,12 @@ This plan implements the tasks in the format specified below.
   - Given the suites of `agnos-graph` and `agnos-perf-center`, Then all pass
 - **Dependencies**: TASK-TRC-127, TASK-INI-022
 - **Assignee**: AI
-- **Verification**: [filled at closure]
-- **Assumptions**: [filled at closure]
+- **Verification**: `test_links.py` written first on `fixtures/links` (5 errors before the code, `element_links` absent), then 10 OK: task `Requirement refs` vs `Description` `text`; RQ `Statement` `text`, `Dependencies`, misplaced `ADR refs` `text`; DEC `Rationale` `text`, `Requirement refs`; plan References vs Overview; wrapped `Dependencies` on two lines; ADR and feature edges kept with no row; model unchanged; each row matches its edge's proof lines; `links` its own block, `edges` equal. `test_graph.py` STATE_KEYS gains `links` (new expected behavior, 2 failures before). agnos-graph 167 OK, 0 skipped; agnos-perf-center 325 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`).
+- **Assumptions**: None
 
 ### TASK-TRC-129: Verify link fields on repository and demo
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Compare the graph and the perf center's data of this repository and of the demo between the base commit and the change, rebuild and verify the demo, and add the changelog entry.
 - **Requirement refs**: RQ-TRC-141, RQ-TRC-138
 - **ADR refs**: ADR-TRC-024 (DEC-TRC-081)
@@ -57,5 +57,5 @@ This plan implements the tasks in the format specified below.
   - Given the demo, When `build.ps1 -Verify` runs, Then it reports 0 failed
 - **Dependencies**: TASK-TRC-128
 - **Assignee**: AI
-- **Verification**: [filled at closure]
-- **Assumptions**: [filled at closure]
+- **Verification**: Graph built by base `21cf6d1` (git worktree) and by the change on the same inputs, perf center run on each: repository, graph minus `links` equal, 5073 rows for 5073 `refs` edges of RQ/DEC/TASK/PLAN (Requirement refs 1565, ADR refs 1302, Dependencies 1110, text 1989), page, `.json` and `.data.js` byte-identical; demo, same, 266 rows for 266 edges (text 21). `build.ps1 -Verify`: "28 passed, 0 failed". CHANGELOG `[Unreleased]` Added entry.
+- **Assumptions**: sources `.github` for this repository and `.` for the demo, the same on both sides.

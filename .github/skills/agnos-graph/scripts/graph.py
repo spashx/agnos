@@ -65,6 +65,17 @@ FENCE_PREFIXES = ("```", "~~~")
 SECTION_MARK, SUBSECTION_MARK, REPEAT_MARK = "#", "/", "."
 FIRST_REPEAT = 2                                       # the second heading of one title is suffixed ".2"
 
+# RQ-TRC-138 to RQ-TRC-140, DEC-TRC-081 to DEC-TRC-083: the link field of each citation of a requirement, a decision, a
+# task or a plan.
+KEY_LINKS = "links"
+FIELD_TEXT = "text"                                    # a citation held by no link field of its source's type
+FIELD_REQUIREMENTS, FIELD_ADRS, FIELD_DEPENDENCIES = "Requirement refs", "ADR refs", "Dependencies"
+LINK_FIELDS = {"RQ": frozenset({FIELD_DEPENDENCIES}),
+               "DEC": frozenset({FIELD_REQUIREMENTS, FIELD_DEPENDENCIES}),
+               "TASK": frozenset({FIELD_REQUIREMENTS, FIELD_ADRS, FIELD_DEPENDENCIES}),
+               "PLAN": frozenset({FIELD_REQUIREMENTS, FIELD_ADRS})}
+FIELD_LINE_RE = re.compile(r"^\s*-\s*\*\*([^*]+)\*\*\s*:")   # "- **<name>**:", as the templates write a field
+
 # RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command
 # line.
 DEFAULT_EXTENSIONS = frozenset(
@@ -334,6 +345,45 @@ def document_sections(process_dir, model):
     return nodes
 
 
+# ---- element link fields -----------------------------------------------------------------------------------------
+# RQ-TRC-139, RQ-TRC-140, DEC-TRC-082, DEC-TRC-083
+def line_fields(lines, element):
+    """{line: field} over an element's range: a field runs from its line to the next field line or heading; a field
+    outside the element type's table, and a line before any field, give FIELD_TEXT."""
+    allowed = LINK_FIELDS[element[KEY_TYPE]]
+    fields, current = {}, None
+    for ln in range(element[KEY_FIRST], min(element[KEY_LAST], len(lines)) + 1):
+        text = lines[ln - 1]
+        match = FIELD_LINE_RE.match(text)
+        if HEADING_RE.match(text):
+            current = None
+        elif match:
+            name = match.group(1).strip()
+            current = name if name in allowed else None
+        fields[ln] = current or FIELD_TEXT
+    return fields
+
+
+# RQ-TRC-138, RQ-TRC-141, DEC-TRC-081: reads the model, never changes it.
+def element_links(process_dir, model):
+    """[[source, target, [[line, field]]]] of every refs edge whose source is a requirement, a decision, a task or a plan,
+    in edge order, one field per proof line."""
+    process_dir = Path(process_dir)
+    lines_of, fields_of, rows = {}, {}, []
+    for (source, target, kind), proofs in sorted(model.edges.items()):
+        element = model.elements.get(source)
+        if kind != KEY_REFS or element is None or element[KEY_KIND] != KEY_ELEMENT or element[KEY_TYPE] not in LINK_FIELDS:
+            continue
+        if source not in fields_of:
+            doc = element["doc"]
+            if doc not in lines_of:
+                path = resolve_document(process_dir, doc)
+                lines_of[doc] = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines() if path else []
+            fields_of[source] = line_fields(lines_of[doc], element)
+        rows.append([source, target, [[ln, fields_of[source].get(ln, FIELD_TEXT)] for ln, _ in proofs]])
+    return rows
+
+
 # ---- sources -----------------------------------------------------------------------------------------------------
 # RQ-TRC-006, DEC-TRC-003
 def is_excluded(name, excludes):
@@ -524,9 +574,9 @@ def call_graph_block(call_graph, paths):
 
 
 # RQ-TRC-129, RQ-TRC-130, DEC-TRC-074: sorted so that two runs on the same inputs write the same bytes.
-def state_data(model, meta, tasks, call_graph=None, history=None, sections=()):
-    """The graph file's content: meta, elements, edges, files, tasks, sections (RQ-TRC-137, DEC-TRC-078) and, when
-    asked, callGraph, history, delivery."""
+def state_data(model, meta, tasks, call_graph=None, history=None, sections=(), links=()):
+    """The graph file's content: meta, elements, edges, files, tasks, sections (RQ-TRC-137, DEC-TRC-078), links
+    (RQ-TRC-141, DEC-TRC-081) and, when asked, callGraph, history, delivery."""
     paths = sorted(model.files)
     data = {
         "meta": meta,
@@ -535,6 +585,7 @@ def state_data(model, meta, tasks, call_graph=None, history=None, sections=()):
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         "tasks": {task: {"tier": tier, "requirements": cited} for task, (tier, cited) in tasks.items()},
         KEY_SECTIONS: list(sections),
+        KEY_LINKS: list(links),
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data[KEY_CALL_GRAPH] = call_graph_block(call_graph, paths)
@@ -630,7 +681,8 @@ def build_state(args, process, extensions, excludes, generated_at):
     meta = {"generatedAt": generated_at, "commit": head_commit(process), "process": process.as_posix(),
             "sources": [Path(s).as_posix() for s in args.sources], "extensions": sorted(extensions),
             "names": sorted(DEFAULT_NAMES), "excludes": list(excludes), "summaries": summaries}
-    return state_data(model, meta, tasks, call_graph, history, document_sections(process, model)), line
+    return state_data(model, meta, tasks, call_graph, history, document_sections(process, model),
+                      element_links(process, model)), line
 
 
 # RQ-TRC-129

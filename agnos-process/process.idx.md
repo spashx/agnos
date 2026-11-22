@@ -1208,8 +1208,8 @@ TASK-TRC-126|49-62|Done|Verify unchanged consumers on repository and demo
 @agnos-process/3.plan/PLAN-TRC-025-typed-element-links.md
 PLAN-TRC-025|1-61||Typed element links
 TASK-TRC-127|17-28|Done|Document typed links of graph elements
-TASK-TRC-128|29-47|Not Started|Implement link fields in the graph
-TASK-TRC-129|48-61|Not Started|Verify link fields on repository and demo
+TASK-TRC-128|29-47|Done|Implement link fields in the graph
+TASK-TRC-129|48-61|Done|Verify link fields on repository and demo
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

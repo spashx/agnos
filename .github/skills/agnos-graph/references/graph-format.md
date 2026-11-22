@@ -15,6 +15,7 @@ not JSON or that holds no `elements` list.
 | `files` | `{path, ids}` per scanned source file, by path; `ids` counts its `code` links |
 | `tasks` | `{TASK-ID: {tier, requirements}}`: `tier`, `S`, `M`, `L` or null, read from the task's lines, and `requirements`, the requirement IDs it cites |
 | `sections` | The sections of the features, ADRs and plans, below, in index then line order; no element nor edge refers to them <!-- RQ-TRC-137, DEC-TRC-078 --> |
+| `links` | The link field of each citation of an RQ, a DEC, a TASK or a PLAN, below; `edges` is unchanged <!-- RQ-TRC-141, DEC-TRC-081 --> |
 | `callGraph` | With `--call-graph` and tree-sitter installed: the performance center's call graph block, plus `parsedFiles` and `unparsedFiles`, the paths read and those that did not parse |
 | `history` | With `--history` in a git repository: who worked on each element and on the code, per commit |
 | `delivery` | With `--history`: the delivered tasks and the identities' active days |
@@ -52,6 +53,25 @@ is a `###` heading inside a section. A deeper heading stays in its subsection; a
 | `doc`, `first`, `last` | The document, the heading's line and the line before the next heading of its level or above |
 | `title` | The heading's text |
 | `refs` | `[[ID, proofs]]`, sorted: the IDs cited on the section's own lines, its subsections' lines left out; `proofs` is a list of `[line, text]` |
+
+## A link
+
+<!-- RQ-TRC-138 to RQ-TRC-140 / ADR-TRC-024 (DEC-TRC-081 to DEC-TRC-083) -->
+`links` holds one row `[source, target, fields]` per `refs` edge whose source is an RQ, a DEC, a TASK or a PLAN, in the
+order of `edges`; `fields` is `[[line, field]]`, one per proof line of that edge. `field` names the link field holding the
+line, or is `text`:
+
+| Source | Link fields |
+|---|---|
+| RQ | `Dependencies` |
+| DEC | `Requirement refs`, `Dependencies` |
+| TASK | `Requirement refs`, `ADR refs`, `Dependencies` |
+| PLAN | `Requirement refs`, `ADR refs` |
+
+A field starts on its `- **<name>**:` line and runs to the line before the next field line, the next heading or the end of
+the element, so a wrapped list stays in its field. A citation in another field (`Statement`, `Rationale`, `Verification`…),
+before any field, or in a field of another type's table is `text`. Features and ADRs have no row: their edges stay in
+`edges` alone.
 
 The call graph, history and delivery blocks have the format the performance center's page reads; their keys are listed in
 `agnos-perf-center/references/data-format.md`.
