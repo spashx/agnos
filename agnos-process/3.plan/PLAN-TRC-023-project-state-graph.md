@@ -66,7 +66,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-120: Declare graph skill in layout and delivery
 - **Tier**: M
-- **Status**: In Progress
+- **Status**: Done
 - **Description**: Add `graphFile` to `layout.json` and `agnos-graph` to the layout copies, add the Claude Code pointer `.claude/skills/agnos-graph/SKILL.md`, the plugin README entry and the marketplace attributes the moved vendor code needs.
 - **Requirement refs**: RQ-TRC-133, RQ-TRC-129
 - **ADR refs**: ADR-TRC-022 (DEC-TRC-077)
@@ -76,8 +76,8 @@ This plan implements the tasks in the format specified below.
   - Given a release rehearsal, Then the marketplace holds `plugins/agnos/skills/agnos-graph/SKILL.md` And it exits 0
 - **Dependencies**: TASK-TRC-117
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `layout.json` `graphFile` = `4.knowledge/agnos-graph.json`, read as `agnos_layout.GRAPH_FILE` by `graph.py` and `perf_center.py`; `layout.py --check` 0 findings; `release.py --dry-run` on `860a75d`: exit 0, `plugins/agnos/skills/agnos-graph/SKILL.md` present, checks `noIdLeft`, `manifests`, `sameBehaviour` true, no problem.
+- **Assumptions**: `graphFile` and the layout copy came with TASK-TRC-117. `agnos-graph/SKILL.md` is written here, not in TASK-TRC-121, because the rehearsal criterion needs it. No marketplace attribute is added: `agnos-graph` moves no vendored file (the `agnos-perf-center/scripts/vendor/**` attribute names a folder that no longer exists, out of scope). The release's runner leaving the graph in the demo clone between its two runs is TASK-TRC-122's.
 
 ### TASK-TRC-121: Document graph skill contract
 - **Tier**: M
