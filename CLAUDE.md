@@ -4,6 +4,7 @@
      approval gate and the other reminders are not carried by the instructions import alone. -->
 @AGENTS.md
 @.github/instructions/agnos-sw-eng.instructions.md
+@agnos-process/project-rules.md
 
 ## Tool Mapping (Claude Code)
 

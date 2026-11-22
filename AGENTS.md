@@ -18,6 +18,9 @@ That file is the single normative source of the process. This file only tells yo
 and how to map the process to your tool; where they disagree, the instructions file wins. Do not
 rely on a summary, including the README.
 
+Then read [`agnos-process/project-rules.md`](agnos-process/project-rules.md): this repository's own rules, added to the
+process; Claude Code holds it through `CLAUDE.md`. <!-- RQ-PLG-018 / TASK-RSI-007 -->
+
 Run its **START SESSION ACTION** when the user asks to start a session, and its **END SESSION ACTION**
 when the user closes it. <!-- RQ-INI-010 -->
 
