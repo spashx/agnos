@@ -63,7 +63,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-PLG-095: Align demo and suites on the new layout
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Update the demo's scenario and scripts to the new subfolders, and run the suites of `agnos-init`, `agnos-index`, `agnos-session`, `agnos-perf-center`, `agnos-meta-release` and `agnos-meta-release-prep`, fixing the tests whose expected layout changes.
 - **Requirement refs**: RQ-PLG-050
 - **ADR refs**: ADR-PLG-010 (DEC-PLG-038, DEC-PLG-039)
@@ -72,5 +72,5 @@ This plan implements the tasks in the format specified below.
   - Given the listed suites, When they run, Then they all pass And no failing test was changed except to reflect the new layout
 - **Dependencies**: TASK-PLG-092, TASK-PLG-093, TASK-PLG-094
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: demo rebuilt by `build.ps1 -Verify`: 90 commits, 28 passed 0 failed, `0.facts/readme.md` and `4.knowledge/readme.md` present, no scenario change needed (agnos-init creates them from the layout); index tests ps1 and sh "All checks passed"; agnos-init OK; agnos-session OK; agnos-meta-release 152 OK, 0 skipped (the 2 demo tests now run); agnos-meta-release-prep OK; agnos-perf-center 443 OK, 3 skipped: the performance measures gated by `AGNOS_PERF_CENTER_PERF` (delivery, history, call graph); no test changed.
+- **Assumptions**: The 3 perf-center skips are the three `AGNOS_PERF_CENTER_PERF` measures, inferred from the skip conditions (a missing browser would skip dozens).

@@ -963,7 +963,7 @@ PLAN-PLG-014|1-76||Process folder content partition
 TASK-PLG-092|17-32|Done|Restrict the index to indexed subfolders
 TASK-PLG-093|33-48|Done|Create facts and knowledge folders at init
 TASK-PLG-094|49-63|Done|Describe facts and knowledge folders in the process
-TASK-PLG-095|64-76|Not Started|Align demo and suites on the new layout
+TASK-PLG-095|64-76|Done|Align demo and suites on the new layout
 @agnos-process/3.plan/PLAN-QLT-001-code-quality-report.md
 PLAN-QLT-001|1-98||The agnos-meta-qa Skill and agnos-trace's Quality Pass
 TASK-QLT-001|16-27|Done|The skill
