@@ -1,7 +1,7 @@
 # ADR-TRC-025: Graph explorer page
 
 ## Status
-Proposed — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.
+Accepted (owner, 2026-11-23) — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.
 
 ## Context
 FTR-TRC-014: the owner explores `agnos-graph.json` before deciding what the performance center reads of its `links` block.
@@ -93,44 +93,131 @@ dragged (`autoungrabify`). Its type colours are the Okabe-Ito tokens `type-ftr` 
 
 ## Diagram
 
+Static view: two systems share one input, the graph file. The graph explorer (the `agnos-graph` skill and the page it writes
+with `--explorer`, run in a browser) shows the state; the performance center (the `agnos-perf-center` skill and its page)
+judges it. Neither reads the other's assets or page.
+
 ```mermaid
 classDiagram
-    class GraphScript { graph.py --explorer }
-    class ExplorerAssets { assets/explorer: explorer.html, .js, .css, tokens.json, presets.json }
-    class GraphFolder { 4.knowledge/graph }
-    class GraphFile { agnos-graph.json }
-    class DataScript { agnos-graph.data.js }
-    class ExplorerPage { graph-explorer.html }
-    class ViewModel { nodes; relations; properties }
-    class PerfCenter { perf_center.py }
-    class PerfPage { perf-center.html, .json, .data.js }
-    GraphScript --> GraphFile : writes
-    GraphScript --> DataScript : writes with --explorer
-    GraphScript --> ExplorerPage : assembles with --explorer
-    ExplorerAssets --> ExplorerPage : template
-    GraphFolder *-- GraphFile
-    GraphFolder *-- DataScript
-    GraphFolder *-- ExplorerPage
-    ExplorerPage --> ViewModel : builds from DataScript or a dropped file
-    PerfCenter --> GraphFile : reads
-    PerfCenter ..> GraphScript : runs without --explorer
-    PerfCenter --> PerfPage : writes
+    namespace agnos_graph_skill {
+        class GraphScript {
+            graph.py
+            options: process, sources, call-graph, history, explorer
+            writeGraph()
+            writeExplorer()
+        }
+        class ExplorerAssets {
+            assets/explorer
+            explorer.html, explorer.js, explorer.css
+            tokens.json with type text tokens
+            presets.json
+        }
+    }
+    namespace graph_folder {
+        class GraphFile {
+            4.knowledge/graph/agnos-graph.json
+            meta, elements, edges, files, tasks
+            sections, links, callGraph, history, delivery
+        }
+        class DataScript {
+            agnos-graph.data.js
+            graph data global
+        }
+        class GraphExplorerPage {
+            graph-explorer.html
+        }
+    }
+    namespace graph_explorer_in_browser {
+        class ViewModel {
+            nodes: elements, sections, files, functions
+            relations: edges with link fields, calls
+            properties
+        }
+        class QueryParser {
+            terms: key, cites, cited-by, edge
+        }
+        class SavedQueries {
+            buttons in localStorage
+            export, import JSON
+        }
+        class ExplorerViews {
+            graph with draggable nodes
+            node table, relation table
+            facets, detail panel, splitters
+        }
+    }
+    namespace agnos_perf_center_skill {
+        class PerfCenterScript {
+            perf_center.py
+            analyse()
+            scorecard()
+            render()
+        }
+        class PerfCenterAssets {
+            assets/matrix html, js, css
+            tokens.json
+        }
+    }
+    namespace process_folder {
+        class PerfCenterPage {
+            perf-center.html
+            perf-center.json, perf-center.data.js
+            coverage, findings, score
+        }
+    }
+    GraphScript --> GraphFile : writes, always
+    GraphScript --> DataScript : writes, with --explorer only
+    GraphScript --> GraphExplorerPage : assembles, with --explorer only
+    ExplorerAssets --> GraphExplorerPage : template
+    GraphExplorerPage --> ViewModel : builds
+    DataScript --> ViewModel : feeds, or a dropped graph file
+    QueryParser --> ViewModel : filters
+    SavedQueries --> QueryParser : runs a saved query
+    ExplorerViews --> ViewModel : shows
+    PerfCenterScript --> GraphFile : reads
+    PerfCenterScript ..> GraphScript : runs without --explorer, when absent or --rebuild
+    PerfCenterAssets --> PerfCenterPage : template
+    PerfCenterScript --> PerfCenterPage : writes
 ```
+
+Dynamic view: exploring the state and judging it are two separate runs. Only the first asks for the explorer; the second
+may rebuild the graph, never the explorer.
 
 ```mermaid
 sequenceDiagram
-    participant U as Reader
-    participant G as graph.py
-    participant F as graph folder
-    participant B as Browser (graph-explorer.html)
-    U->>G: --process --sources --explorer
-    G->>F: agnos-graph.json (same bytes as without --explorer)
+    actor R as Reader
+    box Graph explorer system
+        participant G as graph.py (agnos-graph)
+        participant E as graph-explorer.html (browser)
+    end
+    participant F as 4.knowledge/graph
+    box Performance center system
+        participant P as perf_center.py (agnos-perf-center)
+        participant C as perf-center.html (browser)
+    end
+
+    Note over R,E: 1. Exploring the state (RQ-TRC-144 to RQ-TRC-155)
+    R->>G: --process --sources --explorer
+    G->>F: agnos-graph.json, same bytes as without --explorer
     G->>F: agnos-graph.data.js, graph-explorer.html
-    U->>B: open from disk
-    B->>B: view model from the data global (nodes, relations, links joined)
-    B->>U: graph, tables, facets, saved query buttons
-    U->>B: query "type:RQ !cited-by:TASK[Requirement refs]"
-    B->>U: matching nodes in every view
-    U->>B: drop another agnos-graph.json
-    B->>B: check JSON and elements, rebuild the view model
+    R->>E: open graph-explorer.html from disk
+    E->>F: load agnos-graph.data.js
+    E->>E: view model: nodes, relations, links joined
+    E-->>R: graph, tables, facets, saved query buttons
+    R->>E: query or saved button "type:RQ !cited-by:TASK[Requirement refs]"
+    E-->>R: matching nodes in every view
+    R->>E: drop another agnos-graph.json
+    E->>E: check JSON and elements, rebuild the view model
+
+    Note over R,C: 2. Judging the state (RQ-TRC-131, RQ-TRC-132, RQ-TRC-143)
+    R->>P: --process [--sources] [--rebuild]
+    alt graph absent or --rebuild
+        P->>G: subprocess, without --explorer
+        G->>F: agnos-graph.json only
+    end
+    P->>F: read agnos-graph.json
+    P->>P: analyse, scorecard
+    P->>C: perf-center.html, perf-center.json, perf-center.data.js
+    R->>C: open perf-center.html
+    C-->>R: matrix, coverage, findings, score
 ```

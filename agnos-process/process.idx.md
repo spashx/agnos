@@ -752,7 +752,7 @@ DEC-TRC-081|15-20||Separate links block in the graph file
 DEC-TRC-082|21-26||Closed link field table per element type
 DEC-TRC-083|27-32||Field extent up to the next field line
 @agnos-process/2.architecture/ADR-TRC-025-graph-explorer-page.md
-ADR-TRC-025|1-136|Proposed — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.|Graph explorer page
+ADR-TRC-025|1-223|Accepted (owner, 2026-11-23) — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.|Graph explorer page
 DEC-TRC-084|17-22||Explorer assets owned by the graph skill
 DEC-TRC-085|23-28||Explorer flag of the graph script
 DEC-TRC-086|29-34||Graph folder declared in the layout

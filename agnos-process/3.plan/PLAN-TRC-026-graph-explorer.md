@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: None
 - **Assignee**: AI
 - **Verification**: `agnos-index`: 1121 entries, 179 documents, exit 0 (no duplicate); 39 new IDs indexed (FTR-TRC-014, RQ-TRC-142 to RQ-TRC-158, ADR-TRC-025, DEC-TRC-084 to DEC-TRC-093, PLAN-TRC-026, TASK-TRC-130 to TASK-TRC-138); titles checked against MANDATORY TITLE FORMAT (four RQ titles rewritten); `git grep "PERF-CENTER|4.knowledge/agnos-graph.json"` on features and ADRs: no hit; 13 files aligned, each with its dated comment; RQ-TRC-105, RQ-TRC-129, RQ-TRC-131, DEC-TRC-054, DEC-TRC-077 name their amendment.
-- **Assumptions**: the graph folder is under `4.knowledge/`; plans and `CHANGELOG.md` keep the former names as history (DEC-TRC-055); the explorer has no dark theme; RQ-TRC-158's 5 s threshold and the default button list are inferred; ADR-TRC-025 stays Proposed until the owner accepts it.
+- **Assumptions**: the graph folder is under `4.knowledge/`; plans and `CHANGELOG.md` keep the former names as history (DEC-TRC-055); the explorer has no dark theme; RQ-TRC-158's 5 s threshold and the default button list are inferred; ADR-TRC-025 accepted by the owner on 2026-11-23, after its diagrams were split into the graph explorer and performance center systems; the owner's order of 2026-11-23 ("fais le plan et implémente") approves every task of this plan and their commits.
 
 ### TASK-TRC-131: Move graph file into graph folder
 - **Tier**: L
