@@ -149,4 +149,4 @@ AGNOS is distributed under the GNU Affero General Public License v3: see [LICENS
 <!-- RQ-DOC-007 / DEC-DOC-001: the addresses of assets/links.json, each written once; a test checks them -->
 [marketplace]: https://github.com/spashx/agnos-marketplace
 [guide]: https://github.com/spashx/agnos-marketplace/blob/main/plugins/agnos/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md
-[perf-center]: https://spashx.github.io/agnos-website/demo/PERF-CENTER.html
+[perf-center]: https://spashx.github.io/agnos-website/demo/perf-center.html

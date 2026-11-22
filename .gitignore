@@ -485,9 +485,9 @@ $RECYCLE.BIN/
 *.bak
 
 # RQ-TRC-001 / DEC-TRC-008: the agnos-perf-center page is generated on demand, its data beside it (RQ-TRC-010)
-agnos-process/PERF-CENTER.html
-agnos-process/PERF-CENTER.json
-agnos-process/PERF-CENTER.data.js
+agnos-process/perf-center.html
+agnos-process/perf-center.json
+agnos-process/perf-center.data.js
 
 # RQ-QLT-006 / DEC-QLT-005: agnos-meta-qa's analysers and report
 .agnos-qa/

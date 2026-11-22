@@ -76,6 +76,6 @@ cd client && node src/cli.ts rooms                             # command-line to
 
 The AGNOS skills `agnos-index` and `agnos-perf-center` run from an AGNOS installation, on this folder as the project.
 
-[perf-center]: https://spashx.github.io/agnos-website/demo/PERF-CENTER.html
+[perf-center]: https://spashx.github.io/agnos-website/demo/perf-center.html
 [marketplace]: https://github.com/spashx/agnos-marketplace
 [process]: https://github.com/spashx/agnos

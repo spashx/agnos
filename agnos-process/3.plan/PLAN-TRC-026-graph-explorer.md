@@ -50,7 +50,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-132: Rename performance center outputs to lowercase
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then set `perfCenterPage` to `perf-center.html` in `layout.json`, regenerate its copies, and update every hit of a `git grep` of `PERF-CENTER`: the performance center, its former-name test, the website, the demo, `.gitignore`, `README.md`, the guide and the release.
 - **Requirement refs**: RQ-TRC-143, RQ-TRC-106
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-087), ADR-TRC-013 (DEC-TRC-055)
@@ -61,8 +61,8 @@ This plan implements the tasks in the format specified below.
   - Given the suites of the skills touched and the demo's `build.ps1 -Verify`, Then all pass
 - **Dependencies**: TASK-TRC-131
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: Tests first, FAILED before the change: `test_skill_name` RQ_TRC_105 (names read from the folder, case included, `is_file` being case-blind on Windows) and RQ_TRC_143 (uppercase outputs in live files), 6 `agnos-meta-website` tests expecting `perf-center.*`; all OK after. `layout.py --write` then `--check`: 0 findings. `git grep PERF-CENTER` outside plans, changelog, index: 2 hits, FTR-TRC-014 and ADR-TRC-025 naming them as former. Suites: agnos-perf-center 327 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`); agnos-graph 168 OK; agnos-meta-website 83 OK; agnos-meta-release 153 OK; agnos-init 48 OK; agnos-index all passed; demo `build.ps1 -Verify` 28 passed, 0 failed; agnos-meta-demo 18 tests, 1 failure, `test_citations` on `data-format.md`, the same as at the base commit of TASK-TRC-131.
+- **Assumptions**: `.gitignore` and the demo's `gitignore.txt` list the lowercase names only, git matching ignore rules without case on Windows; the published website's demo page and the links of `README.md`, `assets/links.json` and the demo's READMEs take the lowercase name, which needs the website rebuilt and published by the owner.
 
 ### TASK-TRC-133: Generate explorer page shell
 - **Tier**: L

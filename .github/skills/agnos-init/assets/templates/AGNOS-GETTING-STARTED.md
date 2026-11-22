@@ -685,12 +685,12 @@ The result line follows as it is:
 ```text
 agnos-perf-center: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
 checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>,
-files-traced <s>; findings 0; agnos-process/PERF-CENTER.html written in <s.mmm> s
+files-traced <s>; findings 0; agnos-process/perf-center.html written in <s.mmm> s
 ```
 
-**What you get — `agnos-process/PERF-CENTER.html`**, a complete application. Open it from disk in any current browser; it
-loads its libraries from cdnjs, so it needs the network once. Keep `PERF-CENTER.data.js` beside it;
-`PERF-CENTER.json` holds the same data for any other tool. The three files are generated: whether you commit them
+**What you get — `agnos-process/perf-center.html`**, a complete application. Open it from disk in any current browser; it
+loads its libraries from cdnjs, so it needs the network once. Keep `perf-center.data.js` beside it;
+`perf-center.json` holds the same data for any other tool. The three files are generated: whether you commit them
 or ignore them is your choice.
 
 | View | What it answers |
@@ -805,7 +805,7 @@ One row per stage. This is the whole human side of a session.
 | 5. Implement | `TASK-EXP-001 approved. Implement it.` | Source with ID comments, named constants |
 | 6. Test | `Run the tests.` | Gherkin-named tests, run under `session.platform` |
 | 7. Commit | *(agent proposes)* `commit-task TASK-EXP-001 ADR-EXP-001 <description>` | `feat(EXP): ADR-EXP-001/TASK-EXP-001 <description>` |
-| 8. Perf Center | `Generate the AGNOS Performance Center for src and tests.` — options: `--call-graph` (functions and calls), `--history` (who changed what, deliveries; `--history-since 6.months`) | `PERF-CENTER.html` — Performance Center: matrix, coverage, quality score and grade, graph; call graph and history with their options |
+| 8. Perf Center | `Generate the AGNOS Performance Center for src and tests.` — options: `--call-graph` (functions and calls), `--history` (who changed what, deliveries; `--history-since 6.months`) | `perf-center.html` — Performance Center: matrix, coverage, quality score and grade, graph; call graph and history with their options |
 | 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics |
 
 Corrections at any point are just sentences: *"RQ-EXP-002 should be 20 MB, not 50."* — *"Drop the retry logic, it's

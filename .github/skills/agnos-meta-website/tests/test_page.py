@@ -109,7 +109,7 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertNotIn("shot-link", PAGE)
         self.assertNotIn("shot-open", PAGE)
         self.assertNotIn("Open in the demo", PAGE)
-        self.assertNotIn('href="demo/PERF-CENTER.html#', PAGE)
+        self.assertNotIn('href="demo/perf-center.html#', PAGE)
 
     def test_given_the_page_then_no_request_leaves_it_but_fonts(self):
         sources = re.findall(r'\ssrc="([^"]+)"', PAGE)

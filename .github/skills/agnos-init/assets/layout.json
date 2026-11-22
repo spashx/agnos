@@ -7,7 +7,7 @@
   "metricsLog": "_sessionstate/METRICS_LOG.md",
   "folderReadme": "readme.md",
   "projectRules": "project-rules.md",
-  "perfCenterPage": "PERF-CENTER.html",
+  "perfCenterPage": "perf-center.html",
   "graphFile": "4.knowledge/graph/agnos-graph.json",
   "guide": "AGNOS-GETTING-STARTED.md",
   "version": "VERSION.txt",

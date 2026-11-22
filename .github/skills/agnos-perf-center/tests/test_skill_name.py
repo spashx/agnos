@@ -21,26 +21,29 @@ REPO = HERE.parents[3]
 SKILL_NAME = "agnos-perf-center"
 SKILL_FILES = (REPO / ".github" / "skills" / SKILL_NAME / "SKILL.md",
                REPO / ".claude" / "skills" / SKILL_NAME / "SKILL.md")
-OUTPUTS = ("PERF-CENTER.html", "PERF-CENTER.json", "PERF-CENTER.data.js")
+OUTPUTS = ("perf-center.html", "perf-center.json", "perf-center.data.js")   # RQ-TRC-143 / DEC-TRC-087: lowercase
 FIXTURE = HERE / "fixtures" / "repo"
 # Assembled, so that this file does not hold what it looks for.
 FORMER = re.compile("|".join(("agnos[-_]" + "trace", "trace_" + "matrix",
                               "TRACEABILITY" + r"\.(html|json|data\.js)")), re.I)
+# RQ-TRC-143 (TASK-TRC-132): the uppercase outputs of before DEC-TRC-087, matched with their case.
+FORMER_UPPERCASE = re.compile("PERF" + "-CENTER" + r"\.(html|json|data\.js)")
 FOLDER = re.escape(agnos_layout.FOLDER)     # RQ-PLG-036: the process folder, wherever the layout puts it
 HISTORY = re.compile(rf"^({FOLDER}/3\.plan/|CHANGELOG\.md$|{FOLDER}/{re.escape(agnos_layout.INDEX)}$"
-                     rf"|{FOLDER}/1\.requirements/FTR-TRC-008-|{FOLDER}/2\.architecture/ADR-TRC-013-)")
+                     rf"|{FOLDER}/1\.requirements/FTR-TRC-008-|{FOLDER}/2\.architecture/ADR-TRC-013-"
+                     rf"|{FOLDER}/1\.requirements/FTR-TRC-014-)")   # FTR-TRC-014 names the uppercase outputs as former
 INSTRUCTIONS = REPO / ".github" / "instructions" / "agnos-sw-eng.instructions.md"
 
 
-def live_files_holding_a_former_name():
-    """The tracked text files outside history that hold a former name (RQ-TRC-106)."""
+def live_files_holding_a_former_name(former=FORMER):
+    """The tracked text files outside history that hold a former name (RQ-TRC-106, RQ-TRC-143)."""
     listed = subprocess.run(["git", "ls-files"], cwd=REPO, capture_output=True, text=True, encoding="utf-8", check=True)
     found = []
     for name in listed.stdout.splitlines():
         path = REPO / name
         if HISTORY.match(name) or not path.is_file():
             continue
-        if FORMER.search(name) or FORMER.search(path.read_bytes().decode("utf-8", "ignore")):
+        if former.search(name) or former.search(path.read_bytes().decode("utf-8", "ignore")):
             found.append(name)
     return found
 
@@ -61,8 +64,14 @@ class SkillNameTest(unittest.TestCase):
             (process / agnos_layout.INDEX).write_bytes((FIXTURE / "process" / agnos_layout.INDEX).read_bytes())
             code, _, _ = run_main(["--process", str(process), "--sources", str(FIXTURE / "src")])   # TASK-TRC-118: RQ-TRC-131
             self.assertEqual(0, code)
+            names = {path.name for path in process.iterdir()}   # RQ-TRC-143: the names as written, case included
             for output in OUTPUTS:
-                self.assertTrue((process / output).is_file(), output)
+                self.assertIn(output, names)
+
+    def test_RQ_TRC_143_given_the_tracked_files_then_none_names_the_uppercase_outputs(self):
+        """TASK-TRC-132: RQ-TRC-143 (DEC-TRC-087): Given the tracked files but plans, the changelog, the index and the
+        features and ADRs naming them as former, Then none names the uppercase outputs."""
+        self.assertEqual([], live_files_holding_a_former_name(FORMER_UPPERCASE))
 
     def test_RQ_TRC_105_given_the_page_script_then_its_title_starts_with_the_name(self):
         script = (HERE.parent / "assets" / "matrix.js").read_text(encoding="utf-8")

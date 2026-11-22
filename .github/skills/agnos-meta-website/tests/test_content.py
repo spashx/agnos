@@ -144,7 +144,7 @@ class TestContentInTheAssets(Fixture):
     def test_given_a_tour_image_when_built_then_it_links_nowhere(self):
         """RQ-WEB-011: a screenshot of the content is an image, enlarged by the page, not a link."""
         page, _ = self.page()
-        self.assertNotIn('href="demo/PERF-CENTER.html#RQ-BKG-003"', page)
+        self.assertNotIn('href="demo/perf-center.html#RQ-BKG-003"', page)
         self.assertIn('<img src="screens/view.png" alt="The view"', page)
 
     def test_given_a_code_block_with_marks_then_they_are_highlighted(self):

@@ -2,7 +2,7 @@
 (FTR-WEB-001; ADR-WEB-001). <!-- RQ-WEB-001, RQ-WEB-003, RQ-WEB-016 / DEC-WEB-001 -->
 
 Usage (standard library only):
-  python -I build_site.py build --demo <demo repository> --out <folder> [--demo-page <PERF-CENTER.html>]
+  python -I build_site.py build --demo <demo repository> --out <folder> [--demo-page <perf-center.html>]
 
 The build reads assets/content/en.md and fr.md, checks that both hold the same fields and that the template
 assets/template.html uses exactly them, replaces the link addresses of the names listed in assets/site.json, read from the repository's assets/links.json (RQ-WEB-020, RQ-DOC-007), and builds one page: English in the markup, French in
@@ -41,7 +41,7 @@ PERF_CENTER_SCRIPT = SKILL_DIR.parent / "agnos-perf-center" / "scripts" / "perf_
 DEMO_SOURCES = ("service", "client")          # the demo's sources, as agnos-meta-demo verify reads them
 GENERATOR_OPTIONS = ("--history", "--call-graph")
 DEMO_FOLDER = "demo"
-DEMO_PAGE_NAME = "PERF-CENTER.html"
+DEMO_PAGE_NAME = "perf-center.html"
 DEMO_LINK = f"{DEMO_FOLDER}/{DEMO_PAGE_NAME}"
 DEMO_LINK_NAME = "demo"
 

@@ -7,7 +7,7 @@
     "guide": "https://github.com/spashx/agnos-marketplace/blob/main/plugins/agnos/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md",
     "website": "https://spashx.github.io/agnos-website",
     "website-repository": "https://github.com/spashx/agnos-website",
-    "perf-center": "https://spashx.github.io/agnos-website/demo/PERF-CENTER.html",
+    "perf-center": "https://spashx.github.io/agnos-website/demo/perf-center.html",
     "demo-repository": "https://github.com/spashx/agnos-demo"
   }
 }
