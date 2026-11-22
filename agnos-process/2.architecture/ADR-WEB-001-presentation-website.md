@@ -1,4 +1,5 @@
 # ADR-WEB-001: A Maintainer Skill That Assembles the Site From Markdown, Images and the Demo Page
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 
 ## Status
 Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to RQ-WEB-016); RQ-WEB-017, the examples, added on 2026-11-08 under the same decisions. DEC-WEB-007 approved by the owner on 2026-11-12 for RQ-WEB-019. DEC-WEB-008 approved by the owner on 2026-11-18 for RQ-WEB-020.
@@ -17,7 +18,7 @@ and `assets/`; `.claude/skills/agnos-meta-website/SKILL.md` points to it. One su
 [--demo-page <page>]`. The build checks everything in memory first and writes only when nothing failed. Fulfils RQ-WEB-001, RQ-WEB-016.
 
 ### DEC-WEB-002: The demo page, copied or generated
-With `--demo-page`, the page and its data files (`PERF-CENTER.json`, `PERF-CENTER.data.js`) are copied into `demo/`. Without it, the
+With `--demo-page`, the page and its data files (`perf-center.json`, `perf-center.data.js`) are copied into `demo/`. Without it, the
 build runs this working tree's `perf_center.py` on the demo with `--process agnos-process --sources service --sources client --history
 --call-graph`, the same sources as `agnos-meta-demo verify`; the generator itself leaves the functions out when the call-graph packages
 are missing. `--demo` stays required. Fulfils RQ-WEB-002. Amended on 2026-11-13 (TASK-WEB-017): the index figures, measured on the
@@ -101,7 +102,7 @@ classDiagram
     +links: name to address
   }
   class DemoPage {
-    +PERF-CENTER.html
+    +perf-center.html
     +data files
   }
   class Site {
@@ -138,7 +139,7 @@ sequenceDiagram
     B->>B: read the page and its data files
   else regenerate
     B->>P: perf_center.py on the demo, --history [--call-graph]
-    P-->>B: PERF-CENTER.html and data files
+    P-->>B: perf-center.html and data files
   end
   alt a check failed
     B-->>M: errors with file and field, exit 1, nothing written

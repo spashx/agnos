@@ -1,10 +1,11 @@
 # FTR-TRC-011: Project state graph
+<!-- Amended on 2026-11-22: the graph file is in the graph folder, 4.knowledge/graph/ (RQ-TRC-142, DEC-TRC-086). -->
 
 ## Overview
 The construction of the graph of the AGNOS project is separated from the performance center. A new skill, `agnos-graph`,
 builds the state of the project at a given time: the elements of the process index and their links, the IDs cited by the
 sources, and, on request, the call graph (tree-sitter) and the history (git). It writes it as one dated file in the knowledge
-folder, `4.knowledge/agnos-graph.json` (FTR-PLG-010). `agnos-perf-center` no longer reads the process or the sources: it reads
+folder, `4.knowledge/graph/agnos-graph.json` (FTR-PLG-010). `agnos-perf-center` no longer reads the process or the sources: it reads
 that graph, computes the coverage, the findings and the quality score, and writes the page; it calls `agnos-graph` when the
 graph is absent or when asked to rebuild it.
 
@@ -25,10 +26,10 @@ Out of scope: rebuilding a graph found stale by comparing dates; new content in 
 ### RQ-TRC-129: Project state graph file
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The `agnos-graph` skill SHALL write the state of the project, read from `--process` and `--sources` with the options `--ext`, `--exclude`, `--call-graph`, `--history`, `--history-since` and `--history-depth` of the performance center, to `agnos-process/4.knowledge/agnos-graph.json` by default or to `--out`, holding the elements, the edges with their proofs, the scanned files, the tier of each task, and, when asked, the call graph and the history with the delivery, and SHALL hold no coverage, finding or score.
-- **Rationale**: the state is reusable by any tool once it is apart from what the performance center judges of it.
+- **Statement**: The `agnos-graph` skill SHALL write the state of the project, read from `--process` and `--sources` with the options `--ext`, `--exclude`, `--call-graph`, `--history`, `--history-since` and `--history-depth` of the performance center, to `agnos-process/4.knowledge/graph/agnos-graph.json` by default or to `--out`, holding the elements, the edges with their proofs, the scanned files, the tier of each task, and, when asked, the call graph and the history with the delivery, and SHALL hold no coverage, finding or score.
+- **Rationale**: the state is reusable by any tool once it is apart from what the performance center judges of it. Default path amended by RQ-TRC-142 (2026-11-22).
 - **Priority**: Must
-- **Acceptance Criteria**: Given a project, When `agnos-graph` runs with `--process` and `--sources`, Then `agnos-process/4.knowledge/agnos-graph.json` holds `elements`, `edges`, `files` And no `coverage` nor `quality`; Given `--call-graph` and `--history`, Then it also holds `callGraph`, `history` and `delivery`; Given the same inputs and a fixed `--generated-at`, When it runs twice, Then the two files are byte-identical; Given a missing source folder, Then it exits 1 And writes nothing.
+- **Acceptance Criteria**: Given a project, When `agnos-graph` runs with `--process` and `--sources`, Then `agnos-process/4.knowledge/graph/agnos-graph.json` holds `elements`, `edges`, `files` And no `coverage` nor `quality`; Given `--call-graph` and `--history`, Then it also holds `callGraph`, `history` and `delivery`; Given the same inputs and a fixed `--generated-at`, When it runs twice, Then the two files are byte-identical; Given a missing source folder, Then it exits 1 And writes nothing.
 - **Dependencies**: RQ-PLG-049, RQ-TRC-003 to RQ-TRC-007, RQ-TRC-026, RQ-HST-001
 
 ### RQ-TRC-130: State date of the graph
@@ -43,8 +44,8 @@ Out of scope: rebuilding a graph found stale by comparing dates; new content in 
 ### RQ-TRC-131: Performance center fed by the graph
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: `agnos-perf-center` SHALL read the graph file given by `--graph` (default `agnos-process/4.knowledge/agnos-graph.json`), compute from it the coverage, the findings and the quality score, and write the page and its data files with the same content as before the separation for the same inputs.
-- **Rationale**: the page stays what its readers know; only where its input comes from changes.
+- **Statement**: `agnos-perf-center` SHALL read the graph file given by `--graph` (default `agnos-process/4.knowledge/graph/agnos-graph.json`), compute from it the coverage, the findings and the quality score, and write the page and its data files with the same content as before the separation for the same inputs.
+- **Rationale**: the page stays what its readers know; only where its input comes from changes. Default path amended by RQ-TRC-142 (2026-11-22).
 - **Priority**: Must
 - **Acceptance Criteria**: Given a graph built from the test fixture with a fixed date, When `agnos-perf-center` runs on it, Then `<page>.json` equals what the single generator wrote before the separation, `meta` excepted for its new fields; Given a graph without `callGraph`, Then the page has no call graph And the run exits 0; Given a graph file that is not valid JSON or lacks `elements`, Then it exits 1 naming the file.
 - **Dependencies**: RQ-TRC-129, RQ-TRC-008 to RQ-TRC-010, RQ-TRC-064

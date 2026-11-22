@@ -1,4 +1,5 @@
 # FTR-TRC-008: The Skill Named after its Role, agnos-perf-center
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 
 ## Overview
 The skill `agnos-trace` no longer only traces: with its quality score, history, deliveries and friction, it monitors how the
@@ -25,10 +26,10 @@ means the execution of the process, not the speed of the code. The IDs `*-TRC-*`
 ### RQ-TRC-105: What the skill produces carries the name
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The generator SHALL be `scripts/perf_center.py`, its default output `<process>/PERF-CENTER.html`, with `PERF-CENTER.json` and `PERF-CENTER.data.js` beside it, and the page's title SHALL start with "Performance center".
-- **Rationale**: a reader of the outputs meets the same name as the agent running the skill. Amends RQ-TRC-001.
+- **Statement**: The generator SHALL be `scripts/perf_center.py`, its default output `<process>/perf-center.html`, with `perf-center.json` and `perf-center.data.js` beside it, and the page's title SHALL start with "Performance center".
+- **Rationale**: a reader of the outputs meets the same name as the agent running the skill. Amends RQ-TRC-001. Output names made lowercase by RQ-TRC-143 (2026-11-22).
 - **Priority**: Must
-- **Acceptance Criteria**: Given a process folder and a source folder, When the generator runs without `--out`, Then it exits 0 and `process/PERF-CENTER.html` exists with its two data files.
+- **Acceptance Criteria**: Given a process folder and a source folder, When the generator runs without `--out`, Then it exits 0 and `process/perf-center.html` exists with its two data files.
 - **Dependencies**: RQ-TRC-001, RQ-TRC-010, DEC-TRC-054
 
 ### RQ-TRC-106: No live file keeps the former names
@@ -43,7 +44,7 @@ means the execution of the process, not the speed of the code. The IDs `*-TRC-*`
 ### RQ-TRC-107: Execution time on the last output line
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN the generator ends a successful run, the generator SHALL print on standard output a last line ending with ` written in <seconds>.<milliseconds> s`, and SHALL NOT write that time into the page, `PERF-CENTER.json` or `PERF-CENTER.data.js`.
+- **Statement**: WHEN the generator ends a successful run, the generator SHALL print on standard output a last line ending with ` written in <seconds>.<milliseconds> s`, and SHALL NOT write that time into the page, `perf-center.json` or `perf-center.data.js`.
 - **Rationale**: the owner sees at once what a run cost, while the generated files stay deterministic. Amends RQ-TRC-017.
 - **Priority**: Should
 - **Acceptance Criteria**: Given a process folder and a source folder, When the generator runs, Then it exits 0 and its last stdout line ends with ` written in 0.123 s` (three decimals), And the page and its data files hold no such duration.

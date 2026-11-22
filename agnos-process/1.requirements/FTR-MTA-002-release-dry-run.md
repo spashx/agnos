@@ -1,4 +1,5 @@
 # FTR-MTA-002: A Release Rehearsed Without Publishing
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 
 ## Overview
 DEC-MTA-004 decided that a release is the output of a build. This feature builds that output in a folder, on request, and proves
@@ -84,7 +85,7 @@ Out of scope: publishing (a commit on `main`, a tag, a push), the `plugin` targe
   Python, JavaScript, JSON, PowerShell or bash file that no longer parses. IF the demo is absent, THEN it SHALL exit 1.
 - **Rationale**: the removal edits 48 files including their code, and the tests of the skills are not delivered.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the demo, When the rehearsal runs, Then its `process/INDEX.idx.md`, its `PERF-CENTER.json` generated with a
+- **Acceptance Criteria**: Given the demo, When the rehearsal runs, Then its `process/INDEX.idx.md`, its `perf-center.json` generated with a
   fixed `--generated-at`, and the `CLAUDE.md` and `AGENTS.md` of `agnos-init`, are the same from both, the toolkit's path aside; Given a removal that breaks
   a delivered script, Then it exits 1 and names the script; Given no demo, Then it exits 1 and says to build it with `agnos-meta-demo`.
 - **Dependencies**: RQ-MTA-005, RQ-MTA-009, DEC-MTA-010

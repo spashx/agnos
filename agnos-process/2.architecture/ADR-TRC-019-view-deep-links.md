@@ -1,4 +1,5 @@
 # ADR-TRC-019: Deep links to a view of the page
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 
 ## Status
 Accepted — approved by the owner on 2026-11-12 (owner request of the same day, for RQ-TRC-121). Extends DEC-TRC-007 (RQ-TRC-016,
@@ -20,7 +21,7 @@ added later (RQ-TRC-121).
   hidden tab (History without `--history`, Delivery without data) is not shown, so its name falls back to the default view.
 
 ## Consequences
-- `PERF-CENTER.html#view=matrix` opens the Matrix; the website can link each screenshot to its own view.
+- `perf-center.html#view=matrix` opens the Matrix; the website can link each screenshot to its own view.
 - Choosing a tab does not change the URL: the link is written by whoever sends it, and the history of the browser keeps the
   selections only (RQ-TRC-016).
 - A view's name becomes part of a public address: renaming a tab breaks the links that name it.
@@ -62,7 +63,7 @@ sequenceDiagram
   participant B as Browser
   participant P as Page script
   participant T as Tabs
-  B->>P: open PERF-CENTER.html#view=matrix
+  B->>P: open perf-center.html#view=matrix
   P->>P: fragment starts with view=
   P->>T: shown tab with data-view = matrix?
   alt found

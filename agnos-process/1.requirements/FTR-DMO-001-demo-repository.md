@@ -1,4 +1,5 @@
 # FTR-DMO-001: Demo repository
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
@@ -267,7 +268,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Metric**: "Functions traced" score of the demo between 8.5 inclusive and 10.0 exclusive (score 3.0, 154
   functions of 219 uncited, on 2026-11-12).
 - **Measurement Method**: `agnos-perf-center` on the demo with `--history --call-graph`, as `agnos-meta-demo verify`
-  runs it; the `functions-traced` check of `PERF-CENTER.json`.
+  runs it; the `functions-traced` check of `perf-center.json`.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo rebuilt by `build`
