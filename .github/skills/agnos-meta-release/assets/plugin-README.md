@@ -22,6 +22,7 @@ This plugin works with Claude Code and GitHub Copilot, in VS Code or the CLI.
 | [agnos-index](skills/agnos-index/SKILL.md) | The generated index of the process artifacts |
 | [agnos-git-workflow](skills/agnos-git-workflow/SKILL.md) | The session branch and each task's commit |
 | [agnos-design-system](skills/agnos-design-system/SKILL.md) | The design system of a project with a user interface |
+| [agnos-graph](skills/agnos-graph/SKILL.md) | The project's state at a commit, as one JSON file the perf center reads |
 | [agnos-perf-center](skills/agnos-perf-center/SKILL.md) | Traceability, quality and delivery of the process on a project |
 | [agnos-self-improvement](skills/agnos-self-improvement/SKILL.md) | Improving the project's own rules from the session's friction |
 

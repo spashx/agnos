@@ -1156,7 +1156,7 @@ PLAN-TRC-023|1-110||Project state graph
 TASK-TRC-117|16-34|Done|Create graph skill from perf-center code
 TASK-TRC-118|35-50|Done|Feed perf-center from graph file
 TASK-TRC-119|51-66|Done|Build graph on demand from perf-center
-TASK-TRC-120|67-81|Not Started|Declare graph skill in layout and delivery
+TASK-TRC-120|67-81|In Progress|Declare graph skill in layout and delivery
 TASK-TRC-121|82-97|Not Started|Document graph skill contract
 TASK-TRC-122|98-110|Not Started|Verify demo and suites on separated skills
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md

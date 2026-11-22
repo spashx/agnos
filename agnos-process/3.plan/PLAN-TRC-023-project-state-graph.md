@@ -66,7 +66,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-120: Declare graph skill in layout and delivery
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Add `graphFile` to `layout.json` and `agnos-graph` to the layout copies, add the Claude Code pointer `.claude/skills/agnos-graph/SKILL.md`, the plugin README entry and the marketplace attributes the moved vendor code needs.
 - **Requirement refs**: RQ-TRC-133, RQ-TRC-129
 - **ADR refs**: ADR-TRC-022 (DEC-TRC-077)
