@@ -48,7 +48,7 @@ count, `score`) and `checks`, each with `key`, `title`, `label`, `rule`, `risk`,
 - `tasks`, each `[ID, tier, re-tiered, commit index into history.commits, lines changed in the scanned files, commit type or null,
   reworked, reason set aside or null]`.
 - `activeDays`: `{person index: [day, …]}`.
-- `settings`: a copy of `assets/delivery.json`.
+- `settings`: a copy of `agnos-graph`'s `assets/delivery.json`.
 - `friction`: the rows of `_sessionstate/METRICS_LOG.md` at HEAD read with `git blame`, each `[date, trigram, 4 counters by
   position, commit index]`; a row outside the history read is left out, a malformed row or one of a merge also named on the
   error stream.

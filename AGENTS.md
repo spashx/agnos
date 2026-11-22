@@ -47,6 +47,7 @@ skill.
 | `agnos-index` | [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md) | Regenerate the artifact index — at session start and before every commit |
 | `agnos-git-workflow` | [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md) | `start-session <TRI>` (branch) and `commit-task <TASK> [<ADR>] <description>` (commit) |
 | `agnos-design-system` | [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md) | Create the design system of a UI project, before its first UI requirement |
+| `agnos-graph` | [`.github/skills/agnos-graph/SKILL.md`](.github/skills/agnos-graph/SKILL.md) | Write the project's state at a commit as one JSON file, `agnos-process/4.knowledge/agnos-graph.json`, which `agnos-perf-center` reads <!-- RQ-TRC-133 --> |
 | `agnos-perf-center` | [`.github/skills/agnos-perf-center/SKILL.md`](.github/skills/agnos-perf-center/SKILL.md) | Monitor the process's execution on a project (traceability matrix, quality, history, delivery) — at session end or before a release |
 | `agnos-self-improvement` | [`.github/skills/agnos-self-improvement/SKILL.md`](.github/skills/agnos-self-improvement/SKILL.md) | Run a recursive self-improvement effort on the declared improvement target, within its line budget — END SESSION step 3 <!-- RQ-RSI-001 --> |
 

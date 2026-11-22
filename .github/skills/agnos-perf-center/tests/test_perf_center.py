@@ -1109,12 +1109,3 @@ class GeneratedDateTest(unittest.TestCase):
         self.assertIn("2026-01-01 00:00 UTC", found["exact"])
 
 
-class ScanListsShownTest(unittest.TestCase):
-    """TASK-TRC-104: RQ-TRC-119 — the skill reports the scan lines; their tests moved to agnos-graph (TASK-TRC-118)."""
-
-    def test_RQ_TRC_119_given_the_skill_then_its_report_step_names_the_scan_lines(self):
-        report = [line for line in (HERE.parent / "SKILL.md").read_text(encoding="utf-8").splitlines()
-                  if line.startswith("**Report**")]
-        self.assertEqual(1, len(report))
-        for words in ("scanned extensions", "scanned names", "excluded"):
-            self.assertIn(words, report[0])

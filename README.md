@@ -28,6 +28,7 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | **`agnos-git-workflow`** | One session branch, one commit per task, with the artifact IDs validated and written into every commit message: the traceability stays permanent in the Git history. |
 | **`agnos-design-system`** | Template and procedure for the design system every UI project defines before its first UI requirement: all visual values become traceable tokens. |
 | **`agnos-self-improvement`** | Turns the session's friction metrics into rules: the improvement goes into the rules file the project declares, one theme per iteration, within a line budget its scripts measure. <!-- RQ-RSI-001 --> |
+| **`agnos-graph`** | Writes the project's state at a commit as one dated JSON file: the artifacts and their links with their proofs, the IDs the sources cite, and on request the call graph and the history. Any tool or agent can read it; `agnos-perf-center` builds its page from it. <!-- RQ-TRC-133 --> |
 | **`agnos-perf-center`** | Generates a self-contained HTML page, opened from disk, to monitor the process's execution on a project. It explores its traceability matrix — coverage, quality score and grade, interactive graph — down to the implementing functions and their call graph, and, with `--history`, who (humans and agents) changed each requirement and its code over time. |
 
 **Delivered as:** one marketplace, [the AGNOS marketplace][marketplace], holding the plugin `agnos`, for Claude Code and GitHub Copilot.
@@ -41,12 +42,12 @@ COMPATIBILITY.md the tools and systems checked, CONTRIBUTING.md the map of this 
 | Need | Windows | Linux, macOS | Used by |
 |---|---|---|---|
 | An AI coding tool | Claude Code or GitHub Copilot (CLI or VS Code) | The same | Every skill |
-| git | Git for Windows | git | `agnos-git-workflow`; `agnos-perf-center --history` |
+| git | Git for Windows | git | `agnos-git-workflow`; `agnos-graph --history` |
 | A shell for the scripts | Windows PowerShell 5.1, built into Windows; PowerShell 7 is not needed | bash, with the usual `grep`, `awk`, `od` and `cmp` | `agnos-init`, `agnos-session`, `agnos-index`, `agnos-git-workflow`, `agnos-self-improvement` |
-| Python 3.9 or later, standard library only | `python` | `python3` | `agnos-perf-center` only |
+| Python 3.9 or later, standard library only | `python` | `python3` | `agnos-graph`, `agnos-perf-center` |
 | A current browser, and network access once | The page loads its libraries from cdnjs the first time it opens | The same | The page of `agnos-perf-center` |
 
-**Optional — the call graph.** `agnos-perf-center --call-graph` also needs the tree-sitter packages listed in the skill's
+**Optional — the call graph.** `--call-graph` also needs the tree-sitter packages listed in the `agnos-graph` skill's
 `requirements-callgraph.txt`. They are not fetched automatically: install them once with
 `pip install -r requirements-callgraph.txt` from the skill's folder, or let the agent do it with your approval. They are
 prebuilt wheels, so no compiler is needed. Without them, the page is still written, just without functions.

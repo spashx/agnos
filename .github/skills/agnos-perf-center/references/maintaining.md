@@ -4,9 +4,10 @@
 
 ## Generator details
 
-- `--ext` and `--exclude` replace their default lists, which `--help` prints and every run reports. <!-- RQ-TRC-119 -->
-- Exit code 1: no `process.idx.md`, a missing source folder, a broken design token, a history option without `--history`, or a
-  depth that is not a positive integer.
+- The page is made from the graph file of `agnos-graph` alone <!-- RQ-TRC-131, DEC-TRC-075 -->; the scan options are passed to
+  `agnos-graph` when the graph is absent or `--rebuild` is given, and its `--help` gives their default lists. <!-- RQ-TRC-119, RQ-TRC-132 -->
+- Exit code 1: a graph absent with no `--sources`, a graph file that is not JSON or holds no `elements`, a graph `agnos-graph`
+  could not build (its own message precedes), or a broken design token.
 - Without the call-graph packages, the summary says `call graph skipped: tree-sitter not installed, run: pip install -r …`. They
   are prebuilt wheels, no compiler needed.
 - `--history-since` and `--history-depth` apply together. `no history: <cause>` means git is missing, the process folder is in
@@ -14,7 +15,8 @@
 
 ## Tests
 
-Running them needs Python 3.10 or later. `python -m unittest discover -s <this skill's folder>/tests -v`: a synthetic process in
+Running them needs Python 3.10 or later. `python -m unittest discover -s <this skill's folder>/tests -v`; they load the modules of
+the sibling `agnos-graph` skill, whose own tests check the graph, the call graph and the history <!-- RQ-TRC-133 -->: a synthetic process in
 `tests/fixtures/repo` plants one element of every finding. The page tests run in a headless Chromium-family browser (Edge,
 Chrome, Chromium; `AGNOS_PERF_CENTER_BROWSER=<path>` to choose) and are skipped when none is found. The call-graph tests
 (`tests/fixtures/repo/calls`) are skipped without the tree-sitter packages; `AGNOS_PERF_CENTER_PERF=1` adds the measure on a

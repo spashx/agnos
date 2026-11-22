@@ -81,7 +81,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-121: Document graph skill contract
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write `agnos-graph/SKILL.md` and `references/graph-format.md`, update `agnos-perf-center/SKILL.md` and its references to the new options and input, and add `agnos-graph` to `AGENTS.md`, `CLAUDE.md` and the getting-started guide where the perf center is described.
 - **Requirement refs**: RQ-TRC-133, RQ-TRC-130, RQ-TRC-132
 - **ADR refs**: ADR-TRC-022
@@ -92,8 +92,8 @@ This plan implements the tasks in the format specified below.
   - Given the skill-contract tests of both skills, Then they pass
 - **Dependencies**: TASK-TRC-119, TASK-TRC-120
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `agnos-graph/tests/test_skill_contract.py` 5 OK (parameters, outputs, exit codes, `references/graph-format.md`, pointer front matter, Report naming the scan lines, the reference naming every key of a graph built with `--call-graph --history`: it caught `tier`/`requirements` unnamed, fixed); perf-center `test_skill_*` 9 OK, `test_help` OK (SKILL.md 48 lines, description 398 characters, `--graph`, `--rebuild`, agnos-graph run when absent); `AGENTS.md`, `CLAUDE.md`, `README.md`, the guide list `agnos-graph`; meta-release `test_marketplace` 26 OK; `layout.py --check` 0 findings.
+- **Assumptions**: `agnos-graph/SKILL.md` came with TASK-TRC-120. The RQ-TRC-119 report test moved to `agnos-graph`'s contract test; the perf-center's Report step names the lines agnos-graph prints when it builds the graph. The perf-center references now name the moved files as `agnos-graph`'s. The README's call-graph requirements point to `agnos-graph`'s `requirements-callgraph.txt`.
 
 ### TASK-TRC-122: Verify demo and suites on separated skills
 - **Tier**: M

@@ -672,8 +672,10 @@ requirements are implemented, which are not, and what is linked to nothing. The 
 Generate the traceability matrix for src and tests.
 ```
 
-**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders, then reports, before its result line,
-the `scanned extensions`, `scanned names` and `excluded` lines, each saying whether it is the default or the user's list.
+**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders. It first runs the `agnos-graph` skill,
+which writes the project's state, `agnos-process/4.knowledge/agnos-graph.json`, and prints the `scanned extensions`,
+`scanned names` and `excluded` lines, each saying whether it is the default or the user's list; the agent reports them,
+then the page is made from that state. Next time, the page is made from the existing state unless you ask to rebuild it.
 The result line follows as it is:
 
 ```text
@@ -700,7 +702,7 @@ requirement's panel lists the functions that cite it; a function's panel lists i
 it cites; the graph's **Implementation** switch draws them at the level of the function, the class or the namespace.
 Supported languages: C, C++, C#, Java, JavaScript / Node.js, Python and Rust — not TypeScript, so this guide's
 example would get no functions. The option needs the tree-sitter packages; the agent installs them once, with your
-approval, from the `agnos-perf-center` skill's `requirements-callgraph.txt`. Without them the page is written all the
+approval, from the `agnos-graph` skill's `requirements-callgraph.txt`. Without them the page is written all the
 same, without functions.
 
 **Who changed what — `--history`.** Ask for it and the page reads the project's git log: its **History** view shows
@@ -858,5 +860,6 @@ Ask the agent: it reads the skills of the AGNOS plugin, which the tool lists.
 | `agnos-index` | Regenerates `agnos-process/process.idx.md` |
 | `agnos-git-workflow` | The session branch and the task commits |
 | `agnos-design-system` | The design system of a project with a user interface |
+| `agnos-graph` | The project's state at a commit, one JSON file the page is made from |
 | `agnos-perf-center` | The traceability check and its page |
 | `agnos-self-improvement` | Runs a recursive self-improvement effort on the improvement target the project declares, within its line budget |
