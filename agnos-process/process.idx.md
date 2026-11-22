@@ -1180,7 +1180,7 @@ TASK-TRC-122|98-110|Done|Verify demo and suites on separated skills
 @agnos-process/3.plan/PLAN-TRC-024-document-sections-in-the-graph.md
 PLAN-TRC-024|1-62||Document sections in the graph
 TASK-TRC-124|18-29|Done|Record section feature and decisions
-TASK-TRC-125|30-48|Not Started|Implement section nodes in the graph
+TASK-TRC-125|30-48|Done|Implement section nodes in the graph
 TASK-TRC-126|49-62|Not Started|Verify unchanged consumers on repository and demo
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill

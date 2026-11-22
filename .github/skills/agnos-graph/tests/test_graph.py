@@ -27,7 +27,7 @@ CALLS = FIXTURE / "calls"
 GENERATED_AT = "2026-11-22T10:00Z"
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-graph/requirements-callgraph.txt)"
-STATE_KEYS = {"meta", "elements", "edges", "files", "tasks"}
+STATE_KEYS = {"meta", "elements", "edges", "files", "tasks", "sections"}   # sections: RQ-TRC-137, TASK-TRC-125
 JUDGEMENT_KEYS = {"coverage", "quality", "findings"}
 OPTIONAL_KEYS = {"callGraph", "history", "delivery"}
 GIT_IDENTITY = ["-c", "user.name=Tester", "-c", "user.email=tester@example.com"]

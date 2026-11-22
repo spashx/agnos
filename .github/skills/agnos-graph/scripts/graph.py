@@ -55,6 +55,16 @@ PREFIX_CUT = -(NUMBER_LENGTH + 1)              # "RQ-ABC-001"[:PREFIX_CUT] == "R
 LINE_TEXT_MAX = 200                            # characters of a line kept as evidence (DEC-TRC-003)
 ELEMENT_FIELDS = ("id", KEY_KIND, KEY_TYPE, "tri", "doc", KEY_FIRST, KEY_LAST, KEY_STATUS, KEY_TITLE)
 
+# RQ-TRC-134 to RQ-TRC-136, DEC-TRC-079, DEC-TRC-080: the sections of a feature, ADR or plan.
+KEY_SECTIONS = "sections"
+TYPE_SECTION = "SEC"
+SECTIONED_TYPES = frozenset({"FTR", "ADR", "PLAN"})
+SECTION_LEVEL, SUBSECTION_LEVEL = 2, 3                 # "##" and "###"
+HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(\S.*)$")   # the closing '#' and blanks are stripped from the title
+FENCE_PREFIXES = ("```", "~~~")
+SECTION_MARK, SUBSECTION_MARK, REPEAT_MARK = "#", "/", "."
+FIRST_REPEAT = 2                                       # the second heading of one title is suffixed ".2"
+
 # RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command
 # line.
 DEFAULT_EXTENSIONS = frozenset(
@@ -227,6 +237,101 @@ def build_process_model(process_dir):
         lines = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines()
         add_document_references(model, members, lines, defined)
     return model
+
+
+# ---- document sections -------------------------------------------------------------------------------------------
+# RQ-TRC-134, RQ-TRC-135, DEC-TRC-079
+def headings(lines):
+    """[(line, level, title)] of the Markdown headings of a document, those inside a code fence left out."""
+    found, fenced = [], False
+    for ln, text in enumerate(lines, 1):
+        if text.lstrip().startswith(FENCE_PREFIXES):
+            fenced = not fenced
+            continue
+        m = None if fenced else HEADING_RE.match(text)
+        if m:
+            found.append((ln, len(m.group(1)), m.group(2).rstrip().rstrip(SECTION_MARK).rstrip()))
+    return found
+
+
+# RQ-TRC-134, RQ-TRC-135
+def heading_ranges(found, last, level):
+    """[(first, last, title)] of the headings of one level: each ends before the next heading of that level or above."""
+    ranges = []
+    for n, (ln, lvl, title) in enumerate(found):
+        if lvl != level:
+            continue
+        end = next((h[0] - 1 for h in found[n + 1:] if h[1] <= level), last)
+        ranges.append((ln, min(end, last), title))
+    return ranges
+
+
+# RQ-TRC-136, DEC-TRC-080
+def unique_name(title, taken):
+    """The title, suffixed '.2', '.3' from its second occurrence among one parent's children."""
+    count = taken.get(title, 0) + 1
+    taken[title] = count
+    return title if count < FIRST_REPEAT else f"{title}{REPEAT_MARK}{count}"
+
+
+# RQ-TRC-136, DEC-TRC-080
+def section_refs(lines, first, last, inner, defined):
+    """[[ID, proofs]] of the IDs cited on a section's own lines, those of its subsections ([(first, last)]) left out."""
+    refs = {}
+    for ln in range(first, last + 1):
+        if any(a <= ln <= b for a, b in inner):
+            continue
+        for target in sorted(extract_ids(lines[ln - 1], defined)):
+            refs.setdefault(target, []).append(evidence(ln, lines[ln - 1]))
+    return [[target, proofs] for target, proofs in sorted(refs.items())]
+
+
+# RQ-TRC-134 to RQ-TRC-136, DEC-TRC-079, DEC-TRC-080
+def sections_of_document(document, members, lines, defined):
+    """The section nodes of one document: its '##' holding no indexed element, and their '###', in line order."""
+    last = min(document[KEY_LAST], len(lines))
+    found = [h for h in headings(lines) if document[KEY_FIRST] <= h[0] <= last]
+    starts = [m[KEY_FIRST] for m in members if m is not document]
+    nodes, top_taken = [], {}
+
+    def node(sid, level, parent, first, end, title, inner):
+        return {"id": sid, KEY_TYPE: TYPE_SECTION, "level": level, "parent": parent, "doc": document["doc"],
+                KEY_FIRST: first, KEY_LAST: end, KEY_TITLE: title,
+                KEY_REFS: section_refs(lines, first, end, inner, defined)}
+
+    for first, end, title in heading_ranges(found, last, SECTION_LEVEL):
+        if any(first <= s <= end for s in starts):
+            continue
+        sid = f"{document['id']}{SECTION_MARK}{unique_name(title, top_taken)}"
+        inside = [h for h in found if first < h[0] <= end]
+        subs = heading_ranges(inside, end, SUBSECTION_LEVEL)
+        nodes.append(node(sid, SECTION_LEVEL, document["id"], first, end, title, [(a, b) for a, b, _ in subs]))
+        sub_taken = {}
+        for a, b, sub_title in subs:
+            nodes.append(node(f"{sid}{SUBSECTION_MARK}{unique_name(sub_title, sub_taken)}", SUBSECTION_LEVEL, sid,
+                              a, b, sub_title, []))
+    return nodes
+
+
+# RQ-TRC-134, RQ-TRC-137, DEC-TRC-078: reads the model, never changes it.
+def document_sections(process_dir, model):
+    """The section nodes of every feature, ADR and plan of the index, in index then line order."""
+    process_dir = Path(process_dir)
+    defined = {i for i, e in model.elements.items() if e[KEY_KIND] == KEY_ELEMENT}
+    by_doc = {}
+    for element in model.elements.values():
+        if element[KEY_KIND] == KEY_ELEMENT:
+            by_doc.setdefault(element["doc"], []).append(element)
+    nodes = []
+    for doc, members in by_doc.items():
+        documents = [m for m in members if m[KEY_TYPE] in SECTIONED_TYPES]
+        path = resolve_document(process_dir, doc)
+        if not documents or path is None:
+            continue
+        document = max(documents, key=lambda m: m[KEY_LAST] - m[KEY_FIRST])
+        lines = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines()
+        nodes.extend(sections_of_document(document, members, lines, defined))
+    return nodes
 
 
 # ---- sources -----------------------------------------------------------------------------------------------------
@@ -419,8 +524,9 @@ def call_graph_block(call_graph, paths):
 
 
 # RQ-TRC-129, RQ-TRC-130, DEC-TRC-074: sorted so that two runs on the same inputs write the same bytes.
-def state_data(model, meta, tasks, call_graph=None, history=None):
-    """The graph file's content: meta, elements, edges, files, tasks and, when asked, callGraph, history, delivery."""
+def state_data(model, meta, tasks, call_graph=None, history=None, sections=()):
+    """The graph file's content: meta, elements, edges, files, tasks, sections (RQ-TRC-137, DEC-TRC-078) and, when
+    asked, callGraph, history, delivery."""
     paths = sorted(model.files)
     data = {
         "meta": meta,
@@ -428,6 +534,7 @@ def state_data(model, meta, tasks, call_graph=None, history=None):
         "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         "tasks": {task: {"tier": tier, "requirements": cited} for task, (tier, cited) in tasks.items()},
+        KEY_SECTIONS: list(sections),
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data[KEY_CALL_GRAPH] = call_graph_block(call_graph, paths)
@@ -523,7 +630,7 @@ def build_state(args, process, extensions, excludes, generated_at):
     meta = {"generatedAt": generated_at, "commit": head_commit(process), "process": process.as_posix(),
             "sources": [Path(s).as_posix() for s in args.sources], "extensions": sorted(extensions),
             "names": sorted(DEFAULT_NAMES), "excludes": list(excludes), "summaries": summaries}
-    return state_data(model, meta, tasks, call_graph, history), line
+    return state_data(model, meta, tasks, call_graph, history, document_sections(process, model)), line
 
 
 # RQ-TRC-129

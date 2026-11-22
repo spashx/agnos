@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-125: Implement section nodes in the graph
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests on fixtures first, then the `sections` block in `graph.py`, and describe it in `graph-format.md`.
 - **Requirement refs**: RQ-TRC-134, RQ-TRC-135, RQ-TRC-136, RQ-TRC-137
 - **ADR refs**: ADR-TRC-023 (DEC-TRC-078, DEC-TRC-079, DEC-TRC-080)
@@ -43,7 +43,7 @@ This plan implements the tasks in the format specified below.
   - Given the suites of `agnos-graph` and `agnos-perf-center`, Then all pass
 - **Dependencies**: TASK-TRC-124
 - **Assignee**: AI
-- **Verification**: Pending
+- **Verification**: `test_sections.py` written first (3 errors, 1 failure before the code), then 11 OK on `fixtures/sections` (Context kept, Decision and Functional Requirements excluded, added Glossary kept, fenced heading ignored, `/Scope` level 3 and `####` no node, `/Note.2`, narrowest citation with proofs, model unchanged, no `SEC` in elements or edges, two runs byte-identical). `test_graph.py` STATE_KEYS gains `sections` (new expected behavior); `test_skill_contract` required `sections` in `graph-format.md`, documented. agnos-graph 157 OK, 0 skipped; agnos-perf-center 325 OK, 3 skipped (performance tests, need `AGNOS_PERF_CENTER_PERF=1`). This repository: 479 sections, all level 2.
 - **Assumptions**: None
 
 ### TASK-TRC-126: Verify unchanged consumers on repository and demo
