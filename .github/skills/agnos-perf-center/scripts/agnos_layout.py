@@ -1,6 +1,7 @@
 # GENERATED from agnos-init/assets/layout.json by the layout generator, never edit by hand.
 FOLDER = 'agnos-process'
-SUBFOLDERS = ('1.requirements', '2.architecture', '3.plan', '_sessionstate')
+SUBFOLDERS = ('0.facts', '1.requirements', '2.architecture', '3.plan', '4.knowledge', '_sessionstate')
+PROCESS_INDEXED = ('1.requirements', '2.architecture', '3.plan')
 INDEX = 'process.idx.md'
 SESSION_STATE = '_sessionstate/session.yaml'
 METRICS_LOG = '_sessionstate/METRICS_LOG.md'

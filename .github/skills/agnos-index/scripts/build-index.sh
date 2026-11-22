@@ -11,11 +11,8 @@ export LC_ALL=C
 . "$(dirname "$0")/agnos-layout.sh"
 PROCESS_DIR="$AGNOS_FOLDER"
 INDEX_FILE="$PROCESS_DIR/$AGNOS_INDEX"
-SESSION_FOLDER="${AGNOS_SESSION_STATE%%/*}"
-SCAN_DIRS=""
-for d in $AGNOS_SUBFOLDERS; do
-  [ "$d" = "$SESSION_FOLDER" ] || SCAN_DIRS="$SCAN_DIRS $d"
-done
+# RQ-PLG-048, RQ-PLG-049 / DEC-PLG-039: only the subfolders the layout declares indexed; facts, knowledge and state are not.
+SCAN_DIRS="$AGNOS_PROCESS_INDEXED"
 NANOS_PER_MILLI=1000000
 NANOS_PER_SECOND=1000000000
 MILLIS_PER_SECOND=1000

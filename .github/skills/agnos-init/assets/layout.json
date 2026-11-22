@@ -1,6 +1,7 @@
 {
   "folder": "agnos-process",
-  "subfolders": ["1.requirements", "2.architecture", "3.plan", "_sessionstate"],
+  "subfolders": ["0.facts", "1.requirements", "2.architecture", "3.plan", "4.knowledge", "_sessionstate"],
+  "process_indexed": ["1.requirements", "2.architecture", "3.plan"],
   "index": "process.idx.md",
   "sessionState": "_sessionstate/session.yaml",
   "metricsLog": "_sessionstate/METRICS_LOG.md",
