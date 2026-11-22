@@ -11,6 +11,7 @@ import datetime
 import html
 import json
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -52,6 +53,13 @@ KEY_PROCESS = "process"
 KEY_SOURCES = "sources"
 # RQ-TRC-122, RQ-TRC-129: what the graph file adds to the page's call graph block, for the quality checks only
 GRAPH_ONLY_CALL_KEYS = ("parsedFiles", "unparsedFiles")
+# RQ-TRC-132, DEC-TRC-076: the sibling skill's script, run as a subprocess when the graph is absent or --rebuild is given
+GRAPH_SCRIPT = Path(__file__).resolve().parent.parent.parent / "agnos-graph" / "scripts" / "graph.py"
+GRAPH_VALUED = ("ext", "exclude", "history_since", "history_depth")    # repeatable or valued options passed on as given
+GRAPH_FLAGS = ("call_graph", "history")
+KEY_APPEND = "append"
+OPT_PROCESS, OPT_SOURCES, OPT_OUT, OPT_GENERATED_AT = "--process", "--sources", "--out", "--generated-at"   # RQ-TRC-067
+STORE_TRUE = "store_true"
 SUMMARY_PARTS = (KEY_CALL_GRAPH, KEY_HISTORY)   # RQ-TRC-017: the summary line's parts the graph file gives, in order
 
 INDEX_NAME = agnos_layout.INDEX
@@ -399,13 +407,22 @@ def write_outputs(path, data, title):
 # ---- command line ------------------------------------------------------------------------------------------------
 # RQ-TRC-001, RQ-TRC-131
 def parse_args(argv):
-    """The page's options: the process folder, the graph file read, the page written."""
+    """The page's options, and the scan options passed to agnos-graph when it builds the graph (RQ-TRC-132)."""
     parser = argparse.ArgumentParser(prog="perf_center.py", description="AGNOS performance center")  # FTR-TRC-001
-    parser.add_argument("--process", required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
+    parser.add_argument(OPT_PROCESS, required=True, help=f"AGNOS process folder holding {INDEX_NAME}")
     parser.add_argument("--graph", help=f"graph file written by agnos-graph (default: <process>/{agnos_layout.GRAPH_FILE})")
-    parser.add_argument("--out", help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
+    parser.add_argument("--rebuild", action=STORE_TRUE, help="run agnos-graph even when the graph file exists")
+    scan = parser.add_argument_group("scan options, passed to agnos-graph when it builds the graph (see its --help)")
+    scan.add_argument(OPT_SOURCES, action=KEY_APPEND, help="source folder to scan (repeatable); needed to build the graph")
+    scan.add_argument("--ext", action=KEY_APPEND, help="source extension to scan, replaces agnos-graph's list (repeatable)")
+    scan.add_argument("--exclude", action=KEY_APPEND, help="name pattern to skip, replaces agnos-graph's list (repeatable)")
+    scan.add_argument("--call-graph", action=STORE_TRUE, help="add the functions and calls, parsed with tree-sitter")
+    scan.add_argument("--history", action=STORE_TRUE, help="add who worked on each element and on the code, from git")
+    scan.add_argument("--history-since", help="with --history: only the commits authored since this date or duration")
+    scan.add_argument("--history-depth", help="with --history: only the N most recent commits")
+    parser.add_argument(OPT_OUT, help=f"output page (default: <process>/{DEFAULT_OUT_NAME})")
     parser.add_argument("--title", help="page title (default: the name of the process folder's parent)")
-    parser.add_argument("--generated-at", help="generation time shown by the page (default: now, UTC); fixing it "
+    parser.add_argument(OPT_GENERATED_AT, help="generation time shown by the page (default: now, UTC); fixing it "
                                                "makes the output reproducible")
     return parser.parse_args(argv)
 
@@ -436,7 +453,38 @@ def page_from_graph(graph, title, generated_at):
     return page_data(model, analysis, quality, meta, call_graph, history), line
 
 
-# RQ-TRC-131
+# RQ-TRC-132, DEC-TRC-076 (TASK-TRC-119)
+def graph_command(args, process, graph_path, generated_at):
+    """The command line of agnos-graph's script, with the scan options given to the generator."""
+    command = [sys.executable, str(GRAPH_SCRIPT), OPT_PROCESS, str(process), OPT_OUT, str(graph_path),
+               OPT_GENERATED_AT, generated_at]
+    for source in args.sources:
+        command += [OPT_SOURCES, source]
+    for name in GRAPH_VALUED:
+        value = getattr(args, name)
+        for item in value if isinstance(value, list) else [] if value is None else [value]:
+            command += ["--" + name.replace("_", "-"), item]
+    command += ["--" + name.replace("_", "-") for name in GRAPH_FLAGS if getattr(args, name)]
+    return command
+
+
+# RQ-TRC-132, DEC-TRC-076 (TASK-TRC-119)
+def ensure_graph(args, process, graph_path, generated_at):
+    """Runs agnos-graph when the graph file is absent or --rebuild is given, its output shown; InputError when it
+    cannot be built."""
+    if graph_path.is_file() and not args.rebuild:
+        return
+    if not args.sources:
+        raise InputError(f"graph file {graph_path.as_posix()} not found: --sources is needed to build it")
+    done = subprocess.run(graph_command(args, process, graph_path, generated_at), capture_output=True, text=True,
+                          encoding=ENCODING, check=False)
+    sys.stdout.write(done.stdout)
+    sys.stderr.write(done.stderr)
+    if done.returncode != 0:
+        raise InputError(f"agnos-graph could not build {graph_path.as_posix()} (exit {done.returncode})")
+
+
+# RQ-TRC-131, RQ-TRC-132
 def main(argv=None):
     """Writes the page and its data from the graph file and prints the summary line; 1 on an input error."""
     started = time.perf_counter()    # RQ-TRC-107
@@ -447,6 +495,7 @@ def main(argv=None):
     title = args.title or process.resolve().parent.name
     generated_at = args.generated_at or datetime.datetime.now(datetime.timezone.utc).strftime(TIMESTAMP_FORMAT)
     try:
+        ensure_graph(args, process, graph_path, generated_at)
         data, line = page_from_graph(load_graph(graph_path), title, generated_at)
     except (InputError, scorecard.ScoringError) as error:
         print(f"agnos-perf-center: {error}", file=sys.stderr)

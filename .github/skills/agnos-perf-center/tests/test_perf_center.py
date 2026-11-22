@@ -955,6 +955,67 @@ class IndependenceTest(unittest.TestCase):
             self.assertEqual(set(), imported - set(sys.stdlib_module_names) - siblings, name)
 
 
+class OnDemandGraphTest(unittest.TestCase):
+    """TASK-TRC-119: RQ-TRC-132 (DEC-TRC-076): the generator runs agnos-graph when the graph is absent or --rebuild."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="agnos-perf-center-"))
+        self.addCleanup(__import__("shutil").rmtree, self.tmp, ignore_errors=True)
+        self.process = self.tmp / "process"
+        __import__("shutil").copytree(PROCESS, self.process)
+        self.graph = self.process / agnos_layout.GRAPH_FILE
+        self.out = self.tmp / "page.html"
+
+    def generator(self, *extra, sources=True, date=GENERATED_AT):
+        args = ["--process", str(self.process), "--out", str(self.out), "--generated-at", date, *extra]
+        if sources:
+            args += ["--sources", str(SOURCES)]
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = tm.main(args)
+        return code, out.getvalue(), err.getvalue()
+
+    def test_RQ_TRC_132_given_no_graph_file_when_run_with_sources_then_the_graph_is_built_and_the_page_written(self):
+        code, stdout, err = self.generator()
+        self.assertEqual(0, code, err)
+        self.assertTrue(self.graph.is_file())
+        self.assertTrue(self.out.is_file())
+        self.assertRegex(stdout.strip().splitlines()[-1], r"^agnos-perf-center: \d+ elements")
+
+    def test_RQ_TRC_132_given_options_of_the_scan_when_the_graph_is_built_then_they_reach_it(self):
+        code, _, err = self.generator("--ext", ".py", "--exclude", "dist")
+        self.assertEqual(0, code, err)
+        meta = __import__("json").loads(self.graph.read_text(encoding="utf-8"))["meta"]
+        self.assertEqual(([".py"], ["dist"]), (meta["extensions"], meta["excludes"]))
+
+    def test_RQ_TRC_132_given_an_existing_graph_when_run_without_rebuild_then_the_graph_is_not_rewritten(self):
+        self.assertEqual(0, self.generator()[0])
+        before = self.graph.read_bytes()
+        code, _, err = self.generator(date="2026-02-02T00:00Z")
+        self.assertEqual(0, code, err)
+        self.assertEqual(before, self.graph.read_bytes())
+
+    def test_RQ_TRC_132_given_rebuild_then_the_graph_is_rewritten(self):
+        self.assertEqual(0, self.generator()[0])
+        before = self.graph.read_bytes()
+        code, _, err = self.generator("--rebuild", date="2026-02-02T00:00Z")
+        self.assertEqual(0, code, err)
+        self.assertNotEqual(before, self.graph.read_bytes())
+
+    def test_RQ_TRC_132_given_no_graph_and_no_sources_then_it_exits_1_and_writes_nothing(self):
+        code, _, err = self.generator(sources=False)
+        self.assertEqual(1, code)
+        self.assertIn("--sources", err)
+        self.assertFalse(self.graph.exists())
+        self.assertFalse(self.out.exists())
+
+    def test_RQ_TRC_132_given_a_graph_build_that_fails_then_it_exits_1_and_writes_no_page(self):
+        code, _, err = self.generator("--sources", str(self.tmp / "absent"))
+        self.assertEqual(1, code)
+        self.assertIn("source folder not found", err)
+        self.assertFalse(self.out.exists())
+
+
 class GraphInputTest(unittest.TestCase):
     """TASK-TRC-118: RQ-TRC-131 (DEC-TRC-075): the page is made from the graph file alone."""
 

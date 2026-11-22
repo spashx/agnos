@@ -50,7 +50,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-119: Build graph on demand from perf-center
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make `perf_center.py` run `../agnos-graph/scripts/graph.py` as a subprocess with its scan options when the graph file is absent or `--rebuild` is given, and refuse a missing graph without `--sources`.
 - **Requirement refs**: RQ-TRC-132
 - **ADR refs**: ADR-TRC-022 (DEC-TRC-076)
@@ -61,8 +61,8 @@ This plan implements the tasks in the format specified below.
   - Given no graph and no `--sources`, Then it exits 1 And writes nothing
 - **Dependencies**: TASK-TRC-118
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `OnDemandGraphTest` 6 OK: no graph + `--sources` → graph file written and page; scan options reach the graph's `meta`; existing graph without `--rebuild` → bytes unchanged; `--rebuild` → rewritten; no graph, no `--sources` → exit 1 naming `--sources`, nothing written; failed build → exit 1, no page. With `GraphInputTest`, `test_skill_name`, `test_skill_contract`, `test_help`: 30 OK; `test_literals` OK.
+- **Assumptions**: The graph is built with the page's `--generated-at` as its date, so that one fixed date keeps both reproducible; agnos-graph's stdout (scan lists, its summary) and stderr are shown before the page's summary line; the scan options' help refers to agnos-graph's for the default lists (RQ-TRC-119).
 
 ### TASK-TRC-120: Declare graph skill in layout and delivery
 - **Tier**: M
