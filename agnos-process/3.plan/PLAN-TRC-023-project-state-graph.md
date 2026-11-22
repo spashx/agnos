@@ -97,7 +97,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-122: Verify demo and suites on separated skills
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Point the demo's verification and the release's runners at the two skills where they ran `perf_center.py` alone, rebuild and verify the demo, and run the suites of `agnos-graph`, `agnos-perf-center`, `agnos-meta-release` and `agnos-meta-plugin-proof`.
 - **Requirement refs**: RQ-TRC-131, RQ-TRC-132, RQ-TRC-133
 - **ADR refs**: ADR-TRC-022
@@ -106,5 +106,5 @@ This plan implements the tasks in the format specified below.
   - Given the listed suites, Then they pass And no failing test was changed except to reflect the new input of the perf center
 - **Dependencies**: TASK-TRC-121
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: demo `build.ps1 -Verify`: RQ-INI-008 failed (`agnos-graph.json` left by the second perf-center run of `verify.ps1`), fixed with `--rebuild` and its removal; `verify.ps1 -SkipRebuild` then 28 PASS, exit 0, `RQ-DMO-008 ... graph 4.knowledge/agnos-graph.json written: True`, demo clean. Suites: `agnos-graph` 146 OK, 0 skipped; `agnos-perf-center` 325 OK, 3 skipped (opt-in performance tests, `AGNOS_PERF_CENTER_PERF=1`); `agnos-meta-plugin-proof` 23 OK; `agnos-meta-website` 83 OK; `agnos-meta-release` 152 run, 2 failures (SKILL.md's `<skill-folder>` sentence broken over two lines; the installed-perf-center test without its sibling `agnos-graph`), fixed, `test_skill_paths` then 4 OK.
+- **Assumptions**: The release's runner passes `--rebuild` and compares the graph file too; the website's demo page rebuilds its graph in a temporary subfolder; both demo runs rebuild and then remove the graph, so the demo's working tree stays clean. Tests changed only to reflect the new input: `test_skill_paths` installs `agnos-graph` beside the perf center.

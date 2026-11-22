@@ -96,6 +96,7 @@ class AnywhereTest(unittest.TestCase):
 
     def test_RQ_PLG_005_given_an_installed_perf_center_when_run_from_a_project_then_the_page_lands_in_the_project(self):
         (self.project / INDEX_FILE).write_text("", encoding="utf-8")
+        self.installed("agnos-graph")       # TASK-TRC-122, DEC-TRC-076: the perf center runs its sibling, as the plugin delivers both
         script = self.installed("agnos-perf-center") / "scripts" / "perf_center.py"
         self.run_here(sys.executable, str(script), "--process", agnos_layout.FOLDER, "--sources", "src")
         self.assert_only_in_project(PERF_PAGE)

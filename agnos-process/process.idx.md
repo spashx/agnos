@@ -1158,7 +1158,7 @@ TASK-TRC-118|35-50|Done|Feed perf-center from graph file
 TASK-TRC-119|51-66|Done|Build graph on demand from perf-center
 TASK-TRC-120|67-81|Done|Declare graph skill in layout and delivery
 TASK-TRC-121|82-97|Done|Document graph skill contract
-TASK-TRC-122|98-110|Not Started|Verify demo and suites on separated skills
+TASK-TRC-122|98-110|Done|Verify demo and suites on separated skills
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

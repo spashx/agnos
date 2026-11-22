@@ -9,8 +9,8 @@ argument-hint: "--process <dir> [--sources <dir>...] [--graph <file>] [--rebuild
 <!-- RQ-TRC-017, RQ-TRC-098, DEC-TRC-050, RQ-PLG-005; RQ-TRC-131, RQ-TRC-132 / DEC-TRC-075, DEC-TRC-076 -->
 
 Needs Python 3.9 or later, standard library only. It reads the project's state from the graph file of the `agnos-graph` skill,
-and runs that skill itself when the graph is absent or `--rebuild` is given. Run it; do not read the scripts. `<skill-folder>`
-is the folder holding this file.
+and runs that skill itself when the graph is absent or `--rebuild` is given. Run it; do not read the scripts.
+`<skill-folder>` is the folder holding this file.
 
 1. Invoke the `agnos-index` skill first: the graph reads `process.idx.md`, never the documents' headings.
 2. From the project's root (`python` on `windows`, `python3` on `linux` / `macos`):
