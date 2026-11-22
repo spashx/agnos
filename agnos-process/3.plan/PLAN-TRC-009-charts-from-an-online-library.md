@@ -248,3 +248,15 @@ This plan implements the tasks in the format specified below.
   the owner's choice of the proposal covers its lines changed moving to the tooltip; counts above 99 read "99+"; a group
   that cannot split selects its newest commit when activated; the git graph's own ring marks its current commit and is
   unchanged.
+
+### TASK-TRC-123: Remove vendored-library attribute from marketplace
+- **Tier**: S
+- **Status**: Done
+- **Description**: Remove from `agnos-meta-release/assets/marketplace.gitattributes.txt` the attribute and the comment of the vendored library, gone since DEC-TRC-040 (owner, 2026-11-22).
+- **Requirement refs**: RQ-TRC-080, RQ-TRC-082
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-040)
+- **Acceptance Criteria**: Given the attributes file, Then it names no `vendor` path; Given a release rehearsal, Then it exits 0 with no problem; Given `test_marketplace` and `test_select`, Then they pass.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: None
