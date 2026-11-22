@@ -1,0 +1,110 @@
+# PLAN-TRC-023: Project state graph
+
+## Overview
+Separates the construction of the project's state graph from the performance center: a new `agnos-graph` skill writes
+`4.knowledge/agnos-graph.json`, and `agnos-perf-center` reads it, building it first when it is absent or when asked.
+
+## References
+- **Requirements**: RQ-TRC-129, RQ-TRC-130, RQ-TRC-131, RQ-TRC-132, RQ-TRC-133
+- **ADRs**: ADR-TRC-022 (DEC-TRC-074 to DEC-TRC-077); amends DEC-TRC-002, DEC-TRC-013; extends ADR-PLG-010
+
+This plan implements the tasks in the format specified below.
+---
+
+## Tasks
+
+### TASK-TRC-117: Create graph skill from perf-center code
+- **Tier**: L
+- **Status**: Not Started
+- **Description**: Create `.github/skills/agnos-graph/` with `scripts/graph.py` (index parsing, containment, references, source scan, task tiers, extracted from `perf_center.py`), `callgraph.py`, `history.py`, the tree-sitter queries and `requirements-callgraph.txt` moved from `agnos-perf-center`, writing the dated graph file. Write the graph file's tests first in `agnos-graph/tests` and move there the pure unit tests of `callgraph` and `history`; the tests checking the page stay in `agnos-perf-center` and load the moved modules from `agnos-graph/scripts` (owner, 2026-11-22).
+- **Requirement refs**: RQ-TRC-129, RQ-TRC-130, RQ-TRC-133
+- **ADR refs**: ADR-TRC-022 (DEC-TRC-074)
+- **Acceptance Criteria**:
+  - Given the test fixture, When `graph.py --process P --sources S` runs, Then the graph file holds `meta`, `elements`, `edges`, `files`, `tasks` And no `coverage` nor `quality`
+  - Given `--call-graph` and `--history`, Then it also holds `callGraph`, `history` and `delivery`
+  - Given a fixed `--generated-at`, When it runs twice, Then the two files are byte-identical
+  - Given a git repository, Then `meta.commit` is HEAD; Given a folder outside git, Then `meta.commit` is null
+  - Given a missing source folder, Then it exits 1 And writes nothing
+  - Given the moved unit tests, When they run from `agnos-graph/tests`, Then they pass
+  - Given the page tests left in `agnos-perf-center`, When they load the moved modules from `agnos-graph/scripts`, Then they pass
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-118: Feed perf-center from graph file
+- **Tier**: L
+- **Status**: Not Started
+- **Description**: Make `perf_center.py` rebuild its model from the graph file given by `--graph`, then run `analyse`, `scorecard` and the rendering unchanged; remove from it the code moved to `agnos-graph`.
+- **Requirement refs**: RQ-TRC-131
+- **ADR refs**: ADR-TRC-022 (DEC-TRC-075)
+- **Acceptance Criteria**:
+  - Given a graph built from the fixture with a fixed date, When `agnos-perf-center --graph G` runs, Then `<page>.json` equals the one the single generator wrote at the parent commit, `meta` excepted for its new fields
+  - Given a graph without `callGraph`, Then the page has no call graph And the run exits 0
+  - Given an invalid graph file or one without `elements`, Then it exits 1 naming the file
+  - Given the remaining perf-center tests, Then they pass
+- **Dependencies**: TASK-TRC-117
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-119: Build graph on demand from perf-center
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Make `perf_center.py` run `../agnos-graph/scripts/graph.py` as a subprocess with its scan options when the graph file is absent or `--rebuild` is given, and refuse a missing graph without `--sources`.
+- **Requirement refs**: RQ-TRC-132
+- **ADR refs**: ADR-TRC-022 (DEC-TRC-076)
+- **Acceptance Criteria**:
+  - Given no graph file, When `agnos-perf-center --process P --sources S` runs, Then the graph file exists And the page is written
+  - Given an existing graph, When it runs without `--rebuild`, Then the graph file is not rewritten
+  - Given `--rebuild`, Then the graph file is rewritten
+  - Given no graph and no `--sources`, Then it exits 1 And writes nothing
+- **Dependencies**: TASK-TRC-118
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-120: Declare graph skill in layout and delivery
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Add `graphFile` to `layout.json` and `agnos-graph` to the layout copies, add the Claude Code pointer `.claude/skills/agnos-graph/SKILL.md`, the plugin README entry and the marketplace attributes the moved vendor code needs.
+- **Requirement refs**: RQ-TRC-133, RQ-TRC-129
+- **ADR refs**: ADR-TRC-022 (DEC-TRC-077)
+- **Acceptance Criteria**:
+  - Given `layout.json`, Then `graphFile` is `4.knowledge/agnos-graph.json` And both skills read it from their copy
+  - Given `layout.py --check`, Then it passes
+  - Given a release rehearsal, Then the marketplace holds `plugins/agnos/skills/agnos-graph/SKILL.md` And it exits 0
+- **Dependencies**: TASK-TRC-117
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-121: Document graph skill contract
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Write `agnos-graph/SKILL.md` and `references/graph-format.md`, update `agnos-perf-center/SKILL.md` and its references to the new options and input, and add `agnos-graph` to `AGENTS.md`, `CLAUDE.md` and the getting-started guide where the perf center is described.
+- **Requirement refs**: RQ-TRC-133, RQ-TRC-130, RQ-TRC-132
+- **ADR refs**: ADR-TRC-022
+- **Acceptance Criteria**:
+  - Given `agnos-graph/SKILL.md`, Then it gives its parameters, outputs, exit codes and the path of its format reference
+  - Given `agnos-perf-center/SKILL.md`, Then it gives `--graph` and `--rebuild` And says it calls `agnos-graph` when the graph is absent
+  - Given `AGENTS.md` and `CLAUDE.md`, Then each lists `agnos-graph`
+  - Given the skill-contract tests of both skills, Then they pass
+- **Dependencies**: TASK-TRC-119, TASK-TRC-120
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
+
+### TASK-TRC-122: Verify demo and suites on separated skills
+- **Tier**: M
+- **Status**: Not Started
+- **Description**: Point the demo's verification and the release's runners at the two skills where they ran `perf_center.py` alone, rebuild and verify the demo, and run the suites of `agnos-graph`, `agnos-perf-center`, `agnos-meta-release` and `agnos-meta-plugin-proof`.
+- **Requirement refs**: RQ-TRC-131, RQ-TRC-132, RQ-TRC-133
+- **ADR refs**: ADR-TRC-022
+- **Acceptance Criteria**:
+  - Given the demo rebuilt and verified, Then every check passes And its perf center run wrote `agnos-process/4.knowledge/agnos-graph.json`
+  - Given the listed suites, Then they pass And no failing test was changed except to reflect the new input of the perf center
+- **Dependencies**: TASK-TRC-121
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
