@@ -189,14 +189,18 @@ Report 'RQ-DMO-007' (($indexRun.ExitCode -eq 0) -and ($dirty.Count -eq 0)) "agno
 $traceDir = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + 'trace-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $traceDir | Out-Null
 $traceScript = Join-Path $Toolkit '.github/skills/agnos-perf-center/scripts/perf_center.py'
-$traceOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') | Out-String)
+# RQ-TRC-132 (TASK-TRC-122): --rebuild runs agnos-graph, which writes the state in the knowledge folder; removed after, the demo stays clean
+$traceGraph = Join-Path (Join-Path $Demo $AGNOS_FOLDER) $AGNOS_GRAPH_FILE
+$traceOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --out (Join-Path $traceDir 'trace.html') --rebuild | Out-String)
 $traceExit = $LASTEXITCODE
+$graphWritten = Test-Path -LiteralPath $traceGraph -PathType Leaf
+if ($graphWritten) { Remove-Item -LiteralPath $traceGraph -Force }
 Remove-Item -LiteralPath $traceDir -Recurse -Force
 # The generator's summary line since its quality scorecard (FTR-TRC-003): "RQ n: covered n, indirect n, uncovered n;
 # quality: <grade> <score>/10; checks: covered s, defined s, tasked s, task-rq s, ..."
 $gaps = [regex]::Match($traceOut, 'uncovered (\d+); quality: .*?checks: covered [\d.na/]+, defined ([\d.na/]+), tasked [\d.na/]+, task-rq ([\d.na/]+)')
-$traceOk = ($traceExit -eq 0) -and $gaps.Success -and ($gaps.Groups[1].Value -eq '0') -and ($gaps.Groups[2].Value -eq $FULL_SCORE) -and ($gaps.Groups[3].Value -in $FULL_SCORE, $NO_SCORE)
-Report 'RQ-DMO-008' $traceOk ("agnos-perf-center: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), IDs defined score $($gaps.Groups[2].Value), tasks with a requirement score $($gaps.Groups[3].Value)" } else { 'no summary (exit ' + $traceExit + ')' }))
+$traceOk = ($traceExit -eq 0) -and $graphWritten -and $gaps.Success -and ($gaps.Groups[1].Value -eq '0') -and ($gaps.Groups[2].Value -eq $FULL_SCORE) -and ($gaps.Groups[3].Value -in $FULL_SCORE, $NO_SCORE)
+Report 'RQ-DMO-008' $traceOk ("agnos-perf-center: " + $(if ($gaps.Success) { "uncovered $($gaps.Groups[1].Value), IDs defined score $($gaps.Groups[2].Value), tasks with a requirement score $($gaps.Groups[3].Value)" } else { 'no summary (exit ' + $traceExit + ')' }) + "; graph $AGNOS_GRAPH_FILE written: $graphWritten")
 
 # RQ-DMO-009
 $readme = if ($demoFiles -contains 'README.md') { (Demo-Git @('show', 'HEAD:README.md')) } else { @() }
@@ -301,7 +305,9 @@ Report 'RQ-DMO-019' ($fsckOk -and ($future.Count -eq 0) -and ($olderThanParent.C
 # RQ-DMO-023 to RQ-DMO-026: one run of the Performance Center with the history and the call graph
 $historyDir = Join-Path ([System.IO.Path]::GetTempPath()) ($REBUILD_FOLDER_PREFIX + 'history-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $historyDir | Out-Null
-$historyOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --history --call-graph --out (Join-Path $historyDir 'trace.html') | Out-String)
+$historyOut = (& python $traceScript --process (Join-Path $Demo $AGNOS_FOLDER) --sources (Join-Path $Demo 'service') --sources (Join-Path $Demo 'client') --history --call-graph --out (Join-Path $historyDir 'trace.html') --rebuild | Out-String)
+# RQ-TRC-132 (TASK-TRC-122): the graph is rebuilt with the history, then removed so the demo stays clean
+if (Test-Path -LiteralPath $traceGraph -PathType Leaf) { Remove-Item -LiteralPath $traceGraph -Force }
 $historyJson = Join-Path $historyDir 'trace.json'
 $historyData = if (Test-Path -LiteralPath $historyJson) { [System.IO.File]::ReadAllText($historyJson) | ConvertFrom-Json } else { $null }
 Remove-Item -LiteralPath $historyDir -Recurse -Force

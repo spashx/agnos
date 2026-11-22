@@ -9,6 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+sys.path.insert(0, str(HERE.parents[1] / "agnos-graph" / "scripts"))   # DEC-TRC-074: the moved modules (TASK-TRC-117)
 import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 sys.path.insert(0, str(HERE))
 

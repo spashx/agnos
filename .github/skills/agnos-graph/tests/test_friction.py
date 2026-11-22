@@ -1,6 +1,7 @@
-"""Tests of the friction log read from git by agnos-perf-center (FTR-TRC-006, ADR-TRC-011: DEC-TRC-045), on small repositories.
+"""Tests of the friction log read from git by agnos-graph (FTR-TRC-006, ADR-TRC-011: DEC-TRC-045), on small repositories.
 
-Run from the repository root: python -m unittest discover -s .github/skills/agnos-perf-center/tests -v
+Moved from agnos-perf-center by TASK-TRC-117 (RQ-TRC-133, DEC-TRC-074).
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-graph/tests -v
 """
 import contextlib
 import io

@@ -1,7 +1,8 @@
 """Tests of the call-graph languages after C and C++ (RQ-TRC-050, DEC-TRC-025, DEC-TRC-026), on
 tests/fixtures/languages/<language>, one folder each, outside the fixture repository so its counts do not change.
 
-Run from the repository root: python -m unittest discover -s .github/skills/agnos-perf-center/tests -v
+Moved from agnos-perf-center by TASK-TRC-117 (RQ-TRC-133, DEC-TRC-074).
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-graph/tests -v
 Skipped without the packages of requirements-callgraph.txt.
 """
 import sys
@@ -13,9 +14,9 @@ sys.path.insert(0, str(HERE.parent / "scripts"))
 sys.path.insert(0, str(HERE))
 
 import callgraph as cg  # noqa: E402
-import perf_center as tm  # noqa: E402
+import graph as gr  # noqa: E402
 from test_callgraph import HAS_TREE_SITTER, NEEDS_TREE_SITTER, by_name, calls_of  # noqa: E402
-from test_perf_center import PROCESS  # noqa: E402
+from test_callgraph import PROCESS  # noqa: E402
 
 LANGUAGES = HERE / "fixtures" / "languages"
 CITED = "RQ-DEM-001"                    # the fixture process's ID each language fixture cites above one definition
@@ -23,9 +24,9 @@ CITED = "RQ-DEM-001"                    # the fixture process's ID each language
 
 def language_graph(folder):
     """The call graph of tests/fixtures/languages/<folder>, its IDs read as the fixture process defines them."""
-    model = tm.build_process_model(PROCESS)
-    scanned = tm.scan_sources(model, [LANGUAGES / folder], base=LANGUAGES)
-    return cg.analyse(scanned, tm.code_citations(model), tm.evidence)
+    model = gr.build_process_model(PROCESS)
+    scanned = gr.scan_sources(model, [LANGUAGES / folder], base=LANGUAGES)
+    return cg.analyse(scanned, gr.code_citations(model), gr.evidence)
 
 
 def scopes_of(graph):

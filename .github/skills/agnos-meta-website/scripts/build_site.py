@@ -514,7 +514,8 @@ def generated_demo_page(demo, errors):
         command = [sys.executable, str(PERF_CENTER_SCRIPT), "--process", str(demo / PROCESS)]
         for source in DEMO_SOURCES:
             command += ["--sources", str(demo / source)]
-        command += [*GENERATOR_OPTIONS, "--out", str(page)]
+        # RQ-TRC-132 (TASK-TRC-122): the graph is rebuilt in a subfolder, so neither the demo nor the site holds it
+        command += [*GENERATOR_OPTIONS, "--out", str(page), "--rebuild", "--graph", str(Path(folder) / "state" / "graph.json")]
         result = subprocess.run(command, cwd=demo, capture_output=True, text=True, encoding=ENCODING, check=False)
         if result.returncode != 0:
             message = (result.stderr.strip() or result.stdout.strip()).splitlines()

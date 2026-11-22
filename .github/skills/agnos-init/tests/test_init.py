@@ -31,6 +31,10 @@ LEGACY_FOLDER = LAYOUT["legacyFolder"]
 LEGACY_INDEX = LAYOUT["legacyIndex"]
 PROCESS_FOLDERS = tuple(LAYOUT["subfolders"])
 README = "readme.md"
+FACTS, KNOWLEDGE = "0.facts", "4.knowledge"                     # RQ-PLG-048, RQ-PLG-049 / DEC-PLG-038
+NEW_SUBFOLDERS = (FACTS, KNOWLEDGE)
+FACTS_STATEMENTS = ("the user places", "never changes", "transform", "index")        # DEC-PLG-040
+KNOWLEDGE_STATEMENTS = ("dynamic", "uneven maturity", "date")                       # DEC-PLG-040
 BEGIN = b"<!-- AGNOS:BEGIN"
 END = b"<!-- AGNOS:END -->"
 BOM = b"\xef\xbb\xbf"
@@ -313,6 +317,33 @@ class ProcessFolderTest(InitCase):
                 readme.write_bytes(b"# Mine\n")
                 self.assertEqual(0, runner(project).returncode)
                 self.assertEqual(b"# Mine\n", readme.read_bytes())
+
+    def test_RQ_PLG_050_given_a_project_without_facts_and_knowledge_when_run_then_both_are_added_and_nothing_else_changes(self):
+        """Given an AGNOS project without 0.facts/ and 4.knowledge/, When agnos-init runs, Then both are added with their
+        readme And no other file changes (RQ-PLG-050; DEC-PLG-038)."""
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name)
+                self.assertEqual(0, runner(project).returncode)
+                before = snapshot(project)
+                for folder in NEW_SUBFOLDERS:
+                    shutil.rmtree(project / FOLDER / folder)
+                self.assertEqual(0, runner(project).returncode)
+                self.assertEqual(before, snapshot(project))
+
+    def test_RQ_PLG_048_given_the_facts_readme_then_it_states_who_places_facts_and_that_they_stay_unchanged(self):
+        """Given the 0.facts readme template, Then it says the user places the facts, their content is never changed, and a
+        skill may transform and index them (RQ-PLG-048; DEC-PLG-040)."""
+        text = (TEMPLATES / f"{FACTS}.{README}").read_text(encoding="utf-8").lower()
+        for statement in FACTS_STATEMENTS:
+            self.assertIn(statement, text)
+
+    def test_RQ_PLG_049_given_the_knowledge_readme_then_it_states_dynamic_uneven_dated_content(self):
+        """Given the 4.knowledge readme template, Then it says its content is dynamic, of uneven maturity, and dated
+        (RQ-PLG-049; DEC-PLG-040)."""
+        text = (TEMPLATES / f"{KNOWLEDGE}.{README}").read_text(encoding="utf-8").lower()
+        for statement in KNOWLEDGE_STATEMENTS:
+            self.assertIn(statement, text)
 
     def test_RQ_INI_005_given_a_new_project_when_init_then_index_run_then_both_exit_0(self):
         project = self.project("indexed")

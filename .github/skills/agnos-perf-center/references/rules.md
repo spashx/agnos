@@ -69,13 +69,13 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   scope of the caller's language, as Python's `Greeter()`), `cross-language` (defined only in another language),
   `library` (defined in no scanned file), which make up `external`; and, outside it, `unnamed` (a call through an
   expression that is no name, as `(*fp)()`) and `top-level` (a call outside any function, as module-level code).
-- Languages are data: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
+- Languages are data, in the `agnos-graph` skill, which parses the call graph <!-- DEC-TRC-074 -->: `assets/callgraph/languages.json` (extensions, grammar wheel and module, query file, scope
   separator) and one query file `assets/callgraph/<language>.scm` with the captures `@definition`, `@definition.name`,
   `@scope`, `@scope.name`, `@call`, `@call.name`, `@comment`, and the optional `@call.receiver` where the called name is
   a node of its own (Java), `@scope.base` (each base a scope declares), `@new` and `@new.name` (an object's creation, its
   class), `@definition.parameters` and `@call.arguments` (for the arity); the captures of all the matches of one node are
   merged <!-- DEC-TRC-069 -->. To add a language: one table entry, one query file, its
-  grammar wheel pinned in `requirements-callgraph.txt`; no script changes.
+  grammar wheel pinned in `agnos-graph`'s `requirements-callgraph.txt`; no script changes.
 - Delivered, each with the grammar the tree-sitter project publishes <!-- RQ-TRC-050, DEC-TRC-025 -->: C (`.c`), C++ (`.h`
   read as C++), C# (`.cs`), Java (`.java`), JavaScript and Node.js (`.js .jsx .mjs .cjs`), Python (`.py .pyw`; stubs
   `.pyi` are not read) and Rust (`.rs`). A definition is a function or method with a body: in JavaScript also a function
@@ -106,7 +106,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 
 ## History <!-- FTR-HST-001; ADR-HST-001: DEC-HST-001 to DEC-HST-004, DEC-HST-010 -->
 
-- `scripts/history.py` is loaded only with `--history`; it runs the `git` command, nothing else beyond the standard
+- `agnos-graph`'s `scripts/history.py` is loaded only with `--history` <!-- DEC-TRC-074 -->; it runs the `git` command, nothing else beyond the standard
   library. Without `--history`, git is not run and the data file is unchanged.
 - An **intervention** is a non-merge commit that changed lines of an element's definition (its range in
   `process.idx.md`), of a function's range (with `--call-graph`), or of a scanned file. The ranges of the working tree are
@@ -117,7 +117,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
 - An **identity** is the commit's author (never its committer, who may be the service that merged), after the
   repository's `.mailmap`, and each `Co-Authored-By` co-author. Humans sharing an e-mail address (ignoring case) are one
   identity, named by their most frequent name; an agent is one name and address, since the models of one vendor share a
-  no-reply address. An identity is an **agent** when its name or address matches a pattern of `assets/agents.json`
+  no-reply address. An identity is an **agent** when its name or address matches a pattern of `agnos-graph`'s `assets/agents.json`
   (edit it to class another assistant), else a **human**; a commit is `human`, `agent` or `together`.
 - The period: `--history-since` is given to git, and the author date is then checked against the same cutoff;
   `--history-depth` is git's `--max-count`. A shallow clone is read as far as it goes and marked `shallow`.
@@ -135,7 +135,7 @@ whose findings are IDs; files and functions belong to no trigram). The checks, r
   co-authored by an identity the filters keep; when the history read is cut (`--history-since`, `--history-depth`,
   shallow clone) its first day is left out of the periods. A task is **reworked** when a `fix` commit names it, or a
   requirement it cites, in its subject within the rework window.
-- `assets/delivery.json` holds the tiers and their points (S 1, M 3, L 8), the rework window (14 days), the month
+- `agnos-graph`'s `assets/delivery.json` holds the tiers and their points (S 1, M 3, L 8), the rework window (14 days), the month
   threshold (12 weeks), the ready-made ranges and the two default ones: change a number there, never in the code.
 - A session of `_sessionstate/METRICS_LOG.md` counts when its row is in the file at HEAD and its commit in the history
   read; **friction per session** is the sum of its four counters over the sessions of a period, divided by them.

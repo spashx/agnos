@@ -4,6 +4,7 @@
      approval gate and the other reminders are not carried by the instructions import alone. -->
 @AGENTS.md
 @.github/instructions/agnos-sw-eng.instructions.md
+@agnos-process/project-rules.md
 
 ## Tool Mapping (Claude Code)
 
@@ -29,6 +30,9 @@ calling out explicitly:
   discovered at `.claude/skills/agnos-design-system/SKILL.md`, which points to the canonical
   procedure and template under `.github/skills/agnos-design-system/` — read and follow that
   procedure. <!-- RQ-DSY-001 -->
+- **Graph skill**: use the skill named `agnos-graph`. Under Claude Code it is discovered at
+  `.claude/skills/agnos-graph/SKILL.md`, which points to the canonical procedure at
+  `.github/skills/agnos-graph/SKILL.md` — read and follow that procedure. <!-- RQ-TRC-133 -->
 - **Performance center skill**: use the skill named `agnos-perf-center`. Under Claude Code it is discovered at
   `.claude/skills/agnos-perf-center/SKILL.md`, which points to the canonical procedure at
   `.github/skills/agnos-perf-center/SKILL.md` — read and follow that procedure. <!-- RQ-AGT-001 -->

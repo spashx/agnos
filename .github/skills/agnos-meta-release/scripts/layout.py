@@ -35,6 +35,7 @@ COPIES = {                                   # DEC-PLG-027: each skill gets only
     "agnos-init": (PS1, SH),
     "agnos-session": (PS1, SH),              # RQ-INI-018 / DEC-INI-008
     "agnos-perf-center": (PY,),
+    "agnos-graph": (PY,),                    # RQ-TRC-133 / DEC-TRC-077
     "agnos-meta-release": (PY,),
     "agnos-meta-plugin-proof": (PY,),
     "agnos-meta-docs-sync": (PY,),
@@ -49,7 +50,7 @@ LIST_SEPARATOR = " "
 
 FOLDER, SUBFOLDERS, INDEX = "folder", "subfolders", "index"
 FILES_IN_FOLDER = ("index", "sessionState", "metricsLog", "projectRules", "perfCenterPage",
-                   "guide", "version")        # RQ-PLG-033 / DEC-PLG-026: AGNOS's own files in the folder
+                   "graphFile", "guide", "version")   # graphFile: RQ-TRC-129 / DEC-TRC-077        # RQ-PLG-033 / DEC-PLG-026: AGNOS's own files in the folder
 LEGACY_FOLDER, LEGACY_INDEX = "legacyFolder", "legacyIndex"
 SCRIPT_SUFFIXES = (".py", ".ps1", ".sh")
 VENDOR = "vendor"

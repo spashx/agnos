@@ -32,7 +32,7 @@ Calling the `agnos-init` skill wrote or changed these files, and left everything
 | File | What it holds |
 |---|---|
 | `CLAUDE.md`, `AGENTS.md` | The same delimited AGNOS block, which tells the agent to load the process, the `agnos-instructions` skill. Your own text around it stays yours |
-| `agnos-process/` | Four folders, `1.requirements/`, `2.architecture/`, `3.plan/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
+| `agnos-process/` | Six folders, `0.facts/`, `1.requirements/`, `2.architecture/`, `3.plan/`, `4.knowledge/` and `_sessionstate/`, each with a `readme.md` saying what it holds |
 | `agnos-process/AGNOS-GETTING-STARTED.md` | This guide |
 | `agnos-process/VERSION.txt` | The AGNOS version installed |
 | `.gitignore` | A line ignoring `agnos-process/_sessionstate/session.yaml`, added only when git's rules do not ignore it yet |
@@ -46,9 +46,11 @@ Everything the agent writes for the process lives under `agnos-process/`, and ev
 
 | Phase | Location | Artifacts | Format |
 |---|---|---|---|
+| Facts | `agnos-process/0.facts/` | Normative inputs you place: a protocol, a device specification, a user's guide | Any format; never changed by AGNOS, not in the index; cited by path |
 | Requirements | `agnos-process/1.requirements/` | `FTR-*` features, `RQ-*` requirements | EARS statements, Gherkin acceptance criteria |
 | Architecture | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions | Context, Decision, Consequences, Alternatives, Mermaid diagrams |
 | Planning | `agnos-process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks | Tier, Gherkin criteria, Verification, Assumptions |
+| Knowledge | `agnos-process/4.knowledge/` | Dynamic knowledge written by skills, such as the project's state | Generated and dated; not in the index |
 | Session state | `agnos-process/_sessionstate/` | `session.yaml`, `METRICS_LOG.md` | `session.yaml` is not version-controlled; `METRICS_LOG.md` is |
 
 Every identifier follows `<TYPE>-<TRI>-<NNN>`, where `<TRI>` is a three-letter uppercase trigram for the functional area.
@@ -670,8 +672,10 @@ requirements are implemented, which are not, and what is linked to nothing. The 
 Generate the traceability matrix for src and tests.
 ```
 
-**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders, then reports, before its result line,
-the `scanned extensions`, `scanned names` and `excluded` lines, each saying whether it is the default or the user's list.
+**The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders. It first runs the `agnos-graph` skill,
+which writes the project's state, `agnos-process/4.knowledge/agnos-graph.json`, and prints the `scanned extensions`,
+`scanned names` and `excluded` lines, each saying whether it is the default or the user's list; the agent reports them,
+then the page is made from that state. Next time, the page is made from the existing state unless you ask to rebuild it.
 The result line follows as it is:
 
 ```text
@@ -698,7 +702,7 @@ requirement's panel lists the functions that cite it; a function's panel lists i
 it cites; the graph's **Implementation** switch draws them at the level of the function, the class or the namespace.
 Supported languages: C, C++, C#, Java, JavaScript / Node.js, Python and Rust — not TypeScript, so this guide's
 example would get no functions. The option needs the tree-sitter packages; the agent installs them once, with your
-approval, from the `agnos-perf-center` skill's `requirements-callgraph.txt`. Without them the page is written all the
+approval, from the `agnos-graph` skill's `requirements-callgraph.txt`. Without them the page is written all the
 same, without functions.
 
 **Who changed what — `--history`.** Ask for it and the page reads the project's git log: its **History** view shows
@@ -856,5 +860,6 @@ Ask the agent: it reads the skills of the AGNOS plugin, which the tool lists.
 | `agnos-index` | Regenerates `agnos-process/process.idx.md` |
 | `agnos-git-workflow` | The session branch and the task commits |
 | `agnos-design-system` | The design system of a project with a user interface |
+| `agnos-graph` | The project's state at a commit, one JSON file the page is made from |
 | `agnos-perf-center` | The traceability check and its page |
 | `agnos-self-improvement` | Runs a recursive self-improvement effort on the improvement target the project declares, within its line budget |

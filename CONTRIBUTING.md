@@ -33,7 +33,9 @@ The rule covers every change, however small: a typo fix is a Tier S task. In you
    trigram when your change belongs to its area; otherwise pick a new one.
 3. **Write the requirement first.** New or changed behaviour is a requirement (EARS statement, Gherkin
    criteria) in `agnos-process/1.requirements/`. A cross-cutting choice is an ADR with its decisions in
-   `agnos-process/2.architecture/`. The work is planned as tasks in `agnos-process/3.plan/`.
+   `agnos-process/2.architecture/`. The work is planned as tasks in `agnos-process/3.plan/`. Normative
+   inputs the project complies with go in `agnos-process/0.facts/`, never edited; dated knowledge written by
+   a skill, in `agnos-process/4.knowledge/`. <!-- RQ-PLG-048, RQ-PLG-049 -->
 4. **Let every task be tiered and approved.** The agent presents each task (tier S, M or L) and waits for
    your approval before the first edit.
 5. **Commit through the skill.** Commits come from `agnos-git-workflow commit-task`, which validates the

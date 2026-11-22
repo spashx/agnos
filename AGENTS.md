@@ -18,6 +18,9 @@ That file is the single normative source of the process. This file only tells yo
 and how to map the process to your tool; where they disagree, the instructions file wins. Do not
 rely on a summary, including the README.
 
+Then read [`agnos-process/project-rules.md`](agnos-process/project-rules.md): this repository's own rules, added to the
+process; Claude Code holds it through `CLAUDE.md`. <!-- RQ-PLG-018 / TASK-RSI-007 -->
+
 Run its **START SESSION ACTION** when the user asks to start a session, and its **END SESSION ACTION**
 when the user closes it. <!-- RQ-INI-010 -->
 
@@ -47,6 +50,7 @@ skill.
 | `agnos-index` | [`.github/skills/agnos-index/SKILL.md`](.github/skills/agnos-index/SKILL.md) | Regenerate the artifact index — at session start and before every commit |
 | `agnos-git-workflow` | [`.github/skills/agnos-git-workflow/SKILL.md`](.github/skills/agnos-git-workflow/SKILL.md) | `start-session <TRI>` (branch) and `commit-task <TASK> [<ADR>] <description>` (commit) |
 | `agnos-design-system` | [`.github/skills/agnos-design-system/SKILL.md`](.github/skills/agnos-design-system/SKILL.md) | Create the design system of a UI project, before its first UI requirement |
+| `agnos-graph` | [`.github/skills/agnos-graph/SKILL.md`](.github/skills/agnos-graph/SKILL.md) | Write the project's state at a commit as one JSON file, `agnos-process/4.knowledge/agnos-graph.json`, which `agnos-perf-center` reads <!-- RQ-TRC-133 --> |
 | `agnos-perf-center` | [`.github/skills/agnos-perf-center/SKILL.md`](.github/skills/agnos-perf-center/SKILL.md) | Monitor the process's execution on a project (traceability matrix, quality, history, delivery) — at session end or before a release |
 | `agnos-self-improvement` | [`.github/skills/agnos-self-improvement/SKILL.md`](.github/skills/agnos-self-improvement/SKILL.md) | Run a recursive self-improvement effort on the declared improvement target, within its line budget — END SESSION step 3 <!-- RQ-RSI-001 --> |
 
@@ -71,9 +75,11 @@ default. <!-- RQ-AGT-002 / TASK-AGT-003 -->
 
 | Path | Content |
 |---|---|
+| `agnos-process/0.facts/` | Facts: normative input documents the user places, immutable, never indexed in `process.idx.md` <!-- RQ-PLG-048 --> |
 | `agnos-process/1.requirements/` | `FTR-*` features, `RQ-*` requirements (EARS, Gherkin) |
 | `agnos-process/2.architecture/` | `ADR-*` records, `DEC-*` decisions |
 | `agnos-process/3.plan/` | `PLAN-*` plans, `TASK-*` tasks |
+| `agnos-process/4.knowledge/` | Knowledge: dynamic, of uneven maturity, dated, never indexed in `process.idx.md` <!-- RQ-PLG-049 --> |
 | `agnos-process/_sessionstate/` | `session.yaml` (session variables, not version-controlled), `METRICS_LOG.md` (friction metrics, version-controlled) <!-- RQ-INI-016 --> |
 | `agnos-process/process.idx.md` | Generated index: read it first, then open documents by line range |
 | [`AGNOS-GETTING-STARTED.md`](.github/skills/agnos-init/assets/templates/AGNOS-GETTING-STARTED.md) | A complete worked session, for illustration; `agnos-init` writes it into each project |

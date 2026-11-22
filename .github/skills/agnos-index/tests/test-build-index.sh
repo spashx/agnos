@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Tests of build-index.sh against the shared fixtures and expected files.
 # Covers RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015, RQ-IDX-016 and RQ-IDX-018 (ADR-IDX-001, DEC-IDX-004).
+# RQ-PLG-048, RQ-PLG-049 / DEC-PLG-039: the nominal fixture holds IDs in 0.facts/ and 4.knowledge/, absent from its expected index.
 # The whole suite runs twice: default mode, then POSIX mode (POSIXLY_CORRECT=1).
 # Usage: bash .github/skills/agnos-index/tests/test-build-index.sh
 set -u

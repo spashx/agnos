@@ -12,8 +12,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
+sys.path.insert(0, str(HERE.parents[1] / "agnos-graph" / "scripts"))   # DEC-TRC-074: the moved modules
 import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
+import graph as gr  # noqa: E402
 import perf_center as tm  # noqa: E402
 
 FIXTURE = HERE / "fixtures" / "repo"
@@ -21,64 +23,47 @@ PROCESS = FIXTURE / "process"
 SOURCES = FIXTURE / "src"
 
 
+# RQ-TRC-131 (TASK-TRC-118): the options of the scan go to agnos-graph, which writes the graph the page is made from.
+GRAPH_VALUED = ("--sources", "--ext", "--exclude", "--history-since", "--history-depth")
+GRAPH_FLAGS = ("--call-graph", "--history")
+SHARED = ("--process", "--generated-at")
+
+
+def split_options(args):
+    """(the graph script's options, the page's) of a run written as one command line, as before the separation."""
+    graph_args, page_args, rest = [], [], list(args)
+    while rest:
+        option = rest.pop(0)
+        if option in GRAPH_FLAGS:
+            graph_args.append(option)
+        elif option in GRAPH_VALUED:
+            graph_args += [option, rest.pop(0)]
+        elif option in SHARED:
+            value = rest.pop(0)
+            graph_args += [option, value]
+            page_args += [option, value]
+        else:
+            page_args.append(option)
+    return graph_args, page_args
+
+
 def run_main(args):
-    """Runs the generator's entry point; returns (exit code, stdout, stderr)."""
-    out, err = io.StringIO(), io.StringIO()
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-        code = tm.main(args)
+    """Builds the graph with agnos-graph, then runs the generator on it; returns (exit code, the generator's stdout, the
+    stderr of both)."""
+    graph_args, page_args = split_options(args)
+    out, err, graph_out = io.StringIO(), io.StringIO(), io.StringIO()
+    with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stderr(err):
+        graph_file = str(Path(tmp) / "agnos-graph.json")
+        with contextlib.redirect_stdout(graph_out):
+            code = gr.main([*graph_args, "--out", graph_file]) if "--sources" in graph_args else 0
+        if code == 0:
+            with contextlib.redirect_stdout(out):
+                code = tm.main([*page_args, "--graph", graph_file] if "--sources" in graph_args else page_args)
     return code, out.getvalue(), err.getvalue()
 
 
-class ProcessModelTest(unittest.TestCase):
-    """TASK-TRC-001: RQ-TRC-001 to RQ-TRC-005, RQ-TRC-007 (DEC-TRC-002, DEC-TRC-003)."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.model = tm.build_process_model(PROCESS)
-
-    def refs(self, src):
-        return sorted(dst for (s, dst, kind) in self.model.edges if s == src and kind == "refs")
-
-    def children(self, parent):
-        return sorted(dst for (s, dst, kind) in self.model.edges if s == parent and kind == "contains")
-
-    def test_RQ_TRC_003_given_the_fixture_index_when_the_model_is_built_then_every_row_is_an_element(self):
-        defined = [e for e in self.model.elements.values() if e["kind"] == "element"]
-        self.assertEqual(15, len(defined))
-        rq = self.model.elements["RQ-DEM-002"]
-        self.assertEqual(("RQ", "DEM", "process/1.requirements/FTR-DEM-001-demo-feature.md", 13, 17, "Covered indirectly"),
-                         (rq["type"], rq["tri"], rq["doc"], rq["first"], rq["last"], rq["title"]))
-        self.assertEqual("In Progress", self.model.elements["TASK-DEM-002"]["status"])
-
-    def test_RQ_TRC_004_given_nested_ranges_when_the_model_is_built_then_each_parent_contains_its_children(self):
-        self.assertEqual([f"RQ-DEM-00{i}" for i in range(1, 6)], self.children("FTR-DEM-001"))
-        self.assertEqual(["DEC-DEM-001"], self.children("ADR-DEM-001"))
-        self.assertEqual(["TASK-DEM-001", "TASK-DEM-002", "TASK-DEM-003"], self.children("PLAN-DEM-001"))
-        self.assertEqual([], self.children("FTR-DEM-002"))
-
-    def test_RQ_TRC_005_given_a_task_citing_a_range_when_the_model_is_built_then_the_range_is_expanded(self):
-        self.assertEqual(["ADR-DEM-001", "RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003"], self.refs("TASK-DEM-001"))
-
-    def test_RQ_TRC_005_given_a_plan_when_the_model_is_built_then_it_has_only_the_references_of_its_own_lines(self):
-        self.assertEqual(["ADR-DEM-001"], self.refs("PLAN-DEM-001"))
-
-    def test_RQ_TRC_005_given_a_reference_when_the_model_is_built_then_its_lines_are_kept(self):
-        lines = self.model.edges[("DEC-DEM-001", "RQ-DEM-004", "refs")]
-        self.assertEqual([[12, "This decision serves RQ-DEM-004."]], lines)
-
-    def test_RQ_TRC_005_given_range_notations_when_expanded_then_only_defined_ids_of_one_prefix_count(self):
-        defined = {"RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003", "TASK-DEM-001"}
-        expand = lambda text: sorted(tm.extract_ids(text, defined))  # noqa: E731
-        self.assertEqual(["RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003"], expand("RQ-DEM-001–RQ-DEM-003"))
-        self.assertEqual(["RQ-DEM-001", "RQ-DEM-002"], expand("RQ-DEM-001..RQ-DEM-002"))
-        self.assertEqual(["RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003", "RQ-DEM-009"], expand("RQ-DEM-001 to RQ-DEM-009"))
-        self.assertEqual(["RQ-DEM-001", "RQ-DEM-003"], expand("RQ-DEM-003 to RQ-DEM-001"))
-        self.assertEqual(["RQ-DEM-001", "TASK-DEM-001"], expand("RQ-DEM-001 to TASK-DEM-001"))
-        self.assertEqual([], expand("XRQ-DEM-001 RQ-DEM-0011 rq-dem-001"))
-
-    def test_RQ_TRC_007_given_an_undefined_id_in_a_task_when_the_model_is_built_then_it_is_an_undefined_element(self):
-        self.assertEqual(["DEC-DEM-099", "RQ-DEM-002"], self.refs("TASK-DEM-002"))
-        self.assertEqual("undefined", self.model.elements["DEC-DEM-099"]["kind"])
+class GeneratorInputTest(unittest.TestCase):
+    """TASK-TRC-001: RQ-TRC-002, through the graph the generator reads since TASK-TRC-118 (RQ-TRC-131)."""
 
     def test_RQ_TRC_002_given_no_index_when_the_generator_runs_then_it_exits_1_and_writes_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -98,53 +83,11 @@ class ProcessModelTest(unittest.TestCase):
 
 
 def scanned_model(**options):
-    """The fixture model with its sources scanned, file paths shown relative to the fixture repository."""
-    model = tm.build_process_model(PROCESS)
-    tm.scan_sources(model, [SOURCES], base=FIXTURE, **options)
+    """The fixture model with its sources scanned, file paths shown relative to the fixture repository (agnos-graph's
+    model, which the analysis reads as the graph file's, DEC-TRC-075)."""
+    model = gr.build_process_model(PROCESS)
+    gr.scan_sources(model, [SOURCES], base=FIXTURE, **options)
     return model
-
-
-def code_links(model, path):
-    return {dst: lines for (src, dst, kind), lines in model.edges.items() if src == path and kind == "code"}
-
-
-class SourceScannerTest(unittest.TestCase):
-    """TASK-TRC-002: RQ-TRC-006, RQ-TRC-007 (DEC-TRC-001, DEC-TRC-003)."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.model = scanned_model()
-
-    def test_RQ_TRC_006_given_a_source_line_citing_an_id_when_scanned_then_the_file_links_to_it_with_the_line(self):
-        self.assertEqual({"RQ-DEM-001": [[1, "# Implements RQ-DEM-001."]],
-                          "RQ-DEM-099": [[5, '"""RQ-DEM-099 is not defined anywhere."""']]},
-                         code_links(self.model, "src/a.py"))
-        self.assertEqual(["TASK-DEM-002"], list(code_links(self.model, "src/lib/b.cpp")))
-
-    def test_RQ_TRC_006_given_the_default_lists_when_scanned_then_excluded_folders_and_other_extensions_are_skipped(self):
-        self.assertEqual(["src/a.py", "src/lib/b.cpp", "src/notrace.py", "src/xss.js"], sorted(self.model.files))
-
-    def test_RQ_TRC_006_given_a_file_without_id_when_scanned_then_it_is_kept_with_no_link(self):
-        self.assertEqual({}, code_links(self.model, "src/notrace.py"))
-        self.assertEqual(0, self.model.files["src/notrace.py"]["ids"])
-
-    def test_RQ_TRC_006_given_other_extensions_and_exclusions_when_scanned_then_they_replace_the_defaults(self):
-        model = scanned_model(extensions={".bin", ".py"}, excludes=["lib"])
-        self.assertEqual(["src/a.py", "src/data.bin", "src/dist/generated.py", "src/notrace.py"], sorted(model.files))
-        self.assertIn("RQ-DEM-005", code_links(model, "src/data.bin"))
-
-    def test_RQ_TRC_006_given_a_binary_or_oversized_file_when_scanned_then_it_is_skipped(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "bin.py").write_bytes(b"RQ-DEM-001\x00\x01")
-            (root / "big.py").write_bytes(b"# RQ-DEM-001\n" + b"x" * tm.MAX_SOURCE_BYTES)
-            (root / "ok.py").write_text("# RQ-DEM-001\n", encoding="utf-8")
-            model = tm.build_process_model(PROCESS)
-            tm.scan_sources(model, [root], base=root)
-            self.assertEqual(["ok.py"], sorted(model.files))
-
-    def test_RQ_TRC_007_given_an_undefined_id_in_a_source_when_scanned_then_it_is_an_undefined_element(self):
-        self.assertEqual("undefined", self.model.elements["RQ-DEM-099"]["kind"])
 
 
 class CoverageAndFindingsTest(unittest.TestCase):
@@ -160,7 +103,7 @@ class CoverageAndFindingsTest(unittest.TestCase):
 
     def test_RQ_TRC_008_given_a_requirement_depending_on_a_covered_one_when_rated_then_the_dependency_does_not_cover_it(
             self):
-        model = tm.build_process_model(PROCESS)
+        model = gr.build_process_model(PROCESS)                 # TASK-TRC-118: the model is agnos-graph's
         model.add_edge("src/x.py", "RQ-DEM-001", "code", [1, "RQ-DEM-001"])
         self.assertEqual("uncovered", tm.analyse(model)["coverage"]["RQ-DEM-002"])
 
@@ -1012,6 +955,131 @@ class IndependenceTest(unittest.TestCase):
             self.assertEqual(set(), imported - set(sys.stdlib_module_names) - siblings, name)
 
 
+class OnDemandGraphTest(unittest.TestCase):
+    """TASK-TRC-119: RQ-TRC-132 (DEC-TRC-076): the generator runs agnos-graph when the graph is absent or --rebuild."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="agnos-perf-center-"))
+        self.addCleanup(__import__("shutil").rmtree, self.tmp, ignore_errors=True)
+        self.process = self.tmp / "process"
+        __import__("shutil").copytree(PROCESS, self.process)
+        self.graph = self.process / agnos_layout.GRAPH_FILE
+        self.out = self.tmp / "page.html"
+
+    def generator(self, *extra, sources=True, date=GENERATED_AT):
+        args = ["--process", str(self.process), "--out", str(self.out), "--generated-at", date, *extra]
+        if sources:
+            args += ["--sources", str(SOURCES)]
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = tm.main(args)
+        return code, out.getvalue(), err.getvalue()
+
+    def test_RQ_TRC_132_given_no_graph_file_when_run_with_sources_then_the_graph_is_built_and_the_page_written(self):
+        code, stdout, err = self.generator()
+        self.assertEqual(0, code, err)
+        self.assertTrue(self.graph.is_file())
+        self.assertTrue(self.out.is_file())
+        self.assertRegex(stdout.strip().splitlines()[-1], r"^agnos-perf-center: \d+ elements")
+
+    def test_RQ_TRC_132_given_options_of_the_scan_when_the_graph_is_built_then_they_reach_it(self):
+        code, _, err = self.generator("--ext", ".py", "--exclude", "dist")
+        self.assertEqual(0, code, err)
+        meta = __import__("json").loads(self.graph.read_text(encoding="utf-8"))["meta"]
+        self.assertEqual(([".py"], ["dist"]), (meta["extensions"], meta["excludes"]))
+
+    def test_RQ_TRC_132_given_an_existing_graph_when_run_without_rebuild_then_the_graph_is_not_rewritten(self):
+        self.assertEqual(0, self.generator()[0])
+        before = self.graph.read_bytes()
+        code, _, err = self.generator(date="2026-02-02T00:00Z")
+        self.assertEqual(0, code, err)
+        self.assertEqual(before, self.graph.read_bytes())
+
+    def test_RQ_TRC_132_given_rebuild_then_the_graph_is_rewritten(self):
+        self.assertEqual(0, self.generator()[0])
+        before = self.graph.read_bytes()
+        code, _, err = self.generator("--rebuild", date="2026-02-02T00:00Z")
+        self.assertEqual(0, code, err)
+        self.assertNotEqual(before, self.graph.read_bytes())
+
+    def test_RQ_TRC_132_given_no_graph_and_no_sources_then_it_exits_1_and_writes_nothing(self):
+        code, _, err = self.generator(sources=False)
+        self.assertEqual(1, code)
+        self.assertIn("--sources", err)
+        self.assertFalse(self.graph.exists())
+        self.assertFalse(self.out.exists())
+
+    def test_RQ_TRC_132_given_a_graph_build_that_fails_then_it_exits_1_and_writes_no_page(self):
+        code, _, err = self.generator("--sources", str(self.tmp / "absent"))
+        self.assertEqual(1, code)
+        self.assertIn("source folder not found", err)
+        self.assertFalse(self.out.exists())
+
+
+class GraphInputTest(unittest.TestCase):
+    """TASK-TRC-118: RQ-TRC-131 (DEC-TRC-075): the page is made from the graph file alone."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="agnos-perf-center-"))
+        self.addCleanup(__import__("shutil").rmtree, self.tmp, ignore_errors=True)
+        self.graph = self.tmp / "agnos-graph.json"
+        self.out = self.tmp / "page.html"
+
+    def build_graph(self, *extra):
+        code, _, err = gr_run(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(self.graph),
+                               "--generated-at", GENERATED_AT, *extra])
+        self.assertEqual(0, code, err)
+
+    def page(self, graph=None):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = tm.main(["--process", str(PROCESS), "--graph", str(graph or self.graph), "--out", str(self.out),
+                            "--generated-at", GENERATED_AT])
+        return code, out.getvalue(), err.getvalue()
+
+    def test_RQ_TRC_131_given_a_graph_when_the_page_is_made_from_it_then_its_data_is_the_single_generator_s(self):
+        self.build_graph()
+        code, stdout, err = self.page()
+        self.assertEqual(0, code, err)
+        page, _ = generate(self.tmp / "same.html")
+        self.assertEqual(data_block(page), data_block(self.out))
+        self.assertRegex(stdout.strip().splitlines()[-1], r"^agnos-perf-center: \d+ elements")
+
+    def test_RQ_TRC_131_given_a_graph_without_call_graph_then_the_page_has_none_and_the_run_exits_0(self):
+        self.build_graph()
+        code, _, err = self.page()
+        self.assertEqual(0, code, err)
+        self.assertNotIn("callGraph", __import__("json").loads(data_block(self.out)))
+
+    def test_RQ_TRC_131_given_a_file_that_is_not_json_then_it_exits_1_naming_the_file(self):
+        self.graph.write_text("{not json", encoding="utf-8")
+        code, _, err = self.page()
+        self.assertEqual(1, code)
+        self.assertIn(self.graph.as_posix(), err)
+        self.assertFalse(self.out.exists())
+
+    def test_RQ_TRC_131_given_a_graph_without_elements_then_it_exits_1_naming_the_file(self):
+        self.graph.write_text('{"meta": {}}', encoding="utf-8")
+        code, _, err = self.page()
+        self.assertEqual(1, code)
+        self.assertIn(self.graph.as_posix(), err)
+        self.assertFalse(self.out.exists())
+
+    def test_RQ_TRC_131_given_no_graph_file_then_it_exits_1_naming_the_file(self):
+        code, _, err = self.page()
+        self.assertEqual(1, code)
+        self.assertIn(self.graph.as_posix(), err)
+        self.assertFalse(self.out.exists())
+
+
+def gr_run(args):
+    """Runs the graph script's entry point; returns (exit code, stdout, stderr)."""
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = gr.main(args)
+    return code, out.getvalue(), err.getvalue()
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -1041,51 +1109,3 @@ class GeneratedDateTest(unittest.TestCase):
         self.assertIn("2026-01-01 00:00 UTC", found["exact"])
 
 
-class ScanListsShownTest(unittest.TestCase):
-    """TASK-TRC-104: RQ-TRC-119 — what is scanned and excluded is shown in the help, on every run and in the skill."""
-
-    def run_with(self, *extra):
-        with tempfile.TemporaryDirectory() as tmp:
-            code, stdout, stderr = run_main(["--process", str(PROCESS), "--sources", str(SOURCES),
-                                             "--out", str(Path(tmp) / "page.html"), *extra])
-        self.assertEqual(0, code, stderr)
-        return stdout.splitlines()
-
-    def line(self, lines, prefix):
-        found = [line for line in lines if line.startswith(f"agnos-perf-center: {prefix}")]
-        self.assertEqual(1, len(found), (prefix, lines))
-        return found[0]
-
-    def test_RQ_TRC_119_given_help_then_ext_and_exclude_list_every_default_and_say_they_replace_it(self):
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
-            tm.parse_args(["--help"])
-        text = " ".join(out.getvalue().split())
-        for entry in [*tm.DEFAULT_EXCLUDES, *tm.DEFAULT_EXTENSIONS, *tm.DEFAULT_NAMES]:
-            self.assertIn(entry, text)
-        self.assertGreaterEqual(text.count("replaces"), 2)
-
-    def test_RQ_TRC_119_given_a_default_run_then_the_lists_in_effect_precede_an_unchanged_summary_line(self):
-        lines = self.run_with()
-        excluded = self.line(lines, "excluded (default): ")
-        extensions = self.line(lines, "scanned extensions (default): ")
-        names = self.line(lines, "scanned names (always): ")
-        for entry in tm.DEFAULT_EXCLUDES:
-            self.assertIn(entry, excluded)
-        for entry in tm.DEFAULT_EXTENSIONS:
-            self.assertIn(entry, extensions)
-        for entry in tm.DEFAULT_NAMES:
-            self.assertIn(entry, names)
-        self.assertRegex(lines[-1], r"^agnos-perf-center: \d+ elements")
-
-    def test_RQ_TRC_119_given_user_lists_then_the_lines_say_user_and_hold_only_them(self):
-        lines = self.run_with("--exclude", "*.md", "--ext", ".py")
-        self.assertEqual("agnos-perf-center: excluded (user): *.md", self.line(lines, "excluded (user): "))
-        self.assertEqual("agnos-perf-center: scanned extensions (user): .py", self.line(lines, "scanned extensions (user): "))
-
-    def test_RQ_TRC_119_given_the_skill_then_its_report_step_names_the_scan_lines(self):
-        report = [line for line in (HERE.parent / "SKILL.md").read_text(encoding="utf-8").splitlines()
-                  if line.startswith("**Report**")]
-        self.assertEqual(1, len(report))
-        for words in ("scanned extensions", "scanned names", "excluded"):
-            self.assertIn(words, report[0])

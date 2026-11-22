@@ -33,7 +33,7 @@ ADR-TRC-003).
 ### RQ-TRC-119: What is scanned and excluded is always shown
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The trace generator SHALL show the scanned extensions, the always-scanned file names and the excluded patterns
+- **Statement**: The `agnos-graph` skill, which scans the sources since FTR-TRC-011 (RQ-TRC-129; owner, 2026-11-22), SHALL show the scanned extensions, the always-scanned file names and the excluded patterns
   in its `--help`, with the default lists, and on every run in one line each before the summary line, each line saying whether
   the list is the default or the user's (`--ext`, `--exclude` replace the default list, at the user's own responsibility); the
   skill SHALL have those lines reported with the summary line, so that a user calling the skill through an AI learns them too.
@@ -43,7 +43,7 @@ ADR-TRC-003).
   replaces it; Given a run without them, Then stdout holds `scanned extensions (default):`, `scanned names (always):` and
   `excluded (default):` lines with every default entry, before an unchanged summary line; Given `--exclude "*.md"`, Then stdout
   holds `excluded (user): *.md`; Given `SKILL.md`, Then its Report step names those lines.
-- **Dependencies**: RQ-TRC-001, RQ-TRC-006, DEC-TRC-001
+- **Dependencies**: RQ-TRC-001, RQ-TRC-006, DEC-TRC-001, RQ-TRC-129
 
 ### RQ-TRC-002: Missing or unreadable inputs
 - **Category**: Functional

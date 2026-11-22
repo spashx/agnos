@@ -1,6 +1,6 @@
-"""agnos-perf-center history: who worked on the process elements and on the code, from the repository's git history.
+"""agnos-graph history: who worked on the process elements and on the code, from the repository's git history.
 
-Loaded by perf_center.py only with --history (FTR-HST-001, ADR-HST-001, DEC-HST-001, RQ-HST-015).
+Loaded by graph.py only with --history (FTR-HST-001, ADR-HST-001, DEC-HST-001, RQ-HST-015, DEC-TRC-074).
 Python >= 3.9, standard library only; git is read through its command line, never through a library. Kept free of
 quality findings (RQ-QLT-009, DEC-QLT-008).
 """
@@ -933,7 +933,7 @@ def friction_block(lines, position, merges, name):
             continue
         found = FRICTION_ROW_RE.match(text)
         if found is None or commit in merges:
-            print(f"agnos-perf-center: warning: {name}: row left out: {text}", file=sys.stderr)
+            print(f"agnos-graph: warning: {name}: row left out: {text}", file=sys.stderr)
         elif commit in position:
             date, trigram, *counters = found.groups()
             rows.append([date, trigram, *map(int, counters), position[commit]])

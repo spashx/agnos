@@ -81,7 +81,8 @@ TEST_FILE_PREFIX = "test"
 DEMO_FOLDER_NAME = "agnos-lightweight-process.demo"
 FIXED_TIME = "2000-01-01T00:00:00Z"
 PERF_PAGE = f"{agnos_layout.FOLDER}/{agnos_layout.PERF_CENTER_PAGE}"
-PERF_RESULTS = tuple(f"{PERF_PAGE.rsplit('.', 1)[0]}{suffix}" for suffix in (".json", ".data.js"))
+PERF_RESULTS = tuple(f"{PERF_PAGE.rsplit('.', 1)[0]}{suffix}" for suffix in (".json", ".data.js")) + (
+    f"{agnos_layout.FOLDER}/{agnos_layout.GRAPH_FILE}",)     # RQ-TRC-132 (TASK-TRC-122): the graph agnos-graph built, compared too
 INIT_RESULTS = ("CLAUDE.md", "AGENTS.md",
                 *(f"{agnos_layout.FOLDER}/{sub}/{agnos_layout.FOLDER_README}" for sub in agnos_layout.SUBFOLDERS))
 INDEX_SCRIPT = "agnos-index/scripts/build-index"
@@ -592,7 +593,7 @@ def run_perf_center(toolkit, workspace):
     clone = workspace / "demo"
     script = str(Path(toolkit) / PERF_SCRIPT)
     code = run_tool([sys.executable, script, "--process", agnos_layout.FOLDER, "--sources", ".", "--call-graph", "--history",
-                     "--generated-at", FIXED_TIME, "--out", PERF_PAGE], clone)
+                     "--generated-at", FIXED_TIME, "--out", PERF_PAGE, "--rebuild"], clone)   # TASK-TRC-122: each toolkit builds its graph
     results = {"exit": code}
     for name in PERF_RESULTS:
         path = clone / name

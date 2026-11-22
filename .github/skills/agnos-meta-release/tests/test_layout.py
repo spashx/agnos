@@ -22,7 +22,11 @@ ENCODING = "utf-8"
 OTHER_FOLDER = "agnos-process"
 OTHER_INDEX = "process.idx.md"
 GIT_BASH = Path("C:/Program Files/Git/bin/bash.exe")
-PRINTED_KEYS = ("FOLDER", "INDEX", "SESSION_STATE", "SUBFOLDERS")
+PRINTED_KEYS = ("FOLDER", "INDEX", "SESSION_STATE", "SUBFOLDERS", "PROCESS_INDEXED")
+LIST_KEYS = ("SUBFOLDERS", "PROCESS_INDEXED")
+FACTS, KNOWLEDGE = "0.facts", "4.knowledge"                        # RQ-PLG-048, RQ-PLG-049
+INDEXED = ["1.requirements", "2.architecture", "3.plan"]          # RQ-PLG-050 / DEC-PLG-039
+KEY_SUBFOLDERS, KEY_PROCESS_INDEXED = "subfolders", "process_indexed"
 
 
 def bash():
@@ -71,7 +75,7 @@ class LayoutFixture(unittest.TestCase):
         if language == "py":
             namespace = {}
             exec(self.copy("agnos-perf-center", "py").read_text(encoding=ENCODING), namespace)
-            return [namespace[key] if key != "SUBFOLDERS" else " ".join(namespace[key]) for key in PRINTED_KEYS]
+            return [namespace[key] if key not in LIST_KEYS else " ".join(namespace[key]) for key in PRINTED_KEYS]
         if language == "ps1":
             path = self.copy("agnos-index", "ps1")
             script = f". '{path}'; " + "; ".join(
@@ -101,6 +105,19 @@ class LayoutTest(LayoutFixture):
         self.assertEqual(run(self.root, "--write").returncode, EXIT_OK)
         expected = self.printed("py")
         self.assertEqual(expected[:2], [OTHER_FOLDER, OTHER_INDEX])
+        self.assertEqual(self.printed("ps1"), expected)
+        self.assertEqual(self.printed("sh"), expected)
+
+    def test_RQ_PLG_050_given_the_layout_then_it_declares_facts_knowledge_and_the_indexed_subfolders(self):
+        """Given layout.json, Then subfolders lists 0.facts and 4.knowledge And process_indexed lists the three authored
+        subfolders, read the same in Python, PowerShell and bash (RQ-PLG-048, RQ-PLG-049, RQ-PLG-050; DEC-PLG-038, DEC-PLG-039)."""
+        data = json.loads((ROOT / layout.LAYOUT_PATH).read_text(encoding=ENCODING))
+        self.assertIn(FACTS, data[KEY_SUBFOLDERS])
+        self.assertIn(KNOWLEDGE, data[KEY_SUBFOLDERS])
+        self.assertEqual(data[KEY_PROCESS_INDEXED], INDEXED)
+        self.assertEqual(run(self.root, "--write").returncode, EXIT_OK)
+        expected = self.printed("py")
+        self.assertEqual(expected[-1], " ".join(INDEXED))
         self.assertEqual(self.printed("ps1"), expected)
         self.assertEqual(self.printed("sh"), expected)
 

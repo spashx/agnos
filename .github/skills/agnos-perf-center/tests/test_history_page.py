@@ -17,6 +17,7 @@ sys.path.insert(0, str(HERE))
 
 import perf_center as tm  # noqa: E402
 from test_perf_center import BROWSER, generate, rendered_dom_after, run_main  # noqa: E402
+import graph as gr  # noqa: E402  (agnos-graph/scripts, on the path through test_perf_center)
 
 NEEDS_BROWSER = "no Chromium-family browser found (set AGNOS_PERF_CENTER_BROWSER)"
 HUMAN, AGENT, TOGETHER = "human", "agent", "together"
@@ -948,7 +949,7 @@ class WordingTest(unittest.TestCase):
     """TASK-HST-009: RQ-HST-018: no ID of the skill's process in the page's own wording."""
 
     def test_RQ_HST_018_given_the_page_script_and_skeleton_then_no_string_names_an_id_of_the_process(self):
-        id_re = re.compile(tm.ID_PATTERN)
+        id_re = re.compile(gr.ID_PATTERN)               # TASK-TRC-118: the ID grammar is agnos-graph's
         script = (tm.ASSETS_DIR / "matrix.js").read_text(encoding="utf-8")
         code = re.sub(r"/\*.*?\*/", "", script, flags=re.S)                  # block comments
         code = re.sub(r"(^|\s)//.*$", "", code, flags=re.M)                     # line comments, not "://" in a string

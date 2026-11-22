@@ -1,5 +1,6 @@
 # Tests of build-index.ps1 against the shared fixtures and expected files.
 # Covers RQ-IDX-001 to RQ-IDX-009, RQ-IDX-015 and RQ-IDX-018 (ADR-IDX-001, DEC-IDX-004).
+# RQ-PLG-048, RQ-PLG-049 / DEC-PLG-039: the nominal fixture holds IDs in 0.facts/ and 4.knowledge/, absent from its expected index.
 # Usage: powershell -NoProfile -File .github/skills/agnos-index/tests/test-build-index.ps1
 $ErrorActionPreference = 'Stop'
 
