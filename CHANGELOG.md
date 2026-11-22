@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - `agnos-graph.json` holds a `sections` block: the `##` sections of the features, ADRs and plans that hold no requirement, decision or task, their `###` subsections, and the IDs each cites; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-125, TASK-TRC-126, RQ-TRC-134 to RQ-TRC-137 -->
+- `agnos-graph.json` holds a `links` block: for each citation made by a requirement, a decision, a task or a plan, the link field holding it (`Requirement refs`, `ADR refs`, `Dependencies`) or `text`, so that a declared link is told from a mention; features and ADRs keep untyped links; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-128, TASK-TRC-129, RQ-TRC-138 to RQ-TRC-141 -->
 
 ## [4.0.0]
 
