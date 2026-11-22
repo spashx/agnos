@@ -48,7 +48,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-126: Verify unchanged consumers on repository and demo
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Compare the graph and the perf center's data of this repository and of the demo between the base commit and the change, rebuild and verify the demo, and add the changelog entry.
 - **Requirement refs**: RQ-TRC-137, RQ-TRC-134
 - **ADR refs**: ADR-TRC-023 (DEC-TRC-078)
@@ -58,5 +58,5 @@ This plan implements the tasks in the format specified below.
   - Given the demo, When `build.ps1 -Verify` runs, Then it reports 0 failed
 - **Dependencies**: TASK-TRC-125
 - **Assignee**: AI
-- **Verification**: Pending
+- **Verification**: Graph built by base `969456a` (git worktree) and by the change on the same inputs, perf center run on each: repository, graph minus `sections` equal, perf center page and data byte-identical, 479 sections; demo, same, 75 sections. `build.ps1 -Verify`: "28 passed, 0 failed", 0 skipped. CHANGELOG `[Unreleased]` Added entry.
 - **Assumptions**: None
