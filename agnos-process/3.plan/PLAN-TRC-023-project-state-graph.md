@@ -34,7 +34,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-118: Feed perf-center from graph file
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Make `perf_center.py` rebuild its model from the graph file given by `--graph`, then run `analyse`, `scorecard` and the rendering unchanged; remove from it the code moved to `agnos-graph`.
 - **Requirement refs**: RQ-TRC-131
 - **ADR refs**: ADR-TRC-022 (DEC-TRC-075)
@@ -45,8 +45,8 @@ This plan implements the tasks in the format specified below.
   - Given the remaining perf-center tests, Then they pass
 - **Dependencies**: TASK-TRC-117
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: fixture with `--call-graph --history`, fixed date: `page.json` from the graph is byte-identical to the one `perf_center.py` of `6a135a7` wrote, `meta` included (no new field); `GraphInputTest` 5 OK (no `callGraph` → none, exit 0; not JSON, no `elements`, absent → exit 1 naming the file); `agnos-perf-center/tests` 320 run: 2 errors (`tm.ID_PATTERN`, `perf_center.main --sources` in two tests), fixed, then OK; 3 skipped (opt-in performance tests); `agnos-graph/tests` 141 OK, 0 skipped.
+- **Assumptions**: RQ-TRC-119 (scan lists) is now `agnos-graph`'s (owner, 2026-11-22): its help and run tests moved to `agnos-graph/tests/test_scan_lists.py`; the SKILL.md report test stays until TASK-TRC-121. The perf-center's options until TASK-TRC-119 are `--process`, `--graph`, `--out`, `--title`, `--generated-at`; the tests' `run_main` builds a temporary graph with `graph.main`, then runs the page on it, returning the page's stdout. The model and scanner unit tests moved to `agnos-graph/tests/test_model.py`.
 
 ### TASK-TRC-119: Build graph on demand from perf-center
 - **Tier**: M

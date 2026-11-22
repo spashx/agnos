@@ -1154,7 +1154,7 @@ TASK-TRC-116|87-102|Done|Filter candidates by arity
 @agnos-process/3.plan/PLAN-TRC-023-project-state-graph.md
 PLAN-TRC-023|1-110||Project state graph
 TASK-TRC-117|16-34|Done|Create graph skill from perf-center code
-TASK-TRC-118|35-50|Not Started|Feed perf-center from graph file
+TASK-TRC-118|35-50|Done|Feed perf-center from graph file
 TASK-TRC-119|51-66|Not Started|Build graph on demand from perf-center
 TASK-TRC-120|67-81|Not Started|Declare graph skill in layout and delivery
 TASK-TRC-121|82-97|Not Started|Document graph skill contract

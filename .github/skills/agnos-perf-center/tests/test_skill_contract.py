@@ -12,7 +12,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 
-import perf_center as tm  # noqa: E402
+sys.path.insert(0, str(HERE))
+from test_perf_center import run_main  # noqa: E402
 
 SKILL_DIR = HERE.parent
 SKILL = SKILL_DIR / "SKILL.md"
@@ -60,8 +61,8 @@ class DataFormatTest(unittest.TestCase):
         document = (REFERENCES / "data-format.md").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "page.html"
-            code = tm.main(["--process", str(FIXTURE / "process"), "--sources", str(FIXTURE / "src"), "--out", str(page),
-                            "--call-graph", "--history"])
+            code, _, _ = run_main(["--process", str(FIXTURE / "process"), "--sources", str(FIXTURE / "src"),
+                                   "--out", str(page), "--call-graph", "--history"])   # TASK-TRC-118: RQ-TRC-131
             self.assertEqual(0, code)
             data = json.loads(page.with_suffix(".json").read_text(encoding="utf-8"))
         names = {*data, *data["meta"], *data["quality"], *data["elements"][0]}

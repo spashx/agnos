@@ -4,9 +4,7 @@ temporary folder.
 Run from the repository root: python -m unittest discover -s .github/skills/agnos-perf-center/tests -v
 Every git command of these tests runs with an empty global configuration, so the user's own never applies.
 """
-import contextlib
 import importlib.util
-import io
 import json
 import os
 import shutil
@@ -23,15 +21,11 @@ sys.path.insert(0, str(HERE.parents[1] / "agnos-graph" / "scripts"))   # DEC-TRC
 import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import history  # noqa: E402
-import perf_center as tm  # noqa: E402
+import graph as gr  # noqa: E402  TASK-TRC-118: the history is read by agnos-graph
 
 
-def run_main(args):
-    """Runs the generator's entry point; returns (exit code, stdout, stderr)."""
-    out, err = io.StringIO(), io.StringIO()
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-        code = tm.main(args)
-    return code, out.getvalue(), err.getvalue()
+sys.path.insert(0, str(HERE))
+from test_perf_center import run_main  # noqa: E402,F401  TASK-TRC-118: the graph is built, then the page (RQ-TRC-131)
 
 HUMAN = "human"
 AGENT = "agent"
@@ -198,7 +192,7 @@ class GeneratorTest(RepoTestCase):
         self.assertEqual(first, self.out.with_suffix(".json").read_bytes())
 
     def test_RQ_HST_015_given_no_history_option_then_no_history_is_read_or_written(self):
-        with mock.patch.object(tm, "load_history_module", side_effect=AssertionError("history loaded")):
+        with mock.patch.object(gr, "load_history_module", side_effect=AssertionError("history loaded")):  # TASK-TRC-118
             code, out, err = self.run_generator()
         self.assertEqual(0, code, err)
         self.assertNotIn("history", self.data())

@@ -14,6 +14,8 @@ sys.path.insert(0, str(HERE.parent / "scripts"))
 import agnos_layout  # noqa: E402  RQ-PLG-036: the index and log names, as the scripts read them
 
 import perf_center  # noqa: E402
+sys.path.insert(0, str(HERE))
+from test_perf_center import run_main  # noqa: E402
 
 REPO = HERE.parents[3]
 SKILL_NAME = "agnos-perf-center"
@@ -57,7 +59,7 @@ class SkillNameTest(unittest.TestCase):
             process = Path(tmp) / "process"
             process.mkdir()
             (process / agnos_layout.INDEX).write_bytes((FIXTURE / "process" / agnos_layout.INDEX).read_bytes())
-            code = perf_center.main(["--process", str(process), "--sources", str(FIXTURE / "src")])
+            code, _, _ = run_main(["--process", str(process), "--sources", str(FIXTURE / "src")])   # TASK-TRC-118: RQ-TRC-131
             self.assertEqual(0, code)
             for output in OUTPUTS:
                 self.assertTrue((process / output).is_file(), output)

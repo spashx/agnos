@@ -60,11 +60,16 @@ class OptionalModuleTest(unittest.TestCase):
             os.chdir(previous)
 
     def test_RQ_TRC_039_given_no_call_graph_option_when_the_generator_runs_then_no_tree_sitter_module_is_imported(self):
-        probe = ("import sys, tempfile, pathlib; sys.path.insert(0, sys.argv[1]); import perf_center as tm\n"
-                 "out = pathlib.Path(tempfile.mkdtemp()) / 'page.html'\n"
-                 "code = tm.main(['--process', sys.argv[2], '--sources', sys.argv[3], '--out', str(out)])\n"
-                 "print(code, sorted(m for m in sys.modules if m.startswith(('tree_sitter', 'agnos_perf_center'))))")
-        done = subprocess.run([sys.executable, "-c", probe, str(SKILL / "scripts"), str(PROCESS), str(SOURCES)],
+        # TASK-TRC-118 (RQ-TRC-131): the graph is built first, then the page made from it; neither loads tree-sitter
+        probe = ("import sys, tempfile, pathlib; sys.path[:0] = [sys.argv[1], sys.argv[4]]\n"
+                 "import graph as gr, perf_center as tm\n"
+                 "folder = pathlib.Path(tempfile.mkdtemp()); graph = str(folder / 'graph.json')\n"
+                 "code = gr.main(['--process', sys.argv[2], '--sources', sys.argv[3], '--out', graph]) or "
+                 "tm.main(['--process', sys.argv[2], '--graph', graph, '--out', str(folder / 'page.html')])\n"
+                 "print(code, sorted(m for m in sys.modules if m.startswith(('tree_sitter', 'agnos_perf_center', "
+                 "'agnos_graph'))))")
+        done = subprocess.run([sys.executable, "-c", probe, str(SKILL / "scripts"), str(PROCESS), str(SOURCES),
+                               str(SKILL.parent / "agnos-graph" / "scripts")],
                               capture_output=True, text=True, timeout=120, check=False)
         self.assertEqual("0 []", done.stdout.strip().splitlines()[-1], done.stderr)
 
