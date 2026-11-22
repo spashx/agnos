@@ -28,7 +28,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-INI-021: Implement plan field conversion in init
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then the conversion in `init.ps1` and `init.sh`, and describe it in the skill's `SKILL.md`.
 - **Requirement refs**: RQ-INI-023
 - **ADR refs**: ADR-INI-004 (DEC-INI-017)
@@ -39,8 +39,8 @@ This plan implements the tasks in the format specified below.
   - Given the suite of `agnos-init`, Then all pass
 - **Dependencies**: TASK-INI-020
 - **Assignee**: AI
-- **Verification**: [filled at closure]
-- **Assumptions**: [filled at closure]
+- **Verification**: `PlanFieldConversionTest` written first: 2 failures before the code. After: 3 OK (CRLF plan, only the References lines renamed, Overview, task and `notes.md` unchanged, both scripts same bytes, `converted` reported; second run writes nothing, mtime kept, nothing reported; legacy `process/` moved then converted). Suite `agnos-init`: 48 OK, 0 skipped.
+- **Assumptions**: a section ends at the next heading line of any level; gawk under Git Bash needs `BINMODE=3` to keep CR bytes, ignored by other awks.
 
 ### TASK-INI-022: Rename plan fields across repository
 - **Tier**: L

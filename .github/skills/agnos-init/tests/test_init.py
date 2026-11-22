@@ -359,6 +359,60 @@ class ProcessFolderTest(InitCase):
         self.assertIn(": 0 entries, 0 documents", result.stdout)
 
 
+# RQ-INI-023 / DEC-INI-017: a plan written with the former reference names, in CRLF, a task's own field among them.
+PLAN_FILE = f"{FOLDER}/3.plan/PLAN-ABC-001-a.md"
+OLD_PLAN = (b"# PLAN-ABC-001: A\r\n\r\n## Overview\r\n- **Requirements**: RQ-ABC-009\r\n\r\n## References\r\n"
+            b"- **Requirements**: RQ-ABC-001,\r\n  RQ-ABC-002\r\n- **ADRs**: ADR-ABC-001\r\n"
+            b"- **Requirements handed to another component**: None\r\n\r\n## Tasks\r\n\r\n### TASK-ABC-001: Do it\r\n"
+            b"- **Requirements**: RQ-ABC-001")
+NEW_PLAN = OLD_PLAN.replace(b"## References\r\n- **Requirements**: RQ-ABC-001,",
+                            b"## References\r\n- **Requirement refs**: RQ-ABC-001,").replace(
+                            b"- **ADRs**: ADR-ABC-001", b"- **ADR refs**: ADR-ABC-001")
+CONVERTED = "converted "
+NOT_A_PLAN = f"{FOLDER}/3.plan/notes.md"
+
+
+class PlanFieldConversionTest(InitCase):
+    """RQ-INI-023 / DEC-INI-017: the former plan reference names are converted at every run."""
+
+    def test_RQ_INI_023_given_a_plan_with_former_names_when_run_then_only_its_references_lines_are_renamed(self):
+        """Given a CRLF plan with the former names under References, under its Overview and under a task, When either
+        script runs, Then only the two References lines are renamed And both scripts write the same bytes And the plan is
+        reported converted (RQ-INI-023)."""
+        files = {PLAN_FILE: OLD_PLAN, NOT_A_PLAN: OLD_PLAN}
+        for _, project, result in self.each_script(files):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(NEW_PLAN, (project / PLAN_FILE).read_bytes())
+            self.assertEqual(OLD_PLAN, (project / NOT_A_PLAN).read_bytes())
+            self.assertIn(f"{CONVERTED}{PLAN_FILE}", result.stdout)
+            self.assertNotIn(f"{CONVERTED}{NOT_A_PLAN}", result.stdout)
+
+    def test_RQ_INI_023_given_a_converted_project_when_run_again_then_nothing_is_written_nor_reported(self):
+        """Given a converted project, When run again, Then nothing is written And no converted line is reported (RQ-INI-023)."""
+        for name, runner in RUNNERS.items():
+            with self.subTest(script=name):
+                project = self.project(name, {PLAN_FILE: OLD_PLAN})
+                self.assertEqual(0, runner(project).returncode)
+                before = snapshot(project)
+                os.utime(project / PLAN_FILE, (OLD_TIME, OLD_TIME))
+                result = runner(project)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(before, snapshot(project))
+                self.assertEqual(OLD_TIME, int((project / PLAN_FILE).stat().st_mtime))
+                self.assertNotIn(CONVERTED, result.stdout)
+
+    def test_RQ_INI_023_given_a_legacy_folder_when_run_then_it_is_moved_then_converted(self):
+        """Given a project in the legacy process/ folder holding a plan with the former names, When run, Then it is moved
+        And its plan converted (RQ-INI-023, RQ-PLG-038)."""
+        legacy_plan = f"{LEGACY_FOLDER}/3.plan/PLAN-ABC-001-a.md"
+        files = {f"{LEGACY_FOLDER}/{LEGACY_INDEX}": b"# index\n", legacy_plan: OLD_PLAN}
+        for _, project, result in self.each_script(files):
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertIn(f"moved {LEGACY_FOLDER}", result.stdout)
+            self.assertEqual(NEW_PLAN, (project / PLAN_FILE).read_bytes())
+            self.assertIn(f"{CONVERTED}{PLAN_FILE}", result.stdout)
+
+
 NEW_FOLDER = "agnos-process"
 NEW_INDEX = "process.idx.md"
 MOVED = f"moved {LEGACY_FOLDER}"

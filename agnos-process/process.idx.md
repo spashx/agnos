@@ -874,7 +874,7 @@ TASK-INI-019|108-118|Done|Align guide tier table
 @agnos-process/3.plan/PLAN-INI-005-plan-reference-field-names.md
 PLAN-INI-005|1-59||Plan reference field names
 TASK-INI-020|17-28|Done|Record plan field names feature
-TASK-INI-021|29-44|Not Started|Implement plan field conversion in init
+TASK-INI-021|29-44|Done|Implement plan field conversion in init
 TASK-INI-022|45-59|Not Started|Rename plan fields across repository
 @agnos-process/3.plan/PLAN-MTA-001-toolkit-and-meta-separation.md
 PLAN-MTA-001|1-51||The Prefix and the Layers
