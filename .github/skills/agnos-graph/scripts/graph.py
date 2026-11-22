@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-TRC-077: the process folder's names, generated beside this script
+import explorer  # noqa: E402  RQ-TRC-144 / DEC-TRC-084: the graph explorer page, beside this script
 
 # RQ-TRC-067: a literal written more than once is a named constant.
 PROG = "agnos-graph"
@@ -596,12 +597,13 @@ def state_data(model, meta, tasks, call_graph=None, history=None, sections=(), l
     return data
 
 
-# RQ-TRC-129
+# RQ-TRC-129, RQ-TRC-156
 def write_state(path, data):
-    """The graph file, one sorted JSON document."""
+    """The graph file, one sorted JSON document; returns its text, which the explorer's data script holds (DEC-TRC-085)."""
+    text = json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n",
-                    encoding=ENCODING, newline="\n")
+    path.write_text(text, encoding=ENCODING, newline="\n")
+    return text
 
 
 # ---- command line ------------------------------------------------------------------------------------------------
@@ -629,6 +631,8 @@ def parse_args(argv):
     parser.add_argument("--history-since", help="with --history: only the commits authored since this date or duration "
                                                 "(a form git reads: 6.months, 2.weeks, 2026-01-01)")
     parser.add_argument("--history-depth", help="with --history: only the N most recent commits")
+    parser.add_argument("--explorer", action=STORE_TRUE,                 # RQ-TRC-144, DEC-TRC-085
+                        help=f"also write {explorer.PAGE_NAME} and {explorer.DATA_SCRIPT_NAME} beside the graph file")
     return parser.parse_args(argv)
 
 
@@ -699,10 +703,17 @@ def main(argv=None):
     except InputError as error:
         print(f"{PROG}: {error}", file=sys.stderr)
         return 1
-    write_state(out, data)
+    text = write_state(out, data)
+    written = out.as_posix()
+    if args.explorer:                                   # RQ-TRC-144, RQ-TRC-156: after the graph, which stays as written
+        try:
+            written += f", {explorer.write_explorer(out, text).as_posix()}"
+        except explorer.ExplorerError as error:
+            print(f"{PROG}: explorer not written: {error}", file=sys.stderr)
+            return 1
     print_scan_lists(extensions, args.ext, excludes, args.exclude)
     # RQ-TRC-107: the duration is printed only, never put in the generated file.
-    print(f"{line}; {out.as_posix()} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
+    print(f"{line}; {written} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
     return 0
 
 

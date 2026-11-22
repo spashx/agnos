@@ -66,7 +66,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-133: Generate explorer page shell
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then add `--explorer` to `graph.py`, the `assets/explorer/` template, style, tokens with `type-*-text`, and the shell: data loading and file drop, view model, three panels with splitters, node and relation tables, detail panel.
 - **Requirement refs**: RQ-TRC-144, RQ-TRC-145, RQ-TRC-146, RQ-TRC-147, RQ-TRC-148, RQ-TRC-149, RQ-TRC-154, RQ-TRC-155, RQ-TRC-156, RQ-TRC-157, RQ-TRC-018
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-084, DEC-TRC-085, DEC-TRC-088, DEC-TRC-089, DEC-TRC-091), ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010)
@@ -80,8 +80,8 @@ This plan implements the tasks in the format specified below.
   - Given a selected node, Then the detail panel lists its properties and relations with field and proofs
 - **Dependencies**: TASK-TRC-132
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: `test_explorer.py` written first (run stopped on the unknown `--explorer` option), then 16 OK, 0 skipped, the 8 page tests in headless Edge: page and data script beside the graph only with `--explorer`; graph bytes equal with and without it; data script = `window.AGNOS_GRAPH = <graph>`; page English, markers replaced; every node type has `type-*` and `type-*-text`; each text token at least 4.5:1 on surface, surface-subtle, surface-selected (lowest 4.76, FTR on surface-selected); no raw visual value in `explorer.css`, `explorer.js`; header date and counts; tables list every node (elements, sections, files) and relation (edges, section relations); sticky header, scrolling body, sort by click then reversed; `{}` named with "no elements list", graph kept; another valid graph replaces it; splitters move by the step token with the arrow keys; selected plan's detail lists its `ADR refs` relation and proof; type label colour equals `--s-type-rq-text`. `test_perf_center` RQ_TRC_144: graph folder holds the graph alone when the perf center builds it. Suites: agnos-graph 185 OK (`test_literals` extended to `explorer.py` and `explorer.js`; `IndependenceTest` expects `explorer`, the skill's own module, DEC-TRC-084); agnos-meta-release 153 OK; `layout.py --check` 0 findings; agnos-meta-demo the known `test_citations` failure only. Screenshots of this repository's explorer (1984 nodes, 11778 relations) checked; long cells capped by a token and ellipsed after review.
+- **Assumptions**: the default view is the node table until the graph view exists (TASK-TRC-134); sections relate to their parent by `contains` and to the IDs they cite by `refs` with no field, marked `origin: sections`; an undefined ID is shown with the type `UNDEFINED`; the header counts `elements` as the file lists them, undefined IDs included; the explorer writes no error page when its assets fail, `agnos-graph` exits 1 naming the asset.
 
 ### TASK-TRC-134: Implement explorer graph view
 - **Tier**: M

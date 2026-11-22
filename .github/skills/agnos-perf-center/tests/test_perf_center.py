@@ -994,6 +994,12 @@ class OnDemandGraphTest(unittest.TestCase):
         self.assertEqual(0, code, err)
         self.assertEqual(before, graph.read_bytes())
 
+    def test_RQ_TRC_144_given_no_graph_when_the_perf_center_builds_it_then_no_explorer_file_is_written(self):
+        """TASK-TRC-133: RQ-TRC-144 (DEC-TRC-085): Given no graph, When the perf center builds it, Then its folder holds the
+        graph file alone."""
+        self.assertEqual(0, self.generator()[0])
+        self.assertEqual([self.graph.name], sorted(p.name for p in self.graph.parent.iterdir()))
+
     def test_RQ_TRC_132_given_options_of_the_scan_when_the_graph_is_built_then_they_reach_it(self):
         code, _, err = self.generator("--ext", ".py", "--exclude", "dist")
         self.assertEqual(0, code, err)

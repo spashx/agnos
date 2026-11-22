@@ -204,7 +204,8 @@ class IndependenceTest(unittest.TestCase):
         tree = ast.parse((HERE.parent / "scripts" / "graph.py").read_text(encoding="utf-8"))
         imported = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
         imported |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
-        self.assertEqual({"agnos_layout"}, imported - set(sys.stdlib_module_names))
+        # explorer: the skill's own module beside the script (TASK-TRC-133, RQ-TRC-144 / DEC-TRC-084)
+        self.assertEqual({"agnos_layout", "explorer"}, imported - set(sys.stdlib_module_names))
 
 
 if __name__ == "__main__":

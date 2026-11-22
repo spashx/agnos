@@ -1,7 +1,7 @@
 ---
 name: agnos-graph
 description: "AGNOS project state graph: from the process index and the source folders, writes one dated JSON file of the project's state at a commit: the artifacts, their links with proofs, the IDs the sources cite, task tiers; on request the call graph and the history. Holds no score. USE FOR: giving a tool or agent the project's state; rebuilding the graph agnos-perf-center reads."
-argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]]"
+argument-hint: "--process <dir> --sources <dir> [--sources <dir>...] [--out <file>] [--ext <.x>...] [--exclude <pattern>...] [--generated-at <t>] [--call-graph] [--history [--history-since <date|duration>] [--history-depth <n>]] [--explorer]"
 ---
 
 # AGNOS Graph (Claude Code entry point)

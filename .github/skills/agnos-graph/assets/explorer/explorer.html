@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- Graph explorer page template (FTR-TRC-014; ADR-TRC-025: DEC-TRC-084, DEC-TRC-088; RQ-TRC-145, RQ-TRC-148, RQ-TRC-155).
+     graph.py --explorer replaces the markers: tokens, style, libraries, script, title, data script. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@TITLE@</title>
+<style>
+/*@TOKENS@*/
+/*@CSS@*/
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2.5"></circle><circle cx="19" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><path d="M7.3 7.2 10.6 16M16.7 7.2 13.4 16M7.5 6h9"></path></svg>
+      <h1>Graph explorer</h1>
+    </div>
+    <p id="graph-meta" class="graph-meta"></p>
+    <div class="header-actions">
+      <label class="button" for="file-input">Open graph file…</label>
+      <input id="file-input" type="file" accept=".json,application/json" class="visually-hidden">
+    </div>
+    <p id="load-message" class="load-message" role="status" aria-live="polite"></p>
+  </header>
+  <aside id="facets" class="panel" aria-label="Facets">
+    <section class="panel-section">
+      <h2 class="panel-title">Graph</h2>
+      <dl id="graph-summary" class="summary"></dl>
+    </section>
+    <section class="panel-section">
+      <h2 class="panel-title">Node types</h2>
+      <ul id="type-legend" class="legend"></ul>
+    </section>
+  </aside>
+  <div id="split-left" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+       aria-label="Resize the facets panel" aria-controls="facets"></div>
+  <main id="main">
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph">Graph</button>
+        <button type="button" role="tab" class="tab" data-view="nodes" id="tab-nodes">Nodes</button>
+        <button type="button" role="tab" class="tab" data-view="relations" id="tab-relations">Relations</button>
+      </div>
+      <p id="view-count" class="view-count"></p>
+    </div>
+    <section id="view-graph" class="view" role="tabpanel" aria-labelledby="tab-graph">
+      <div id="graph" class="graph-canvas"></div>
+    </section>
+    <section id="view-nodes" class="view" role="tabpanel" aria-labelledby="tab-nodes">
+      <div class="table-scroll">
+        <table id="node-table" class="data-table">
+          <thead><tr>
+            <th scope="col" data-key="id">ID</th><th scope="col" data-key="type">Type</th><th scope="col" data-key="tri">Trigram</th>
+            <th scope="col" data-key="status">Status</th><th scope="col" data-key="title">Title</th>
+            <th scope="col" data-key="location">Location</th><th scope="col" data-key="incoming">In</th><th scope="col" data-key="outgoing">Out</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="view-relations" class="view" role="tabpanel" aria-labelledby="tab-relations">
+      <div class="table-scroll">
+        <table id="relation-table" class="data-table">
+          <thead><tr>
+            <th scope="col" data-key="source">Source</th><th scope="col" data-key="target">Target</th><th scope="col" data-key="kind">Kind</th>
+            <th scope="col" data-key="field">Field</th><th scope="col" data-key="line">Line</th><th scope="col" data-key="proof">Proof</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <div id="split-right" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+       aria-label="Resize the detail panel" aria-controls="detail"></div>
+  <aside id="detail" class="panel" aria-label="Detail" aria-live="polite"></aside>
+</div>
+<div id="drop-zone" class="drop-zone" hidden><p>Drop a graph file to explore it</p></div>
+@LIBRARIES@
+<script src="@DATA_SCRIPT@"></script>
+<script>
+/*@SCRIPT@*/
+</script>
+</body>
+</html>

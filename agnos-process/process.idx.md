@@ -1247,7 +1247,7 @@ PLAN-TRC-026|1-159||Graph explorer
 TASK-TRC-130|19-33|Done|Document graph explorer feature
 TASK-TRC-131|34-50|Done|Move graph file into graph folder
 TASK-TRC-132|51-66|Done|Rename performance center outputs to lowercase
-TASK-TRC-133|67-85|Not Started|Generate explorer page shell
+TASK-TRC-133|67-85|Done|Generate explorer page shell
 TASK-TRC-134|86-100|Not Started|Implement explorer graph view
 TASK-TRC-135|101-115|Not Started|Implement explorer query language
 TASK-TRC-136|116-130|Not Started|Implement saved query buttons
