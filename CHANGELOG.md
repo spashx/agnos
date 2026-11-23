@@ -9,10 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Every new decision of an ADR names its `Requirement refs` and its `Dependencies` on other decisions, and its `Rationale` may no longer be "None"; the demo and the user's guide show the four fields, existing decisions are not rewritten <!-- TASK-PLG-096, RQ-PLG-040 -->
 - The plan template names its references `Requirement refs` and `ADR refs`, as the task template does; `agnos-init` renames the former `Requirements` and `ADRs` lines of each plan's `## References` section when it updates a project, reported `converted <path>`; this repository, the demo and the user's guide are converted <!-- TASK-INI-021, TASK-INI-022, RQ-INI-022, RQ-INI-023 -->
+- The graph file moves to its own folder, `agnos-process/4.knowledge/graph/agnos-graph.json`, where `agnos-perf-center` reads it; a former `4.knowledge/agnos-graph.json` is left as it is <!-- TASK-TRC-131, RQ-TRC-142 -->
+- The Performance Center's outputs are lowercase: `perf-center.html`, `perf-center.json`, `perf-center.data.js`; update ignore rules and links to the former `PERF-CENTER.*` names <!-- TASK-TRC-132, RQ-TRC-143 -->
 
 ### Added
 - `agnos-graph.json` holds a `sections` block: the `##` sections of the features, ADRs and plans that hold no requirement, decision or task, their `###` subsections, and the IDs each cites; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-125, TASK-TRC-126, RQ-TRC-134 to RQ-TRC-137 -->
 - `agnos-graph.json` holds a `links` block: for each citation made by a requirement, a decision, a task or a plan, the link field holding it (`Requirement refs`, `ADR refs`, `Dependencies`) or `text`, so that a declared link is told from a mention; features and ADRs keep untyped links; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-128, TASK-TRC-129, RQ-TRC-138 to RQ-TRC-141 -->
+- `agnos-graph --explorer` writes `graph-explorer.html` and `agnos-graph.data.js` beside the graph: a page, opened from disk, to explore every node, relation and property of the graph (link fields, sections, files, functions, calls, history), with a graph view of movable nodes, sortable tables, facets, a query language (`type:RQ !cited-by:TASK[Requirement refs]`, `edge kind:refs field:text`) and saved query buttons; the graph file is the same with or without it, and the Performance Center never writes it <!-- TASK-TRC-133 to TASK-TRC-138, RQ-TRC-144 to RQ-TRC-158 -->
 
 ## [4.0.0]
 

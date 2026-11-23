@@ -834,6 +834,7 @@
     }
     render();
     initGraph();
+    document.documentElement.dataset.firstViewMs = String(Math.round(performance.now()));   // RQ-TRC-158: read by the tests
   }
 
   function loadText(name, text) {

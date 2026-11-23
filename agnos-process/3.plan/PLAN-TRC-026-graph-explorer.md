@@ -144,7 +144,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-138: Verify explorer on repository and demo
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Build the graph and its explorer for this repository and the demo, time the explorer's first view, compare the graph and the performance center's data with the base commit, rebuild and verify the demo, and add the changelog entry.
 - **Requirement refs**: RQ-TRC-156, RQ-TRC-158, RQ-TRC-142, RQ-TRC-143
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-085, DEC-TRC-086, DEC-TRC-087)
@@ -155,5 +155,5 @@ This plan implements the tasks in the format specified below.
   - Given the demo, When `build.ps1 -Verify` runs, Then it reports 0 failed
 - **Dependencies**: TASK-TRC-136, TASK-TRC-137
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: This repository, fixed date, `--call-graph --history`: graph byte-identical with and without `--explorer`; explorer's first view drawn at 3045 ms (4720 nodes, 21524 relations), `LoadTimeTest` (run with `AGNOS_GRAPH_PERF=1`) OK. Base `a92a72c` (worktree) vs HEAD, same inputs: graph, perf center page, `.json`, `.data.js` byte-identical (outputs named by `--out`). Demo: `build.ps1 -Verify` "28 passed, 0 failed"; its graph byte-identical with and without `--explorer`. `test_explorer.py` and `test_literals.py` OK after the timing mark; CHANGELOG `[Unreleased]` Changed (graph folder, lowercase outputs) and Added (explorer) entries.
+- **Assumptions**: the first view time is the page's `performance.now()` once the graph and its views are drawn, written as `data-first-view-ms`; `LoadTimeTest` is skipped unless `AGNOS_GRAPH_PERF=1`, as the performance center's performance tests are.

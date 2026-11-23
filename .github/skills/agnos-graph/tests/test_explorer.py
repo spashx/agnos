@@ -452,6 +452,31 @@ class CallGraphAndHistoryTest(unittest.TestCase):
         self.assertIn("Tester", found["text"])
 
 
+LOAD_LIMIT_MS = 5000          # RQ-TRC-158
+
+
+@unittest.skipUnless(ONLINE and HAS_TREE_SITTER and os.environ.get("AGNOS_GRAPH_PERF"),
+                     "set AGNOS_GRAPH_PERF=1 (needs a browser, cdnjs and tree-sitter): builds this repository's graph")
+class LoadTimeTest(unittest.TestCase):
+    """TASK-TRC-138: RQ-TRC-158: this repository's graph with call graph and history, first view under 5 s."""
+
+    def test_RQ_TRC_158_given_this_repository_graph_then_the_first_view_is_drawn_in_less_than_5_s(self):
+        repo = HERE.parents[3]
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(repo / "agnos-process"), "--sources", str(repo / ".github"), "--out", str(out),
+                                     "--call-graph", "--history", "--explorer"])
+            self.assertEqual(0, code, err)
+            env = {k: v for k, v in os.environ.items() if k.upper() != COMPAT_LAYER_VAR}
+            with tempfile.TemporaryDirectory() as profile:
+                done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", f"--user-data-dir={profile}",
+                                       f"--window-size={BROWSER_WINDOW}", "--dump-dom", (out.parent / PAGE_NAME).resolve().as_uri()],
+                                      capture_output=True, timeout=300, check=False, env=env)
+            found = re.search(r'data-first-view-ms="(\d+)"', done.stdout.decode("utf-8", errors="replace"))
+            self.assertIsNotNone(found)
+            self.assertLess(int(found.group(1)), LOAD_LIMIT_MS)
+
+
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
 class GraphViewTest(unittest.TestCase):
     """TASK-TRC-134: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154 (DEC-TRC-090, DEC-TRC-091), in a headless browser."""
