@@ -210,11 +210,20 @@ the graph; a server.
 ### RQ-TRC-165: Graph legend
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The explorer's graph view SHALL show a legend of the colour of each node type and the look of each relation kind present in the loaded graph, drawn from the same tokens as the graph, which the reader can fold.
+- **Statement**: The explorer's graph view SHALL show, as a horizontal band along its bottom edge, a legend of the colour of each node type and the look of each relation kind present in the loaded graph, drawn from the same tokens as the graph, which the reader can fold. <!-- amended 2026-11-23, TASK-TRC-148: a band at the bottom, as the performance center's legend (owner) -->
 - **Rationale**: the colours and the dashed or plain lines were read without a key (owner, 2026-11-23).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the graph view of a graph with requirements and `contains` relations, Then the legend lists RQ with its type colour And `contains` with a dashed line of its colour; When the legend is folded, Then only its title stays.
+- **Acceptance Criteria**: Given the graph view of a graph with requirements and `contains` relations, Then the legend lists RQ with its type colour And `contains` with a dashed line of its colour, on one wrapped row at the bottom of the view; When the legend is folded, Then only its title stays.
 - **Dependencies**: RQ-TRC-147, RQ-TRC-018
+
+### RQ-TRC-166: Layout direction choice
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader chooses the left-to-right or top-to-bottom direction, the explorer SHALL arrange the type columns, tree and grid layouts in that direction, and SHALL disable the choice for the layouts that have none.
+- **Rationale**: a chain of types or a tree reads across or down depending on the graph's shape (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the type columns layout, When "Top to bottom" is chosen, Then the nodes of one type share one row And the types follow one another downwards; When "Circle" is chosen, Then the direction choice is disabled.
+- **Dependencies**: RQ-TRC-162
 
 ---
 

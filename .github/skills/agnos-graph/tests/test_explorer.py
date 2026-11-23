@@ -263,6 +263,26 @@ class ExplorerPageTest(unittest.TestCase):
         self.assertEqual("none", found["folded"])
         self.assertNotEqual("none", found["title"])
 
+    def test_RQ_TRC_165_given_the_graph_view_then_the_legend_is_a_wrapped_band_along_its_bottom(self):
+        # TASK-TRC-148: as the performance center's legend
+        found = self.run_page(
+            "agnosExplorer.showView('graph'); const view = document.getElementById('view-graph').getBoundingClientRect();"
+            "const legend = document.getElementById('graph-legend'); const box = legend.getBoundingClientRect();"
+            "r('gap', view.bottom - box.bottom); r('wide', box.width > box.height);"
+            "const items = [...legend.querySelectorAll('li')].map((li) => li.getBoundingClientRect());"
+            "r('rows', items[1].top === items[0].top && items[1].left > items[0].left);")
+        self.assertLess(float(found["gap"]), 40)
+        self.assertGreaterEqual(float(found["gap"]), 0)
+        self.assertEqual(("true", "true"), (found["wide"], found["rows"]))
+
+    def test_RQ_TRC_146_given_an_undefined_task_id_selected_then_the_detail_names_its_type_as_not_defined(self):
+        # TASK-TRC-148: the note of TASK-TRC-147 holds for every type, not only ADR
+        graph = {"elements": [{"id": "TASK-ZZZ-001", "kind": "undefined", "type": "TASK", "tri": "ZZZ", "title": "", "doc": "",
+                               "first": 0, "last": 0, "status": ""}], "edges": []}
+        found = self.run_page(f"agnosExplorer.loadText('g.json', {json.dumps(json.dumps(graph))});"
+                              "agnosExplorer.select('TASK-ZZZ-001'); r('note', document.querySelector('#detail .detail-empty').textContent);")
+        self.assertIn("cited TASK ID, not defined in the index", found["note"])
+
     def test_RQ_TRC_145_given_a_file_without_elements_then_it_is_named_and_the_graph_stays(self):
         found = self.run_page("const before = agnosExplorer.counts().nodes; agnosExplorer.loadText('bad.json', '{}');"
                               "r('message', document.getElementById('load-message').textContent);"

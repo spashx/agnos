@@ -6,7 +6,7 @@ scrollbars, relation kind filter applied to the graph, automatic layouts, a cont
 a legend.
 
 ## References
-- **Requirement refs**: RQ-TRC-151, RQ-TRC-159, RQ-TRC-160, RQ-TRC-161, RQ-TRC-162, RQ-TRC-163, RQ-TRC-164, RQ-TRC-165, RQ-TRC-156, RQ-TRC-158
+- **Requirement refs**: RQ-TRC-151, RQ-TRC-159, RQ-TRC-160, RQ-TRC-161, RQ-TRC-162, RQ-TRC-163, RQ-TRC-164, RQ-TRC-165, RQ-TRC-166, RQ-TRC-156, RQ-TRC-158
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-090, DEC-TRC-094, DEC-TRC-095); design system ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010), RQ-TRC-018
 - **Requirements handed to another component**: None; every change stays in the explorer's assets of `agnos-graph`.
 
@@ -135,3 +135,31 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: the UNDEFINED type is kept: the ID is no artifact, as the performance center classes it.
+
+### TASK-TRC-148: Move graph legend to bottom band
+- **Tier**: M
+- **Status**: Done
+- **Description**: Amend RQ-TRC-165, write the tests first, then lay the legend out as a wrapped horizontal band along the graph's bottom edge, as the performance center's, and test the undefined node note on a type other than ADR.
+- **Requirement refs**: RQ-TRC-165, RQ-TRC-146
+- **ADR refs**: ADR-TRC-025 (DEC-TRC-091)
+- **Acceptance Criteria**:
+  - Given the graph view, Then the legend's bottom edge is near the view's bottom And its items run in rows, left to right
+  - Given an undefined TASK ID selected, Then the detail says a cited TASK ID is not defined in the index
+- **Dependencies**: TASK-TRC-145, TASK-TRC-147
+- **Assignee**: AI
+- **Verification**: `..._legend_is_a_wrapped_band_along_its_bottom` failed first (368 px above the bottom), then OK (within 40 px, items in a row, wider than tall); `..._undefined_task_id_..._names_its_type_...` OK at once, as TASK-TRC-147's note reads any type's prefix. With the RQ-TRC-165 fold test: 3 OK, 0 skipped.
+- **Assumptions**: RQ-TRC-165 amended with a dated comment; the band keeps the fold button first, then the types, then the kinds.
+
+### TASK-TRC-149: Add layout direction choice
+- **Tier**: L
+- **Status**: Not Started
+- **Description**: Add RQ-TRC-166, amend DEC-TRC-094, write the tests first, then add a direction selector that transposes the type columns, tree and grid layouts, disabled for the others.
+- **Requirement refs**: RQ-TRC-166, RQ-TRC-162
+- **ADR refs**: ADR-TRC-025 (DEC-TRC-094)
+- **Acceptance Criteria**:
+  - Given the type columns layout, When "Top to bottom" is chosen, Then the nodes of one type share one row And the types follow one another downwards
+  - Given "Circle" chosen, Then the direction selector is disabled
+- **Dependencies**: TASK-TRC-143
+- **Assignee**: AI
+- **Verification**:
+- **Assumptions**:
