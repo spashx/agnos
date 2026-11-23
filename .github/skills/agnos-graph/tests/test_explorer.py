@@ -419,6 +419,16 @@ class SavedQueriesTest(unittest.TestCase):
                                                      "const labels = () => [...document.querySelectorAll('#saved-queries .saved-run')]"
                                                      ".map((b) => b.textContent).join('|');" + script))
 
+    def test_RQ_TRC_164_given_the_buttons_being_edited_then_every_control_has_a_tooltip_and_the_tools_read_words(self):
+        # TASK-TRC-144: a node is selected, so that the detail panel's controls exist too
+        found = self.run_page(
+            "document.querySelector('[data-saved=\"manage\"]').click(); agnosExplorer.select('RQ-DEM-001');"
+            "const controls = [...document.querySelectorAll('button, input, select, label.button, [role=tab]')];"
+            "r('untitled', controls.filter((c) => !(c.title || '').trim()).map((c) => c.id || c.className || c.tagName).join('|'));"
+            "r('tools', [...new Set([...document.querySelectorAll('.saved-tool')].map((b) => b.textContent))].join('|'));")
+        self.assertEqual("", found["untitled"])
+        self.assertEqual("Edit|Move left|Move right|Delete", found["tools"])
+
     def test_RQ_TRC_153_given_an_empty_store_then_the_default_buttons_are_shown(self):
         found = self.run_page("r('labels', labels());")
         self.assertEqual("|".join(p["label"] for p in self.presets), found["labels"])

@@ -286,6 +286,7 @@
   function renderFacets() {
     $("facet-list").innerHTML = FACETS.map((facet) => {
       const values = facetCounts(facet).map(([value, n]) => `<li><label><input type="checkbox" value="${escapeHtml(value)}"`
+        + ` title="Show or hide ${escapeHtml(value)} (${n}); with the query focused, write its term"`
         + `${state.off[facet.key].has(value) ? "" : " checked"}>${facet.key === FACET_TYPE ? `${swatch(value)}${typeLabel(value)}`
         : `<span>${escapeHtml(value)}</span>`}<span class="count">${n}</span></label></li>`).join("");
       // RQ-TRC-160 (TASK-TRC-141): every value of the facet checked or unchecked in one click
@@ -493,24 +494,31 @@
   function savedEditor() {
     const item = saved.editing === EDIT_NEW ? { label: "", query: $(ID_QUERY).value.trim() } : saved.list[saved.editing];
     return `<form class="saved-editor" id="saved-editor"><label class="query-label" for="saved-label">Label</label>`
-      + `<input id="saved-label" type="text" value="${escapeHtml(item.label)}" required>`
+      + `<input id="saved-label" type="text" title="The button's label" value="${escapeHtml(item.label)}" required>`
       + `<label class="query-label" for="saved-query">Query</label>`
-      + `<input id="saved-query" type="text" spellcheck="false" value="${escapeHtml(item.query)}">`
-      + `<button type="submit" class="button button-primary">Save</button>`
-      + `<button type="button" class="button" data-saved="cancel">Cancel</button></form>`;
+      + `<input id="saved-query" type="text" title="The query the button runs" spellcheck="false" value="${escapeHtml(item.query)}">`
+      + `<button type="submit" class="button button-primary" title="Keep this button">Save</button>`
+      + `<button type="button" class="button" data-saved="cancel" title="Close without saving">Cancel</button></form>`;
   }
 
   function renderSaved() {
-    const tool = (action, index, text, label) => `<button type="button" class="saved-tool" data-saved="${action}" data-index="${index}"`
-      + ` aria-label="${label}">${text}</button>`;
-    const items = saved.list.map((q, i) => `<span class="saved-item"><button type="button" class="chip saved-run" data-index="${i}"`
-      + ` title="${escapeHtml(q.query)}">${escapeHtml(q.label)}</button>${saved.managing ? tool("edit", i, "✎", `Edit ${escapeHtml(q.label)}`)
-      + tool("left", i, "‹", "Move left") + tool("right", i, "›", "Move right") + tool("delete", i, "×", `Delete ${escapeHtml(q.label)}`) : ""}</span>`);
+    /* RQ-TRC-164 (TASK-TRC-144): every tool reads a word and has a tooltip naming its button. */
+    const tool = (action, index, text, tip) => `<button type="button" class="saved-tool" data-saved="${action}" data-index="${index}"`
+      + ` title="${tip}">${text}</button>`;
+    const items = saved.list.map((q, i) => {
+      const label = escapeHtml(q.label);
+      const tools = saved.managing ? tool("edit", i, "Edit", `Edit the label and query of ${label}`)
+        + tool("left", i, "Move left", `Move ${label} one place left`) + tool("right", i, "Move right", `Move ${label} one place right`)
+        + tool("delete", i, "Delete", `Delete ${label}`) : "";
+      return `<span class="saved-item"><button type="button" class="chip saved-run" data-index="${i}"`
+        + ` title="Run: ${escapeHtml(q.query)}">${label}</button>${tools}</span>`;
+    });
     const manage = saved.managing
-      ? `<button type="button" class="button" data-saved="export">Export…</button><button type="button" class="button" data-saved="import">Import…</button>`
-        + `<button type="button" class="button" data-saved="done">Done</button>`
-      : `<button type="button" class="button" data-saved="manage">Edit buttons</button>`;
-    $(ID_SAVED).innerHTML = `${items.join("")}<button type="button" class="button" data-saved="new">+ Save query</button>${manage}`
+      ? `<button type="button" class="button" data-saved="export" title="Save the buttons to a JSON file">Export…</button>`
+        + `<button type="button" class="button" data-saved="import" title="Replace the buttons by those of an exported file">Import…</button>`
+        + `<button type="button" class="button" data-saved="done" title="Stop editing the buttons">Done</button>`
+      : `<button type="button" class="button" data-saved="manage" title="Edit, move, delete, export or import the buttons">Edit buttons</button>`;
+    $(ID_SAVED).innerHTML = `${items.join("")}<button type="button" class="button" data-saved="new" title="Save the current query as a button">+ Save query</button>${manage}`
       + `${saved.editing === null ? "" : savedEditor()}`;
   }
 
@@ -628,7 +636,7 @@
     const field = fieldOf(relation);
     const proofs = relation.proofs.map((p) => `<span class="proof">L${p.line}  ${escapeHtml(p.text)}${
       p.field ? `  [${escapeHtml(p.field)}]` : ""}</span>`).join("");
-    return `<li><button type="button" class="relation-link" data-node="${escapeHtml(other)}">`
+    return `<li><button type="button" class="relation-link" data-node="${escapeHtml(other)}" title="Select ${escapeHtml(other)}">`
       + `<span class="relation-head"><span>${outgoing ? "outgoing →" : "← incoming"}</span>`
       + `<span class="relation-end">${escapeHtml(other)}</span><span class="pill">${escapeHtml(relation.kind)}</span>`
       + `${field === NO_VALUE ? "" : `<span class="pill">${escapeHtml(field)}</span>`}</span>${proofs}</button></li>`;
@@ -645,8 +653,10 @@
     const props = Object.keys(node.props).sort(compare)
       .map((k) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(propertyValue(node.props[k]))}</dd>`).join("");
     const relations = [...node.outgoing.map((r) => relationItem(r, true)), ...node.incoming.map((r) => relationItem(r, false))];
-    const actions = [[ACTION_HIDE, "Hide"], [ACTION_ISOLATE, "Isolate neighbourhood"], [ACTION_WIDEN, "Widen by one hop"]]
-      .map(([action, label]) => `<button type="button" class="button" data-action="${action}">${label}</button>`).join("");
+    const actions = [[ACTION_HIDE, "Hide", "Hide this node in every view"],
+                     [ACTION_ISOLATE, "Isolate neighbourhood", "Show only this node and the nodes one relation away"],
+                     [ACTION_WIDEN, "Widen by one hop", "Add the nodes one more relation away"]]
+      .map(([action, label, tip]) => `<button type="button" class="button" data-action="${action}" title="${tip}">${label}</button>`).join("");
     panel.innerHTML = `${typeLabel(node.type)}<p class="detail-id">${escapeHtml(node.id)}</p>`
       + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p><div class="detail-actions">${actions}</div>`
       + `<h2 class="panel-title">Properties</h2><dl class="properties">${props}</dl>`
@@ -750,7 +760,7 @@
   // ---- hiding and isolating (RQ-TRC-154) ----------------------------------------------------------------------
   function renderHidden() {
     const chips = [...state.hiddenNodes].sort(compare).map((id) => `<button type="button" class="chip" data-unhide="${escapeHtml(id)}"`
-      + ` aria-label="Show ${escapeHtml(id)} again">${escapeHtml(id)} ×</button>`);
+      + ` aria-label="Show ${escapeHtml(id)} again" title="Show ${escapeHtml(id)} again">${escapeHtml(id)} ×</button>`);
     const parts = [];
     if (chips.length) parts.push(`<span class="chip-note">Hidden:</span>`, ...chips);
     if (state.isolate) parts.push(`<span class="chip-note">Neighbourhood isolated: ${state.isolate.size} nodes</span>`);
@@ -1006,7 +1016,7 @@
   function setColumnWidth(table, th, width) {
     /* A fixed table is as wide as its columns, so that one column grows without shrinking the others. */
     th.style.width = Math.max(tokenNumber(TOKEN_COLUMN_MIN), width) + UNIT_PX;
-    table.style.width = [...table.tHead.rows[0].cells].reduce((sum, cell) => sum + parseFloat(cell.style.width), 0) + UNIT_PX;
+    table.style.width = [...table.tHead.rows[0].cells].reduce((sum, cell) => sum + Number.parseFloat(cell.style.width), 0) + UNIT_PX;
   }
 
   function wireColumns(table) {

@@ -85,7 +85,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-144: Label controls with tooltips
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the test first, then replace the saved query tool symbols by words and give every control a tooltip.
 - **Requirement refs**: RQ-TRC-164, RQ-TRC-155
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-093)
@@ -93,8 +93,8 @@ This plan implements the tasks in the format specified below.
   - Given the buttons being edited, Then every button, tab, checkbox and field has a non-empty `title` And the tools read "Edit", "Move left", "Move right", "Delete"
 - **Dependencies**: TASK-TRC-141, TASK-TRC-143
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `..._RQ_TRC_164_...` failed first (file input, checkboxes, tools... untitled), then OK: 0 untitled control with the buttons edited and a node selected, tools "Edit|Move left|Move right|Delete". With `SavedQueriesTest`: 6 OK, 0 skipped.
+- **Assumptions**: a tooltip is the `title` attribute; the menu items of TASK-TRC-143 already had theirs.
 
 ### TASK-TRC-145: Show graph legend
 - **Tier**: M

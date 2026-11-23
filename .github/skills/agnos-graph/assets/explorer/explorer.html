@@ -21,8 +21,8 @@
     </div>
     <p id="graph-meta" class="graph-meta"></p>
     <div class="header-actions">
-      <label class="button" for="file-input">Open graph file…</label>
-      <input id="file-input" type="file" accept=".json,application/json" class="visually-hidden">
+      <label class="button" for="file-input" title="Open an agnos-graph.json file from the disk; dropping it on the page works too">Open graph file…</label>
+      <input id="file-input" title="Choose an agnos-graph.json file" type="file" accept=".json,application/json" class="visually-hidden">
     </div>
     <p id="load-message" class="load-message" role="status" aria-live="polite"></p>
   </header>
@@ -39,32 +39,32 @@
     <section class="query-bar" aria-label="Query">
       <div class="query-row">
         <label for="query" class="query-label">Query</label>
-        <input id="query" type="text" spellcheck="false" autocomplete="off"
+        <input id="query" title="Type a query, then press Enter or Run; click a facet value while this field is focused to write its term" type="text" spellcheck="false" autocomplete="off"
                placeholder="type:RQ tri:TRC status:!Done   ·   type:RQ !cited-by:TASK[Requirement refs]   ·   edge kind:refs field:text">
-        <button type="button" class="button button-primary" id="query-run">Run</button>
-        <button type="button" class="button" id="query-clear">Clear</button>
+        <button type="button" class="button button-primary" id="query-run" title="Run the query in every view">Run</button>
+        <button type="button" class="button" id="query-clear" title="Clear the query and show what the facets allow">Clear</button>
       </div>
       <div id="saved-queries" class="saved-queries" aria-label="Saved queries"></div>
-      <input id="saved-import-file" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
+      <input id="saved-import-file" title="Choose an exported file of saved queries" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
       <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
     </section>
     <div class="toolbar">
       <div class="tabs" role="tablist" aria-label="Views">
-        <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph">Graph</button>
-        <button type="button" role="tab" class="tab" data-view="nodes" id="tab-nodes">Nodes</button>
-        <button type="button" role="tab" class="tab" data-view="relations" id="tab-relations">Relations</button>
+        <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph" title="Show the graph of the shown nodes and relations">Graph</button>
+        <button type="button" role="tab" class="tab" data-view="nodes" id="tab-nodes" title="Show the table of the shown nodes">Nodes</button>
+        <button type="button" role="tab" class="tab" data-view="relations" id="tab-relations" title="Show the table of the shown relations">Relations</button>
       </div>
       <div class="graph-controls">
-        <button type="button" class="button graph-control" id="graph-zoom-out" aria-label="Zoom out">−</button>
-        <button type="button" class="button graph-control" id="graph-zoom-in" aria-label="Zoom in">+</button>
-        <button type="button" class="button graph-control" id="graph-fit">Fit</button>
+        <button type="button" class="button graph-control" id="graph-zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" class="button graph-control" id="graph-zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="button graph-control" id="graph-fit" title="Fit the shown nodes to the view">Fit</button>
         <!-- RQ-TRC-162, DEC-TRC-094: the automatic layouts -->
         <label class="query-label graph-control" for="graph-layout">Layout</label>
         <select id="graph-layout" class="select graph-control" title="Arrange the shown nodes with an automatic layout">
           <option value="columns">Type columns</option><option value="grid">Grid</option><option value="circle">Circle</option>
           <option value="concentric">Concentric</option><option value="breadthfirst">Tree</option><option value="cose">Force-directed</option>
         </select>
-        <button type="button" class="button" id="show-all">Show all</button>
+        <button type="button" class="button" id="show-all" title="Check every facet value, clear the query, the hidden nodes and the isolation">Show all</button>
       </div>
       <p id="view-count" class="view-count"></p>
     </div>
