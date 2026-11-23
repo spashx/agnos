@@ -98,7 +98,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-145: Show graph legend
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the test first, then draw a foldable legend over the graph view, of the node types and relation kinds present, from the graph's tokens.
 - **Requirement refs**: RQ-TRC-165
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-090, DEC-TRC-091)
@@ -106,8 +106,8 @@ This plan implements the tasks in the format specified below.
   - Given a graph with RQ and `contains`, Then the legend lists RQ with its colour And `contains` dashed; When folded, Then only its title stays
 - **Dependencies**: TASK-TRC-140
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `..._RQ_TRC_165_...` failed first (no legend), then OK: RQ swatch = `--s-type-rq`, `contains` line dashed in `--c-graph-edge-contains`, body `display: none` once folded, title kept. With `..._RQ_TRC_164_...` and `..._DEC_TRC_010_...`: 3 OK, 0 skipped.
+- **Assumptions**: the legend sits over the graph's top left corner, with each type's and kind's count; token `dimension.legend-line` 24 px.
 
 ### TASK-TRC-146: Verify explorer review corrections
 - **Tier**: M

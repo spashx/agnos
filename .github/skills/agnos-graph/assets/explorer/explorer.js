@@ -113,6 +113,9 @@
   const MENU_SELECT = "select";
   const HOPS = [1, 2, 3];
   const KEY_ESCAPE = "Escape";
+  const ID_LEGEND = "graph-legend";                 // RQ-TRC-165
+  const CLASS_FOLDED = "folded";
+  const KIND_NAMES = { contains: "contains", refs: "refs (cites)", code: "code (cited in code)", call: "call" };
   const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
   const $ = (id) => document.getElementById(id);
@@ -272,6 +275,7 @@
                      ["Files", (graph.files || []).length], ["Nodes", nodes.size], ["Relations", relations.length]];
     $("graph-summary").innerHTML = summary.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
     renderFacets();
+    renderLegend();
   }
 
   // ---- facets (RQ-TRC-151) ------------------------------------------------------------------------------------
@@ -303,6 +307,29 @@
     state.off[key] = checked ? new Set() : new Set(facetCounts(facet).map(([value]) => value));
     renderFacets();
     refresh();
+  }
+
+  // ---- graph legend (RQ-TRC-165, TASK-TRC-145) ----------------------------------------------------------------
+  function renderLegend() {
+    /* The node types and relation kinds of the loaded graph, each with its count, drawn from the graph's tokens. */
+    const { nodes, relations } = state.model;
+    const typeCounts = new Map();
+    for (const n of nodes.values()) typeCounts.set(n.type, (typeCounts.get(n.type) || 0) + 1);
+    const kindCounts = new Map();
+    for (const r of relations) kindCounts.set(r.kind, (kindCounts.get(r.kind) || 0) + 1);
+    const count = (n) => `<span class="count">${n}</span>`;
+    const types = TYPE_ORDER.filter((t) => typeCounts.has(t))
+      .map((t) => `<li data-type="${t}">${swatch(t)}${typeLabel(t)}${count(typeCounts.get(t))}</li>`).join("");
+    const kinds = [...kindCounts.keys()].sort(compare)
+      .map((k) => `<li data-kind="${escapeHtml(k)}"><span class="legend-line" aria-hidden="true"></span><span>${escapeHtml(KIND_NAMES[k] || k)}</span>`
+        + `${count(kindCounts.get(k))}</li>`).join("");
+    $(ID_LEGEND).querySelector(".legend-body").innerHTML = `<ul class="legend">${types}</ul><ul class="legend">${kinds}</ul>`;
+  }
+
+  function toggleLegend() {
+    const legend = $(ID_LEGEND);
+    const folded = legend.classList.toggle(CLASS_FOLDED);
+    legend.querySelector(".legend-toggle").setAttribute("aria-expanded", String(!folded));
   }
 
   // ---- query language (RQ-TRC-152, DEC-TRC-092) ---------------------------------------------------------------
@@ -1081,6 +1108,7 @@
     // RQ-TRC-162, RQ-TRC-163: the layout selector and the context menu
     $(ID_LAYOUT).addEventListener("change", () => applyLayout($(ID_LAYOUT).value));
     $(ID_MENU).addEventListener(EVENT_CLICK, onMenuClick);
+    $(ID_LEGEND).querySelector(".legend-toggle").addEventListener(EVENT_CLICK, toggleLegend);   // RQ-TRC-165
     $(VIEW_GRAPH).addEventListener("contextmenu", (event) => event.preventDefault());
     document.addEventListener(EVENT_KEYDOWN, (event) => { if (event.key === KEY_ESCAPE) closeMenu(); });
     document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENU}`)) closeMenu(); });

@@ -248,6 +248,21 @@ class ExplorerPageTest(unittest.TestCase):
         self.assertEqual("true", found["sorted"])
         self.assertEqual(found["token"], found["min"])
 
+    def test_RQ_TRC_165_given_the_graph_view_then_the_legend_shows_types_and_kinds_from_tokens_and_folds(self):
+        # TASK-TRC-145
+        found = self.run_page(
+            "const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();"
+            "const rgb = (c) => { const d = document.createElement('i'); d.style.color = c; document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return v; };"
+            "const legend = document.getElementById('graph-legend');"
+            "const rq = legend.querySelector('[data-type=\"RQ\"] .swatch'); r('rq', getComputedStyle(rq).backgroundColor === rgb(css('--s-type-rq')));"
+            "const line = legend.querySelector('[data-kind=\"contains\"] .legend-line'); const s = getComputedStyle(line);"
+            "r('dashed', s.borderTopStyle); r('colour', s.borderTopColor === rgb(css('--c-graph-edge-contains')));"
+            "legend.querySelector('.legend-toggle').click(); r('folded', getComputedStyle(legend.querySelector('.legend-body')).display);"
+            "r('title', getComputedStyle(legend.querySelector('.legend-toggle')).display);")
+        self.assertEqual(("true", "dashed", "true"), (found["rq"], found["dashed"], found["colour"]))
+        self.assertEqual("none", found["folded"])
+        self.assertNotEqual("none", found["title"])
+
     def test_RQ_TRC_145_given_a_file_without_elements_then_it_is_named_and_the_graph_stays(self):
         found = self.run_page("const before = agnosExplorer.counts().nodes; agnosExplorer.loadText('bad.json', '{}');"
                               "r('message', document.getElementById('load-message').textContent);"

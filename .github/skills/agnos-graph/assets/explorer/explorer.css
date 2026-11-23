@@ -152,6 +152,20 @@ body {
 #view-graph { position: relative; }
 .select { min-height: var(--c-control-height); padding: 0 var(--s-space-sm); font: inherit; font-size: var(--s-text-small); color: var(--s-text); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); }
 
+/* RQ-TRC-165: the legend, over the graph's top left corner, drawn from the graph's own tokens */
+.graph-legend { position: absolute; z-index: 2; top: var(--s-space-sm); left: var(--s-space-sm); max-height: calc(100% - 2 * var(--s-space-sm)); overflow-y: auto; scrollbar-gutter: stable; padding: var(--s-space-xs) var(--s-space-sm); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
+.legend-toggle { font: inherit; font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); letter-spacing: var(--s-tracking-caps); text-transform: uppercase; padding: 0; border: 0; background: transparent; color: var(--s-text-muted); cursor: pointer; }
+.legend-toggle::after { content: " ▾"; }
+.graph-legend.folded .legend-toggle::after { content: " ▸"; }
+.graph-legend.folded .legend-body { display: none; }
+.legend-body .legend { margin-top: var(--s-space-xs); }
+.legend-line { display: inline-block; width: var(--c-legend-line-width); border-top: var(--s-stroke-focus) solid var(--kind-colour); }
+[data-kind="contains"] { --kind-colour: var(--c-graph-edge-contains); }
+[data-kind="contains"] .legend-line { border-top-style: dashed; }
+[data-kind="refs"] { --kind-colour: var(--c-graph-edge-cites); }
+[data-kind="code"] { --kind-colour: var(--c-graph-edge-code); }
+[data-kind="call"] { --kind-colour: var(--c-graph-edge-call); }
+
 /* RQ-TRC-163, DEC-TRC-095: the graph's context menu, at the pointer */
 .graph-menu { position: absolute; z-index: 3; display: grid; min-width: var(--c-detail-label-width); padding: var(--s-space-xs); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
 .graph-menu[hidden] { display: none; }
