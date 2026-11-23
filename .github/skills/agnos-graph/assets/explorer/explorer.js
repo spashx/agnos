@@ -15,6 +15,10 @@
   const TYPE_UNDEFINED = "UNDEFINED";
   const ORIGIN_EDGES = "edges";
   const ORIGIN_SECTIONS = "sections";
+  const ORIGIN_CALL_GRAPH = "callGraph";
+  const TYPE_FUNCTION = "FN";
+  const KIND_CALL = "call";
+  const KIND_CODE = "code";
   const VIEW_GRAPH = "graph";
   const VIEW_NODES = "nodes";
   const VIEW_RELATIONS = "relations";
@@ -134,6 +138,62 @@
     return fields;
   }
 
+  // RQ-TRC-146, DEC-TRC-089 (TASK-TRC-137): the call graph block, in agnos-graph's format (callGraph of graph-format.md)
+  const functionId = (graph, index) => {
+    const [file, , , name, , , suffix] = graph.callGraph.functions[index];
+    return `${graph.files[file].path}::${name}${suffix ? `#${suffix}` : ""}`;
+  };
+
+  function addCallGraph(graph, add, relate) {
+    /* Functions as FN nodes held by their file, calls as call relations, and the IDs a function cites as code relations. */
+    const block = graph.callGraph;
+    if (!block) return;
+    block.functions.forEach(([file, first, last, name, language, text, , scope], i) => {
+      add(functionId(graph, i), TYPE_FUNCTION, { name, file: graph.files[file].path, first, last, firstLine: text,
+                                                  language: block.languages[language], scope: scope < 0 ? null : block.scopes[scope][0] });
+      relate(graph.files[file].path, functionId(graph, i), KIND_CONTAINS, [], ORIGIN_CALL_GRAPH);
+    });
+    const calls = block.calls;
+    let i = 0;
+    let caller = 0;
+    while (i < calls.length) {
+      caller += calls[i];
+      const count = calls[i + 1];
+      i += 2;
+      for (let k = 0; k < count; k += 1) {
+        const callee = caller + calls[i];
+        const lineCount = Math.floor(calls[i + 1] / 2);
+        const first = block.functions[caller][1];
+        const lines = calls.slice(i + 2, i + 2 + lineCount).map((offset) => [first + offset, calls[i + 1] % 2 ? "ambiguous" : ""]);
+        relate(functionId(graph, caller), functionId(graph, callee), KIND_CALL, lines, ORIGIN_CALL_GRAPH);
+        i += 2 + lineCount;
+      }
+    }
+    for (const [fn, id, lines] of block.ids) relate(functionId(graph, fn), id, KIND_CODE, lines.map((l) => [l, ""]), ORIGIN_CALL_GRAPH);
+  }
+
+  function addHistory(graph, nodes) {
+    /* Each node's commits as "hash date author (lines)", and each delivered task's delivery row, as properties. */
+    const history = graph.history;
+    if (!history) return;
+    const commit = ([index, lines]) => {
+      const c = history.commits[index];
+      return `${c.hash} ${c.date} ${history.people[c.author].name} (${lines} lines) ${c.subject}`;
+    };
+    for (const [scope, key] of [["elements", (id) => id], ["files", (path) => path],
+                                ["functions", (index) => functionId(graph, Number(index))]]) {
+      for (const [id, rows] of Object.entries((history.interventions || {})[scope] || {})) {
+        const node = nodes.get(key(id));
+        if (node) node.props.history = rows.map(commit);
+      }
+    }
+    for (const [id, tier, retiered, index, lines, type, reworked, reason] of (graph.delivery || {}).tasks || []) {
+      if (nodes.has(id)) {
+        nodes.get(id).props.delivery = { tier, retiered, commit: history.commits[index].hash, lines, type, reworked, reason };
+      }
+    }
+  }
+
   function buildModel(graph) {
     /* Nodes: elements, sections, scanned files; relations: edges with their link fields, sections' own relations. */
     const nodes = new Map();
@@ -161,6 +221,8 @@
       relate(section.parent, section.id, KIND_CONTAINS, [], ORIGIN_SECTIONS);
       for (const [target, proofs] of section.refs) relate(section.id, target, KIND_REFS, proofs, ORIGIN_SECTIONS);
     }
+    addCallGraph(graph, add, relate);
+    addHistory(graph, nodes);
     for (const relation of relations) {
       for (const end of [relation.source, relation.target]) {
         if (!nodes.has(end)) add(end, TYPE_UNDEFINED, { id: end, kind: KIND_UNDEFINED });

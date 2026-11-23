@@ -1252,7 +1252,7 @@ TASK-TRC-133|67-85|Done|Generate explorer page shell
 TASK-TRC-134|86-100|Done|Implement explorer graph view
 TASK-TRC-135|101-115|Done|Implement explorer query language
 TASK-TRC-136|116-130|Done|Implement saved query buttons
-TASK-TRC-137|131-144|Not Started|Show call graph and history
+TASK-TRC-137|131-144|Done|Show call graph and history
 TASK-TRC-138|145-159|Not Started|Verify explorer on repository and demo
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill

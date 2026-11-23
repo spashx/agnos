@@ -19,7 +19,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
 sys.path.insert(0, str(HERE))
 import agnos_layout  # noqa: E402  RQ-PLG-036: the graph file's name, as the script reads it
-from test_graph import PROCESS, SOURCES, GENERATED_AT, run_main  # noqa: E402
+from test_graph import (PROCESS, SOURCES, GENERATED_AT, HAS_TREE_SITTER, NEEDS_TREE_SITTER, run_main,  # noqa: E402
+                        committed_fixture, isolated_git)
 
 ASSETS = HERE.parent / "assets" / "explorer"
 TOKENS = ASSETS / "tokens.json"
@@ -409,6 +410,46 @@ class SavedQueriesTest(unittest.TestCase):
     def test_RQ_TRC_155_given_the_default_buttons_then_each_query_parses(self):
         found = self.run_page("r('bad', s.list().filter((q) => !agnosExplorer.query(q.query)).map((q) => q.label).join('|'));")
         self.assertEqual("", found["bad"])
+
+
+@unittest.skipUnless(BROWSER and HAS_TREE_SITTER, f"{NEEDS_BROWSER}, or {NEEDS_TREE_SITTER}")
+class CallGraphAndHistoryTest(unittest.TestCase):
+    """TASK-TRC-137: RQ-TRC-146 (DEC-TRC-089): functions, calls, history and delivery in the explorer."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        folder, patch = isolated_git()
+        cls.addClassCleanup(shutil.rmtree, folder, ignore_errors=True)
+        with patch:
+            process, src, head = committed_fixture(Path(cls.tmp.name))
+            out = Path(cls.tmp.name) / "graph" / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(process), "--sources", str(src), "--sources", str(process.parent / "calls"),
+                                     "--out", str(out), "--generated-at", GENERATED_AT, "--call-graph", "--history", "--explorer"])
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+        cls.head = head
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_146_given_a_call_graph_then_its_functions_and_calls_are_nodes_and_relations(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      "agnosExplorer.query('type:FN'); r('fns', agnosExplorer.shownIds().length);"
+                                                      "agnosExplorer.query('edge kind:call'); agnosExplorer.showView('relations');"
+                                                      "r('calls', document.querySelectorAll('#relation-table tbody tr').length);"))
+        self.assertEqual(str(len(self.graph["callGraph"]["functions"])), found["fns"])
+        self.assertGreater(int(found["calls"]), 0)
+
+    def test_RQ_TRC_146_given_a_history_then_a_task_detail_shows_its_commits_and_identities(self):
+        task = next(iter(self.graph["tasks"]))
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      f"agnosExplorer.select('{task}');"
+                                                      "r('text', document.getElementById('detail').textContent.replace(/\\s+/g, ' '));"))
+        self.assertIn(self.head[:10], found["text"])
+        self.assertIn("Tester", found["text"])
 
 
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)

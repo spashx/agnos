@@ -130,7 +130,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-137: Show call graph and history
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then add the call graph's functions and calls to the view model as nodes and relations, and the history and delivery as properties of their nodes and as table rows.
 - **Requirement refs**: RQ-TRC-146
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-089)
@@ -139,8 +139,8 @@ This plan implements the tasks in the format specified below.
   - Given a task with history, Then its detail shows its commits and identities And its delivery
 - **Dependencies**: TASK-TRC-134, TASK-TRC-135
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: `CallGraphAndHistoryTest`, on the fixture committed in a git repository and built with `--call-graph --history --explorer`: `type:FN` shows as many nodes as `callGraph.functions`, `edge kind:call` lists call relations; a task's detail shows the commit hash and the identity "Tester". 2 OK in headless Edge; the tests were written in the same edit batch as the code, so they were not seen failing first. agnos-graph suite 208 OK, 0 skipped.
+- **Assumptions**: a function's ID is `<file path>::<qualified name>`, suffixed `#<key>` when its key suffix is not 0; a file contains its functions; a function's cited IDs are `code` relations; a call to an ambiguous callee carries "ambiguous" as proof text; history is a list of "hash date author (lines) subject" per node, delivery an object per delivered task.
 
 ### TASK-TRC-138: Verify explorer on repository and demo
 - **Tier**: M
