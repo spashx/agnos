@@ -120,7 +120,12 @@ body {
 /* ---- facets (RQ-TRC-151) ---- */
 .facet { border: 0; margin: var(--s-space-xl) 0 0; padding: 0; min-width: 0; }
 .facet legend { padding: 0; }
-.facet-values { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-space-2xs); font-size: var(--s-text-small); max-height: var(--c-facet-max-height); overflow-y: auto; }
+/* RQ-TRC-161: the room of a scrollbar is kept, so that the right-aligned counts stay beside it, never under it */
+#facets, .facet-values { scrollbar-gutter: stable; }
+.facet-bulk-row { display: flex; gap: var(--s-space-xs); margin-bottom: var(--s-space-xs); }
+.facet-bulk { font: inherit; font-size: var(--s-text-caption); padding: 0 var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-sm); background: var(--s-surface-raised); color: var(--s-text-muted); cursor: pointer; }
+.facet-bulk:hover { background: var(--s-surface-hover); color: var(--s-text); }
+.facet-values { list-style: none; margin: 0; padding: 0 var(--s-space-xs) 0 0; display: grid; gap: var(--s-space-2xs); font-size: var(--s-text-small); max-height: var(--c-facet-max-height); overflow-y: auto; }
 .facet-values label { display: flex; align-items: center; gap: var(--s-space-sm); cursor: pointer; }
 .facet-values input { margin: 0; }
 .facet-values .count { margin-left: auto; font-family: var(--s-font-mono); color: var(--s-text-muted); }

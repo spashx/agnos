@@ -351,6 +351,29 @@ class QueryLanguageTest(unittest.TestCase):
         texts = sum(1 for _, _, rows in self.graph["links"] if any(f == "text" for _, f in rows))
         self.assertIn(str(texts), found["count"].split())
 
+    def test_RQ_TRC_160_given_the_node_types_facet_when_none_then_all_is_clicked_then_no_node_then_every_node_is_shown(self):
+        # TASK-TRC-141
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const f = () => document.getElementById('facet-type');"
+                                                      "f().querySelector('[data-bulk=\"none\"]').click(); r('none', agnosExplorer.shownIds().length);"
+                                                      "r('checked', f().querySelectorAll('input:checked').length);"
+                                                      "f().querySelector('[data-bulk=\"all\"]').click(); r('all', agnosExplorer.shownIds().length);"
+                                                      "r('total', agnosExplorer.counts().nodes);"))
+        self.assertEqual(("0", "0"), (found["none"], found["checked"]))
+        self.assertEqual(found["total"], found["all"])
+
+    def test_RQ_TRC_161_given_a_facet_list_with_its_scrollbar_then_every_count_ends_left_of_it(self):
+        # TASK-TRC-141: the list is made shorter than its values so that its scrollbar shows
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const list = document.querySelector('#facet-type .facet-values');"
+                                                      "list.style.maxHeight = '3em'; const inner = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;"
+                                                      "r('scrolls', list.scrollHeight > list.clientHeight);"
+                                                      "r('clear', [...list.querySelectorAll('.count')].every((c) => c.getBoundingClientRect().right <= inner + 0.5));"
+                                                      "const panel = document.getElementById('facets');"
+                                                      "r('panel', getComputedStyle(panel).scrollbarGutter);"))
+        self.assertEqual(("true", "true"), (found["scrolls"], found["clear"]))
+        self.assertIn("stable", found["panel"])
+
     def test_RQ_TRC_151_given_the_query_focused_when_a_facet_value_is_clicked_then_its_term_is_written(self):
         found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
                                                       " String(v)); const q = document.getElementById('query'); q.focus();"

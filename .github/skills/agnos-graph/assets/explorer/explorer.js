@@ -100,6 +100,8 @@
     { key: "field", title: "Link fields", of: FACET_RELATIONS, values: (r) => fieldsOf(r) },
   ];
   const ID_HIDDEN_LIST = "hidden-list";
+  const BULK_ALL = "all";                           // RQ-TRC-160
+  const BULK_NONE = "none";
   const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
   const $ = (id) => document.getElementById(id);
@@ -275,9 +277,20 @@
       const values = facetCounts(facet).map(([value, n]) => `<li><label><input type="checkbox" value="${escapeHtml(value)}"`
         + `${state.off[facet.key].has(value) ? "" : " checked"}>${facet.key === FACET_TYPE ? `${swatch(value)}${typeLabel(value)}`
         : `<span>${escapeHtml(value)}</span>`}<span class="count">${n}</span></label></li>`).join("");
+      // RQ-TRC-160 (TASK-TRC-141): every value of the facet checked or unchecked in one click
+      const bulk = [[BULK_ALL, "All", "Check every value"], [BULK_NONE, "None", "Uncheck every value"]]
+        .map(([action, label, tip]) => `<button type="button" class="facet-bulk" data-bulk="${action}" title="${tip} of ${facet.title}">${label}</button>`).join("");
       return `<fieldset class="facet" id="facet-${facet.key}" data-facet="${facet.key}"><legend class="panel-title">${facet.title}</legend>`
-        + `<ul class="facet-values">${values}</ul></fieldset>`;
+        + `<div class="facet-bulk-row">${bulk}</div><ul class="facet-values">${values}</ul></fieldset>`;
     }).join("");
+  }
+
+  function setFacet(key, checked) {
+    /* Checks or unchecks every value of one facet, then applies it to every view (RQ-TRC-160). */
+    const facet = FACETS.find((f) => f.key === key);
+    state.off[key] = checked ? new Set() : new Set(facetCounts(facet).map(([value]) => value));
+    renderFacets();
+    refresh();
   }
 
   // ---- query language (RQ-TRC-152, DEC-TRC-092) ---------------------------------------------------------------
@@ -949,6 +962,11 @@
     let queryFocused = false;              // a mouse press moves the focus before the click: read it on the press
     $(ID_FACETS).addEventListener("mousedown", () => { queryFocused = document.activeElement === $(ID_QUERY); }, true);
     $(ID_FACETS).addEventListener(EVENT_CLICK, (event) => {
+      const bulk = event.target.closest("[data-bulk]");
+      if (bulk) {
+        setFacet(bulk.closest("[data-facet]").dataset.facet, bulk.dataset.bulk === BULK_ALL);
+        return;
+      }
       const box = event.target.closest("input[type=checkbox]");
       if (!box) return;
       const facet = FACETS.find((f) => f.key === box.closest("[data-facet]").dataset.facet);

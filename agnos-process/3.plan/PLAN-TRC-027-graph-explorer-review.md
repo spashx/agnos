@@ -43,7 +43,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-141: Add facet bulk selection
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add "All" and "None" controls to each facet and reserve the scrollbar's room in the facet lists and the panel.
 - **Requirement refs**: RQ-TRC-160, RQ-TRC-161
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-010)
@@ -52,8 +52,8 @@ This plan implements the tasks in the format specified below.
   - Given the Trigrams list with its scrollbar, Then every count ends left of the scrollbar
 - **Dependencies**: TASK-TRC-140
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `..._RQ_TRC_160_...` and `..._RQ_TRC_161_...` failed first (no `data-bulk`; panel `scrollbar-gutter: auto`), then OK; the RQ-TRC-160 test's stale fieldset reference was corrected (the facets are re-rendered), its expectations unchanged. `QueryLanguageTest` 11 OK, 0 skipped.
+- **Assumptions**: tested on the Node types list made shorter than its values, the fixture holding one trigram; `scrollbar-gutter: stable` on the panel and every facet list.
 
 ### TASK-TRC-142: Implement resizable table columns
 - **Tier**: M
@@ -118,7 +118,20 @@ This plan implements the tasks in the format specified below.
 - **Acceptance Criteria**:
   - Given this repository, When the graph is built with and without `--explorer`, Then both files are byte-identical
   - Given this repository's graph with call graph and history, When the explorer is opened headless, Then its first view is drawn in less than 5 s
-- **Dependencies**: TASK-TRC-140, TASK-TRC-141, TASK-TRC-142, TASK-TRC-143, TASK-TRC-144, TASK-TRC-145
+- **Dependencies**: TASK-TRC-140, TASK-TRC-141, TASK-TRC-142, TASK-TRC-143, TASK-TRC-144, TASK-TRC-145, TASK-TRC-147
 - **Assignee**: AI
 - **Verification**:
 - **Assumptions**:
+
+### TASK-TRC-147: Explain undefined node type in detail
+- **Tier**: S
+- **Status**: Not Started
+- **Description**: In the detail panel of an UNDEFINED node, say that its ID is cited with the prefix of a type but defined nowhere in the index (owner, 2026-11-23: ADR-ABC-010 shown UNDEFINED in the table, ADR in the detail).
+- **Requirement refs**: RQ-TRC-146, RQ-TRC-154
+- **ADR refs**: ADR-TRC-025 (DEC-TRC-089)
+- **Acceptance Criteria**:
+  - Given an undefined ADR ID selected, Then the detail reads that the ADR ID is cited but not defined in the index
+- **Dependencies**: TASK-TRC-139
+- **Assignee**: AI
+- **Verification**: N/A (Tier S)
+- **Assumptions**: the UNDEFINED type is kept: the ID is no artifact, as the performance center classes it.
