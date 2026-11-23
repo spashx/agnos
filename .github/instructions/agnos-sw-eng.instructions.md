@@ -246,7 +246,7 @@ Brief description of the feature's purpose and scope.
   ## Alternatives Considered
   What other options were evaluated? Why were they rejected?
   ## Diagram
-  [Mermaid diagrams -- required]
+  [Mermaid diagrams with clear titles -- required]
   ```
 - Every decision in ADR SHALL have a unique identifier in the format `DEC-<TRI>-<NNN>` (e.g., `DEC-USR-001`), consistent with the universal ID schema, that can be referenced in plans, tasks, and source code. Each decision SHALL be declared as a `### DEC-<TRI>-<NNN>: <title>` heading under `## Decision`, so that it is indexed. <!-- RQ-IDX-014 -->
 - The `## Diagram` section SHALL hold at least two Mermaid diagrams, scoped to the ADR and the requirements it cites:
