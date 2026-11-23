@@ -30,7 +30,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-140: Fix relation kind filter
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named test first, then hide in the graph view the relations an unchecked relation facet or a query excludes, and make the shown count follow them.
 - **Requirement refs**: RQ-TRC-151
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-090)
@@ -38,8 +38,8 @@ This plan implements the tasks in the format specified below.
   - Given the graph view, When `contains` is unchecked, Then no `contains` edge is shown in the graph And the relation count drops by their number
 - **Dependencies**: TASK-TRC-139
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: probe before the fix, headless: the count already followed each kind (repository 11810 → 10358 without `contains`, 9370 without `code`, 3892 without `refs`), but `applyVisibility` hid nodes only, so every edge stayed drawn. Test `..._relation_kind_unchecked_...` failed first, then OK; `GraphViewTest` 7 OK, 0 skipped.
+- **Assumptions**: the owner's "count does not change" was the drawn edges staying; the count needed no change.
 
 ### TASK-TRC-141: Add facet bulk selection
 - **Tier**: M

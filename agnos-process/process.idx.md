@@ -1266,7 +1266,7 @@ TASK-TRC-138|145-159|Done|Verify explorer on repository and demo
 @agnos-process/3.plan/PLAN-TRC-027-graph-explorer-review.md
 PLAN-TRC-027|1-124||Graph explorer review corrections
 TASK-TRC-139|18-30|Done|Document explorer review corrections
-TASK-TRC-140|31-43|Not Started|Fix relation kind filter
+TASK-TRC-140|31-43|Done|Fix relation kind filter
 TASK-TRC-141|44-57|Not Started|Add facet bulk selection
 TASK-TRC-142|58-70|Not Started|Implement resizable table columns
 TASK-TRC-143|71-85|Not Started|Implement graph layouts and context menu

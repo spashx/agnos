@@ -64,6 +64,7 @@
   const CLASS_HIDDEN = "hidden";
   const CLASS_PICKED = "picked";
   const DATA_COLOUR = "colour";
+  const DATA_INDEX = "index";                       // RQ-TRC-151: the relation's index in the view model
   const EVENT_DRAG_FREE = "dragfree";
   const TOKEN_ZOOM_STEP = "--c-graph-zoom-step";
   const MESSAGE_NO_LIBRARY = "Cytoscape.js could not be loaded from cdnjs: the graph view needs the network once; the tables work without it.";
@@ -674,14 +675,19 @@
     const kindColour = { contains: "contains", refs: "cites", code: "code", call: "call" };
     const nodes = [...model.nodes.values()].map((n) => ({ group: "nodes", data: { id: n.id, [DATA_COLOUR]: typeColour(n.type) },
                                                           position: { ...model.positions.get(n.id) } }));
-    const edges = model.relations.map((r, i) => ({ group: "edges", data: { id: `r${i}`, source: r.source, target: r.target,
+    const edges = model.relations.map((r, i) => ({ group: "edges", data: { id: `r${i}`, [DATA_INDEX]: i, source: r.source, target: r.target,
       kind: r.kind, [DATA_COLOUR]: cssValue(`--c-graph-edge-${kindColour[r.kind] || kindColour.refs}`) } }));
     return [...nodes, ...edges];
   }
 
   function applyVisibility() {
+    /* Nodes and relations of the graph view follow the facets, the query and the hidden list, as the tables do
+       (RQ-TRC-151, TASK-TRC-140): an edge's index in the model is its Cytoscape ID. */
     if (!cy) return;
-    cy.batch(() => cy.nodes().forEach((n) => n.toggleClass(CLASS_HIDDEN, !isShown(state.model.nodes.get(n.id())))));
+    cy.batch(() => {
+      cy.nodes().forEach((n) => n.toggleClass(CLASS_HIDDEN, !isShown(state.model.nodes.get(n.id()))));
+      cy.edges().forEach((e) => e.toggleClass(CLASS_HIDDEN, !isRelationShown(state.model.relations[e.data(DATA_INDEX)])));
+    });
   }
 
   function initGraph() {
@@ -986,6 +992,7 @@
       position: (id) => cy.$id(id).position(),
       shown: (id) => !cy.$id(id).hasClass(CLASS_HIDDEN),
       shownIds: () => shownNodes().map((n) => n.id()),
+      shownEdgeCount: () => cy.edges().filter((e) => !e.hasClass(CLASS_HIDDEN)).length,   // RQ-TRC-151
       colour: (id) => cy.$id(id).data(DATA_COLOUR).toLowerCase(),
       allInView() {
         const view = cy.extent();

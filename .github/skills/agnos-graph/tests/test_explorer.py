@@ -533,6 +533,16 @@ class GraphViewTest(unittest.TestCase):
         self.assertIn("RQ-DEM-001", found["listed"])
         self.assertEqual("true", found["back"])
 
+    def test_RQ_TRC_151_given_a_relation_kind_unchecked_then_its_edges_leave_the_graph_and_the_count(self):
+        # TASK-TRC-140: the graph view hides the relations a facet excludes, as the tables do
+        found = self.run_page("const cy = g.cy(); const drawn = (k) => cy.edges().filter((e) => e.data('kind') === k && !e.hasClass('hidden')).length;"
+                              "r('before', drawn('contains')); document.querySelector('#facet-kind input[value=\"contains\"]').click();"
+                              "r('after', drawn('contains')); r('edges', g.shownEdgeCount());"
+                              "r('count', document.getElementById('view-count').textContent.split('·')[1]);")
+        self.assertGreater(int(found["before"]), 0)
+        self.assertEqual("0", found["after"])
+        self.assertIn(f"{found['edges']} /", found["count"])
+
     def test_RQ_TRC_147_given_a_node_in_the_graph_then_its_colour_is_its_type_token(self):
         found = self.run_page(
             "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq').trim().toLowerCase();"
