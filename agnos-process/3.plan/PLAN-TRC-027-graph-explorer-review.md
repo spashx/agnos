@@ -70,7 +70,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-143: Implement graph layouts and context menu
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add a layout selector and a right-click menu with the layouts, fit, select, hide and neighbours at 1, 2 or 3 hops.
 - **Requirement refs**: RQ-TRC-162, RQ-TRC-163
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-094, DEC-TRC-095)
@@ -80,8 +80,8 @@ This plan implements the tasks in the format specified below.
   - Given the background right-clicked, Then the menu lists the layouts And no node action; When Escape is pressed, Then it closes
 - **Dependencies**: TASK-TRC-140
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: 3 tests `..._RQ_TRC_162_...`, `..._RQ_TRC_163_...` failed first (no selector, no menu), then OK: circle spread < 1 % of its radius, all in view, position kept after a filter; "Neighbours, 2 hops" shows the same nodes as isolate then widen; background menu holds `layout:*` and no node action, Escape closes it. `GraphViewTest` 10 OK, 0 skipped.
+- **Assumptions**: layouts Type columns (default), Grid, Circle, Concentric, Tree (`breadthfirst`), Force-directed (`cose`); a menu opened by a node's `cxttap` without pointer position opens at the view's centre.
 
 ### TASK-TRC-144: Label controls with tooltips
 - **Tier**: M

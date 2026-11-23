@@ -104,6 +104,15 @@
   const BULK_NONE = "none";
   const CLASS_RESIZED = "resized";                  // RQ-TRC-159
   const TOKEN_COLUMN_MIN = "--c-table-column-min-width";
+  const ID_LAYOUT = "graph-layout";                 // RQ-TRC-162, RQ-TRC-163
+  const ID_MENU = "graph-menu";
+  const LAYOUT_COLUMNS = "columns";
+  const MENU_LAYOUT = "layout:";
+  const MENU_HOPS = "hops:";
+  const MENU_FIT = "fit";
+  const MENU_SELECT = "select";
+  const HOPS = [1, 2, 3];
+  const KEY_ESCAPE = "Escape";
   const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
   const $ = (id) => document.getElementById(id);
@@ -717,6 +726,8 @@
                             style: graphStyle(), minZoom: tokenNumber("--c-graph-zoom-min"), maxZoom: tokenNumber("--c-graph-zoom-max"),
                             wheelSensitivity: tokenNumber("--c-graph-wheel-sensitivity"), boxSelectionEnabled: false });
     cy.on("tap", SELECTOR_NODE, (event) => select(event.target.id()));
+    cy.on("cxttap", openMenu);                                                         // RQ-TRC-163
+    cy.on("tap viewport", closeMenu);
     cy.on(EVENT_DRAG_FREE, SELECTOR_NODE, (event) => state.model.positions.set(event.target.id(), { ...event.target.position() }));
     applyVisibility();
     if (state.selected) cy.$id(state.selected).addClass(CLASS_PICKED);
@@ -813,6 +824,69 @@
                           concentric: (n) => far - (hops.has(n.id()) ? hops.get(n.id()) : far) }).run();
     shownNodes().forEach((n) => state.model.positions.set(n.id(), { ...n.position() }));
     fitGraph();
+  }
+
+  // ---- layouts and context menu (RQ-TRC-162, RQ-TRC-163; DEC-TRC-094, DEC-TRC-095; TASK-TRC-143) --------------
+  function applyLayout(name) {
+    /* Arranges the shown nodes with the type columns or a Cytoscape built-in layout, keeps their positions as moved
+       positions, and frames them. */
+    if (!cy) return;
+    $(ID_LAYOUT).value = name;
+    if (name === LAYOUT_COLUMNS) {
+      layoutPositions(state.model);
+      cy.batch(() => cy.nodes().forEach((n) => n.position({ ...state.model.positions.get(n.id()) })));
+    } else {
+      shownNodes().layout({ name, animate: false, fit: false }).run();
+    }
+    shownNodes().forEach((n) => state.model.positions.set(n.id(), { ...n.position() }));
+    fitGraph();
+  }
+
+  function isolateHops(id, hops) {
+    /* Shows only the node and those at most hops relations away from it, whatever is hidden (RQ-TRC-163). */
+    let reached = new Set([id]);
+    for (let k = 0; k < hops; k += 1) reached = new Set([...reached].flatMap((n) => [...neighbours(n)]));
+    state.isolate = reached;
+    select(id);
+    refresh();
+    arrangeAround(id);
+  }
+
+  function menuItems(nodeId) {
+    const button = (action, label, tip) => `<button type="button" role="menuitem" data-menu="${action}" title="${tip}">${label}</button>`;
+    const layouts = [...$(ID_LAYOUT).options].map((o) => button(`${MENU_LAYOUT}${o.value}`, o.textContent, `Arrange the shown nodes: ${o.textContent}`));
+    const node = nodeId ? [`<div class="graph-menu-title">${escapeHtml(nodeId)}</div>`, button(MENU_SELECT, "Select", "Show this node in the detail panel"),
+      button(ACTION_HIDE, "Hide", "Hide this node in every view"),
+      ...HOPS.map((n) => button(`${MENU_HOPS}${n}`, `Neighbours, ${n} hop${n > 1 ? "s" : ""}`, `Show only the nodes at most ${n} relations away`)), "<hr>"] : [];
+    return [...node, `<div class="graph-menu-title">Layout</div>`, ...layouts, "<hr>",
+            button(MENU_FIT, "Fit", "Fit the shown nodes to the view")].join("");
+  }
+
+  function openMenu(event) {
+    /* The menu at the pointer: a node's actions when a node was right-clicked, then the layouts and the fit. */
+    const menu = $(ID_MENU);
+    const nodeId = event.target === cy ? null : event.target.id();
+    const at = event.renderedPosition || { x: cy.width() / 2, y: cy.height() / 2 };
+    menu.dataset.node = nodeId || "";
+    menu.innerHTML = menuItems(nodeId);
+    menu.style.left = at.x + UNIT_PX;
+    menu.style.top = at.y + UNIT_PX;
+    menu.hidden = false;
+  }
+
+  function closeMenu() {
+    $(ID_MENU).hidden = true;
+  }
+
+  function onMenuClick(event) {
+    const item = event.target.closest("[data-menu]");
+    if (!item) return;
+    const action = item.dataset.menu;
+    const nodeId = $(ID_MENU).dataset.node;
+    closeMenu();
+    if (action.startsWith(MENU_LAYOUT)) applyLayout(action.slice(MENU_LAYOUT.length));
+    else if (action.startsWith(MENU_HOPS)) isolateHops(nodeId, Number(action.slice(MENU_HOPS.length)));
+    else ({ [MENU_FIT]: fitGraph, [MENU_SELECT]: () => select(nodeId), [ACTION_HIDE]: () => hide(nodeId) })[action]();
   }
 
   function showAll() {
@@ -994,6 +1068,12 @@
     $("graph-zoom-out").addEventListener(EVENT_CLICK, () => zoomBy(1 / step()));
     $("graph-fit").addEventListener(EVENT_CLICK, fitGraph);
     $("show-all").addEventListener(EVENT_CLICK, showAll);
+    // RQ-TRC-162, RQ-TRC-163: the layout selector and the context menu
+    $(ID_LAYOUT).addEventListener("change", () => applyLayout($(ID_LAYOUT).value));
+    $(ID_MENU).addEventListener(EVENT_CLICK, onMenuClick);
+    $(VIEW_GRAPH).addEventListener("contextmenu", (event) => event.preventDefault());
+    document.addEventListener(EVENT_KEYDOWN, (event) => { if (event.key === KEY_ESCAPE) closeMenu(); });
+    document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENU}`)) closeMenu(); });
     // RQ-TRC-153: the saved query buttons
     $(ID_SAVED).addEventListener(EVENT_CLICK, onSavedClick);
     $(ID_SAVED).addEventListener("submit", onSavedSubmit);
@@ -1053,6 +1133,7 @@
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090
       cy: () => cy,
+      layout: applyLayout,                         // RQ-TRC-162
       move(id, x, y) { cy.$id(id).position({ x, y }); cy.$id(id).emit(EVENT_DRAG_FREE); },
       position: (id) => cy.$id(id).position(),
       shown: (id) => !cy.$id(id).hasClass(CLASS_HIDDEN),

@@ -1269,7 +1269,7 @@ TASK-TRC-139|18-30|Done|Document explorer review corrections
 TASK-TRC-140|31-43|Done|Fix relation kind filter
 TASK-TRC-141|44-57|Done|Add facet bulk selection
 TASK-TRC-142|58-70|Done|Implement resizable table columns
-TASK-TRC-143|71-85|Not Started|Implement graph layouts and context menu
+TASK-TRC-143|71-85|Done|Implement graph layouts and context menu
 TASK-TRC-144|86-98|Not Started|Label controls with tooltips
 TASK-TRC-145|99-111|Not Started|Show graph legend
 TASK-TRC-146|112-125|Not Started|Verify explorer review corrections

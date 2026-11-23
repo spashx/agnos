@@ -582,6 +582,40 @@ class GraphViewTest(unittest.TestCase):
         self.assertEqual("0", found["after"])
         self.assertIn(f"{found['edges']} /", found["count"])
 
+    def test_RQ_TRC_162_given_circle_chosen_then_the_nodes_are_on_a_circle_in_view_and_keep_it_after_a_filter(self):
+        # TASK-TRC-143
+        found = self.run_page(
+            "const sel = document.getElementById('graph-layout'); sel.value = 'circle'; sel.dispatchEvent(new Event('change'));"
+            "const ps = g.shownIds().map((id) => g.position(id)); const cx = ps.reduce((s, p) => s + p.x, 0) / ps.length;"
+            "const cy0 = ps.reduce((s, p) => s + p.y, 0) / ps.length; const d = ps.map((p) => Math.hypot(p.x - cx, p.y - cy0));"
+            "r('spread', (Math.max(...d) - Math.min(...d)) / Math.max(...d)); r('inside', g.allInView());"
+            "const before = g.position('RQ-DEM-001'); agnosExplorer.hideTypes(['TASK']); agnosExplorer.hideTypes([]);"
+            "const after = g.position('RQ-DEM-001'); r('kept', Math.abs(before.x - after.x) + Math.abs(before.y - after.y) < 1);")
+        self.assertLess(float(found["spread"]), 0.01)
+        self.assertEqual(("true", "true"), (found["inside"], found["kept"]))
+
+    def test_RQ_TRC_163_given_a_node_right_clicked_when_two_hops_chosen_then_only_its_two_hop_neighbourhood_is_shown(self):
+        found = self.run_page(
+            "agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); agnosExplorer.widen(); r('two', g.shownIds().sort().join(' '));"
+            "agnosExplorer.showAll(); g.cy().$id('RQ-DEM-001').emit('cxttap');"
+            "r('menu', [...document.querySelectorAll('#graph-menu [data-menu]')].map((b) => b.dataset.menu).join(' '));"
+            "document.querySelector('#graph-menu [data-menu=\"hops:2\"]').click(); r('shown', g.shownIds().sort().join(' '));"
+            "r('closed', document.getElementById('graph-menu').hidden);")
+        self.assertIn("hops:1", found["menu"].split())
+        self.assertIn("hide", found["menu"].split())
+        self.assertEqual(found["two"], found["shown"])
+        self.assertEqual("true", found["closed"])
+
+    def test_RQ_TRC_163_given_the_background_right_clicked_then_layouts_and_no_node_action_and_escape_closes(self):
+        found = self.run_page(
+            "g.cy().emit('cxttap'); const menu = document.getElementById('graph-menu');"
+            "r('items', [...menu.querySelectorAll('[data-menu]')].map((b) => b.dataset.menu).join(' ')); r('open', !menu.hidden);"
+            "document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); r('closed', menu.hidden);")
+        items = found["items"].split()
+        self.assertIn("layout:circle", items)
+        self.assertFalse([i for i in items if i.startswith("hops:") or i == "hide"])
+        self.assertEqual(("true", "true"), (found["open"], found["closed"]))
+
     def test_RQ_TRC_147_given_a_node_in_the_graph_then_its_colour_is_its_type_token(self):
         found = self.run_page(
             "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq').trim().toLowerCase();"

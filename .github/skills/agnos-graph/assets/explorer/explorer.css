@@ -137,7 +137,7 @@ body {
 .tab { font: inherit; font-size: var(--s-text-small); min-height: var(--c-control-height); padding: 0 var(--s-space-md); border: 0; background: var(--s-surface-raised); color: var(--s-text-muted); cursor: pointer; }
 .tab + .tab { border-left: var(--s-stroke-hairline) solid var(--s-border-strong); }
 .tab[aria-selected="true"] { background: var(--s-text); color: var(--s-text-on-accent); }
-.graph-controls { display: flex; gap: var(--s-space-xs); }
+.graph-controls { display: flex; align-items: center; gap: var(--s-space-xs); }
 .graph-control[hidden] { display: none; }
 .hidden-list { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs) var(--s-space-sm); padding: 0 var(--s-space-lg); font-size: var(--s-text-small); }
 .hidden-list:not(:empty) { padding-block: var(--s-space-sm); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
@@ -149,6 +149,16 @@ body {
 .view { flex: 1 1 auto; min-height: 0; display: none; }
 .view.active { display: flex; flex-direction: column; }
 .graph-canvas { flex: 1 1 auto; min-height: 0; background: var(--c-graph-bg); }
+#view-graph { position: relative; }
+.select { min-height: var(--c-control-height); padding: 0 var(--s-space-sm); font: inherit; font-size: var(--s-text-small); color: var(--s-text); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); }
+
+/* RQ-TRC-163, DEC-TRC-095: the graph's context menu, at the pointer */
+.graph-menu { position: absolute; z-index: 3; display: grid; min-width: var(--c-detail-label-width); padding: var(--s-space-xs); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
+.graph-menu[hidden] { display: none; }
+.graph-menu-title { padding: var(--s-space-2xs) var(--s-space-sm); font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); color: var(--s-text-muted); text-transform: uppercase; letter-spacing: var(--s-tracking-caps); }
+.graph-menu button { font: inherit; text-align: left; padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; white-space: nowrap; }
+.graph-menu button:hover, .graph-menu button:focus-visible { background: var(--s-surface-hover); outline: none; }
+.graph-menu hr { width: 100%; margin: var(--s-space-xs) 0; border: 0; border-top: var(--s-stroke-hairline) solid var(--s-border); }
 
 /* RQ-TRC-149: the tables scroll inside the central view under a fixed header row */
 .table-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: auto; }
