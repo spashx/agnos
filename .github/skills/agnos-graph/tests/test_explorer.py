@@ -273,6 +273,90 @@ class ExplorerPageTest(unittest.TestCase):
         self.assertEqual("true", found["same"])
 
 
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class QueryLanguageTest(unittest.TestCase):
+    """TASK-TRC-135: RQ-TRC-151, RQ-TRC-152, RQ-TRC-155 (DEC-TRC-092), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+        cls.defined = {e["id"]: e for e in cls.graph["elements"] if e["kind"] == "element"}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def shown_after(self, query):
+        """The node IDs every view shows once the query ran, and the query's message."""
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      f" String(v)); agnosExplorer.query({json.dumps(query)});"
+                                                      "r('shown', agnosExplorer.shownIds().join(' '));"
+                                                      "r('message', document.getElementById('query-message').textContent);"))
+        return set(found.get("shown", "").split()), found.get("message", "")
+
+    def of_type(self, *types):
+        return {i for i, e in self.defined.items() if e["type"] in types}
+
+    def linked(self, source_type, field, target_type):
+        """(source, target) of the links whose source and target types and field are those given."""
+        return {(s, t) for s, t, rows in self.graph["links"] if s.startswith(source_type + "-") and t.startswith(target_type + "-")
+                and any(f == field for _, f in rows)}
+
+    def test_RQ_TRC_152_given_key_value_terms_then_every_term_is_met(self):
+        shown, _ = self.shown_after("type:RQ tri:DEM status:!Done")
+        self.assertEqual({i for i in self.of_type("RQ") if self.defined[i]["status"] != "Done"}, shown)
+
+    def test_RQ_TRC_152_given_a_list_of_values_then_one_of_them_is_met(self):
+        self.assertEqual(self.of_type("RQ", "DEC"), self.shown_after("type:RQ,DEC")[0])
+
+    def test_RQ_TRC_152_given_a_contains_term_then_the_text_is_found_whatever_its_case(self):
+        shown, _ = self.shown_after("title:~COVER")
+        self.assertEqual({i for i, e in self.defined.items() if "cover" in e["title"].lower()}, shown)
+        self.assertTrue(shown)
+
+    def test_RQ_TRC_152_given_a_negated_cited_by_term_then_only_the_uncited_requirements_are_shown(self):
+        cited = {t for _, t in self.linked("TASK", "Requirement refs", "RQ")}
+        self.assertEqual(self.of_type("RQ") - cited, self.shown_after("type:RQ !cited-by:TASK[Requirement refs]")[0])
+
+    def test_RQ_TRC_152_given_a_cites_term_then_only_the_citing_nodes_are_shown(self):
+        citing = {s for s, t, rows in self.graph["links"] if t.startswith("ADR-") and any(f == "ADR refs" for _, f in rows)}
+        self.assertTrue(citing)
+        self.assertEqual(citing, self.shown_after("cites:ADR[ADR refs]")[0])
+
+    def test_RQ_TRC_152_given_an_edge_query_then_only_those_relations_and_their_ends_are_shown(self):
+        ends = {x for s, t, rows in self.graph["links"] if s.startswith("DEC-") and any(f == "text" for _, f in rows) for x in (s, t)}
+        self.assertTrue(ends)
+        self.assertEqual(ends, self.shown_after("edge kind:refs field:text from:DEC")[0])
+
+    def test_RQ_TRC_152_given_a_term_that_does_not_parse_then_it_is_named_and_the_former_result_stays(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); agnosExplorer.query('type:RQ'); const before = agnosExplorer.shownIds().join(' ');"
+                                                      "agnosExplorer.query('type:'); r('kept', agnosExplorer.shownIds().join(' ') === before);"
+                                                      "r('message', document.getElementById('query-message').textContent);"))
+        self.assertEqual("true", found["kept"])
+        self.assertIn("type:", found["message"])
+
+    def test_RQ_TRC_151_given_a_field_unchecked_then_no_relation_of_that_field_is_shown(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const box = document.querySelector('#facet-field input[value=\"text\"]');"
+                                                      "r('count', box.closest('label').textContent.replace(/\\D+/g, ' ').trim()); box.click();"
+                                                      "agnosExplorer.showView('relations');"
+                                                      "r('fields', [...document.querySelectorAll('#relation-table tbody tr td:nth-child(4)')].map((c) => c.textContent).join('|'));"))
+        self.assertNotIn("text", found["fields"].split("|"))
+        texts = sum(1 for _, _, rows in self.graph["links"] if any(f == "text" for _, f in rows))
+        self.assertIn(str(texts), found["count"].split())
+
+    def test_RQ_TRC_151_given_the_query_focused_when_a_facet_value_is_clicked_then_its_term_is_written(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const q = document.getElementById('query'); q.focus();"
+                                                      "document.querySelector('#facet-type input[value=\"RQ\"]').click(); r('query', q.value);"))
+        self.assertIn("type:RQ", found["query"])
+
+
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
 class GraphViewTest(unittest.TestCase):
     """TASK-TRC-134: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154 (DEC-TRC-090, DEC-TRC-091), in a headless browser."""

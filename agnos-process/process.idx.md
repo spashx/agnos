@@ -774,6 +774,7 @@ DEC-WEB-006|48-51||The build writes a folder; publishing stays with the owner
 DEC-WEB-007|52-57||A ratio token for the screenshot frames, checked at build
 DEC-WEB-008|58-64||Link addresses declared once in `assets/site.json`
 @agnos-process/3.plan/CHECKPOINT-2026-11-22-TRC.md
+@agnos-process/3.plan/CHECKPOINT-2026-11-23-TRC.md
 @agnos-process/3.plan/PLAN-AGT-001-agent-entry-points.md
 PLAN-AGT-001|1-79||Agent entry points
 TASK-AGT-001|14-31|Done|AGENTS.md and CLAUDE.md skill alignment
@@ -1249,7 +1250,7 @@ TASK-TRC-131|34-50|Done|Move graph file into graph folder
 TASK-TRC-132|51-66|Done|Rename performance center outputs to lowercase
 TASK-TRC-133|67-85|Done|Generate explorer page shell
 TASK-TRC-134|86-100|Done|Implement explorer graph view
-TASK-TRC-135|101-115|Not Started|Implement explorer query language
+TASK-TRC-135|101-115|Done|Implement explorer query language
 TASK-TRC-136|116-130|Not Started|Implement saved query buttons
 TASK-TRC-137|131-144|Not Started|Show call graph and history
 TASK-TRC-138|145-159|Not Started|Verify explorer on repository and demo

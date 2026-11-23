@@ -31,14 +31,22 @@
       <h2 class="panel-title">Graph</h2>
       <dl id="graph-summary" class="summary"></dl>
     </section>
-    <section class="panel-section">
-      <h2 class="panel-title">Node types</h2>
-      <ul id="type-legend" class="legend"></ul>
-    </section>
+    <div id="facet-list"></div>
   </aside>
   <div id="split-left" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
        aria-label="Resize the facets panel" aria-controls="facets"></div>
   <main id="main">
+    <section class="query-bar" aria-label="Query">
+      <div class="query-row">
+        <label for="query" class="query-label">Query</label>
+        <input id="query" type="text" spellcheck="false" autocomplete="off"
+               placeholder="type:RQ tri:TRC status:!Done   ·   type:RQ !cited-by:TASK[Requirement refs]   ·   edge kind:refs field:text">
+        <button type="button" class="button button-primary" id="query-run">Run</button>
+        <button type="button" class="button" id="query-clear">Clear</button>
+      </div>
+      <div id="saved-queries" class="saved-queries"></div>
+      <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
+    </section>
     <div class="toolbar">
       <div class="tabs" role="tablist" aria-label="Views">
         <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph">Graph</button>

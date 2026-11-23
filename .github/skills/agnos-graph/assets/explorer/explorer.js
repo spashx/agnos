@@ -67,6 +67,29 @@
   const ACTION_ISOLATE = "isolate";
   const ACTION_WIDEN = "widen";
   const SELECTOR_NODE = "node";
+  // RQ-TRC-151, RQ-TRC-152, DEC-TRC-092: facets and the query language
+  const FACET_NODES = "nodes";
+  const FACET_RELATIONS = "relations";
+  const FACET_TYPE = "type";
+  const NONE = "(none)";
+  const KEY_CITES = "cites";
+  const KEY_CITED_BY = "cited-by";
+  const OP_CONTAINS = "contains";
+  const OP_EQUALS = "equals";
+  const EDGE_RE = /^edge(\s+|$)/;
+  const KEY_RE = /^[A-Za-z][\w-]*/;
+  const LINKED_RE = /^([^[]*)(?:\[(.*)\])?$/;
+  const EDGE_KEYS = ["kind", "field", "from", "to", "source", "target"];
+  const ID_QUERY = "query";
+  const ID_QUERY_MESSAGE = "query-message";
+  const CLASS_ERROR = "error";
+  const FACETS = [
+    { key: FACET_TYPE, title: "Node types", of: FACET_NODES, values: (n) => [n.type] },
+    { key: "tri", title: "Trigrams", of: FACET_NODES, values: (n) => [n.props.tri || NONE] },
+    { key: "status", title: "Status", of: FACET_NODES, values: (n) => [n.props.status || NONE] },
+    { key: "kind", title: "Relation kinds", of: FACET_RELATIONS, values: (r) => [r.kind] },
+    { key: "field", title: "Link fields", of: FACET_RELATIONS, values: (r) => fieldsOf(r) },
+  ];
   const ID_HIDDEN_LIST = "hidden-list";
   const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
@@ -76,14 +99,20 @@
   const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);     // code-point order, as the graph file is sorted
 
   const state = { model: null, view: DEFAULT_VIEW, selected: null, sort: { [VIEW_NODES]: null, [VIEW_RELATIONS]: null },
-                  hiddenTypes: new Set(), hiddenNodes: new Set(), isolate: null };   // RQ-TRC-154: what every view hides
+                  hiddenNodes: new Set(), isolate: null,                             // RQ-TRC-154: what every view hides
+                  off: { type: new Set(), tri: new Set(), status: new Set(), kind: new Set(), field: new Set() },   // RQ-TRC-151
+                  queryNodes: null, queryRelations: null };                          // RQ-TRC-152
   let cy = null;                                                                       // DEC-TRC-090: the graph view
 
-  // ---- visibility, shared by every view (RQ-TRC-151, RQ-TRC-154) ----------------------------------------------
-  const isShown = (node) => !state.hiddenTypes.has(node.type) && !state.hiddenNodes.has(node.id)
-    && (!state.isolate || state.isolate.has(node.id));
+  // ---- visibility, shared by every view (RQ-TRC-151, RQ-TRC-152, RQ-TRC-154) ----------------------------------
+  const facetAllows = (facet, item) => facet.values(item).some((v) => !state.off[facet.key].has(v));
+  const isShown = (node) => FACETS.filter((f) => f.of === FACET_NODES).every((f) => facetAllows(f, node))
+    && !state.hiddenNodes.has(node.id) && (!state.isolate || state.isolate.has(node.id))
+    && (!state.queryNodes || state.queryNodes.has(node.id));
   const isRelationShown = (relation) => isShown(state.model.nodes.get(relation.source))
-    && isShown(state.model.nodes.get(relation.target));
+    && isShown(state.model.nodes.get(relation.target))
+    && FACETS.filter((f) => f.of === FACET_RELATIONS).every((f) => facetAllows(f, relation))
+    && (!state.queryRelations || state.queryRelations.has(relation));
 
   function neighbours(id) {
     /* The node and every node one relation away from it, whatever is shown (RQ-TRC-154). */
@@ -145,6 +174,11 @@
     const named = [...new Set(relation.proofs.map((p) => p.field).filter(Boolean))];
     return named.length ? named.join(", ") : NO_VALUE;
   };
+  // RQ-TRC-151: the facet values of a relation's fields, NONE for a relation without one
+  const fieldsOf = (relation) => {
+    const named = [...new Set(relation.proofs.map((p) => p.field).filter(Boolean))];
+    return named.length ? named : [NONE];
+  };
   const location = (props) => (props.doc ? `${props.doc}${props.first ? `:${props.first}-${props.last}` : ""}` : NO_VALUE);
 
   // ---- header and facets panel (RQ-TRC-145) -------------------------------------------------------------------
@@ -157,10 +191,153 @@
     const summary = [["Elements", graph.elements.length], ["Sections", (graph.sections || []).length],
                      ["Files", (graph.files || []).length], ["Nodes", nodes.size], ["Relations", relations.length]];
     $("graph-summary").innerHTML = summary.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+    renderFacets();
+  }
+
+  // ---- facets (RQ-TRC-151) ------------------------------------------------------------------------------------
+  function facetCounts(facet) {
+    /* Each value of the facet and its number of nodes or relations in the loaded graph. */
+    const items = facet.of === FACET_NODES ? [...state.model.nodes.values()] : state.model.relations;
     const counts = new Map();
-    for (const node of nodes.values()) counts.set(node.type, (counts.get(node.type) || 0) + 1);
-    $("type-legend").innerHTML = [...counts].sort((a, b) => compare(a[0], b[0]))
-      .map(([type, n]) => `<li>${swatch(type)}${typeLabel(type)}<span class="count">${n}</span></li>`).join("");
+    for (const item of items) for (const value of facet.values(item)) counts.set(value, (counts.get(value) || 0) + 1);
+    return [...counts].sort((a, b) => compare(a[0], b[0]));
+  }
+
+  function renderFacets() {
+    $("facet-list").innerHTML = FACETS.map((facet) => {
+      const values = facetCounts(facet).map(([value, n]) => `<li><label><input type="checkbox" value="${escapeHtml(value)}"`
+        + `${state.off[facet.key].has(value) ? "" : " checked"}>${facet.key === FACET_TYPE ? `${swatch(value)}${typeLabel(value)}`
+        : `<span>${escapeHtml(value)}</span>`}<span class="count">${n}</span></label></li>`).join("");
+      return `<fieldset class="facet" id="facet-${facet.key}" data-facet="${facet.key}"><legend class="panel-title">${facet.title}</legend>`
+        + `<ul class="facet-values">${values}</ul></fieldset>`;
+    }).join("");
+  }
+
+  // ---- query language (RQ-TRC-152, DEC-TRC-092) ---------------------------------------------------------------
+  function parseQuery(text) {
+    /* {edge, terms: [{neg, key, op, values, type, field}]} or {error}: space-separated terms, key:value, key:a,b,
+       key:!value, key:~text, cites:TYPE[field], cited-by:TYPE[field], each negated by a leading "!". */
+    let rest = text.trim();
+    const edge = EDGE_RE.test(rest);
+    if (edge) rest = rest.replace(EDGE_RE, "");
+    const terms = [];
+    let i = 0;
+    while (i < rest.length) {
+      if (/\s/.test(rest[i])) { i += 1; continue; }
+      const start = i;
+      const neg = rest[i] === "!";
+      if (neg) i += 1;
+      const key = (KEY_RE.exec(rest.slice(i)) || [""])[0];
+      i += key.length;
+      if (!key || rest[i] !== ":") return { error: `cannot read "${rest.slice(start).split(/\s/)[0]}": a term is key:value` };
+      const read = readValue(rest, i + 1);
+      if (read.end < 0) return { error: `cannot read "${rest.slice(start)}": a quote is not closed` };
+      i = read.end;
+      const raw = rest.slice(start, i);
+      if (!read.value) return { error: `cannot read "${raw}": no value after ":"` };
+      terms.push(termOf(neg, key, read.value, raw));
+    }
+    return { edge, terms };
+  }
+
+  function readValue(text, at) {
+    /* A term's value from at: quoted up to its closing quote, else up to a blank, a [bracket] read whole; end -1 when a
+       quote is not closed. */
+    if (text[at] === "\"") {
+      const end = text.indexOf("\"", at + 1);
+      return end < 0 ? { value: "", end: -1 } : { value: text.slice(at + 1, end), end: end + 1 };
+    }
+    let i = at;
+    while (i < text.length && !/\s/.test(text[i])) {
+      const close = text[i] === "[" ? text.indexOf("]", i) : -1;
+      i = close > 0 ? close + 1 : i + 1;
+    }
+    return { value: text.slice(at, i), end: i };
+  }
+
+  function termOf(neg, key, value, raw) {
+    if (key === KEY_CITES || key === KEY_CITED_BY) {
+      const [, type, field] = LINKED_RE.exec(value);
+      return { neg, key, raw, type, field: field || null };
+    }
+    if (value.startsWith("~")) return { neg, key, raw, op: OP_CONTAINS, values: [value.slice(1).toLowerCase()] };
+    if (value.startsWith("!")) return { neg: !neg, key, raw, op: OP_EQUALS, values: value.slice(1).split(",") };
+    return { neg, key, raw, op: OP_EQUALS, values: value.split(",") };
+  }
+
+  function valuesOf(node, key) {
+    if (key === FACET_TYPE) return [node.type];
+    const value = node.props[key];
+    if (Array.isArray(value)) return value.map(String);
+    return [value === undefined || value === null ? "" : String(value)];
+  }
+
+  const matches = (term, values) => (term.op === OP_CONTAINS
+    ? values.some((v) => v.toLowerCase().includes(term.values[0])) : values.some((v) => term.values.includes(v)));
+
+  function linkedBy(relations, end, term) {
+    return relations.some((r) => (!term.type || state.model.nodes.get(r[end]).type === term.type)
+      && (!term.field || r.proofs.some((p) => p.field === term.field)));
+  }
+
+  function nodeMeets(node, term) {
+    let met;
+    if (term.key === KEY_CITES) met = linkedBy(node.outgoing, "target", term);
+    else if (term.key === KEY_CITED_BY) met = linkedBy(node.incoming, "source", term);
+    else met = matches(term, valuesOf(node, term.key));
+    return term.neg ? !met : met;
+  }
+
+  function relationMeets(relation, term) {
+    const typeOf = (id) => state.model.nodes.get(id).type;
+    const values = { kind: [relation.kind], field: fieldsOf(relation), from: [typeOf(relation.source)], to: [typeOf(relation.target)],
+                     source: [relation.source], target: [relation.target] }[term.key];
+    const met = matches(term, values);
+    return term.neg ? !met : met;
+  }
+
+  function runQuery(text) {
+    /* Applies the query to every view, or names the term that does not parse and keeps the former result. */
+    const message = $(ID_QUERY_MESSAGE);
+    const parsed = text.trim() ? parseQuery(text) : { edge: false, terms: [] };
+    const unknown = parsed.edge && parsed.terms && parsed.terms.find((t) => !EDGE_KEYS.includes(t.key));
+    if (parsed.error || unknown) {
+      message.textContent = parsed.error || `cannot read "${unknown.raw}": an edge query knows ${EDGE_KEYS.join(", ")}`;
+      message.classList.add(CLASS_ERROR);
+      return false;
+    }
+    message.classList.remove(CLASS_ERROR);
+    if (!parsed.terms.length) {
+      state.queryNodes = null;
+      state.queryRelations = null;
+      message.textContent = "";
+    } else if (parsed.edge) {
+      state.queryRelations = new Set(state.model.relations.filter((r) => parsed.terms.every((t) => relationMeets(r, t))));
+      state.queryNodes = new Set([...state.queryRelations].flatMap((r) => [r.source, r.target]));
+      message.textContent = `${state.queryRelations.size} relations, ${state.queryNodes.size} nodes match`;
+    } else {
+      state.queryNodes = new Set([...state.model.nodes.values()].filter((n) => parsed.terms.every((t) => nodeMeets(n, t))).map((n) => n.id));
+      state.queryRelations = null;
+      message.textContent = `${state.queryNodes.size} nodes match`;
+    }
+    refresh();
+    return true;
+  }
+
+  function query(text) {
+    $(ID_QUERY).value = text;
+    return runQuery(text);
+  }
+
+  function writeTerm(facet, value) {
+    /* Writes the facet value's term into the query, an edge query for a relation facet (RQ-TRC-151). */
+    const written = /\s/.test(value) ? `"${value}"` : value;
+    const term = `${facet.key}:${written}`;
+    const input = $(ID_QUERY);
+    const current = input.value.trim();
+    if (facet.of === FACET_RELATIONS) input.value = EDGE_RE.test(current) ? `${current} ${term}` : `edge ${term}`;
+    else input.value = current && !EDGE_RE.test(current) ? `${current} ${term}` : term;
+    input.focus();
   }
 
   // ---- tables (RQ-TRC-149) ------------------------------------------------------------------------------------
@@ -361,7 +538,8 @@
   }
 
   function hideTypes(types) {
-    state.hiddenTypes = new Set(types);
+    state.off[FACET_TYPE] = new Set(types);
+    renderFacets();
     refresh();
   }
 
@@ -423,10 +601,11 @@
   }
 
   function showAll() {
-    state.hiddenTypes = new Set();
+    for (const key of Object.keys(state.off)) state.off[key] = new Set();
     state.hiddenNodes = new Set();
     state.isolate = null;
-    refresh();
+    renderFacets();
+    query("");
   }
 
   // ---- views --------------------------------------------------------------------------------------------------
@@ -453,6 +632,8 @@
     state.selected = null;
     state.hiddenNodes = new Set();
     state.isolate = null;
+    state.queryNodes = null;
+    state.queryRelations = null;
     if (cy) {
       cy.destroy();
       cy = null;
@@ -552,6 +733,25 @@
     $("graph-zoom-out").addEventListener(EVENT_CLICK, () => zoomBy(1 / step()));
     $("graph-fit").addEventListener(EVENT_CLICK, fitGraph);
     $("show-all").addEventListener(EVENT_CLICK, showAll);
+    // RQ-TRC-151, RQ-TRC-152: the query bar and the facets
+    $("query-run").addEventListener(EVENT_CLICK, () => runQuery($(ID_QUERY).value));
+    $("query-clear").addEventListener(EVENT_CLICK, () => query(""));
+    $(ID_QUERY).addEventListener(EVENT_KEYDOWN, (event) => { if (event.key === KEY_ENTER) runQuery($(ID_QUERY).value); });
+    let queryFocused = false;              // a mouse press moves the focus before the click: read it on the press
+    $(ID_FACETS).addEventListener("mousedown", () => { queryFocused = document.activeElement === $(ID_QUERY); }, true);
+    $(ID_FACETS).addEventListener(EVENT_CLICK, (event) => {
+      const box = event.target.closest("input[type=checkbox]");
+      if (!box) return;
+      const facet = FACETS.find((f) => f.key === box.closest("[data-facet]").dataset.facet);
+      if (queryFocused || document.activeElement === $(ID_QUERY)) {
+        event.preventDefault();
+        queryFocused = false;
+        writeTerm(facet, box.value);
+        return;
+      }
+      if (box.checked) state.off[facet.key].delete(box.value); else state.off[facet.key].add(box.value);
+      refresh();
+    });
     $("file-input").addEventListener("change", (event) => { if (event.target.files[0]) readFile(event.target.files[0]); });
     const zone = $("drop-zone");
     document.addEventListener("dragover", (event) => { event.preventDefault(); zone.hidden = false; });
@@ -571,7 +771,8 @@
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
 
   window.agnosExplorer = {                         // test hooks (RQ-TRC-145 to RQ-TRC-154)
-    showView, select, loadText, hideTypes, hide, unhide, isolate, widen, showAll,
+    showView, select, loadText, hideTypes, hide, unhide, isolate, widen, showAll, query,
+    shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090
       cy: () => cy,

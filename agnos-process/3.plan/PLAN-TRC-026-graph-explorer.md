@@ -100,7 +100,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-135: Implement explorer query language
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then the term parser, its evaluation on the view model, the facets with counts that write their term into the query, and the error message.
 - **Requirement refs**: RQ-TRC-151, RQ-TRC-152, RQ-TRC-155
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-092)
@@ -110,8 +110,8 @@ This plan implements the tasks in the format specified below.
   - Given a facet value unchecked, Then its nodes or relations are hidden in every view; When clicked with the query focused, Then its term is written into the query
 - **Dependencies**: TASK-TRC-133
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: `QueryLanguageTest` written first (6 failures, 3 errors), then 9 OK in headless Edge, each expected set recomputed from the fixture's graph file: `type:RQ tri:DEM status:!Done`; `type:RQ,DEC`; `title:~COVER` (case ignored); `type:RQ !cited-by:TASK[Requirement refs]`; `cites:ADR[ADR refs]` (plans and tasks); `edge kind:refs field:text from:DEC` (those relations' ends); `type:` named, former result kept; `text` unchecked in the field facet, its count shown, no `text` relation in the relation table; the query focused, a facet click writes `type:RQ`. agnos-graph suite 201 OK, 0 skipped.
+- **Assumptions**: a term with no colon is an error, as the grammar has no free text; values holding a blank are quoted (`field:"Requirement refs"`) or bracketed (`cites:RQ[Requirement refs]`); a relation facet writes an edge query; a relation with several fields is shown while one of them is checked, `(none)` naming a relation without field; Show all also clears the facets and the query; the cites test expected plans only, corrected to every source, the query being right.
 
 ### TASK-TRC-136: Implement saved query buttons
 - **Tier**: M
