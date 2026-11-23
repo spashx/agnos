@@ -113,6 +113,10 @@
   const MENU_SELECT = "select";
   const HOPS = [1, 2, 3];
   const KEY_ESCAPE = "Escape";
+  const ID_DIRECTION = "graph-direction";           // RQ-TRC-166
+  const DIRECTION_LR = "lr";
+  const DIRECTION_TB = "tb";
+  const NATURAL_DIRECTION = { [LAYOUT_COLUMNS]: DIRECTION_LR, grid: DIRECTION_LR, breadthfirst: DIRECTION_TB };
   const ID_LEGEND = "graph-legend";                 // RQ-TRC-165
   const CLASS_FOLDED = "folded";
   const KIND_NAMES = { contains: "contains", refs: "refs (cites)", code: "code (cited in code)", call: "call" };
@@ -873,11 +877,17 @@
        positions, and frames them. */
     if (!cy) return;
     $(ID_LAYOUT).value = name;
+    // RQ-TRC-166, DEC-TRC-094 (TASK-TRC-149): a layout drawn in its natural direction is transposed when the reader
+    // chose the other one; a layout without a direction disables the choice.
+    const natural = NATURAL_DIRECTION[name];
+    $(ID_DIRECTION).disabled = !natural;
+    const swap = Boolean(natural) && $(ID_DIRECTION).value !== natural;
+    const transform = (node, p) => (swap ? { x: p.y, y: p.x } : p);
     if (name === LAYOUT_COLUMNS) {
       layoutPositions(state.model);
-      cy.batch(() => cy.nodes().forEach((n) => n.position({ ...state.model.positions.get(n.id()) })));
+      cy.batch(() => cy.nodes().forEach((n) => n.position(transform(n, { ...state.model.positions.get(n.id()) }))));
     } else {
-      shownNodes().layout({ name, animate: false, fit: false }).run();
+      shownNodes().layout({ name, animate: false, fit: false, transform }).run();
     }
     shownNodes().forEach((n) => state.model.positions.set(n.id(), { ...n.position() }));
     fitGraph();
@@ -1111,6 +1121,7 @@
     $("show-all").addEventListener(EVENT_CLICK, showAll);
     // RQ-TRC-162, RQ-TRC-163: the layout selector and the context menu
     $(ID_LAYOUT).addEventListener("change", () => applyLayout($(ID_LAYOUT).value));
+    $(ID_DIRECTION).addEventListener("change", () => applyLayout($(ID_LAYOUT).value));          // RQ-TRC-166
     $(ID_MENU).addEventListener(EVENT_CLICK, onMenuClick);
     $(ID_LEGEND).querySelector(".legend-toggle").addEventListener(EVENT_CLICK, toggleLegend);   // RQ-TRC-165
     $(VIEW_GRAPH).addEventListener("contextmenu", (event) => event.preventDefault());

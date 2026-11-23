@@ -152,7 +152,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-149: Add layout direction choice
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Add RQ-TRC-166, amend DEC-TRC-094, write the tests first, then add a direction selector that transposes the type columns, tree and grid layouts, disabled for the others.
 - **Requirement refs**: RQ-TRC-166, RQ-TRC-162
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-094)
@@ -161,5 +161,5 @@ This plan implements the tasks in the format specified below.
   - Given "Circle" chosen, Then the direction selector is disabled
 - **Dependencies**: TASK-TRC-143
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `..._RQ_TRC_166_...` failed first (no direction selector), then OK: in Top to bottom, RQ-DEM-001 and RQ-DEM-002 share a row, FTR above RQ above TASK; the selector is enabled for type columns, disabled for Circle. `GraphViewTest` and `..._RQ_TRC_164_...` 12 OK; full agnos-graph suite 221 OK, 1 skipped (`LoadTimeTest`, unless `AGNOS_GRAPH_PERF=1`); `test_literals` OK.
+- **Assumptions**: natural directions: type columns and grid left to right, tree top to bottom; the other direction swaps x and y; DEC-TRC-094 amended in place (Tier L).

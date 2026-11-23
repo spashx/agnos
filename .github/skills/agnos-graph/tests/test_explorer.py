@@ -639,6 +639,17 @@ class GraphViewTest(unittest.TestCase):
         self.assertLess(float(found["spread"]), 0.01)
         self.assertEqual(("true", "true"), (found["inside"], found["kept"]))
 
+    def test_RQ_TRC_166_given_type_columns_when_top_to_bottom_chosen_then_a_type_shares_a_row_and_types_go_down(self):
+        # TASK-TRC-149
+        found = self.run_page(
+            "const pick = (id, v) => { const s = document.getElementById(id); s.value = v; s.dispatchEvent(new Event('change')); };"
+            "pick('graph-layout', 'columns'); pick('graph-direction', 'tb');"
+            "const y = (id) => Math.round(g.position(id).y); r('row', y('RQ-DEM-001') === y('RQ-DEM-002'));"
+            "r('down', y('FTR-DEM-001') < y('RQ-DEM-001') && y('RQ-DEM-001') < y('TASK-DEM-001'));"
+            "r('enabled', !document.getElementById('graph-direction').disabled);"
+            "pick('graph-layout', 'circle'); r('disabled', document.getElementById('graph-direction').disabled);")
+        self.assertEqual(("true", "true", "true", "true"), (found["row"], found["down"], found["enabled"], found["disabled"]))
+
     def test_RQ_TRC_163_given_a_node_right_clicked_when_two_hops_chosen_then_only_its_two_hop_neighbourhood_is_shown(self):
         found = self.run_page(
             "agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); agnosExplorer.widen(); r('two', g.shownIds().sort().join(' '));"

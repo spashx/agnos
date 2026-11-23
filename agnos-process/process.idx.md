@@ -1276,7 +1276,7 @@ TASK-TRC-145|99-111|Done|Show graph legend
 TASK-TRC-146|112-125|Done|Verify explorer review corrections
 TASK-TRC-147|126-138|Done|Explain undefined node type in detail
 TASK-TRC-148|139-152|Done|Move graph legend to bottom band
-TASK-TRC-149|153-165|Not Started|Add layout direction choice
+TASK-TRC-149|153-165|Done|Add layout direction choice
 @agnos-process/3.plan/PLAN-WEB-001-presentation-website.md
 PLAN-WEB-001|1-203||The agnos-meta-website Skill
 TASK-WEB-001|17-34|Done|The content parser and its checks

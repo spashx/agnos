@@ -75,9 +75,9 @@ dragged (`autoungrabify`). Its type colours are the Okabe-Ito tokens `type-ftr` 
 - **Dependencies**: DEC-TRC-092
 
 ### DEC-TRC-094: Cytoscape built-in layouts on demand
-- **Statement**: The explorer's graph view SHALL apply on demand the type columns of DEC-TRC-090 or one of Cytoscape.js's built-in `grid`, `circle`, `concentric`, `breadthfirst` and `cose` layouts to the shown nodes, and SHALL store the positions it yields in the view model as moved positions.
-- **Rationale**: the built-in layouts ship in the pinned library, so no dependency is added (DEC-TRC-040); positions kept in the model survive a filter change as a dragged node's do (DEC-TRC-090). Added for RQ-TRC-162 (owner, 2026-11-23).
-- **Requirement refs**: RQ-TRC-162
+- **Statement**: The explorer's graph view SHALL apply on demand the type columns of DEC-TRC-090 or one of Cytoscape.js's built-in `grid`, `circle`, `concentric`, `breadthfirst` and `cose` layouts to the shown nodes, in the direction the reader chose for the type columns, `breadthfirst` and `grid` by swapping each position's x and y (Cytoscape's `transform` option), and SHALL store the positions it yields in the view model as moved positions.
+- **Rationale**: the built-in layouts ship in the pinned library, so no dependency is added (DEC-TRC-040); positions kept in the model survive a filter change as a dragged node's do (DEC-TRC-090); a swap of the axes turns a left-to-right arrangement into a top-to-bottom one for every layout that has a direction, with one mechanism. Added for RQ-TRC-162 (owner, 2026-11-23); amended for RQ-TRC-166 (TASK-TRC-149, owner, 2026-11-23).
+- **Requirement refs**: RQ-TRC-162, RQ-TRC-166
 - **Dependencies**: DEC-TRC-090
 
 ### DEC-TRC-095: Hand-written graph context menu

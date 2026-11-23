@@ -64,6 +64,10 @@
           <option value="columns">Type columns</option><option value="grid">Grid</option><option value="circle">Circle</option>
           <option value="concentric">Concentric</option><option value="breadthfirst">Tree</option><option value="cose">Force-directed</option>
         </select>
+        <!-- RQ-TRC-166, DEC-TRC-094: the direction of the layouts that have one -->
+        <select id="graph-direction" class="select graph-control" aria-label="Layout direction" title="Arrange the type columns, tree and grid layouts left to right or top to bottom">
+          <option value="lr">Left to right</option><option value="tb">Top to bottom</option>
+        </select>
         <button type="button" class="button" id="show-all" title="Check every facet value, clear the query, the hidden nodes and the isolation">Show all</button>
       </div>
       <p id="view-count" class="view-count"></p>
