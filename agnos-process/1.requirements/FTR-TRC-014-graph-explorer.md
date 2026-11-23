@@ -225,6 +225,15 @@ the graph; a server.
 - **Acceptance Criteria**: Given the type columns layout, When "Top to bottom" is chosen, Then the nodes of one type share one row And the types follow one another downwards; When "Circle" is chosen, Then the direction choice is disabled.
 - **Dependencies**: RQ-TRC-162
 
+### RQ-TRC-167: Node hover tooltip
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the pointer rests on a node of the graph view for the performance center's tooltip delay, the explorer SHALL show beside it a tooltip holding the head of the node's detail (type, ID, title, undefined note) and every property as the detail panel lists them, without changing the selection, and SHALL hide it when the pointer leaves the node or the view moves.
+- **Rationale**: the reader compares a hovered node with the selected one shown on the right (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given RQ-DEM-002 selected, When the pointer rests on RQ-DEM-001, Then no tooltip is shown before the delay And after it the tooltip lists the same properties as RQ-DEM-001's detail And the detail panel still shows RQ-DEM-002; When the pointer leaves the node, Then the tooltip is hidden.
+- **Dependencies**: RQ-TRC-154, RQ-TRC-150
+
 ---
 
 ## Non-Functional Requirements

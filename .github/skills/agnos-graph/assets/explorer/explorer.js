@@ -113,6 +113,8 @@
   const MENU_SELECT = "select";
   const HOPS = [1, 2, 3];
   const KEY_ESCAPE = "Escape";
+  const ID_TIP = "graph-tip";                       // RQ-TRC-167
+  const TOKEN_TIP_DELAY = "--c-graph-tip-delay";
   const ID_DIRECTION = "graph-direction";           // RQ-TRC-166
   const DIRECTION_LR = "lr";
   const DIRECTION_TB = "tb";
@@ -685,17 +687,48 @@
         + `relations, their link field and their proofs.</p>`;
       return;
     }
-    const props = Object.keys(node.props).sort(compare)
-      .map((k) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(propertyValue(node.props[k]))}</dd>`).join("");
     const relations = [...node.outgoing.map((r) => relationItem(r, true)), ...node.incoming.map((r) => relationItem(r, false))];
     const actions = [[ACTION_HIDE, "Hide", "Hide this node in every view"],
                      [ACTION_ISOLATE, "Isolate neighbourhood", "Show only this node and the nodes one relation away"],
                      [ACTION_WIDEN, "Widen by one hop", "Add the nodes one more relation away"]]
       .map(([action, label, tip]) => `<button type="button" class="button" data-action="${action}" title="${tip}">${label}</button>`).join("");
-    panel.innerHTML = `${typeLabel(node.type)}<p class="detail-id">${escapeHtml(node.id)}</p>`
-      + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p>${undefinedNote(node)}<div class="detail-actions">${actions}</div>`
-      + `<h2 class="panel-title">Properties</h2><dl class="properties">${props}</dl>`
+    panel.innerHTML = `${detailHead(node)}<div class="detail-actions">${actions}</div>${propertiesHtml(node)}`
       + `<h2 class="panel-title">Relations (${relations.length})</h2><ul class="relations">${relations.join("")}</ul>`;
+  }
+
+  // RQ-TRC-154, RQ-TRC-167 (TASK-TRC-150): the head and properties the detail panel and the hover tooltip share
+  const detailHead = (node) => `${typeLabel(node.type)}<p class="detail-id">${escapeHtml(node.id)}</p>`
+    + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p>${undefinedNote(node)}`;
+
+  const propertiesHtml = (node) => `<h2 class="panel-title">Properties</h2><dl class="properties">${Object.keys(node.props).sort(compare)
+    .map((k) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(propertyValue(node.props[k]))}</dd>`).join("")}</dl>`;
+
+  // ---- hover tooltip (RQ-TRC-167, TASK-TRC-150) ---------------------------------------------------------------
+  let tipTimer = null;
+
+  function showTip(node) {
+    /* The hovered node's head and properties beside it, inside the graph view; the selection is left as it is. */
+    const tip = $(ID_TIP);
+    tip.innerHTML = detailHead(state.model.nodes.get(node.id())) + propertiesHtml(state.model.nodes.get(node.id()));
+    const at = node.renderedPosition();
+    const gap = tokenNumber(TOKEN_NODE_SIZE);
+    tip.hidden = false;
+    const view = $(VIEW_GRAPH);
+    const left = Math.min(at.x + gap, view.clientWidth - tip.offsetWidth);
+    const top = Math.min(at.y + gap, view.clientHeight - tip.offsetHeight);
+    tip.style.left = Math.max(0, left) + UNIT_PX;
+    tip.style.top = Math.max(0, top) + UNIT_PX;
+  }
+
+  function hideTip() {
+    clearTimeout(tipTimer);
+    tipTimer = null;
+    $(ID_TIP).hidden = true;
+  }
+
+  function onNodeOver(event) {
+    hideTip();
+    tipTimer = setTimeout(() => showTip(event.target), tokenNumber(TOKEN_TIP_DELAY));
   }
 
   function select(id) {
@@ -773,6 +806,9 @@
     cy.on("tap", SELECTOR_NODE, (event) => select(event.target.id()));
     cy.on("cxttap", openMenu);                                                         // RQ-TRC-163
     cy.on("tap viewport", closeMenu);
+    cy.on("mouseover", SELECTOR_NODE, onNodeOver);                                     // RQ-TRC-167
+    cy.on("mouseout", SELECTOR_NODE, hideTip);
+    cy.on("viewport grab cxttap", hideTip);
     cy.on(EVENT_DRAG_FREE, SELECTOR_NODE, (event) => state.model.positions.set(event.target.id(), { ...event.target.position() }));
     applyVisibility();
     if (state.selected) cy.$id(state.selected).addClass(CLASS_PICKED);

@@ -6,7 +6,7 @@ scrollbars, relation kind filter applied to the graph, automatic layouts, a cont
 a legend.
 
 ## References
-- **Requirement refs**: RQ-TRC-151, RQ-TRC-159, RQ-TRC-160, RQ-TRC-161, RQ-TRC-162, RQ-TRC-163, RQ-TRC-164, RQ-TRC-165, RQ-TRC-166, RQ-TRC-156, RQ-TRC-158
+- **Requirement refs**: RQ-TRC-151, RQ-TRC-159, RQ-TRC-160, RQ-TRC-161, RQ-TRC-162, RQ-TRC-163, RQ-TRC-164, RQ-TRC-165, RQ-TRC-166, RQ-TRC-167, RQ-TRC-156, RQ-TRC-158
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-090, DEC-TRC-094, DEC-TRC-095); design system ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010), RQ-TRC-018
 - **Requirements handed to another component**: None; every change stays in the explorer's assets of `agnos-graph`.
 
@@ -163,3 +163,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `..._RQ_TRC_166_...` failed first (no direction selector), then OK: in Top to bottom, RQ-DEM-001 and RQ-DEM-002 share a row, FTR above RQ above TASK; the selector is enabled for type columns, disabled for Circle. `GraphViewTest` and `..._RQ_TRC_164_...` 12 OK; full agnos-graph suite 221 OK, 1 skipped (`LoadTimeTest`, unless `AGNOS_GRAPH_PERF=1`); `test_literals` OK.
 - **Assumptions**: natural directions: type columns and grid left to right, tree top to bottom; the other direction swaps x and y; DEC-TRC-094 amended in place (Tier L).
+
+### TASK-TRC-150: Show node hover tooltip
+- **Tier**: M
+- **Status**: Done
+- **Description**: Add RQ-TRC-167, write the test first, then show after the copied tooltip delay a tooltip of a hovered graph node's detail head and properties, sharing the detail panel's rendering.
+- **Requirement refs**: RQ-TRC-167, RQ-TRC-154
+- **ADR refs**: ADR-TRC-025 (DEC-TRC-090, DEC-TRC-010)
+- **Acceptance Criteria**:
+  - Given RQ-DEM-002 selected, When the pointer rests on RQ-DEM-001, Then no tooltip before the delay, then one listing RQ-DEM-001's detail properties, And the detail still shows RQ-DEM-002
+  - When the pointer leaves the node, Then the tooltip is hidden
+- **Dependencies**: TASK-TRC-147
+- **Assignee**: AI
+- **Verification**: `..._RQ_TRC_167_...` failed first (no tooltip), then OK: hidden at half the 1000 ms delay, shown after it with RQ-DEM-001's ID and the same property keys as its detail, detail still RQ-DEM-002, hidden on mouseout. Full agnos-graph suite: a first run reported 1 error not captured, then two runs 222 OK, 1 skipped (`LoadTimeTest`, unless `AGNOS_GRAPH_PERF=1`); `test_literals` OK.
+- **Assumptions**: the tooltip holds the detail's head and every property, no relation nor action; it is placed right of and below the node, kept inside the view; tokens `motion.tooltip` 1000 ms (the performance center's `duration.tooltip`) and a maximum width of the detail panel's default.

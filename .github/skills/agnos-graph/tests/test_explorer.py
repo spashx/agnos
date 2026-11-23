@@ -650,6 +650,22 @@ class GraphViewTest(unittest.TestCase):
             "pick('graph-layout', 'circle'); r('disabled', document.getElementById('graph-direction').disabled);")
         self.assertEqual(("true", "true", "true", "true"), (found["row"], found["down"], found["enabled"], found["disabled"]))
 
+    def test_RQ_TRC_167_given_a_node_hovered_then_after_the_delay_its_properties_show_and_the_selection_stays(self):
+        # TASK-TRC-150: the delay is the copied tooltip token; virtual time runs the timers
+        found = self.run_page(
+            "const delay = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-graph-tip-delay'));"
+            "agnosExplorer.select('RQ-DEM-002'); const tip = document.getElementById('graph-tip'); const node = g.cy().$id('RQ-DEM-001');"
+            "const keys = (root) => [...root.querySelectorAll('.properties dt')].map((d) => d.textContent).join('|');"
+            "node.emit('mouseover'); setTimeout(() => r('early', tip.hidden), delay / 2);"
+            "setTimeout(() => { r('shown', !tip.hidden); r('tipkeys', keys(tip)); r('id', tip.querySelector('.detail-id').textContent);"
+            " r('selected', document.querySelector('#detail .detail-id').textContent);"
+            " agnosExplorer.select('RQ-DEM-001'); r('detailkeys', keys(document.getElementById('detail')));"
+            " node.emit('mouseout'); r('gone', tip.hidden); }, delay + 300);")
+        self.assertEqual(("true", "true", "true"), (found["early"], found["shown"], found["gone"]))
+        self.assertEqual(("RQ-DEM-001", "RQ-DEM-002"), (found["id"], found["selected"]))
+        self.assertTrue(found["tipkeys"])
+        self.assertEqual(found["detailkeys"], found["tipkeys"])
+
     def test_RQ_TRC_163_given_a_node_right_clicked_when_two_hops_chosen_then_only_its_two_hop_neighbourhood_is_shown(self):
         found = self.run_page(
             "agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); agnosExplorer.widen(); r('two', g.shownIds().sort().join(' '));"

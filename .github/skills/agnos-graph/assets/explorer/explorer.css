@@ -168,6 +168,11 @@ body {
 [data-kind="code"] { --kind-colour: var(--c-graph-edge-code); }
 [data-kind="call"] { --kind-colour: var(--c-graph-edge-call); }
 
+/* RQ-TRC-167: the hovered node's tooltip, the detail panel's head and properties, kept inside the graph view */
+.graph-tip { position: absolute; z-index: 4; max-width: var(--c-graph-tip-max-width); max-height: calc(100% - 2 * var(--s-space-sm)); overflow: hidden; padding: var(--s-space-sm) var(--s-space-md); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); pointer-events: none; }
+.graph-tip[hidden] { display: none; }
+.graph-tip .properties { margin-bottom: 0; }
+
 /* RQ-TRC-163, DEC-TRC-095: the graph's context menu, at the pointer */
 .graph-menu { position: absolute; z-index: 3; display: grid; min-width: var(--c-detail-label-width); padding: var(--s-space-xs); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
 .graph-menu[hidden] { display: none; }
