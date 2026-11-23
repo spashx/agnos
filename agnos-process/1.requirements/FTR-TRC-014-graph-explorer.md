@@ -152,6 +152,70 @@ the graph; a server.
 - **Acceptance Criteria**: Given the explorer's assets and default buttons, Then every text shown to the reader is English And the query keywords are `cites`, `cited-by` and `edge`.
 - **Dependencies**: RQ-TRC-152, RQ-TRC-153
 
+<!-- RQ-TRC-159 to RQ-TRC-165: the owner's review of the explorer, 2026-11-23 (PLAN-TRC-027) -->
+### RQ-TRC-159: Resizable table columns
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The explorer SHALL let the reader resize every column of the node and relation tables by dragging the right edge of its header, within the minimum width of a design token.
+- **Rationale**: a title or a proof cut by its column is read only once the column is widened (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the node table, When the right edge of the Title header is dragged to the right, Then the Title column is wider And sorting the table keeps that width; When it is dragged far to the left, Then the column keeps the token's minimum width.
+- **Dependencies**: RQ-TRC-149, RQ-TRC-018
+
+### RQ-TRC-160: Facet bulk selection
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader clicks a facet's "All" or "None" control, the explorer SHALL check or uncheck every value of that facet in one operation and apply it to every view.
+- **Rationale**: keeping one type among ten takes one click and one tick instead of nine (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the Node types facet, When "None" is clicked, Then every type is unchecked And no node is shown; When "All" is clicked, Then every type is checked And every node is shown again.
+- **Dependencies**: RQ-TRC-151
+
+### RQ-TRC-161: Panel content clear of scrollbars
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE a list of the facets panel or the panel itself shows a vertical scrollbar, the explorer SHALL keep every right-aligned count fully visible beside it.
+- **Rationale**: the trigram list's scrollbar hid its counts (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the Trigrams facet with more values than its height, When its scrollbar is shown, Then the right edge of every count lies left of the scrollbar.
+- **Dependencies**: RQ-TRC-151
+
+### RQ-TRC-162: Automatic graph layouts
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader chooses a layout, the explorer SHALL arrange the shown nodes of the graph view with that layout among the type columns and Cytoscape.js's grid, circle, concentric, breadth-first and force-directed layouts, keep the resulting positions as moved positions and fit them to the view.
+- **Rationale**: the structure of a selection reads best under a layout suited to it (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the graph view, When "Circle" is chosen, Then the shown nodes are placed on a circle And all of them are in the view; When a filter then changes, Then they keep those positions.
+- **Dependencies**: RQ-TRC-150
+
+### RQ-TRC-163: Graph context menu
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader right-clicks the graph view, the explorer SHALL show a menu of the layouts and of fitting the view, and, on a node, of selecting it, hiding it and showing only its neighbours at one, two or three hops.
+- **Rationale**: the actions on a node are reached where the node is (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the graph view, When a node is right-clicked And "Neighbours, 2 hops" is chosen, Then only the nodes at most two relations away from it are shown; When the background is right-clicked, Then the menu lists the layouts And no node action; When Escape is pressed or the page is clicked elsewhere, Then the menu closes.
+- **Dependencies**: RQ-TRC-154, RQ-TRC-162
+
+### RQ-TRC-164: Labelled controls with tooltips
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The explorer SHALL give every control a visible text label or an accessible name, and a tooltip saying what it does.
+- **Rationale**: the pen, arrow and cross of the saved queries did not say what they did (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the explorer with the buttons being edited, Then every button, tab, checkbox and field has a non-empty `title` And the saved query tools read "Edit", "Move left", "Move right" and "Delete".
+- **Dependencies**: RQ-TRC-153, RQ-TRC-155
+
+### RQ-TRC-165: Graph legend
+- **Category**: Functional
+- **EARS Type**: Ubiquitous
+- **Statement**: The explorer's graph view SHALL show a legend of the colour of each node type and the look of each relation kind present in the loaded graph, drawn from the same tokens as the graph, which the reader can fold.
+- **Rationale**: the colours and the dashed or plain lines were read without a key (owner, 2026-11-23).
+- **Priority**: Must
+- **Acceptance Criteria**: Given the graph view of a graph with requirements and `contains` relations, Then the legend lists RQ with its type colour And `contains` with a dashed line of its colour; When the legend is folded, Then only its title stays.
+- **Dependencies**: RQ-TRC-147, RQ-TRC-018
+
 ---
 
 ## Non-Functional Requirements

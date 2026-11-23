@@ -1,7 +1,7 @@
 # ADR-TRC-025: Graph explorer page
 
 ## Status
-Accepted (owner, 2026-11-23) — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.
+Accepted (owner, 2026-11-23) — for FTR-TRC-014 (RQ-TRC-142 to RQ-TRC-158; DEC-TRC-094 and DEC-TRC-095 added for RQ-TRC-162 to RQ-TRC-164, owner, 2026-11-23). Amends DEC-TRC-077 (the graph path) and DEC-TRC-054 (the names of the performance center's outputs); extends ADR-TRC-022 (the graph skill, DEC-TRC-074) and applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010) to a second page.
 
 ## Context
 FTR-TRC-014: the owner explores `agnos-graph.json` before deciding what the performance center reads of its `links` block.
@@ -74,6 +74,18 @@ dragged (`autoungrabify`). Its type colours are the Okabe-Ito tokens `type-ftr` 
 - **Requirement refs**: RQ-TRC-153
 - **Dependencies**: DEC-TRC-092
 
+### DEC-TRC-094: Cytoscape built-in layouts on demand
+- **Statement**: The explorer's graph view SHALL apply on demand the type columns of DEC-TRC-090 or one of Cytoscape.js's built-in `grid`, `circle`, `concentric`, `breadthfirst` and `cose` layouts to the shown nodes, and SHALL store the positions it yields in the view model as moved positions.
+- **Rationale**: the built-in layouts ship in the pinned library, so no dependency is added (DEC-TRC-040); positions kept in the model survive a filter change as a dragged node's do (DEC-TRC-090). Added for RQ-TRC-162 (owner, 2026-11-23).
+- **Requirement refs**: RQ-TRC-162
+- **Dependencies**: DEC-TRC-090
+
+### DEC-TRC-095: Hand-written graph context menu
+- **Statement**: The explorer SHALL open on Cytoscape's `cxttap` event a menu of its own, positioned at the pointer and styled by tokens, listing the layouts and the fit on the background, and on a node also selection, hiding and the neighbours at 1, 2 or 3 hops, computed by the breadth-first walk of the isolation action.
+- **Rationale**: a menu of a few items needs no extension library (`cytoscape-cxtmenu`), which would be a second pinned script; the hop walk already exists (RQ-TRC-154). Added for RQ-TRC-163 (owner, 2026-11-23).
+- **Requirement refs**: RQ-TRC-163, RQ-TRC-164
+- **Dependencies**: DEC-TRC-094, DEC-TRC-010
+
 ## Consequences
 - Easier: a reader opens one page and studies the whole state of a project, its declared links and its mentions apart.
 - Harder: the splitter, zoom and token values exist twice, in both skills, until they are merged; a change of the graph format
@@ -142,6 +154,7 @@ classDiagram
         }
         class ExplorerViews {
             graph with draggable nodes
+            layouts, context menu, legend
             node table, relation table
             facets, detail panel, splitters
         }
@@ -208,6 +221,9 @@ sequenceDiagram
     E-->>R: matching nodes in every view
     R->>E: drop another agnos-graph.json
     E->>E: check JSON and elements, rebuild the view model
+    R->>E: right-click a node, "Neighbours, 2 hops" (RQ-TRC-163)
+    E->>E: hop walk, isolate, concentric layout, positions kept (DEC-TRC-094, DEC-TRC-095)
+    E-->>R: the node and its neighbours, fitted
 
     Note over R,C: 2. Judging the state (RQ-TRC-131, RQ-TRC-132, RQ-TRC-143)
     R->>P: --process [--sources] [--rebuild]
