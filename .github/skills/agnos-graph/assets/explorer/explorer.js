@@ -669,6 +669,10 @@
       + `${field === NO_VALUE ? "" : `<span class="pill">${escapeHtml(field)}</span>`}</span>${proofs}</button></li>`;
   }
 
+  // RQ-TRC-146, TASK-TRC-147: an UNDEFINED node's type property is its ID's prefix, not an artifact's type
+  const undefinedNote = (node) => (node.type === TYPE_UNDEFINED ? `<p class="detail-empty">${escapeHtml(node.props.type
+    ? `A cited ${node.props.type} ID, not defined in the index: no ${node.props.type} carries it.` : "An ID cited but not defined in the index.")}</p>` : "");
+
   function renderDetail() {
     const panel = $(ID_DETAIL);
     const node = state.selected && state.model.nodes.get(state.selected);
@@ -685,7 +689,7 @@
                      [ACTION_WIDEN, "Widen by one hop", "Add the nodes one more relation away"]]
       .map(([action, label, tip]) => `<button type="button" class="button" data-action="${action}" title="${tip}">${label}</button>`).join("");
     panel.innerHTML = `${typeLabel(node.type)}<p class="detail-id">${escapeHtml(node.id)}</p>`
-      + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p><div class="detail-actions">${actions}</div>`
+      + `<p class="detail-title">${escapeHtml(node.props.title || "")}</p>${undefinedNote(node)}<div class="detail-actions">${actions}</div>`
       + `<h2 class="panel-title">Properties</h2><dl class="properties">${props}</dl>`
       + `<h2 class="panel-title">Relations (${relations.length})</h2><ul class="relations">${relations.join("")}</ul>`;
   }

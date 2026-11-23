@@ -125,7 +125,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-147: Explain undefined node type in detail
 - **Tier**: S
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: In the detail panel of an UNDEFINED node, say that its ID is cited with the prefix of a type but defined nowhere in the index (owner, 2026-11-23: ADR-ABC-010 shown UNDEFINED in the table, ADR in the detail).
 - **Requirement refs**: RQ-TRC-146, RQ-TRC-154
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-089)
