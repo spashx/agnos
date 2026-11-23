@@ -111,7 +111,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-146: Verify explorer review corrections
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the graph skill's suite, check the graph is byte-identical with and without `--explorer` on this repository, time the first view, and add the changelog entry.
 - **Requirement refs**: RQ-TRC-156, RQ-TRC-158
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-085)
@@ -120,8 +120,8 @@ This plan implements the tasks in the format specified below.
   - Given this repository's graph with call graph and history, When the explorer is opened headless, Then its first view is drawn in less than 5 s
 - **Dependencies**: TASK-TRC-140, TASK-TRC-141, TASK-TRC-142, TASK-TRC-143, TASK-TRC-144, TASK-TRC-145, TASK-TRC-147
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: agnos-graph suite 218 tests OK, 1 skipped (`LoadTimeTest`, skipped unless `AGNOS_GRAPH_PERF=1`), then run with it: OK (first view < 5 s). `test_literals.py` of agnos-graph and agnos-perf-center: 2 OK each. This repository at a fixed date: graph byte-identical with and without `--explorer` (`cmp` silent, 1140 elements). CHANGELOG `[Unreleased]` Added and Fixed entries.
+- **Assumptions**: the demo is not rebuilt: no change reaches the graph file nor the performance center.
 
 ### TASK-TRC-147: Explain undefined node type in detail
 - **Tier**: S
