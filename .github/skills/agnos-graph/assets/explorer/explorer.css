@@ -159,6 +159,11 @@ body {
   background: var(--c-table-header-bg); border-bottom: var(--s-stroke-hairline) solid var(--s-border);
   padding: var(--s-space-sm) var(--s-space-md); cursor: pointer; user-select: none; white-space: nowrap;
 }
+/* RQ-TRC-159: a resized table is laid out fixed, at the widths its columns were given */
+.data-table.resized { table-layout: fixed; }
+.data-table.resized td { max-width: none; }
+.col-resize { position: absolute; top: 0; right: 0; bottom: 0; width: var(--c-table-column-handle-width); cursor: col-resize; touch-action: none; }
+.col-resize:hover, .col-resize.dragging { background: var(--c-splitter-hover); }
 .data-table th[aria-sort="ascending"]::after { content: " ▲"; }
 .data-table th[aria-sort="descending"]::after { content: " ▼"; }
 .data-table td { padding: var(--s-space-xs) var(--s-space-md); border-bottom: var(--s-stroke-hairline) solid var(--s-surface-hover); vertical-align: top; white-space: nowrap; max-width: var(--c-table-cell-max-width); overflow: hidden; text-overflow: ellipsis; }

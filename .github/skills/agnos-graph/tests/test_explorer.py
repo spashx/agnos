@@ -232,6 +232,22 @@ class ExplorerPageTest(unittest.TestCase):
         self.assertEqual(sources[0], found["asc"])
         self.assertNotEqual(found["asc"], found["desc"])
 
+    def test_RQ_TRC_159_given_the_title_header_edge_dragged_then_the_column_widens_keeps_it_on_sort_and_has_a_minimum(self):
+        # TASK-TRC-142: a drag is a pointer press on the header's handle, moves on the document, a release
+        found = self.run_page(
+            "agnosExplorer.showView('nodes'); const th = () => document.querySelector('#node-table th[data-key=\"title\"]');"
+            "const drag = (dx) => { const h = th().querySelector('.col-resize'); const x = h.getBoundingClientRect().left;"
+            " h.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: x, pointerId: 1 }));"
+            " document.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: x + dx, pointerId: 1 }));"
+            " document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: x + dx, pointerId: 1 })); };"
+            "const w = () => th().getBoundingClientRect().width; const before = w(); drag(150); r('wider', w() - before);"
+            "const wide = w(); th().click(); r('sorted', Math.abs(w() - wide) < 1);"
+            "drag(-5000); r('min', Math.round(w()));"
+            "r('token', parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-table-column-min-width')));")
+        self.assertGreater(float(found["wider"]), 100)
+        self.assertEqual("true", found["sorted"])
+        self.assertEqual(found["token"], found["min"])
+
     def test_RQ_TRC_145_given_a_file_without_elements_then_it_is_named_and_the_graph_stays(self):
         found = self.run_page("const before = agnosExplorer.counts().nodes; agnosExplorer.loadText('bad.json', '{}');"
                               "r('message', document.getElementById('load-message').textContent);"

@@ -102,6 +102,8 @@
   const ID_HIDDEN_LIST = "hidden-list";
   const BULK_ALL = "all";                           // RQ-TRC-160
   const BULK_NONE = "none";
+  const CLASS_RESIZED = "resized";                  // RQ-TRC-159
+  const TOKEN_COLUMN_MIN = "--c-table-column-min-width";
   const TOKEN_NODE_SIZE = "--c-graph-node-size";
 
   const $ = (id) => document.getElementById(id);
@@ -916,8 +918,53 @@
     });
   }
 
+  // ---- table columns (RQ-TRC-159, TASK-TRC-142) ---------------------------------------------------------------
+  function freezeColumns(table) {
+    /* On a table's first resize, every column keeps the width it has, and the table becomes fixed. */
+    if (table.classList.contains(CLASS_RESIZED)) return;
+    const cells = [...table.tHead.rows[0].cells];
+    const widths = cells.map((th) => th.getBoundingClientRect().width);
+    cells.forEach((th, i) => { th.style.width = widths[i] + UNIT_PX; });
+    table.style.width = widths.reduce((a, b) => a + b, 0) + UNIT_PX;
+    table.classList.add(CLASS_RESIZED);
+  }
+
+  function setColumnWidth(table, th, width) {
+    /* A fixed table is as wide as its columns, so that one column grows without shrinking the others. */
+    th.style.width = Math.max(tokenNumber(TOKEN_COLUMN_MIN), width) + UNIT_PX;
+    table.style.width = [...table.tHead.rows[0].cells].reduce((sum, cell) => sum + parseFloat(cell.style.width), 0) + UNIT_PX;
+  }
+
+  function wireColumns(table) {
+    for (const th of table.tHead.rows[0].cells) {
+      const handle = document.createElement("span");
+      handle.className = "col-resize";
+      handle.title = `Drag to resize the ${th.textContent} column`;
+      th.appendChild(handle);
+      handle.addEventListener(EVENT_CLICK, (event) => event.stopPropagation());   // a resize is no sort
+      handle.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        freezeColumns(table);
+        const startX = event.clientX;
+        const start = th.getBoundingClientRect().width;
+        handle.classList.add(CLASS_DRAGGING);
+        const move = (e) => setColumnWidth(table, th, start + e.clientX - startX);
+        const up = () => {
+          handle.classList.remove(CLASS_DRAGGING);
+          document.removeEventListener(EVENT_POINTER_MOVE, move);
+          document.removeEventListener(EVENT_POINTER_UP, up);
+        };
+        document.addEventListener(EVENT_POINTER_MOVE, move);
+        document.addEventListener(EVENT_POINTER_UP, up);
+      });
+    }
+  }
+
   // ---- wiring -------------------------------------------------------------------------------------------------
   function wire() {
+    wireColumns($(ID_NODE_TABLE));
+    wireColumns($(ID_RELATION_TABLE));
     for (const tab of document.querySelectorAll(SELECTOR_TAB)) tab.addEventListener(EVENT_CLICK, () => showView(tab.dataset.view));
     for (const [tableId, view] of [[ID_NODE_TABLE, VIEW_NODES], [ID_RELATION_TABLE, VIEW_RELATIONS]]) {
       const table = $(tableId);

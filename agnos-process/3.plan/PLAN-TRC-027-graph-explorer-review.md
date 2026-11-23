@@ -57,7 +57,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-142: Implement resizable table columns
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the test first, then add a drag handle to each table header, bounded by a minimum width token.
 - **Requirement refs**: RQ-TRC-159
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-010)
@@ -65,8 +65,8 @@ This plan implements the tasks in the format specified below.
   - Given the node table, When the Title header's edge is dragged, Then the column widens And keeps its width after a sort And never goes under the token's minimum
 - **Dependencies**: TASK-TRC-139
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `..._RQ_TRC_159_...` failed first (no handle), then 0 px wider (a fixed table of `width: auto`), then OK after the table width was set to the sum of its columns: +150 px, kept after a sort, 48 px minimum (`--c-table-column-min-width`). With `..._RQ_TRC_149_...`: 2 OK, 0 skipped.
+- **Assumptions**: tokens `dimension.column-min` 48 px and `dimension.column-handle` 6 px; widths last as long as the page, not stored.
 
 ### TASK-TRC-143: Implement graph layouts and context menu
 - **Tier**: M
