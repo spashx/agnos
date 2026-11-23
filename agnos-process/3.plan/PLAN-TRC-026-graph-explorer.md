@@ -115,7 +115,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-TRC-136: Implement saved query buttons
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then the buttons under the query field, their creation, edition, deletion and reordering, their storage, export and import, and the default list in `presets.json`.
 - **Requirement refs**: RQ-TRC-153, RQ-TRC-155
 - **ADR refs**: ADR-TRC-025 (DEC-TRC-093)
@@ -125,8 +125,8 @@ This plan implements the tasks in the format specified below.
   - Given the buttons exported then imported in a fresh browser profile, Then the same buttons are shown in the same order
 - **Dependencies**: TASK-TRC-135
 - **Assignee**: AI
-- **Verification**: [to fill at closure]
-- **Assumptions**: [to fill at closure]
+- **Verification**: `SavedQueriesTest` written first, then 5 OK in headless Edge, each run in a fresh profile: empty store shows the 7 buttons of `presets.json`; a created button is shown after the store is read again and runs its query; edit, move and delete kept; export then import into a cleared store gives the same buttons in the same order; every default query parses. agnos-graph suite 206 OK, 0 skipped.
+- **Assumptions**: the default list is embedded in the page from `presets.json` by a `@PRESETS@` marker; a page reload is simulated by reading the store again, each headless run having a fresh profile; buttons are managed in an "Edit buttons" mode (edit, move left or right, delete, export, import); the store key is `agnos-graph-explorer.saved-queries`.
 
 ### TASK-TRC-137: Show call graph and history
 - **Tier**: M

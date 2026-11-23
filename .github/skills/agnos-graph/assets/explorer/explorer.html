@@ -44,7 +44,8 @@
         <button type="button" class="button button-primary" id="query-run">Run</button>
         <button type="button" class="button" id="query-clear">Clear</button>
       </div>
-      <div id="saved-queries" class="saved-queries"></div>
+      <div id="saved-queries" class="saved-queries" aria-label="Saved queries"></div>
+      <input id="saved-import-file" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
       <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
     </section>
     <div class="toolbar">
@@ -95,6 +96,7 @@
 </div>
 <div id="drop-zone" class="drop-zone" hidden><p>Drop a graph file to explore it</p></div>
 @LIBRARIES@
+<script id="default-queries" type="application/json">@PRESETS@</script>
 <script src="@DATA_SCRIPT@"></script>
 <script>
 /*@SCRIPT@*/

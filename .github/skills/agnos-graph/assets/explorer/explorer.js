@@ -83,6 +83,10 @@
   const ID_QUERY = "query";
   const ID_QUERY_MESSAGE = "query-message";
   const CLASS_ERROR = "error";
+  const STORE_KEY = "agnos-graph-explorer.saved-queries";   // RQ-TRC-153, DEC-TRC-093
+  const EXPORT_NAME = "agnos-graph-explorer-queries.json";
+  const EDIT_NEW = "new";
+  const ID_SAVED = "saved-queries";
   const FACETS = [
     { key: FACET_TYPE, title: "Node types", of: FACET_NODES, values: (n) => [n.type] },
     { key: "tri", title: "Trigrams", of: FACET_NODES, values: (n) => [n.props.tri || NONE] },
@@ -327,6 +331,134 @@
   function query(text) {
     $(ID_QUERY).value = text;
     return runQuery(text);
+  }
+
+  // ---- saved query buttons (RQ-TRC-153, DEC-TRC-093) ---------------------------------------------------------
+  const saved = { list: [], managing: false, editing: null };
+
+  function defaultQueries() {
+    return JSON.parse($("default-queries").textContent).queries.map(({ label, query: q }) => ({ label, query: q }));
+  }
+
+  const validQueries = (list) => Array.isArray(list)
+    && list.every((q) => q && typeof q.label === "string" && q.label && typeof q.query === "string");
+
+  function loadSaved() {
+    /* The reader's buttons from the browser's storage, else the default ones; then shown. */
+    let stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem(STORE_KEY));
+    } catch (error) {
+      stored = null;
+    }
+    saved.list = validQueries(stored) ? stored : defaultQueries();
+    renderSaved();
+  }
+
+  function storeSaved() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(saved.list));
+    } catch (error) {
+      $(ID_QUERY_MESSAGE).textContent = `The buttons could not be kept in this browser: ${error.message}`;
+    }
+    renderSaved();
+  }
+
+  function addSaved(label, q) { saved.list.push({ label, query: q }); storeSaved(); }
+  function editSaved(index, label, q) { saved.list[index] = { label, query: q }; storeSaved(); }
+  function removeSaved(index) { saved.list.splice(index, 1); storeSaved(); }
+
+  function moveSaved(index, delta) {
+    const to = index + delta;
+    if (to < 0 || to >= saved.list.length) return;
+    const [item] = saved.list.splice(index, 1);
+    saved.list.splice(to, 0, item);
+    storeSaved();
+  }
+
+  const exportText = () => `${JSON.stringify({ queries: saved.list }, null, 2)}\n`;
+
+  function importText(text) {
+    /* Replaces the buttons by those of an exported file, or says why it cannot. */
+    let list;
+    try {
+      list = JSON.parse(text).queries;
+    } catch (error) {
+      list = null;
+    }
+    if (!validQueries(list)) {
+      $(ID_QUERY_MESSAGE).textContent = "The file holds no list of saved queries (queries: [{label, query}])";
+      return false;
+    }
+    saved.list = list.map(({ label, query: q }) => ({ label, query: q }));
+    storeSaved();
+    return true;
+  }
+
+  function downloadSaved() {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([exportText()], { type: "application/json" }));
+    link.download = EXPORT_NAME;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  function savedEditor() {
+    const item = saved.editing === EDIT_NEW ? { label: "", query: $(ID_QUERY).value.trim() } : saved.list[saved.editing];
+    return `<form class="saved-editor" id="saved-editor"><label class="query-label" for="saved-label">Label</label>`
+      + `<input id="saved-label" type="text" value="${escapeHtml(item.label)}" required>`
+      + `<label class="query-label" for="saved-query">Query</label>`
+      + `<input id="saved-query" type="text" spellcheck="false" value="${escapeHtml(item.query)}">`
+      + `<button type="submit" class="button button-primary">Save</button>`
+      + `<button type="button" class="button" data-saved="cancel">Cancel</button></form>`;
+  }
+
+  function renderSaved() {
+    const tool = (action, index, text, label) => `<button type="button" class="saved-tool" data-saved="${action}" data-index="${index}"`
+      + ` aria-label="${label}">${text}</button>`;
+    const items = saved.list.map((q, i) => `<span class="saved-item"><button type="button" class="chip saved-run" data-index="${i}"`
+      + ` title="${escapeHtml(q.query)}">${escapeHtml(q.label)}</button>${saved.managing ? tool("edit", i, "✎", `Edit ${escapeHtml(q.label)}`)
+      + tool("left", i, "‹", "Move left") + tool("right", i, "›", "Move right") + tool("delete", i, "×", `Delete ${escapeHtml(q.label)}`) : ""}</span>`);
+    const manage = saved.managing
+      ? `<button type="button" class="button" data-saved="export">Export…</button><button type="button" class="button" data-saved="import">Import…</button>`
+        + `<button type="button" class="button" data-saved="done">Done</button>`
+      : `<button type="button" class="button" data-saved="manage">Edit buttons</button>`;
+    $(ID_SAVED).innerHTML = `${items.join("")}<button type="button" class="button" data-saved="new">+ Save query</button>${manage}`
+      + `${saved.editing === null ? "" : savedEditor()}`;
+  }
+
+  function onSavedClick(event) {
+    const run = event.target.closest(".saved-run");
+    if (run) {
+      query(saved.list[Number(run.dataset.index)].query);
+      return;
+    }
+    const control = event.target.closest("[data-saved]");
+    if (!control) return;
+    const index = Number(control.dataset.index);
+    const actions = {
+      new: () => { saved.editing = EDIT_NEW; renderSaved(); },
+      cancel: () => { saved.editing = null; renderSaved(); },
+      manage: () => { saved.managing = true; renderSaved(); },
+      done: () => { saved.managing = false; saved.editing = null; renderSaved(); },
+      edit: () => { saved.editing = index; renderSaved(); },
+      left: () => moveSaved(index, -1),
+      right: () => moveSaved(index, 1),
+      delete: () => removeSaved(index),
+      export: downloadSaved,
+      import: () => $("saved-import-file").click(),
+    };
+    actions[control.dataset.saved]();
+  }
+
+  function onSavedSubmit(event) {
+    event.preventDefault();
+    const label = $("saved-label").value.trim();
+    const q = $("saved-query").value.trim();
+    if (!label) return;
+    if (saved.editing === EDIT_NEW) addSaved(label, q); else editSaved(saved.editing, label, q);
+    saved.editing = null;
+    renderSaved();
   }
 
   function writeTerm(facet, value) {
@@ -733,6 +865,14 @@
     $("graph-zoom-out").addEventListener(EVENT_CLICK, () => zoomBy(1 / step()));
     $("graph-fit").addEventListener(EVENT_CLICK, fitGraph);
     $("show-all").addEventListener(EVENT_CLICK, showAll);
+    // RQ-TRC-153: the saved query buttons
+    $(ID_SAVED).addEventListener(EVENT_CLICK, onSavedClick);
+    $(ID_SAVED).addEventListener("submit", onSavedSubmit);
+    $("saved-import-file").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) file.text().then(importText);
+      event.target.value = "";
+    });
     // RQ-TRC-151, RQ-TRC-152: the query bar and the facets
     $("query-run").addEventListener(EVENT_CLICK, () => runQuery($(ID_QUERY).value));
     $("query-clear").addEventListener(EVENT_CLICK, () => query(""));
@@ -766,12 +906,15 @@
   }
 
   wire();
+  loadSaved();
   showView(DEFAULT_VIEW);
   if (window.AGNOS_GRAPH && Array.isArray(window.AGNOS_GRAPH.elements)) loadGraph(window.AGNOS_GRAPH);
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
 
   window.agnosExplorer = {                         // test hooks (RQ-TRC-145 to RQ-TRC-154)
     showView, select, loadText, hideTypes, hide, unhide, isolate, widen, showAll, query,
+    saved: { list: () => saved.list, add: addSaved, edit: editSaved, move: moveSaved, remove: removeSaved, load: loadSaved,
+             exportText, importText },                                       // RQ-TRC-153
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090

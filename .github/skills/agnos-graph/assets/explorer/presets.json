@@ -1,0 +1,12 @@
+{
+  "$comment": "The saved query buttons the graph explorer shows when the reader's store is empty (FTR-TRC-014: RQ-TRC-153, RQ-TRC-155; ADR-TRC-025: DEC-TRC-093). English labels; each query follows the grammar of DEC-TRC-092.",
+  "queries": [
+    { "label": "Requirements no task cites", "query": "type:RQ !cited-by:TASK[Requirement refs]" },
+    { "label": "Decisions citing no requirement", "query": "type:DEC !cites:RQ[Requirement refs]" },
+    { "label": "Mentions (text links)", "query": "edge kind:refs field:text" },
+    { "label": "Declared dependencies", "query": "edge field:Dependencies" },
+    { "label": "Requirements cited in code", "query": "type:RQ cited-by:FILE" },
+    { "label": "Tasks not done", "query": "type:TASK status:!Done" },
+    { "label": "Undefined IDs", "query": "type:UNDEFINED" }
+  ]
+}

@@ -357,6 +357,60 @@ class QueryLanguageTest(unittest.TestCase):
         self.assertIn("type:RQ", found["query"])
 
 
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class SavedQueriesTest(unittest.TestCase):
+    """TASK-TRC-136: RQ-TRC-153, RQ-TRC-155 (DEC-TRC-093), in a headless browser, each run in a fresh profile."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.presets = json.loads((ASSETS / "presets.json").read_text(encoding="utf-8"))["queries"]
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const s = agnosExplorer.saved;"
+                                                     "const labels = () => [...document.querySelectorAll('#saved-queries .saved-run')]"
+                                                     ".map((b) => b.textContent).join('|');" + script))
+
+    def test_RQ_TRC_153_given_an_empty_store_then_the_default_buttons_are_shown(self):
+        found = self.run_page("r('labels', labels());")
+        self.assertEqual("|".join(p["label"] for p in self.presets), found["labels"])
+
+    def test_RQ_TRC_153_given_a_created_button_when_the_page_reloads_then_it_is_shown_and_runs_its_query(self):
+        found = self.run_page("s.add('Undefined IDs only', 'type:UNDEFINED'); s.load(); r('labels', labels());"
+                              "[...document.querySelectorAll('#saved-queries .saved-run')].pop().click();"
+                              "r('query', document.getElementById('query').value);")
+        self.assertTrue(found["labels"].endswith("|Undefined IDs only"))
+        self.assertEqual("type:UNDEFINED", found["query"])
+
+    def test_RQ_TRC_153_given_a_button_edited_moved_and_deleted_when_reloaded_then_the_changes_are_kept(self):
+        found = self.run_page("s.edit(0, 'First renamed', 'type:FTR'); s.move(0, 1); s.remove(2); s.load(); r('labels', labels());"
+                              "r('query', s.list()[1].query);")
+        labels = [p["label"] for p in self.presets]
+        expected = [labels[1], "First renamed"] + labels[3:]
+        self.assertEqual("|".join(expected), found["labels"])
+        self.assertEqual("type:FTR", found["query"])
+
+    def test_RQ_TRC_153_given_buttons_exported_then_imported_in_a_fresh_store_then_the_same_buttons_are_shown(self):
+        found = self.run_page("s.add('Mine', 'type:RQ'); s.move(s.list().length - 1, -1); const text = s.exportText();"
+                              "localStorage.clear(); s.load(); const fresh = labels(); s.importText(text); s.load();"
+                              "r('fresh', fresh); r('labels', labels()); r('order', JSON.parse(text).queries.map((q) => q.label).join('|'));")
+        self.assertEqual("|".join(p["label"] for p in self.presets), found["fresh"])
+        self.assertEqual(found["order"], found["labels"])
+        self.assertIn("Mine", found["labels"])
+
+    def test_RQ_TRC_155_given_the_default_buttons_then_each_query_parses(self):
+        found = self.run_page("r('bad', s.list().filter((q) => !agnosExplorer.query(q.query)).map((q) => q.label).join('|'));")
+        self.assertEqual("", found["bad"])
+
+
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
 class GraphViewTest(unittest.TestCase):
     """TASK-TRC-134: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154 (DEC-TRC-090, DEC-TRC-091), in a headless browser."""

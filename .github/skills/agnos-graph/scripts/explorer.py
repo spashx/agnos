@@ -19,12 +19,13 @@ STYLE_PATH = ASSETS_DIR / "explorer.css"
 SCRIPT_PATH = ASSETS_DIR / "explorer.js"
 TOKENS_PATH = ASSETS_DIR / "tokens.json"
 LIBRARIES_PATH = ASSETS_DIR / "libraries.json"
+PRESETS_PATH = ASSETS_DIR / "presets.json"      # RQ-TRC-153, DEC-TRC-093: the default saved query buttons
 PAGE_NAME = "graph-explorer.html"               # RQ-TRC-144, DEC-TRC-085: lowercase, beside the graph file
 DATA_SCRIPT_NAME = "agnos-graph.data.js"        # RQ-TRC-145, DEC-TRC-088
 DATA_GLOBAL = "window.AGNOS_GRAPH"              # DEC-TRC-088: the global the page reads
 PAGE_TITLE = "Graph explorer"                   # RQ-TRC-155: English
 KEY_GLOBAL, KEY_SEMANTIC, KEY_COMPONENT, KEY_LIBRARIES = "global", "semantic", "component", "libraries"
-MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES)@")
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES|PRESETS)@")
 TOKEN_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 SCRIPT_END_RE = re.compile(r"</(script)", re.I)
 
@@ -67,6 +68,11 @@ def library_scripts():
                      for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES])
 
 
+# RQ-TRC-153: JSON safe inside a <script> element, no "<" at all (as the performance center embeds its data)
+def embed_json(data):
+    return json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+
+
 # RQ-TRC-145, DEC-TRC-084
 def render_page():
     """The page: the template with its markers replaced in one pass, so inserted text is never scanned again."""
@@ -77,6 +83,7 @@ def render_page():
         "TITLE": html.escape(PAGE_TITLE),
         "DATA_SCRIPT": html.escape(DATA_SCRIPT_NAME),
         "LIBRARIES": library_scripts(),
+        "PRESETS": embed_json(read_json(PRESETS_PATH)),      # RQ-TRC-153, DEC-TRC-093
     }
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], TEMPLATE_PATH.read_text(encoding=ENCODING))
 
