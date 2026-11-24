@@ -974,6 +974,59 @@ class TimePeriodTest(unittest.TestCase):
         self.assertEqual(str(nodes), found["rows"])
 
 
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TimePlaybackTest(TimePeriodTest):
+    """TASK-GXP-006: RQ-GXP-007, RQ-GXP-008 (ADR-GXP-001: DEC-GXP-006). `t.advance(s)` moves the playback as animation frames
+    would over s seconds, so that each step is known; one test lets the real animation frames run."""
+
+    # the page and helpers of TimePeriodTest; its own tests are not run again here
+    test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it = None
+    test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit = None
+    test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again = None
+    test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history = None
+
+    def run_playback(self, script):
+        # RQ-GXP-007: the fastest speed of the speed list, then the reader's actions
+        return self.run_page("const speed = document.getElementById('time-speed'); speed.value = speed.options[speed.options.length - 1].value;"
+                             "speed.dispatchEvent(new Event('change')); const play = document.getElementById('time-play');"
+                             "const count = () => agnosExplorer.shownIds().length;" + script)
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_a_period_when_play_is_pressed_then_the_shown_count_grows_until_the_end(self):
+        found = self.run_playback("play.click(); r('start', count()); r('label', play.textContent); t.advance(1); r('later', count());"
+                                  "t.advance(60); r('end', count()); r('stopped', play.textContent);")
+        self.assertEqual(("0", "Pause", "2", "3", "Play"), (found["start"], found["label"], found["later"], found["end"], found["stopped"]))
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_loop_checked_when_the_cursor_reaches_the_end_then_it_starts_again_from_the_start(self):
+        found = self.run_playback("document.getElementById('time-loop').click(); play.click(); t.advance(1); r('before', count());"
+                                  "t.advance(4); r('again', count()); r('playing', play.textContent);")
+        self.assertEqual("2", found["before"])
+        self.assertLess(int(found["again"]), 3)
+        self.assertEqual("Pause", found["playing"])
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_playback_when_pause_then_the_cursor_stays_and_when_stop_the_whole_period_is_shown(self):
+        found = self.run_playback("play.click(); t.advance(1); play.click(); const at = t.cursor(); t.advance(2);"
+                                  "r('kept', t.cursor() === at); r('paused', count());"
+                                  "document.getElementById('time-stop').click(); r('stopped', count()); r('cursor', t.cursor());")
+        self.assertEqual(("true", "2", "3", "null"), (found["kept"], found["paused"], found["stopped"], found["cursor"]))
+
+    # RQ-GXP-008
+    def test_RQ_GXP_008_given_the_window_mode_of_7_days_then_only_the_nodes_of_the_7_days_before_the_cursor_are_shown(self):
+        found = self.run_playback("const mode = document.getElementById('time-window'); mode.value = '7'; mode.dispatchEvent(new Event('change'));"
+                                  "t.setCursor('2026-11-06T00:00:00Z'); r('window', rows());"
+                                  "mode.value = '0'; mode.dispatchEvent(new Event('change')); r('cumulative', rows());")
+        self.assertEqual(NEW, found["window"])
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["cumulative"])
+
+    # RQ-GXP-007, DEC-GXP-006: the animation frames move the cursor by themselves
+    def test_RQ_GXP_007_given_play_pressed_when_frames_pass_then_the_cursor_moves_forward(self):
+        found = self.run_playback("play.click(); const first = t.cursor();"
+                                  "setTimeout(() => { r('moved', t.cursor() === null || t.cursor() > first); }, 1500);")
+        self.assertEqual("true", found["moved"])
+
+
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
 class TimePeriodGraphTest(unittest.TestCase):
     """TASK-GXP-005: RQ-GXP-006 in the graph view (DEC-GXP-003: the period is one more term of the visibility every view reads)."""

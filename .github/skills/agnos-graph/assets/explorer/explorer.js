@@ -133,13 +133,15 @@
                   hiddenNodes: new Set(), isolate: null,                             // RQ-TRC-154: what every view hides
                   off: { type: new Set(), tri: new Set(), status: new Set(), kind: new Set(), field: new Set() },   // RQ-TRC-151
                   queryNodes: null, queryRelations: null,                            // RQ-TRC-152
-                  period: null };                     // RQ-GXP-006, DEC-GXP-003: { start, end, startDay, endDay }, null for the whole history
+                  period: null,                       // RQ-GXP-006, DEC-GXP-003: { start, end, startDay, endDay }, null for the whole history
+                  cursor: null, window: 0,            // RQ-GXP-007, RQ-GXP-008: the playback's instant, the window's days (0: cumulative)
+                  bounds: null };                     // DEC-GXP-003: { lo, hi } the shown dates, from the three above; null: every date
   let cy = null;                                                                       // DEC-TRC-090: the graph view
 
   // ---- visibility, shared by every view (RQ-TRC-151, RQ-TRC-152, RQ-TRC-154) ----------------------------------
   const facetAllows = (facet, item) => facet.values(item).some((v) => !state.off[facet.key].has(v));
-  // RQ-GXP-006, DEC-GXP-003: the period is one more term, so that every view applies it as it applies a facet
-  const inPeriod = (node) => !state.period || (node.date >= state.period.start && node.date <= state.period.end);
+  // RQ-GXP-006 to RQ-GXP-008, DEC-GXP-003: the time is one more term, so that every view applies it as it applies a facet
+  const inPeriod = (node) => !state.bounds || (node.date >= state.bounds.lo && node.date <= state.bounds.hi);
   const isShown = (node) => FACETS.filter((f) => f.of === FACET_NODES).every((f) => facetAllows(f, node))
     && !state.hiddenNodes.has(node.id) && (!state.isolate || state.isolate.has(node.id))
     && (!state.queryNodes || state.queryNodes.has(node.id)) && inPeriod(node);
@@ -261,7 +263,6 @@
 
   // ---- time (TASK-GXP-005: RQ-GXP-006, RQ-GXP-009; DEC-GXP-003, DEC-GXP-004) -----------------------------------
   const DAY_MS = 86_400_000;
-  const ISO_DAY_LENGTH = 10;                       // "YYYY-MM-DD"
   const RECENT_DAYS = [7, 30];                     // the Time menu's shortcuts
   const ID_TIME_BAR = "time-bar";
   const ID_TIME_START = "time-start";
@@ -272,7 +273,7 @@
     /* DEC-GXP-004: each node's date is its earliest commit in history.interventions, a node without rows the history's first
        commit; returns the history's first and last instants and its days, or null when the graph holds no history. */
     const history = graph.history;
-    if (!history || !history.commits || !history.commits.length) return null;
+    if (!history?.commits?.length) return null;
     const times = history.commits.map((c) => Date.parse(c.date));
     const limits = history.limits || {};
     const first = Date.parse(limits.first) || Math.min(...times);
@@ -280,19 +281,32 @@
     for (const node of nodes.values()) node.date = first;
     for (const [scope, key] of [["elements", (id) => id], ["files", (path) => path],
                                 ["functions", (index) => functionId(graph, Number(index))]]) {
-      for (const [id, rows] of Object.entries((history.interventions || {})[scope] || {})) {
+      for (const [id, rows] of Object.entries(history.interventions?.[scope] || {})) {
         const node = nodes.get(key(id));
         if (node && rows.length) node.date = Math.min(...rows.map(([index]) => times[index]));
       }
     }
-    const day0 = Math.floor(first / DAY_MS) * DAY_MS;
-    return { first, last, day0, days: Math.floor((last - day0) / DAY_MS) };
+    const day0 = localMidnight(first);
+    const sorted = [...nodes.values()].map((n) => n.date).sort((a, b) => a - b);   // DEC-GXP-006: to tell when the shown set changes
+    return { first, last, day0, days: Math.round((localMidnight(last) - day0) / DAY_MS), sorted };
   }
 
-  const dayOf = (instant) => Math.floor((instant - state.model.time.day0) / DAY_MS);
-  const dayStart = (day) => state.model.time.day0 + day * DAY_MS;
-  const isoDay = (instant) => new Date(instant).toISOString().slice(0, ISO_DAY_LENGTH);
-  const hasTime = () => Boolean(state.model && state.model.time);
+  // Days are the reader's calendar days, counted on the calendar so that a change of summer time shifts no date
+  const localMidnight = (instant) => {
+    const d = new Date(instant);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  };
+  const dayOf = (instant) => Math.round((localMidnight(instant) - state.model.time.day0) / DAY_MS);
+  const dayStart = (day) => {
+    const d = new Date(state.model.time.day0);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + day).getTime();
+  };
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const isoDay = (instant) => {
+    const d = new Date(instant);
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  };
+  const hasTime = () => Boolean(state.model?.time);
 
   function renderTimeBar(startDay, endDay) {
     /* The handles, the filled period between them and its first and last days. */
@@ -302,7 +316,7 @@
     const share = (day) => (days ? (day / days) * PERCENT : 0);
     $("time-fill").style.left = `${share(startDay)}%`;
     $("time-fill").style.right = `${PERCENT - share(endDay)}%`;
-    $("time-range").textContent = `${isoDay(dayStart(startDay))} → ${isoDay(dayStart(endDay))}`;
+    renderCursor();
   }
 
   function setPeriodDays(startDay, endDay) {
@@ -313,7 +327,132 @@
     state.period = start === 0 && end === days ? null
       : { start: dayStart(start), end: dayStart(end + 1) - 1, startDay: start, endDay: end };
     renderTimeBar(start, end);
-    refresh();
+    refreshTime(true);
+  }
+
+  // ---- playback (TASK-GXP-006: RQ-GXP-007, RQ-GXP-008; DEC-GXP-006) ------------------------------------------
+  const MS_PER_S = 1000;
+  const SPEED_TOKENS = ["--c-time-speed-slow", "--c-time-speed-normal", "--c-time-speed-fast"];
+  const SPEED_DEFAULT = 1;                         // the normal speed's place in SPEED_TOKENS
+  const LABEL_PLAY = "Play";
+  const LABEL_PAUSE = "Pause";
+  const playback = { playing: false, loop: false, speed: 0, last: 0, frame: 0, key: "" };
+
+  const periodRange = () => (state.period || { start: state.model.time.day0, end: dayStart(state.model.time.days + 1) - 1 });
+
+  function updateBounds() {
+    /* DEC-GXP-003: the shown dates: from the period's start, or the window before the cursor, to the cursor or the period's end. */
+    if (!hasTime()) {
+      state.bounds = null;
+      return;
+    }
+    const { start, end } = periodRange();
+    const hi = state.cursor === null ? end : Math.min(state.cursor, end);
+    const lo = state.window ? Math.max(start, hi - state.window * DAY_MS) : start;
+    state.bounds = state.period || state.cursor !== null || state.window ? { lo, hi } : null;
+  }
+
+  function countAtMost(instant) {
+    /* The number of node dates up to the instant, by binary search on the sorted dates. */
+    const sorted = state.model.time.sorted;
+    let low = 0;
+    let high = sorted.length;
+    while (low < high) {
+      const mid = (low + high) >> 1;
+      if (sorted[mid] <= instant) low = mid + 1; else high = mid;
+    }
+    return low;
+  }
+
+  function refreshTime(force) {
+    /* DEC-GXP-006: the views are redrawn only when the shown set changes, the cursor at every call. */
+    updateBounds();
+    const b = state.bounds;
+    const key = b ? `${countAtMost(b.hi)}:${countAtMost(b.lo - 1)}` : "";
+    if (force || key !== playback.key) {
+      playback.key = key;
+      refresh();
+    }
+    renderCursor();
+  }
+
+  function renderCursor() {
+    const marker = $("time-cursor");
+    marker.hidden = state.cursor === null;
+    const { start, end } = periodRange();
+    const days = state.model.time.days;
+    if (state.cursor !== null && days) {
+      const share = Math.min(1, Math.max(0, (state.cursor - state.model.time.day0) / DAY_MS / days));
+      marker.style.left = `${share * PERCENT}%`;
+    }
+    const shown = `${isoDay(start)} → ${isoDay(end)}`;
+    $("time-range").textContent = state.cursor === null ? shown : `${shown} · ${isoDay(state.cursor)}`;
+    $("time-play").textContent = playback.playing ? LABEL_PAUSE : LABEL_PLAY;
+  }
+
+  function setCursor(instant) {
+    state.cursor = instant;
+    refreshTime(false);
+  }
+
+  function advance(seconds) {
+    /* Moves the cursor as the frames of `seconds` would: at the end it starts again WHILE Loop is checked, else it stops there. */
+    if (!playback.playing) return;
+    const { start, end } = periodRange();
+    let next = state.cursor + seconds * playback.speed * DAY_MS;
+    if (next >= end) {
+      if (playback.loop) {
+        next = start;
+      } else {
+        next = end;
+        playback.playing = false;
+      }
+    }
+    setCursor(next);
+  }
+
+  function onFrame(now) {
+    if (!playback.playing) return;
+    advance((now - playback.last) / MS_PER_S);
+    playback.last = now;
+    if (playback.playing) playback.frame = requestAnimationFrame(onFrame);
+  }
+
+  function play() {
+    if (!hasTime() || playback.playing) return;
+    const { start, end } = periodRange();
+    if (state.cursor === null || state.cursor >= end) state.cursor = start;
+    playback.playing = true;
+    playback.last = performance.now();
+    refreshTime(false);
+    playback.frame = requestAnimationFrame(onFrame);
+  }
+
+  function pause() {
+    playback.playing = false;
+    cancelAnimationFrame(playback.frame);
+    if (hasTime()) renderCursor();
+  }
+
+  function stop() {
+    pause();
+    state.cursor = null;
+    if (hasTime()) refreshTime(false);
+  }
+
+  function setupPlayback() {
+    /* The speeds of the tokens, the normal one chosen; the controls wired. */
+    $("time-speed").innerHTML = SPEED_TOKENS.map((token) => `<option value="${tokenNumber(token)}">${tokenNumber(token)} days/s</option>`).join("");
+    $("time-speed").selectedIndex = SPEED_DEFAULT;
+    playback.speed = Number($("time-speed").value);
+    $("time-speed").addEventListener("change", (event) => { playback.speed = Number(event.target.value); });
+    $("time-loop").addEventListener("change", (event) => { playback.loop = event.target.checked; });
+    $("time-window").addEventListener("change", (event) => {
+      state.window = Number(event.target.value);
+      if (hasTime()) refreshTime(false);
+    });
+    $("time-play").addEventListener(EVENT_CLICK, () => (playback.playing ? pause() : play()));
+    $("time-stop").addEventListener(EVENT_CLICK, stop);
   }
 
   function setupTimeBar() {
@@ -323,6 +462,7 @@
     const { days } = state.model.time;
     for (const id of [ID_TIME_START, ID_TIME_END]) $(id).max = String(days);
     renderTimeBar(0, days);
+    refreshTime(true);                             // RQ-GXP-008: a window chosen before keeps applying to the new graph
   }
 
   function onTimeHandle(event) {
@@ -1100,6 +1240,10 @@
         { label: "Whole history", tip: "Show the nodes of every date", action: () => setPeriodDays(0, state.model.time.days), enabled: hasTime },
         ...RECENT_DAYS.map((n) => ({ label: `Last ${n} days`, tip: `Show only the nodes first changed in the last ${n} days of the history`,
           action: () => setPeriodDays(state.model.time.days - n + 1, state.model.time.days), enabled: hasTime })),
+        null,                                                                                     // RQ-GXP-007
+        { label: LABEL_PLAY, tip: "Play the period from its first day", action: play, enabled: () => hasTime() && !playback.playing },
+        { label: LABEL_PAUSE, tip: "Pause the playback where it is", action: pause, enabled: () => playback.playing },
+        { label: "Stop", tip: "Stop the playback and show the whole period again", action: stop, enabled: () => state.cursor !== null },
       ], enabled: hasTime, offTip: "Build the graph with --history to filter by time" },
       { name: "appearance", title: "Appearance", tip: "Choose the colour of each relation kind", items: [   // RQ-GXP-005
         ...KIND_ORDER.map((kind) => ({ label: `Colour of ${kind}…`, tip: `Choose the colour of the ${KIND_NAMES[kind]} relations in the graph and its legend`,
@@ -1346,6 +1490,9 @@
 
   // ---- loading (RQ-TRC-145, DEC-TRC-088) ----------------------------------------------------------------------
   function loadGraph(graph) {
+    pause();                                       // RQ-GXP-007: a new graph is not played
+    state.cursor = null;
+    state.bounds = null;
     state.model = buildModel(graph);
     state.model.positions = new Map();
     state.selected = null;
@@ -1475,6 +1622,7 @@
     refreshMenuTitles();                           // RQ-GXP-009: before any graph, the Time menu is disabled
     setupHelp();                                   // RQ-GXP-002
     for (const id of [ID_TIME_START, ID_TIME_END]) $(id).addEventListener("input", onTimeHandle);   // RQ-GXP-006
+    setupPlayback();                               // RQ-GXP-007, RQ-GXP-008
     $(ID_MENUBAR).addEventListener(EVENT_CLICK, onBarClick);
     $(ID_MENUBAR).addEventListener(EVENT_KEYDOWN, onBarKey);
     document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENUBAR}`)) closeBarMenus(false); });
@@ -1581,7 +1729,8 @@
              exportText, importText },                                       // RQ-TRC-153
     appearance: { load: loadRelationColours, set: setRelationColour, reset: resetRelationColours, relationColour },   // RQ-GXP-005
     time: { dayOf: (iso) => dayOf(Date.parse(iso)), dateOf: (id) => new Date(state.model.nodes.get(id).date).toISOString(),
-            setPeriodDays, period: () => state.period },                                                         // RQ-GXP-006
+            setPeriodDays, period: () => state.period,                                                           // RQ-GXP-006
+            advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090

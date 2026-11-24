@@ -89,7 +89,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-006: Add time playback loop
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add Play, Pause, Stop, Loop, the speed and the window mode to the time bar and the Time menu, driven by animation frames, and complete the Time help topic.
 - **Requirement refs**: RQ-GXP-007, RQ-GXP-008
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-006)
@@ -99,8 +99,8 @@ This plan implements the tasks in the format specified below.
   - Given the window mode of 7 days, Then only the nodes of the last 7 days before the cursor are shown
 - **Dependencies**: TASK-GXP-005
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `TimePlaybackTest` 5 tests failed first (5 errors), then OK; with the impacted time, menu, help, tooltip, token, facet, selection and model tests: 32 OK, 0 skipped; after the day fix below, the time, menu, tooltip and raw-value tests: 16 OK, 0 skipped. Screenshot of this repository's explorer during playback: Pause, Stop, Loop, 7 days/s, Cumulative, the cursor on the track, 675 / 4927 nodes.
+- **Assumptions**: `t.advance(s)` moves the playback as the frames of s seconds would, so that the tests know each step; Pause and Play share one button; at the end with Loop the cursor starts again from the period's first day; the screenshot showed the track squeezed, now on its own row, and a first day of 2026-07-13 for a commit of 2026-07-14 01:06 +02:00: the days of TASK-GXP-005 are now the reader's calendar days, not UTC days.
 
 ### TASK-GXP-007: Verify explorer application lot A
 - **Tier**: M

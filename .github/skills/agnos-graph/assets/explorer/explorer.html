@@ -54,12 +54,21 @@
     <!-- RQ-GXP-006, RQ-GXP-009, DEC-GXP-003: the time bar, shown only when the graph holds a history -->
     <section id="time-bar" class="time-bar" aria-label="Time period" hidden>
       <span class="query-label">Period</span>
+      <!-- RQ-GXP-007, RQ-GXP-008, DEC-GXP-006: the playback controls -->
+      <button type="button" class="button" id="time-play" title="Play the period from its first day: the graph grows day by day">Play</button>
+      <button type="button" class="button" id="time-stop" title="Stop the playback and show the whole period again">Stop</button>
       <div class="time-track">
         <span class="time-fill" id="time-fill" aria-hidden="true"></span>
+        <span class="time-cursor" id="time-cursor" aria-hidden="true" hidden></span>
         <input id="time-start" type="range" min="0" step="1" aria-label="Period start" title="Drag to set the first day of the period">
         <input id="time-end" type="range" min="0" step="1" aria-label="Period end" title="Drag to set the last day of the period">
       </div>
       <output id="time-range" class="time-range" for="time-start time-end"></output>
+      <label class="time-option" title="At the end of the period, play it again from its first day"><input id="time-loop" type="checkbox" title="Play the period in a loop"> Loop</label>
+      <select id="time-speed" class="select" aria-label="Playback speed" title="Days of history played per second"></select>
+      <select id="time-window" class="select" aria-label="Playback mode" title="Show every node since the first day of the period, or only those of the last days before the cursor">
+        <option value="0">Cumulative</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option>
+      </select>
     </section>
     <div class="toolbar">
       <div class="tabs" role="tablist" aria-label="Views">
@@ -183,6 +192,8 @@
       <ul>
         <li><b>Period</b>: drag the two handles of the time bar to choose the first and the last day; every view shows only the nodes dated in the period, and the relations between them.</li>
         <li><b>Time menu</b>: Whole history, Last 7 days and Last 30 days set the period at once.</li>
+        <li><b>Playback</b>: Play moves a cursor from the period's first day to its last, at the chosen speed in days per second: the views show the nodes dated up to the cursor, so the graph grows before your eyes. Pause keeps the cursor where it is; Stop shows the whole period again. With Loop checked, the playback starts again from the first day, until it is paused or stopped.</li>
+        <li><b>Mode</b>: Cumulative shows every node since the period's first day; Last 7 days and Last 30 days show only the nodes dated in those days before the cursor, to see where the work moves.</li>
       </ul>
       <p>The graph is the state at one commit: the period shows when today's nodes first appeared, not what was removed before. Without <code>--history</code>, the time bar is hidden and the Time menu is disabled.</p>
     </section>
