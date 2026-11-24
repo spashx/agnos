@@ -31,7 +31,6 @@
   const ATTR_SORT = "aria-sort";
   const CLASS_ACTIVE = "active";
   const CLASS_DRAGGING = "dragging";
-  const COMMIT_SHORT = 10;
   const ROW_TAG = "tr";
   const KEY_ENTER = "Enter";
   const KEY_LEFT = "ArrowLeft";
@@ -491,8 +490,13 @@
   function renderHeader() {
     const { graph, nodes, relations } = state.model;
     const meta = graph.meta || {};
-    const commit = meta.commit ? ` · commit <code>${escapeHtml(meta.commit.slice(0, COMMIT_SHORT))}</code>` : "";
-    $("graph-meta").innerHTML = `${escapeHtml(meta.generatedAt || NO_VALUE)}${commit} · ${graph.elements.length} elements · `
+    // RQ-TRC-145 (TASK-GXP-008): the generation time as the performance center shows it, its UTC value in the tooltip; no commit,
+    // the graph being read from the working tree
+    const when = new Date(meta.generatedAt);
+    const readable = Number.isNaN(when.getTime()) ? meta.generatedAt || NO_VALUE
+      : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(when);
+    const utc = (meta.generatedAt || NO_VALUE).replace("T", " ").replace(/Z$/, " UTC");
+    $("graph-meta").innerHTML = `<span title="${escapeHtml(utc)}">Generated ${escapeHtml(readable)}</span> · ${graph.elements.length} elements · `
       + `${nodes.size} nodes · ${relations.length} relations`;
     const summary = [["Elements", graph.elements.length], ["Sections", (graph.sections || []).length],
                      ["Files", (graph.files || []).length], ["Nodes", nodes.size], ["Relations", relations.length]];

@@ -115,3 +115,16 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `agnos-graph` suite with `AGNOS_GRAPH_PERF=1`: Ran 246 tests in 157.4 s, OK, 0 skipped; RQ-TRC-158 test ok. No other component reads the explorer's assets (`git grep`: CHANGELOG only). Explorer built on this repository and on the demo (84 elements, 452 nodes, 83 commits): playback shows 256 / 452 nodes at 2026-09-21. Changelog entry added.
 - **Assumptions**: the demo's explorer is written to a scratch folder, the demo repository left unchanged.
+
+### TASK-GXP-008: Align explorer header date
+- **Tier**: M
+- **Status**: Done
+- **Description**: Show the generation time in the header as the performance center does (reader's date and time, UTC in a tooltip) and drop the commit, the graph being read from the working tree; amend RQ-TRC-145.
+- **Requirement refs**: RQ-TRC-145
+- **ADR refs**: ADR-TRC-025
+- **Acceptance Criteria**:
+  - Given the explorer, Then the header reads "Generated" and the date in the reader's format, its tooltip the UTC value, and no commit
+- **Dependencies**: TASK-GXP-007
+- **Assignee**: AI
+- **Verification**: header test rewritten for the amended RQ-TRC-145, with the RQ-TRC-145 and raw-value tests: 5 OK, 0 skipped.
+- **Assumptions**: the owner's review of 2026-11-25 ("même format que le perf center", "le graph n'est pas lié à un commit"); the counts stay.

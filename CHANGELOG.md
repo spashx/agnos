@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The graph file moves to its own folder, `agnos-process/4.knowledge/graph/agnos-graph.json`, where `agnos-perf-center` reads it; a former `4.knowledge/agnos-graph.json` is left as it is <!-- TASK-TRC-131, RQ-TRC-142 -->
 - The Performance Center's outputs are lowercase: `perf-center.html`, `perf-center.json`, `perf-center.data.js`; update ignore rules and links to the former `PERF-CENTER.*` names <!-- TASK-TRC-132, RQ-TRC-143 -->
 
+- The graph explorer's header shows the generation time as the Performance Center does, in the reader's date and time with the UTC value in its tooltip, and no longer the commit: the graph is read from the working tree, not from a commit <!-- TASK-GXP-008, RQ-TRC-145 -->
+
 ### Added
 - `agnos-graph.json` holds a `sections` block: the `##` sections of the features, ADRs and plans that hold no requirement, decision or task, their `###` subsections, and the IDs each cites; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-125, TASK-TRC-126, RQ-TRC-134 to RQ-TRC-137 -->
 - `agnos-graph.json` holds a `links` block: for each citation made by a requirement, a decision, a task or a plan, the link field holding it (`Requirement refs`, `ADR refs`, `Dependencies`) or `text`, so that a declared link is told from a mention; features and ADRs keep untyped links; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-128, TASK-TRC-129, RQ-TRC-138 to RQ-TRC-141 -->

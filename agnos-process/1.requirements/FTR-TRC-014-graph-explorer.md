@@ -59,7 +59,7 @@ the graph; a server.
 - **Statement**: WHEN the explorer is opened from the disk, it SHALL show the graph of `agnos-graph.data.js` beside it; WHEN the reader drops or chooses a graph file, it SHALL show that graph instead; IF that file is not JSON or holds no `elements` list, THEN it SHALL name the file and the cause and keep the graph shown.
 - **Rationale**: a page opened from the disk fetches no file, so the graph comes as a script; a reader also compares graphs of other commits or projects.
 - **Priority**: Must
-- **Acceptance Criteria**: Given `graph-explorer.html` and its data script, When the page is opened, Then the header shows the graph's `generatedAt`, `commit` and counts; Given a valid graph file dropped on the page, Then its elements are shown; Given a file holding `{}`, Then a message names the file and "no elements list" And the former graph stays shown.
+- **Acceptance Criteria**: Given `graph-explorer.html` and its data script, When the page is opened, Then the header shows the graph's `generatedAt` in the reader's date and time with its UTC value in a tooltip, as the performance center does, and its counts, and no commit, since the graph is read from the working tree, not from a commit <!-- amended 2026-11-25, TASK-GXP-008 (owner) -->; Given a valid graph file dropped on the page, Then its elements are shown; Given a file holding `{}`, Then a message names the file and "no elements list" And the former graph stays shown.
 - **Dependencies**: RQ-TRC-144, RQ-TRC-010
 
 ### RQ-TRC-146: Whole graph content shown

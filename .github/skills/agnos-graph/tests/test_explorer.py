@@ -209,9 +209,14 @@ class ExplorerPageTest(unittest.TestCase):
         return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute("
                                                      "'data-r-' + k, String(v));" + script))
 
-    def test_RQ_TRC_145_given_the_page_then_its_header_shows_the_date_the_commit_and_the_counts(self):
-        found = self.run_page("r('head', document.getElementById('graph-meta').textContent);")
-        self.assertIn(GENERATED_AT, found["head"])
+    # RQ-TRC-145, amended by TASK-GXP-008: the date as the performance center shows it, its UTC value in the tooltip, no commit
+    def test_RQ_TRC_145_given_the_page_then_its_header_shows_the_readable_date_with_utc_tooltip_the_counts_and_no_commit(self):
+        found = self.run_page("const head = document.getElementById('graph-meta'); r('head', head.textContent);"
+                              "r('tip', head.querySelector('[title]').title);")
+        self.assertTrue(found["head"].startswith("Generated "))
+        self.assertNotIn(GENERATED_AT, found["head"])
+        self.assertNotIn("commit", found["head"])
+        self.assertEqual(GENERATED_AT.replace("T", " ").replace("Z", " UTC"), found["tip"])
         self.assertIn(f"{len(self.graph['elements'])} elements", found["head"])
 
     def test_RQ_TRC_146_given_the_tables_then_they_list_every_node_and_relation_of_the_file(self):
