@@ -695,5 +695,60 @@ class GraphViewTest(unittest.TestCase):
         self.assertEqual("true", found["same"])
 
 
+class MenuBarTest(unittest.TestCase):
+    """TASK-GXP-002: RQ-GXP-001, RQ-TRC-164 (ADR-GXP-001: DEC-GXP-001), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-001: helpers reading the menu bar as the reader sees it
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const bar = document.getElementById('menubar');"
+                                                     "const title = (n) => bar.querySelector(`[data-menu-title=\"${n}\"]`);"
+                                                     "const shown = () => [...bar.querySelectorAll('[role=menu]:not([hidden]) [role=menuitem]')]"
+                                                     ".map((i) => i.textContent).join('|');"
+                                                     "const key = (k) => document.activeElement.dispatchEvent(new KeyboardEvent('keydown',"
+                                                     " { key: k, bubbles: true }));" + script))
+
+    # RQ-GXP-001
+    def test_RQ_GXP_001_given_the_explorer_when_file_is_clicked_then_open_import_and_export_are_listed(self):
+        found = self.run_page("title('file').click(); r('items', shown());")
+        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…", found["items"])
+
+    # RQ-GXP-001
+    def test_RQ_GXP_001_given_an_open_menu_when_right_arrow_then_the_next_opens_and_escape_closes_to_its_title(self):
+        found = self.run_page("title('file').click(); title('file').focus(); key('ArrowRight');"
+                              "r('open', [...bar.querySelectorAll('[role=menu]:not([hidden])')].map((m) => m.dataset.menu).join('|'));"
+                              "key('Escape'); r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);"
+                              "r('focus', document.activeElement.dataset.menuTitle);")
+        self.assertEqual(("view", "0", "view"), (found["open"], found["closed"], found["focus"]))
+
+    # RQ-GXP-001: the menus whose actions exist, in order; Time, Appearance, Dimensions and Help come with their tasks
+    def test_RQ_GXP_001_given_the_menu_bar_then_only_delivered_menus_are_shown_and_every_item_has_a_tooltip(self):
+        found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
+                              "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
+                              ".map((b) => b.textContent).join('|'));")
+        self.assertEqual("File|View|Filter", found["menus"])
+        self.assertEqual("", found["untitled"])
+
+    # RQ-GXP-001: an item that does not apply to the current view is disabled
+    def test_RQ_GXP_001_given_the_nodes_view_then_fit_is_disabled_and_choosing_graph_shows_the_graph_view(self):
+        found = self.run_page("agnosExplorer.showView('nodes'); title('view').click();"
+                              "const item = (t) => [...bar.querySelectorAll('[role=menuitem]')].find((i) => i.textContent === t);"
+                              "r('fit', item('Fit').disabled); item('Graph').click();"
+                              "r('view', document.querySelector('.tab[aria-selected=true]').dataset.view);"
+                              "r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);")
+        self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
+
+
 if __name__ == "__main__":
     unittest.main()

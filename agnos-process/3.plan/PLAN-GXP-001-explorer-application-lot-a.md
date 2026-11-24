@@ -30,7 +30,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-002: Add explorer menu bar
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the Gherkin-named tests first, then replace the header's file button by a menu bar File, View, Filter and Help, with the existing actions (open graph, saved queries import and export, tabs, show all, layouts).
 - **Requirement refs**: RQ-GXP-001, RQ-TRC-164
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-001)
@@ -40,8 +40,8 @@ This plan implements the tasks in the format specified below.
   - Given every menu item, Then it has a non-empty tooltip
 - **Dependencies**: TASK-GXP-001
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `MenuBarTest` 4 tests failed first (KeyError, no menu bar), then OK; with the impacted `ExplorerTokensTest`, `test_RQ_TRC_164`, `test_RQ_TRC_145`: 13 OK, 0 skipped. Screenshot of this repository's explorer: File, View, Filter beside the mark, View open.
+- **Assumptions**: Help joins the bar with TASK-GXP-003 (RQ-GXP-001: an undelivered menu is absent); layouts stay in the toolbar and the context menu, not duplicated in View.
 
 ### TASK-GXP-003: Add explorer help dialog
 - **Tier**: M

@@ -886,7 +886,7 @@ TASK-FIX-005|53-70|Done|Align user documents
 @agnos-process/3.plan/PLAN-GXP-001-explorer-application-lot-a.md
 PLAN-GXP-001|1-117||Explorer application with time and colours
 TASK-GXP-001|18-30|Done|Document graph explorer application
-TASK-GXP-002|31-45|Not Started|Add explorer menu bar
+TASK-GXP-002|31-45|Done|Add explorer menu bar
 TASK-GXP-003|46-60|Not Started|Add explorer help dialog
 TASK-GXP-004|61-74|Not Started|Add relation colour choice
 TASK-GXP-005|75-89|Not Started|Add time period filter

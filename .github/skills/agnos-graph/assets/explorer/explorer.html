@@ -19,11 +19,10 @@
       <svg class="brand-mark" viewBox="0 0 24 24" role="img" aria-label="AGNOS"><rect class="mark-tile" width="24" height="24" rx="5.5"></rect><rect class="mark-bar-light" x="4" y="3" width="16" height="3" rx="1"></rect><rect class="mark-bar-blue" x="4" y="8" width="6" height="3" rx="1"></rect><rect class="mark-bar-green" x="10" y="13" width="5" height="3" rx="1"></rect><rect class="mark-bar-yellow" x="15" y="18" width="5" height="3" rx="1"></rect></svg>
       <h1>Graph explorer</h1>
     </div>
+    <!-- RQ-GXP-001, DEC-GXP-001: the menu bar, filled by the script from its list of menus -->
+    <div id="menubar" class="menubar" role="menubar" aria-label="Menus"></div>
     <p id="graph-meta" class="graph-meta"></p>
-    <div class="header-actions">
-      <label class="button" for="file-input" title="Open an agnos-graph.json file from the disk; dropping it on the page works too">Open graph file…</label>
-      <input id="file-input" title="Choose an agnos-graph.json file" type="file" accept=".json,application/json" class="visually-hidden">
-    </div>
+    <input id="file-input" aria-label="Graph file" title="Choose an agnos-graph.json file" type="file" accept=".json,application/json" class="visually-hidden">
     <p id="load-message" class="load-message" role="status" aria-live="polite"></p>
   </header>
   <aside id="facets" class="panel" aria-label="Facets">

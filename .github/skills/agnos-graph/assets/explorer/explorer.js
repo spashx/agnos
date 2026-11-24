@@ -984,6 +984,120 @@
     query("");
   }
 
+  // ---- menu bar (TASK-GXP-002: RQ-GXP-001, RQ-TRC-164; DEC-GXP-001) ------------------------------------------
+  const ID_MENUBAR = "menubar";
+  const SELECTOR_BAR_MENU = "[role=menu]";
+  const SELECTOR_BAR_TITLE = "[data-menu-title]";
+  const SELECTOR_BAR_ITEM = "[data-item]";
+  const ATTR_EXPANDED = "aria-expanded";
+  const KEY_DOWN = "ArrowDown";
+  const KEY_UP = "ArrowUp";
+  const ITEM_SEPARATOR = ":";
+  const VIEW_ITEMS = [[VIEW_GRAPH, "Graph"], [VIEW_NODES, "Nodes"], [VIEW_RELATIONS, "Relations"]];
+  let barMenus = [];
+
+  // RQ-GXP-001: each menu, its title and tooltip, and its items (label, tooltip, action, enabled test); null draws a separator
+  function menuDefinitions() {
+    const always = () => true;
+    const loaded = () => Boolean(state.model);
+    return [
+      { name: "file", title: "File", tip: "Open a graph file, import or export the saved queries", items: [
+        { label: "Open graph file…", tip: "Open an agnos-graph.json file from the disk; dropping it on the page works too",
+          action: () => $("file-input").click(), enabled: always },
+        { label: "Import saved queries…", tip: "Replace the saved query buttons by those of an exported file",
+          action: () => $("saved-import-file").click(), enabled: always },
+        { label: "Export saved queries…", tip: "Save the saved query buttons to a JSON file", action: downloadSaved, enabled: always },
+      ] },
+      { name: "view", title: "View", tip: "Choose the view, fit the graph", items: [
+        ...VIEW_ITEMS.map(([view, label]) => ({ label, tip: `Show the ${label.toLowerCase()} view`, action: () => showView(view), enabled: always })),
+        null,
+        { label: "Fit", tip: "Fit the shown nodes to the graph view", action: fitGraph, enabled: () => state.view === VIEW_GRAPH && Boolean(cy) },
+      ] },
+      { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
+        { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
+        { label: "Show all", tip: "Check every facet value, clear the query, the hidden nodes and the isolation", action: showAll, enabled: loaded },
+      ] },
+    ];
+  }
+
+  function renderMenuBar() {
+    barMenus = menuDefinitions();
+    const item = (entry, m, i) => (entry
+      ? `<button type="button" role="menuitem" data-item="${m}${ITEM_SEPARATOR}${i}" title="${escapeHtml(entry.tip)}">${escapeHtml(entry.label)}</button>`
+      : "<hr>");
+    $(ID_MENUBAR).innerHTML = barMenus.map((menu, m) => `<div class="menubar-item">`
+      + `<button type="button" class="menubar-title" role="menuitem" aria-haspopup="menu" ${ATTR_EXPANDED}="false"`
+      + ` data-menu-title="${menu.name}" title="${escapeHtml(menu.tip)}">${menu.title}</button>`
+      + `<div class="graph-menu menubar-menu" role="menu" data-menu="${menu.name}" aria-label="${menu.title}" hidden>`
+      + `${menu.items.map((entry, i) => item(entry, m, i)).join("")}</div></div>`).join("");
+  }
+
+  const barEntry = (button) => {
+    const [m, i] = button.dataset.item.split(ITEM_SEPARATOR).map(Number);
+    return barMenus[m].items[i];
+  };
+  const barTitle = (name) => $(ID_MENUBAR).querySelector(`[data-menu-title="${name}"]`);
+  const openBarMenu = () => $(ID_MENUBAR).querySelector(`${SELECTOR_BAR_MENU}:not([hidden])`);
+
+  function showBarMenu(name) {
+    /* Opens one menu, closes the others, and enables each item by its test on the current graph and view. */
+    for (const menu of $(ID_MENUBAR).querySelectorAll(SELECTOR_BAR_MENU)) {
+      const open = menu.dataset.menu === name;
+      menu.hidden = !open;
+      barTitle(menu.dataset.menu).setAttribute(ATTR_EXPANDED, String(open));
+      if (open) for (const button of menu.querySelectorAll(SELECTOR_BAR_ITEM)) button.disabled = !barEntry(button).enabled();
+    }
+  }
+
+  function closeBarMenus(returnFocus) {
+    const open = openBarMenu();
+    if (!open) return;
+    showBarMenu(null);
+    if (returnFocus) barTitle(open.dataset.menu).focus();
+  }
+
+  function focusBarItem(menu, step) {
+    /* Moves the focus to the next or previous enabled item of an open menu, wrapping around. */
+    const items = [...menu.querySelectorAll(`${SELECTOR_BAR_ITEM}:not(:disabled)`)];
+    if (!items.length) return;
+    const at = items.indexOf(document.activeElement);
+    items[(at + step + items.length) % items.length].focus();
+  }
+
+  function onBarKey(event) {
+    const titles = [...$(ID_MENUBAR).querySelectorAll(SELECTOR_BAR_TITLE)];
+    const current = event.target.closest(".menubar-item")?.querySelector(SELECTOR_BAR_TITLE);
+    if (!current) return;
+    const side = { [KEY_RIGHT]: 1, [KEY_LEFT]: -1 }[event.key];
+    const down = { [KEY_DOWN]: 1, [KEY_UP]: -1 }[event.key];
+    if (side) {
+      const next = titles[(titles.indexOf(current) + side + titles.length) % titles.length];
+      if (openBarMenu()) showBarMenu(next.dataset.menuTitle);
+      next.focus();
+    } else if (down) {
+      if (!openBarMenu()) showBarMenu(current.dataset.menuTitle);
+      focusBarItem(openBarMenu(), down);
+    } else if (event.key === KEY_ESCAPE) {
+      closeBarMenus(true);
+    } else {
+      return;
+    }
+    event.preventDefault();
+  }
+
+  function onBarClick(event) {
+    const title = event.target.closest(SELECTOR_BAR_TITLE);
+    if (title) {
+      const open = openBarMenu();
+      showBarMenu(open && open.dataset.menu === title.dataset.menuTitle ? null : title.dataset.menuTitle);
+      return;
+    }
+    const button = event.target.closest(SELECTOR_BAR_ITEM);
+    if (!button || button.disabled) return;
+    closeBarMenus(false);
+    barEntry(button).action();
+  }
+
   // ---- views --------------------------------------------------------------------------------------------------
   function showView(view) {
     state.view = view;
@@ -1124,6 +1238,11 @@
 
   // ---- wiring -------------------------------------------------------------------------------------------------
   function wire() {
+    // RQ-GXP-001, DEC-GXP-001: the menu bar
+    renderMenuBar();
+    $(ID_MENUBAR).addEventListener(EVENT_CLICK, onBarClick);
+    $(ID_MENUBAR).addEventListener(EVENT_KEYDOWN, onBarKey);
+    document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENUBAR}`)) closeBarMenus(false); });
     wireColumns($(ID_NODE_TABLE));
     wireColumns($(ID_RELATION_TABLE));
     for (const tab of document.querySelectorAll(SELECTOR_TAB)) tab.addEventListener(EVENT_CLICK, () => showView(tab.dataset.view));

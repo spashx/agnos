@@ -40,7 +40,12 @@ body {
 .mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
 .graph-meta { margin: 0; color: var(--s-text-muted); font-size: var(--s-text-small); }
 .graph-meta code { font-family: var(--s-font-mono); }
-.header-actions { margin-left: auto; display: flex; gap: var(--s-space-sm); }
+/* RQ-GXP-001, DEC-GXP-001: the menu bar; its menus take the context menu's look (.graph-menu) */
+.menubar { display: flex; gap: var(--s-space-2xs); }
+.menubar-item { position: relative; }
+.menubar-title { font: inherit; padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; }
+.menubar-title:hover, .menubar-title[aria-expanded="true"], .menubar-title:focus-visible { background: var(--s-surface-hover); outline: none; }
+.menubar-menu { top: 100%; left: 0; z-index: 4; }
 .load-message { margin: 0; flex-basis: 100%; font-size: var(--s-text-small); color: var(--s-danger); }
 .load-message:empty { display: none; }
 .button {
@@ -179,6 +184,7 @@ body {
 .graph-menu-title { padding: var(--s-space-2xs) var(--s-space-sm); font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); color: var(--s-text-muted); text-transform: uppercase; letter-spacing: var(--s-tracking-caps); }
 .graph-menu button { font: inherit; text-align: left; padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; white-space: nowrap; }
 .graph-menu button:hover, .graph-menu button:focus-visible { background: var(--s-surface-hover); outline: none; }
+.graph-menu button:disabled { color: var(--s-text-subtle); background: transparent; cursor: default; }
 .graph-menu hr { width: 100%; margin: var(--s-space-xs) 0; border: 0; border-top: var(--s-stroke-hairline) solid var(--s-border); }
 
 /* RQ-TRC-149: the tables scroll inside the central view under a fixed header row */
