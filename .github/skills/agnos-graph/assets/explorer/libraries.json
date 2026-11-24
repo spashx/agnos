@@ -9,6 +9,17 @@
       "licence": "MIT",
       "global": "cytoscape",
       "use": "the graph view"
+    },
+    {
+      "_comment": "RQ-GXP-011, RQ-GXP-019, DEC-GXP-007 (TASK-GXP-012): the last UMD build without the r150 deprecation warning; lazy: loaded by the script when Graph 3D is first shown, not by a script element.",
+      "name": "three.js",
+      "version": "0.149.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js",
+      "integrity": "sha512-6p9lGA4Cm89KiwN1CixiOVQU2H9e13LeYoN6/Hj/qoUhtrMW5vNiqQz9Z96Z7/I8u89ghL6SPBz9na5HFVzF3g==",
+      "licence": "MIT",
+      "global": "THREE",
+      "use": "the 3D graph view",
+      "lazy": true
     }
   ]
 }

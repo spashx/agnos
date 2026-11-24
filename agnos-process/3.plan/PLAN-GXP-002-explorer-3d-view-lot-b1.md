@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-012: Add flat tabs with lazy three.js
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then rename the Graph tab to Graph 2D, add a Graph 3D tab and panel, and record three.js in `libraries.json` and the licence list, loaded on the tab's first show.
 - **Requirement refs**: RQ-GXP-010, RQ-GXP-003, RQ-GXP-019
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-007)
@@ -39,8 +39,8 @@ This plan implements the tasks in the format specified below.
   - Given the help dialog, Then the licence list shows three.js, MIT
 - **Dependencies**: TASK-GXP-011
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `FlatTabsTest` 4 tests failed first (StopIteration, tabs `Graph|Nodes|Relations`, no badge), then OK; `test_explorer` 83 tests OK, 1 skipped (RQ-TRC-158 load time, needs AGNOS_GRAPH_PERF=1, run in TASK-GXP-018). Two existing tests updated to the new expected behaviour: menu item `Graph 2D`, three.js badge.
+- **Assumptions**: three.js 0.149.0, the last UMD build without the r150 deprecation warning; `lazy: true` in `libraries.json` marks a library loaded by the script; the 3D view opens the Graph help topic.
 
 ### TASK-GXP-013: Draw 3D points and lines
 - **Tier**: L

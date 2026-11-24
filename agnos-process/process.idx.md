@@ -907,7 +907,7 @@ TASK-GXP-009|145-157|Done|Rearrange explorer header and time bar
 @agnos-process/3.plan/PLAN-GXP-002-explorer-3d-view-lot-b1.md
 PLAN-GXP-002|1-129||Explorer 3D view with dimensions
 TASK-GXP-011|17-29|Done|Document explorer 3D view
-TASK-GXP-012|30-44|Not Started|Add flat tabs with lazy three.js
+TASK-GXP-012|30-44|Done|Add flat tabs with lazy three.js
 TASK-GXP-013|45-59|Not Started|Draw 3D points and lines
 TASK-GXP-014|60-74|Not Started|Add 3D node interaction
 TASK-GXP-015|75-88|Not Started|Add 3D dimensions menu

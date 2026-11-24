@@ -22,6 +22,10 @@
   const VIEW_GRAPH = "graph";
   const VIEW_NODES = "nodes";
   const VIEW_RELATIONS = "relations";
+  const VIEW_GRAPH3D = "graph3d";                   // RQ-GXP-010: the 3D graph view
+  const VIEWS = [VIEW_GRAPH, VIEW_GRAPH3D, VIEW_NODES, VIEW_RELATIONS];
+  const GLOBAL_THREE = "THREE";                     // RQ-GXP-019, DEC-GXP-007: the global three.js sets
+  const MESSAGE_NO_THREE = "three.js could not be loaded from cdnjs: the 3D view needs the network once; the other views work without it.";
   const DEFAULT_VIEW = VIEW_GRAPH;
   const LINK_KEY_SEPARATOR = "\u0000";
   const NO_VALUE = "—";
@@ -1227,7 +1231,7 @@
   const KEY_DOWN = "ArrowDown";
   const KEY_UP = "ArrowUp";
   const ITEM_SEPARATOR = ":";
-  const VIEW_ITEMS = [[VIEW_GRAPH, "Graph"], [VIEW_NODES, "Nodes"], [VIEW_RELATIONS, "Relations"]];
+  const VIEW_ITEMS = [[VIEW_GRAPH, "Graph 2D"], [VIEW_GRAPH3D, "Graph 3D"], [VIEW_NODES, "Nodes"], [VIEW_RELATIONS, "Relations"]];   // RQ-GXP-010
   let barMenus = [];
 
   // RQ-GXP-001: each menu, its title and tooltip, and its items (label, tooltip, action, enabled test); null draws a separator
@@ -1359,7 +1363,7 @@
   }
 
   function openHelp(topic) {
-    showHelpTopic(topic);
+    showHelpTopic(topic === VIEW_GRAPH3D ? VIEW_GRAPH : topic);   // RQ-GXP-010: the 3D view shares the Graph topic
     $("help-dialog").showModal();
   }
 
@@ -1490,10 +1494,33 @@
   function showView(view) {
     state.view = view;
     for (const tab of document.querySelectorAll(SELECTOR_TAB)) tab.setAttribute(ATTR_SELECTED, String(tab.dataset.view === view));
-    for (const name of [VIEW_GRAPH, VIEW_NODES, VIEW_RELATIONS]) $(`view-${name}`).classList.toggle(CLASS_ACTIVE, name === view);
+    for (const name of VIEWS) $(`view-${name}`).classList.toggle(CLASS_ACTIVE, name === view);
     for (const control of document.querySelectorAll(".graph-control")) control.hidden = view !== VIEW_GRAPH;
     if (state.model) renderTables();
     initGraph();
+    if (view === VIEW_GRAPH3D) loadThree();        // RQ-GXP-019, DEC-GXP-007: on the first show only
+  }
+
+  // ---- 3D library (RQ-GXP-019, DEC-GXP-007) -------------------------------------------------------------------
+  let threeLoading = null;                         // the promise of the one load of three.js
+
+  function loadThree() {
+    /* Loads the lazy library of the record once, by a script element checked by its integrity; resolves when its global is
+       set, rejects with the panel's message when cdnjs cannot give it. */
+    if (threeLoading) return threeLoading;
+    const lib = JSON.parse($("library-record").textContent).find((l) => l.lazy && l.global === GLOBAL_THREE);
+    threeLoading = new Promise((resolve, reject) => {
+      if (window[GLOBAL_THREE]) return resolve(window[GLOBAL_THREE]);
+      const script = document.createElement("script");
+      Object.assign(script, { src: lib.url, integrity: lib.integrity, crossOrigin: "anonymous", referrerPolicy: "no-referrer" });
+      script.onload = () => resolve(window[GLOBAL_THREE]);
+      script.onerror = () => {
+        $(VIEW_GRAPH3D).textContent = MESSAGE_NO_THREE;
+        reject(new Error(MESSAGE_NO_THREE));
+      };
+      document.head.append(script);
+    });
+    return threeLoading;
   }
 
   function render() {
@@ -1750,6 +1777,7 @@
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
+    view3d: { ready: loadThree },                  // RQ-GXP-019, DEC-GXP-007
     graph: {                                       // RQ-TRC-150, DEC-TRC-090
       cy: () => cy,
       layout: applyLayout,                         // RQ-TRC-162

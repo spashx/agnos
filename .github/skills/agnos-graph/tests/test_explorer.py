@@ -755,7 +755,7 @@ class MenuBarTest(unittest.TestCase):
     def test_RQ_GXP_001_given_the_nodes_view_then_fit_is_disabled_and_choosing_graph_shows_the_graph_view(self):
         found = self.run_page("agnosExplorer.showView('nodes'); title('view').click();"
                               "const item = (t) => [...bar.querySelectorAll('[role=menuitem]')].find((i) => i.textContent === t);"
-                              "r('fit', item('Fit').disabled); item('Graph').click();"
+                              "r('fit', item('Fit').disabled); item('Graph 2D').click();"   # TASK-GXP-012: RQ-GXP-010 names it Graph 2D
                               "r('view', document.querySelector('.tab[aria-selected=true]').dataset.view);"
                               "r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);")
         self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
@@ -812,7 +812,7 @@ class HelpDialogTest(unittest.TestCase):
         found = self.run_page("const badges = [...document.querySelectorAll('#licence-list .licence-badge')];"
                               "r('badges', badges.map((b) => b.textContent.replace(/\\s+/g, ' ').trim()).join('|'));"
                               "r('mit', badges.find((b) => b.textContent.includes('Cytoscape')).getAttribute('href'));")
-        self.assertEqual("AGNOSAGPL-3.0|Cytoscape.js 3.30.2MIT", found["badges"])
+        self.assertEqual("AGNOSAGPL-3.0|Cytoscape.js 3.30.2MIT|three.js 0.149.0MIT", found["badges"])   # TASK-GXP-012: three.js
         self.assertEqual("https://spdx.org/licenses/MIT.html", found["mit"])
 
     def about_of(self, version_text):
@@ -1079,6 +1079,61 @@ class TimePeriodGraphTest(unittest.TestCase):
                                                       "i.value = agnosExplorer.time.dayOf('2026-11-01'); i.dispatchEvent(new Event('input')); i.dispatchEvent(new Event('change'));"
                                                       "r('shown', agnosExplorer.graph.shownIds().join('|'));"))
         self.assertEqual(NEW, found["shown"])
+
+
+THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"   # DEC-GXP-007: stated, not read
+
+
+class FlatTabsTest(unittest.TestCase):
+    """TASK-GXP-012: RQ-GXP-010, RQ-GXP-003, RQ-GXP-019 (ADR-GXP-002: DEC-GXP-007), in Python and a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v));" + script))
+
+    # RQ-GXP-019, DEC-GXP-007: three.js is not a script of the page; its record carries what loading it needs
+    def test_RQ_GXP_019_given_the_page_then_three_js_is_recorded_but_not_loaded_by_a_script_element(self):
+        import explorer
+        page = self.page.read_text(encoding="utf-8")
+        self.assertNotIn(f'<script src="{THREE_URL}"', page)
+        three = next(lib for lib in explorer.library_record() if lib["name"] == "three.js")
+        self.assertEqual((THREE_URL, "THREE", True), (three["url"], three["global"], three["lazy"]))
+        self.assertTrue(three["integrity"].startswith("sha512-"))
+
+    # RQ-GXP-010
+    @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+    def test_RQ_GXP_010_given_the_explorer_then_four_tabs_read_graph_2d_graph_3d_nodes_and_relations(self):
+        found = self.run_page("r('tabs', [...document.querySelectorAll('.tab')].map((t) => t.textContent).join('|'));")
+        self.assertEqual("Graph 2D|Graph 3D|Nodes|Relations", found["tabs"])
+
+    # RQ-GXP-019, DEC-GXP-007: the page loads three.js only when Graph 3D is first shown
+    @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+    def test_RQ_GXP_019_given_the_page_when_graph_3d_was_never_shown_then_three_js_is_not_loaded_and_its_show_loads_it(self):
+        found = self.run_page("r('before', typeof window.THREE); agnosExplorer.showView('graph3d');"
+                              "r('panel', document.getElementById('view-graph3d').classList.contains('active'));"
+                              "agnosExplorer.view3d.ready().then(() => r('after', typeof window.THREE));")
+        self.assertEqual(("undefined", "true", "object"), (found["before"], found["panel"], found.get("after")))
+
+    # RQ-GXP-003, RQ-GXP-010: the Licenses topic names three.js, and the View menu shows both graph views
+    @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+    def test_RQ_GXP_003_given_the_licenses_topic_then_three_js_has_its_mit_badge_and_view_lists_both_graphs(self):
+        found = self.run_page("r('three', [...document.querySelectorAll('#licence-list .licence-badge')]"
+                              ".map((b) => b.textContent.replace(/\\s+/g, ' ').trim()).find((t) => t.startsWith('three.js')));"
+                              "document.querySelector('[data-menu-title=\"view\"]').click();"
+                              "r('items', [...document.querySelectorAll('#menubar [role=menuitem]')].map((i) => i.textContent)"
+                              ".filter((t) => t.startsWith('Graph')).join('|'));")
+        self.assertEqual(("three.js 0.149.0MIT", "Graph 2D|Graph 3D"), (found["three"], found["items"]))
 
 
 if __name__ == "__main__":

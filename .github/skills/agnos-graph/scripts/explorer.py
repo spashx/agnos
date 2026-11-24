@@ -34,6 +34,8 @@ VERSION_PREFIX = "v."
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
                        r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
 LIBRARY_KEYS = ("name", "version", "licence")   # RQ-GXP-003: what a licence badge says of a library
+KEY_LAZY = "lazy"                               # RQ-GXP-019, DEC-GXP-007: a library the script loads on demand
+LAZY_KEYS = ("url", "integrity", "global", KEY_LAZY)   # DEC-GXP-007: what the script needs to load it
 TOKEN_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 SCRIPT_END_RE = re.compile(r"</(script)", re.I)
 
@@ -68,20 +70,24 @@ def read_json(path):
 
 # RQ-TRC-150, DEC-TRC-090: the libraries the page loads from cdnjs, checked by their integrity hash.
 def library_scripts():
-    """One script element per library recorded in libraries.json; none when the file is absent."""
+    """One script element per library recorded in libraries.json, except the lazy ones (RQ-GXP-019, DEC-GXP-007); none
+    when the file is absent."""
     if not LIBRARIES_PATH.is_file():
         return ""
     return "\n".join(f'<script src="{html.escape(lib["url"])}" integrity="{html.escape(lib["integrity"])}" '
                      f'crossorigin="anonymous" referrerpolicy="no-referrer"></script>'
-                     for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES])
+                     for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES] if not lib.get(KEY_LAZY))
 
 
-# RQ-GXP-003, DEC-GXP-002: the libraries the Licenses topic names, one badge each
+# RQ-GXP-003, DEC-GXP-002: the libraries the Licenses topic names, one badge each; RQ-GXP-019, DEC-GXP-007: a lazy one
+# also carries its URL, integrity and global, for the script to load it
 def library_record():
-    """Name, version and licence of each library recorded in libraries.json; an empty list when the file is absent."""
+    """Name, version and licence of each library recorded in libraries.json, and the loading keys of a lazy one; an empty
+    list when the file is absent."""
     if not LIBRARIES_PATH.is_file():
         return []
-    return [{key: lib[key] for key in LIBRARY_KEYS} for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES]]
+    return [{key: lib[key] for key in LIBRARY_KEYS + (LAZY_KEYS if lib.get(KEY_LAZY) else ())}
+            for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES]]
 
 
 # RQ-GXP-004, DEC-GXP-002: copied from perf_center.version_label() (RQ-TRC-109, RQ-TRC-116, DEC-TRC-061)
