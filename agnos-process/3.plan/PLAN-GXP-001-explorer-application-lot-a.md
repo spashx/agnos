@@ -45,7 +45,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-003: Add explorer help dialog
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then copy the performance center's help dialog, licence badges and About into the explorer, with topics of the existing views, and the `@APP_VERSION@` marker in `graph.py`.
 - **Requirement refs**: RQ-GXP-002, RQ-GXP-003, RQ-GXP-004
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-002)
@@ -55,8 +55,8 @@ This plan implements the tasks in the format specified below.
   - Given a version file, Then About reads "AGNOS v.<major>.<minor>"; Given none, Then "AGNOS"
 - **Dependencies**: TASK-GXP-002
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `HelpDialogTest` 6 tests and the amended menu test failed first (7: 2 failures, 5 errors), then OK; with the impacted `MenuBarTest`, `ExplorerTokensTest`, `ExplorerFilesTest`, `test_RQ_TRC_164`: 20 OK, 0 skipped. Screenshot of this repository's explorer: About reads "AGNOS v.4.0" with the tagline and both links.
+- **Assumptions**: the marker is filled by `explorer.py`, which `graph.py` calls (DEC-GXP-002 says `graph.py`); the libraries reach the page as a JSON record (`@LIBRARY_RECORD@`), the performance center's come from its data; MenuBarTest's menu list amended to add Help, the behaviour RQ-GXP-001 states.
 
 ### TASK-GXP-004: Add relation colour choice
 - **Tier**: M

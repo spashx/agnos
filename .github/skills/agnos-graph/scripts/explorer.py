@@ -11,6 +11,8 @@ import json
 import re
 from pathlib import Path
 
+import agnos_layout  # RQ-PLG-036: the version file's name, generated beside this script
+
 # RQ-TRC-067: a literal written more than once is a named constant.
 ENCODING = "utf-8"
 ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets" / "explorer"
@@ -25,7 +27,13 @@ DATA_SCRIPT_NAME = "agnos-graph.data.js"        # RQ-TRC-145, DEC-TRC-088
 DATA_GLOBAL = "window.AGNOS_GRAPH"              # DEC-TRC-088: the global the page reads
 PAGE_TITLE = "Graph explorer"                   # RQ-TRC-155: English
 KEY_GLOBAL, KEY_SEMANTIC, KEY_COMPONENT, KEY_LIBRARIES = "global", "semantic", "component", "libraries"
-MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES|PRESETS)@")
+MARKER_RE = re.compile(r"/\*@(TOKENS|CSS|SCRIPT)@\*/|@(TITLE|DATA_SCRIPT|LIBRARIES|PRESETS|APP_VERSION|LIBRARY_RECORD)@")
+# RQ-GXP-004, DEC-GXP-002: the version of the About name, read as perf_center.py reads it (DEC-TRC-061), copied (option A)
+VERSION_PATH = Path(__file__).resolve().parent.parent.parent / "agnos-init" / "assets" / "templates" / agnos_layout.VERSION
+VERSION_PREFIX = "v."
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+                       r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+LIBRARY_KEYS = ("name", "version", "licence")   # RQ-GXP-003: what a licence badge says of a library
 TOKEN_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 SCRIPT_END_RE = re.compile(r"</(script)", re.I)
 
@@ -68,6 +76,26 @@ def library_scripts():
                      for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES])
 
 
+# RQ-GXP-003, DEC-GXP-002: the libraries the Licenses topic names, one badge each
+def library_record():
+    """Name, version and licence of each library recorded in libraries.json; an empty list when the file is absent."""
+    if not LIBRARIES_PATH.is_file():
+        return []
+    return [{key: lib[key] for key in LIBRARY_KEYS} for lib in read_json(LIBRARIES_PATH)[KEY_LIBRARIES]]
+
+
+# RQ-GXP-004, DEC-GXP-002: copied from perf_center.version_label() (RQ-TRC-109, RQ-TRC-116, DEC-TRC-061)
+def version_label():
+    """The version the About name shows, `v.<major>.<minor>`, from the version file; the empty string when the file is absent
+    or is not one SemVer 2.0.0 line, so that the name then reads "AGNOS" alone and the run is not failed."""
+    try:
+        lines = Path(VERSION_PATH).read_text(encoding=ENCODING).splitlines()
+    except (OSError, ValueError):
+        return ""
+    match = SEMVER_RE.match(lines[0]) if len(lines) == 1 else None
+    return f"{VERSION_PREFIX}{match.group(1)}.{match.group(2)}" if match else ""
+
+
 # RQ-TRC-153: JSON safe inside a <script> element, no "<" at all (as the performance center embeds its data)
 def embed_json(data):
     return json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
@@ -84,6 +112,8 @@ def render_page():
         "DATA_SCRIPT": html.escape(DATA_SCRIPT_NAME),
         "LIBRARIES": library_scripts(),
         "PRESETS": embed_json(read_json(PRESETS_PATH)),      # RQ-TRC-153, DEC-TRC-093
+        "APP_VERSION": html.escape(version_label()),          # RQ-GXP-004, DEC-GXP-002
+        "LIBRARY_RECORD": embed_json(library_record()),       # RQ-GXP-003, DEC-GXP-002
     }
     return MARKER_RE.sub(lambda m: parts[m.group(1) or m.group(2)], TEMPLATE_PATH.read_text(encoding=ENCODING))
 

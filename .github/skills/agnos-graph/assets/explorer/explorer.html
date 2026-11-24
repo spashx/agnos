@@ -22,6 +22,10 @@
     <!-- RQ-GXP-001, DEC-GXP-001: the menu bar, filled by the script from its list of menus -->
     <div id="menubar" class="menubar" role="menubar" aria-label="Menus"></div>
     <p id="graph-meta" class="graph-meta"></p>
+    <!-- RQ-GXP-002, DEC-GXP-002: the help button, copied from the performance center (RQ-TRC-101, DEC-TRC-052) -->
+    <button class="icon-button" id="help-button" type="button" title="What this view shows and how to use it" aria-label="Help" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 15h2v2h-2Zm1-11a4 4 0 0 1 2.2 7.3c-.8.6-1.2 1-1.2 1.7h-2c0-1.6.9-2.4 2-3.2A2 2 0 1 0 10 10H8a4 4 0 0 1 4-4Z"></path></svg>
+    </button>
     <input id="file-input" aria-label="Graph file" title="Choose an agnos-graph.json file" type="file" accept=".json,application/json" class="visually-hidden">
     <p id="load-message" class="load-message" role="status" aria-live="polite"></p>
   </header>
@@ -112,6 +116,84 @@
        aria-label="Resize the detail panel" aria-controls="detail"></div>
   <aside id="detail" class="panel" aria-label="Detail" aria-live="polite"></aside>
 </div>
+<!-- RQ-GXP-002, DEC-GXP-002: the reader's guide, one topic per view, with Licenses and About; copied from the performance
+     center's help dialog (RQ-TRC-101, DEC-TRC-052), its licence badges (RQ-TRC-111, RQ-TRC-112) and its About (RQ-TRC-114, RQ-TRC-116) -->
+<dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+  <header class="help-head">
+    <h2 class="help-title" id="help-title">Help</h2>
+    <button class="button" id="help-close" type="button" title="Close the help (Esc)">Close</button>
+  </header>
+  <nav class="help-list" id="help-list" aria-label="Help topics"></nav>
+  <div class="help-body" id="help-body">
+    <section data-help="overview" data-title="Overview" hidden>
+      <h3>Overview</h3>
+      <p>The graph explorer shows the state of an AGNOS project at one commit, as <code>agnos-graph</code> wrote it: every element (features, requirements, ADRs, decisions, plans, tasks), the sections of their documents, the scanned source files, and, when the graph was built with them, the functions and the history.</p>
+      <p>It shows the state and judges nothing: coverage, findings and scores are the performance center's.</p>
+      <ul>
+        <li><b>Menus</b>: File opens a graph file and imports or exports the saved queries; View chooses the view; Filter clears the query or shows every node; Help opens this guide.</li>
+        <li><b>Panels</b>: the facets on the left, the view in the middle, the selected node's detail on the right. Drag their edges, or use the arrow keys on them, to resize.</li>
+        <li><b>Another graph</b>: drop an <code>agnos-graph.json</code> file on the page, or choose File, Open graph file.</li>
+      </ul>
+    </section>
+    <section data-help="graph" data-title="Graph" hidden>
+      <h3>Graph</h3>
+      <p>Every shown node and relation, coloured by type and by relation kind, as the legend at the bottom says.</p>
+      <ul>
+        <li><b>Move</b>: drag a node; it keeps its place when the filters change. Drag the background to pan, use the wheel or the + and − buttons to zoom, Fit to see every shown node.</li>
+        <li><b>Layout</b>: type columns, grid, circle, concentric, tree or force-directed, left to right or top to bottom where the layout has a direction.</li>
+        <li><b>Right-click</b> a node to select it, hide it or show only its neighbours at 1, 2 or 3 hops; the background to choose a layout.</li>
+        <li><b>Hover</b> a node to read its properties without changing the selection.</li>
+      </ul>
+    </section>
+    <section data-help="nodes" data-title="Nodes" hidden>
+      <h3>Nodes</h3>
+      <p>One row per shown node: ID, type, trigram, status, title, location, and its incoming and outgoing relation counts.</p>
+      <p>Click a header to sort, again to reverse; drag a header's right edge to resize its column. Click a row, or press Enter on it, to show the node in the detail panel.</p>
+    </section>
+    <section data-help="relations" data-title="Relations" hidden>
+      <h3>Relations</h3>
+      <p>One row per shown relation: its source and target, its kind (<code>contains</code>, <code>refs</code>, <code>code</code>, <code>call</code>), the link field it was declared in (<code>Requirement refs</code>, <code>Dependencies</code>…, or <code>text</code> for a mention), the line and the proof text.</p>
+      <p>Sort and resize the columns as in the node table.</p>
+    </section>
+    <section data-help="filters" data-title="Facets and queries" hidden>
+      <h3>Facets and queries</h3>
+      <p>Every filter applies to every view at once.</p>
+      <ul>
+        <li><b>Facets</b>: uncheck a type, trigram, status, relation kind or link field to hide its nodes or relations; All and None check or uncheck a whole facet.</li>
+        <li><b>Query</b>: space-separated terms, all met: <code>key:value</code>, <code>key:a,b</code>, <code>key:!value</code>, <code>key:~text</code>, <code>cites:TYPE[field]</code>, <code>cited-by:TYPE[field]</code>, each negated by a leading <code>!</code>; a query starting with <code>edge</code> selects relations by <code>kind</code>, <code>field</code>, <code>from</code> and <code>to</code>. Clicking a facet value while the query field has the focus writes its term.</li>
+        <li><b>Saved queries</b>: + Save query keeps the current query as a button; Edit buttons renames, moves or deletes them. File exports and imports them as a JSON file.</li>
+        <li><b>Selection</b>: the detail panel hides the selected node, isolates its neighbourhood and widens it by one hop; hidden nodes are listed above the view, a click shows them again.</li>
+      </ul>
+    </section>
+    <!-- RQ-GXP-003: the application's licence is written here; the script adds one badge per library of the record and links each tabled licence to its SPDX page -->
+    <section data-help="licenses" data-title="Licenses" hidden>
+      <h3>Licenses</h3>
+      <div class="licence-list" id="licence-list">
+        <span class="licence-badge"><span class="licence-badge-label">AGNOS</span><span class="licence-badge-value">AGPL-3.0</span></span>
+      </div>
+    </section>
+    <!-- RQ-GXP-004: the lockup of the performance center's About: the large mark with the name and the tagline beside it -->
+    <section data-help="about" data-title="About" hidden>
+      <h3>About</h3>
+      <div class="about-brand">
+        <svg class="brand-mark brand-mark-large" viewBox="0 0 24 24" aria-hidden="true"><rect class="mark-tile" width="24" height="24" rx="5.5"></rect><rect class="mark-bar-light" x="4" y="3" width="16" height="3" rx="1"></rect><rect class="mark-bar-blue" x="4" y="8" width="6" height="3" rx="1"></rect><rect class="mark-bar-green" x="10" y="13" width="5" height="3" rx="1"></rect><rect class="mark-bar-yellow" x="15" y="18" width="5" height="3" rx="1"></rect></svg>
+        <div class="about-brand-text"><span class="about-wordmark">AGNOS @APP_VERSION@</span><span class="about-tagline">Agentic efficiency by traceability</span></div>
+      </div>
+      <p>This app is generated by agnos-graph, a skill of the AGNOS process.</p>
+      <div class="about-links">
+        <a class="about-link" href="https://github.com/spashx" target="_blank" rel="noopener noreferrer">
+          <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3Z"></path></svg>
+          <span class="about-text">https://github.com/spashx</span>
+        </a>
+        <a class="about-link" href="https://www.linkedin.com/in/64493197" target="_blank" rel="noopener noreferrer">
+          <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"></path></svg>
+          <span class="about-text">https://www.linkedin.com/in/64493197</span>
+        </a>
+      </div>
+    </section>
+  </div>
+</dialog>
+<script id="library-record" type="application/json">@LIBRARY_RECORD@</script>
 <div id="drop-zone" class="drop-zone" hidden><p>Drop a graph file to explore it</p></div>
 @LIBRARIES@
 <script id="default-queries" type="application/json">@PRESETS@</script>

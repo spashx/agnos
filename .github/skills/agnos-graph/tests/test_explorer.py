@@ -14,6 +14,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
@@ -732,12 +733,13 @@ class MenuBarTest(unittest.TestCase):
                               "r('focus', document.activeElement.dataset.menuTitle);")
         self.assertEqual(("view", "0", "view"), (found["open"], found["closed"], found["focus"]))
 
-    # RQ-GXP-001: the menus whose actions exist, in order; Time, Appearance, Dimensions and Help come with their tasks
+    # RQ-GXP-001: the menus whose actions exist, in order; Time, Appearance and Dimensions come with their tasks
+    # (TASK-GXP-003 added Help)
     def test_RQ_GXP_001_given_the_menu_bar_then_only_delivered_menus_are_shown_and_every_item_has_a_tooltip(self):
         found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
                               "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
                               ".map((b) => b.textContent).join('|'));")
-        self.assertEqual("File|View|Filter", found["menus"])
+        self.assertEqual("File|View|Filter|Help", found["menus"])
         self.assertEqual("", found["untitled"])
 
     # RQ-GXP-001: an item that does not apply to the current view is disabled
@@ -748,6 +750,82 @@ class MenuBarTest(unittest.TestCase):
                               "r('view', document.querySelector('.tab[aria-selected=true]').dataset.view);"
                               "r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);")
         self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
+
+
+HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Licenses|About"   # RQ-GXP-002: stated, not read
+
+
+class HelpDialogTest(unittest.TestCase):
+    """TASK-GXP-003: RQ-GXP-002, RQ-GXP-003, RQ-GXP-004 (ADR-GXP-001: DEC-GXP-002), in a headless browser and in Python."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-002: helpers reading the dialog as the reader sees it
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const dialog = document.getElementById('help-dialog');"
+                                                     "const topic = () => dialog.querySelector('[data-help]:not([hidden])').dataset.title;"
+                                                     + script))
+
+    # RQ-GXP-002
+    def test_RQ_GXP_002_given_the_nodes_view_when_help_opens_then_the_nodes_topic_is_shown_among_every_topic(self):
+        found = self.run_page("agnosExplorer.showView('nodes'); document.getElementById('help-button').click();"
+                              "r('open', dialog.open); r('topic', topic());"
+                              "r('list', [...document.querySelectorAll('#help-list .help-topic')].map((b) => b.textContent).join('|'));")
+        self.assertEqual(("true", "Nodes", HELP_TOPICS), (found["open"], found["topic"], found["list"]))
+
+    # RQ-GXP-002
+    def test_RQ_GXP_002_given_the_help_open_when_a_topic_is_clicked_then_it_replaces_the_former_and_close_closes(self):
+        found = self.run_page("document.getElementById('help-button').click();"
+                              "[...document.querySelectorAll('#help-list .help-topic')].find((b) => b.textContent === 'About').click();"
+                              "r('topic', topic()); r('shown', dialog.querySelectorAll('[data-help]:not([hidden])').length);"
+                              "document.getElementById('help-close').click(); r('open', dialog.open);")
+        self.assertEqual(("About", "1", "false"), (found["topic"], found["shown"], found["open"]))
+
+    # RQ-GXP-002, RQ-GXP-001: the Help menu opens the same dialog on a chosen topic
+    def test_RQ_GXP_002_given_the_help_menu_when_licenses_is_chosen_then_the_dialog_shows_licenses(self):
+        found = self.run_page("document.querySelector('[data-menu-title=\"help\"]').click();"
+                              "[...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === 'Licenses').click();"
+                              "r('open', dialog.open); r('topic', topic());")
+        self.assertEqual(("true", "Licenses"), (found["open"], found["topic"]))
+
+    # RQ-GXP-003
+    def test_RQ_GXP_003_given_the_licenses_topic_then_agnos_and_each_library_have_a_badge_linked_to_spdx(self):
+        found = self.run_page("const badges = [...document.querySelectorAll('#licence-list .licence-badge')];"
+                              "r('badges', badges.map((b) => b.textContent.replace(/\\s+/g, ' ').trim()).join('|'));"
+                              "r('mit', badges.find((b) => b.textContent.includes('Cytoscape')).getAttribute('href'));")
+        self.assertEqual("AGNOSAGPL-3.0|Cytoscape.js 3.30.2MIT", found["badges"])
+        self.assertEqual("https://spdx.org/licenses/MIT.html", found["mit"])
+
+    def about_of(self, version_text):
+        """The About lockup's name of a page rendered while the version file holds version_text, or is absent (None)."""
+        import explorer
+        version = Path(self.tmp.name) / f"VERSION-{abs(hash(version_text))}"
+        if version_text is not None:
+            version.write_text(version_text, encoding="utf-8")
+        with mock.patch.object(explorer, "VERSION_PATH", version):
+            page = explorer.render_page()
+        return re.search(r'class="about-wordmark">([^<]*)<', page).group(1).strip(), page
+
+    # RQ-GXP-004
+    def test_RQ_GXP_004_given_a_version_file_then_about_reads_agnos_major_minor_the_tagline_and_names_agnos_graph(self):
+        name, page = self.about_of("3.12.4\n")
+        self.assertEqual("AGNOS v.3.12", name)
+        self.assertIn("Agentic efficiency by traceability", page)
+        self.assertIn("generated by agnos-graph", page)
+
+    # RQ-GXP-004
+    def test_RQ_GXP_004_given_no_version_file_then_about_reads_agnos_alone(self):
+        self.assertEqual("AGNOS", self.about_of(None)[0])
 
 
 if __name__ == "__main__":

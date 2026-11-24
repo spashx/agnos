@@ -1017,7 +1017,74 @@
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
         { label: "Show all", tip: "Check every facet value, clear the query, the hidden nodes and the isolation", action: showAll, enabled: loaded },
       ] },
+      { name: "help", title: "Help", tip: "The guide of each view, the licences and the About", items: [   // RQ-GXP-002
+        { label: "Help", tip: "What the current view shows and how to use it", action: () => openHelp(state.view), enabled: always },
+        null,
+        { label: "Licenses", tip: "The licences of AGNOS and of the libraries the page loads", action: () => openHelp(HELP_LICENSES), enabled: always },
+        { label: "About", tip: "AGNOS, its version and its author", action: () => openHelp(HELP_ABOUT), enabled: always },
+      ] },
     ];
+  }
+
+  // ---- help (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002), copied from the performance center's setupHelp ----
+  const HELP_LICENSES = "licenses";
+  const HELP_ABOUT = "about";
+  const ATTR_CURRENT = "aria-current";
+  // RQ-GXP-003, copied from DEC-TRC-058 and DEC-TRC-062: the brand tone of a licence's badge, and its SPDX page
+  const LICENCE_TONE = { "AGPL-3.0": "green", MIT: "blue", "Apache-2.0": "yellow" };
+  const TONE_DEFAULT = "light";
+  const SPDX_URL = "https://spdx.org/licenses/{id}.html";
+  const SPDX_ID = "{id}";
+  const CLASS_BADGE = "licence-badge";
+  const CLASS_BADGE_VALUE = "licence-badge-value";
+
+  function showHelpTopic(topic) {
+    for (const part of $("help-dialog").querySelectorAll("[data-help]")) part.hidden = part.dataset.help !== topic;
+    for (const button of $("help-list").children) {
+      if (button.dataset.topic === topic) button.setAttribute(ATTR_CURRENT, "true"); else button.removeAttribute(ATTR_CURRENT);
+    }
+    $("help-body").scrollTop = 0;
+  }
+
+  function openHelp(topic) {
+    showHelpTopic(topic);
+    $("help-dialog").showModal();
+  }
+
+  function linkBadge(badge) {
+    /* A badge of a tabled licence becomes a link to its SPDX page in a new tab; any other keeps no link. */
+    const id = badge.querySelector(`.${CLASS_BADGE_VALUE}`).textContent;
+    if (!Object.hasOwn(LICENCE_TONE, id)) return;
+    const link = document.createElement("a");
+    link.className = `${CLASS_BADGE} licence-badge-link`;
+    link.href = SPDX_URL.replace(SPDX_ID, id);
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.append(...badge.childNodes);
+    badge.replaceWith(link);
+  }
+
+  function renderLicences() {
+    const list = $("licence-list");
+    const record = JSON.parse($("library-record").textContent);
+    list.insertAdjacentHTML("beforeend", record.map((lib) => `<span class="${CLASS_BADGE}"><span class="licence-badge-label">`
+      + `${escapeHtml(lib.name)} ${escapeHtml(lib.version)}</span><span class="${CLASS_BADGE_VALUE}">${escapeHtml(lib.licence)}</span></span>`).join(""));
+    for (const value of list.querySelectorAll(`.${CLASS_BADGE_VALUE}`)) value.dataset.tone = LICENCE_TONE[value.textContent] || TONE_DEFAULT;
+    for (const badge of list.querySelectorAll(`.${CLASS_BADGE}`)) linkBadge(badge);
+  }
+
+  function setupHelp() {
+    /* One topic button per guide; the help button opens the guide of the current view. */
+    const guides = [...$("help-dialog").querySelectorAll("[data-help]")];
+    $("help-list").innerHTML = guides.map((part) => `<button type="button" class="help-topic" data-topic="${part.dataset.help}"`
+      + ` title="Show the guide: ${escapeHtml(part.dataset.title)}">${escapeHtml(part.dataset.title)}</button>`).join("");
+    $("help-list").addEventListener(EVENT_CLICK, (event) => {
+      const button = event.target.closest("[data-topic]");
+      if (button) showHelpTopic(button.dataset.topic);
+    });
+    $("help-button").addEventListener(EVENT_CLICK, () => openHelp(state.view));
+    $("help-close").addEventListener(EVENT_CLICK, () => $("help-dialog").close());   // the browser returns the focus to the opener
+    renderLicences();
   }
 
   function renderMenuBar() {
@@ -1240,6 +1307,7 @@
   function wire() {
     // RQ-GXP-001, DEC-GXP-001: the menu bar
     renderMenuBar();
+    setupHelp();                                   // RQ-GXP-002
     $(ID_MENUBAR).addEventListener(EVENT_CLICK, onBarClick);
     $(ID_MENUBAR).addEventListener(EVENT_KEYDOWN, onBarKey);
     document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENUBAR}`)) closeBarMenus(false); });
