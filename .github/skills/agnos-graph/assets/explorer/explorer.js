@@ -326,10 +326,13 @@
     const count = (n) => `<span class="count">${n}</span>`;
     const types = TYPE_ORDER.filter((t) => typeCounts.has(t))
       .map((t) => `<li data-type="${t}">${swatch(t)}${typeLabel(t)}${count(typeCounts.get(t))}</li>`).join("");
+    // RQ-GXP-005: a kind is a button choosing its colour
     const kinds = [...kindCounts.keys()].sort(compare)
-      .map((k) => `<li data-kind="${escapeHtml(k)}"><span class="legend-line" aria-hidden="true"></span><span>${escapeHtml(KIND_NAMES[k] || k)}</span>`
+      .map((k) => `<li data-kind="${escapeHtml(k)}"><button type="button" class="legend-kind" title="Choose the colour of the ${escapeHtml(KIND_NAMES[k] || k)} relations">`
+        + `<span class="legend-line" aria-hidden="true"></span><span>${escapeHtml(KIND_NAMES[k] || k)}</span></button>`
         + `${count(kindCounts.get(k))}</li>`).join("");
     $(ID_LEGEND).querySelector(".legend-body").innerHTML = `<ul class="legend">${types}</ul><ul class="legend">${kinds}</ul>`;
+    applyRelationColours();
   }
 
   function toggleLegend() {
@@ -774,11 +777,10 @@
   }
 
   function graphElements(model) {
-    const kindColour = { contains: "contains", refs: "cites", code: "code", call: "call" };
     const nodes = [...model.nodes.values()].map((n) => ({ group: "nodes", data: { id: n.id, [DATA_COLOUR]: typeColour(n.type) },
                                                           position: { ...model.positions.get(n.id) } }));
     const edges = model.relations.map((r, i) => ({ group: "edges", data: { id: `r${i}`, [DATA_INDEX]: i, source: r.source, target: r.target,
-      kind: r.kind, [DATA_COLOUR]: cssValue(`--c-graph-edge-${kindColour[r.kind] || kindColour.refs}`) } }));
+      kind: r.kind, [DATA_COLOUR]: relationColour(r.kind) } }));   // RQ-GXP-005: the reader's colour or the kind's token
     return [...nodes, ...edges];
   }
 
@@ -1017,6 +1019,13 @@
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
         { label: "Show all", tip: "Check every facet value, clear the query, the hidden nodes and the isolation", action: showAll, enabled: loaded },
       ] },
+      { name: "appearance", title: "Appearance", tip: "Choose the colour of each relation kind", items: [   // RQ-GXP-005
+        ...KIND_ORDER.map((kind) => ({ label: `Colour of ${kind}…`, tip: `Choose the colour of the ${KIND_NAMES[kind]} relations in the graph and its legend`,
+          action: () => chooseRelationColour(kind), enabled: () => Boolean(state.model) && state.model.relations.some((r) => r.kind === kind) })),
+        null,
+        { label: "Reset colours", tip: "Give every relation kind its default colour again",
+          action: resetRelationColours, enabled: () => Object.keys(appearance.relationColours).length > 0 },
+      ] },
       { name: "help", title: "Help", tip: "The guide of each view, the licences and the About", items: [   // RQ-GXP-002
         { label: "Help", tip: "What the current view shows and how to use it", action: () => openHelp(state.view), enabled: always },
         null,
@@ -1024,6 +1033,68 @@
         { label: "About", tip: "AGNOS, its version and its author", action: () => openHelp(HELP_ABOUT), enabled: always },
       ] },
     ];
+  }
+
+  // ---- appearance (TASK-GXP-004: RQ-GXP-005, RQ-TRC-165; DEC-GXP-005) -----------------------------------------
+  const COLOUR_STORE_KEY = "agnos-graph-explorer.relation-colours";
+  const ID_RELATION_COLOUR = "relation-colour";
+  const KIND_ORDER = [KIND_CONTAINS, KIND_REFS, KIND_CODE, KIND_CALL];
+  const KIND_TOKEN = { [KIND_CONTAINS]: "contains", [KIND_REFS]: "cites", [KIND_CODE]: "code", [KIND_CALL]: "call" };   // --c-graph-edge-*
+  const VAR_KIND_COLOUR = "--kind-colour";
+  const appearance = { relationColours: {} };      // DEC-GXP-005: the reader's colours over the tokens, by relation kind
+
+  // the reader's colour of a kind, else its design-system token (DEC-TRC-010: the tokens stay the defaults)
+  const relationColour = (kind) => appearance.relationColours[kind] || cssValue(`--c-graph-edge-${KIND_TOKEN[kind] || KIND_TOKEN[KIND_REFS]}`);
+
+  function applyRelationColours() {
+    /* Every graph edge and legend line takes its kind's colour. */
+    if (cy) cy.batch(() => cy.edges().forEach((e) => e.data(DATA_COLOUR, relationColour(e.data("kind")))));
+    for (const item of $(ID_LEGEND).querySelectorAll("[data-kind]")) {
+      const chosen = appearance.relationColours[item.dataset.kind];
+      if (chosen) item.style.setProperty(VAR_KIND_COLOUR, chosen); else item.style.removeProperty(VAR_KIND_COLOUR);
+    }
+  }
+
+  function storeRelationColours() {
+    try {
+      if (Object.keys(appearance.relationColours).length) localStorage.setItem(COLOUR_STORE_KEY, JSON.stringify(appearance.relationColours));
+      else localStorage.removeItem(COLOUR_STORE_KEY);
+    } catch (error) {
+      $(ID_MESSAGE).textContent = `The colours could not be kept in this browser: ${error.message}`;
+    }
+  }
+
+  function loadRelationColours() {
+    /* The reader's colours from the browser's storage, kept only for known kinds; then drawn. */
+    let stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem(COLOUR_STORE_KEY));
+    } catch (error) {
+      stored = null;
+    }
+    appearance.relationColours = Object.fromEntries(Object.entries(stored || {}).filter(([kind, colour]) => KIND_ORDER.includes(kind)
+      && typeof colour === "string"));
+    applyRelationColours();
+  }
+
+  function setRelationColour(kind, colour) {
+    appearance.relationColours[kind] = colour;
+    storeRelationColours();
+    applyRelationColours();
+  }
+
+  function resetRelationColours() {
+    appearance.relationColours = {};
+    storeRelationColours();
+    applyRelationColours();
+  }
+
+  function chooseRelationColour(kind) {
+    /* Opens the browser's colour picker on the kind's current colour. */
+    const input = $(ID_RELATION_COLOUR);
+    input.dataset.kind = kind;
+    input.value = relationColour(kind).toLowerCase();
+    input.click();
   }
 
   // ---- help (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002), copied from the performance center's setupHelp ----
@@ -1347,6 +1418,12 @@
     $(ID_DIRECTION).addEventListener("change", () => applyLayout($(ID_LAYOUT).value));          // RQ-TRC-166
     $(ID_MENU).addEventListener(EVENT_CLICK, onMenuClick);
     $(ID_LEGEND).querySelector(".legend-toggle").addEventListener(EVENT_CLICK, toggleLegend);   // RQ-TRC-165
+    // RQ-GXP-005: a legend kind opens the colour picker, whose choice is drawn at once
+    $(ID_LEGEND).addEventListener(EVENT_CLICK, (event) => {
+      const kind = event.target.closest(".legend-kind");
+      if (kind) chooseRelationColour(kind.closest("[data-kind]").dataset.kind);
+    });
+    $(ID_RELATION_COLOUR).addEventListener("input", (event) => setRelationColour(event.target.dataset.kind, event.target.value));
     $(VIEW_GRAPH).addEventListener("contextmenu", (event) => event.preventDefault());
     document.addEventListener(EVENT_KEYDOWN, (event) => { if (event.key === KEY_ESCAPE) closeMenu(); });
     document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENU}`)) closeMenu(); });
@@ -1397,6 +1474,7 @@
 
   wire();
   loadSaved();
+  loadRelationColours();                           // RQ-GXP-005
   showView(DEFAULT_VIEW);
   if (window.AGNOS_GRAPH && Array.isArray(window.AGNOS_GRAPH.elements)) loadGraph(window.AGNOS_GRAPH);
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
@@ -1405,6 +1483,7 @@
     showView, select, loadText, hideTypes, hide, unhide, isolate, widen, showAll, query,
     saved: { list: () => saved.list, add: addSaved, edit: editSaved, move: moveSaved, remove: removeSaved, load: loadSaved,
              exportText, importText },                                       // RQ-TRC-153
+    appearance: { load: loadRelationColours, set: setRelationColour, reset: resetRelationColours, relationColour },   // RQ-GXP-005
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090

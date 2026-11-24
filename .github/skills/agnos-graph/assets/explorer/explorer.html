@@ -82,6 +82,8 @@
       <div id="graph-menu" class="graph-menu" role="menu" aria-label="Graph actions" hidden></div>
       <!-- RQ-TRC-167: the hovered node's tooltip, filled when it opens -->
       <div id="graph-tip" class="graph-tip" role="tooltip" hidden></div>
+      <!-- RQ-GXP-005, DEC-GXP-005: the colour picker of a relation kind, opened from the Appearance menu or the legend -->
+      <input id="relation-colour" type="color" class="visually-hidden" aria-label="Relation colour" title="The colour of the chosen relation kind">
       <!-- RQ-TRC-165: the legend of the node types and relation kinds present, filled from the graph -->
       <aside id="graph-legend" class="graph-legend" aria-label="Legend">
         <button type="button" class="legend-toggle" aria-expanded="true" title="Fold or unfold the legend">Legend</button>
@@ -164,6 +166,11 @@
         <li><b>Saved queries</b>: + Save query keeps the current query as a button; Edit buttons renames, moves or deletes them. File exports and imports them as a JSON file.</li>
         <li><b>Selection</b>: the detail panel hides the selected node, isolates its neighbourhood and widens it by one hop; hidden nodes are listed above the view, a click shows them again.</li>
       </ul>
+    </section>
+    <section data-help="appearance" data-title="Appearance" hidden>
+      <h3>Appearance</h3>
+      <p>Each relation kind has a colour, drawn in the graph and in its legend. To bring a kind forward, choose Appearance, Colour of &lt;kind&gt;…, or click the kind in the legend, then pick a colour.</p>
+      <p>The colours are kept in this browser. Appearance, Reset colours gives every kind its default colour again. The node types keep their colours.</p>
     </section>
     <!-- RQ-GXP-003: the application's licence is written here; the script adds one badge per library of the record and links each tabled licence to its SPDX page -->
     <section data-help="licenses" data-title="Licenses" hidden>

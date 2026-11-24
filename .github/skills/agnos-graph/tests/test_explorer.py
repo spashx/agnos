@@ -739,7 +739,7 @@ class MenuBarTest(unittest.TestCase):
         found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
                               "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
                               ".map((b) => b.textContent).join('|'));")
-        self.assertEqual("File|View|Filter|Help", found["menus"])
+        self.assertEqual("File|View|Filter|Appearance|Help", found["menus"])   # TASK-GXP-004 added Appearance
         self.assertEqual("", found["untitled"])
 
     # RQ-GXP-001: an item that does not apply to the current view is disabled
@@ -752,7 +752,7 @@ class MenuBarTest(unittest.TestCase):
         self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
 
 
-HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Licenses|About"   # RQ-GXP-002: stated, not read
+HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Appearance|Licenses|About"   # RQ-GXP-002: stated, not read
 
 
 class HelpDialogTest(unittest.TestCase):
@@ -826,6 +826,71 @@ class HelpDialogTest(unittest.TestCase):
     # RQ-GXP-004
     def test_RQ_GXP_004_given_no_version_file_then_about_reads_agnos_alone(self):
         self.assertEqual("AGNOS", self.about_of(None)[0])
+
+
+CHOSEN_COLOUR = "#00aa00"                                   # RQ-GXP-005: a reader's colour, not a token's
+COLOUR_STORE_KEY = "agnos-graph-explorer.relation-colours"  # DEC-GXP-005: stated, not read from the script
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class RelationColourTest(unittest.TestCase):
+    """TASK-GXP-004: RQ-GXP-005, RQ-TRC-165 (ADR-GXP-001: DEC-GXP-005), in a headless browser with the graph view."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-005: helpers choosing a colour as the reader does and reading it back from the graph and the legend
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); agnosExplorer.showView('graph'); const cy = agnosExplorer.graph.cy();"
+                                                     "const rgb = (c) => { const d = document.createElement('i'); d.style.color = c;"
+                                                     " document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return v; };"
+                                                     "const edge = () => rgb(cy.edges('[kind = \"contains\"]')[0].data('colour'));"
+                                                     "const line = () => getComputedStyle(document.querySelector("
+                                                     "'#graph-legend [data-kind=\"contains\"] .legend-line')).borderTopColor;"
+                                                     "const token = rgb(getComputedStyle(document.documentElement).getPropertyValue('--c-graph-edge-contains').trim());"
+                                                     "const menuItem = (menu, label) => { document.querySelector(`[data-menu-title=\"${menu}\"]`).click();"
+                                                     " [...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+                                                     "const pick = (hex) => { const i = document.getElementById('relation-colour'); i.value = hex;"
+                                                     " i.dispatchEvent(new Event('input', { bubbles: true })); };" + script))
+
+    # RQ-GXP-005
+    def test_RQ_GXP_005_given_the_graph_view_when_contains_is_given_a_colour_then_its_edges_and_legend_line_take_it(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              f"r('edge', edge() === rgb('{CHOSEN_COLOUR}')); r('line', line() === rgb('{CHOSEN_COLOUR}'));")
+        self.assertEqual(("true", "true"), (found["edge"], found["line"]))
+
+    # RQ-GXP-005: kept in the browser, read again on load
+    def test_RQ_GXP_005_given_a_chosen_colour_when_the_page_loads_again_then_it_is_kept(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              f"r('stored', JSON.parse(localStorage.getItem('{COLOUR_STORE_KEY}')).contains);"
+                              "agnosExplorer.appearance.load();"
+                              f"r('edge', edge() === rgb('{CHOSEN_COLOUR}')); r('line', line() === rgb('{CHOSEN_COLOUR}'));")
+        self.assertEqual((CHOSEN_COLOUR, "true", "true"), (found["stored"], found["edge"], found["line"]))
+
+    # RQ-GXP-005
+    def test_RQ_GXP_005_given_a_chosen_colour_when_reset_colours_is_chosen_then_the_token_colour_is_back(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              "menuItem('appearance', 'Reset colours');"
+                              f"r('edge', edge() === token); r('line', line() === token);"
+                              f"r('stored', localStorage.getItem('{COLOUR_STORE_KEY}'));")
+        self.assertEqual(("true", "true", "null"), (found["edge"], found["line"], found["stored"]))
+
+    # RQ-GXP-005: the legend is the other way to the choice
+    def test_RQ_GXP_005_given_the_legend_when_a_relation_kind_is_clicked_then_its_colour_is_being_chosen(self):
+        found = self.run_page("document.querySelector('#graph-legend [data-kind=\"contains\"] .legend-kind').click();"
+                              f"pick('{CHOSEN_COLOUR}'); r('edge', edge() === rgb('{CHOSEN_COLOUR}'));"
+                              "r('tip', document.querySelector('#graph-legend [data-kind=\"contains\"] .legend-kind').title);")
+        self.assertEqual("true", found["edge"])
+        self.assertIn("contains", found["tip"])
 
 
 if __name__ == "__main__":

@@ -60,7 +60,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-004: Add relation colour choice
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add the Appearance menu and the legend's colour choice per relation kind, kept in the browser, with "Reset colours", and its help topic.
 - **Requirement refs**: RQ-GXP-005, RQ-TRC-165
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-005)
@@ -69,8 +69,8 @@ This plan implements the tasks in the format specified below.
   - When "Reset colours" is chosen, Then the token colour is back
 - **Dependencies**: TASK-GXP-003
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `RelationColourTest` 4 tests and the amended menu and help lists failed first (6: 2 failures, 4 errors), then OK; with the impacted legend, menu, help, tooltip, relation-kind, type-colour and raw-value tests: 19 OK, 0 skipped.
+- **Assumptions**: the browser's own colour picker (`input type=color`) is the chooser; a reload is tested by re-reading the store (`appearance.load()`), as the saved queries are; the menu and help lists of TASK-GXP-002 and TASK-GXP-003 amended to add Appearance.
 
 ### TASK-GXP-005: Add time period filter
 - **Tier**: M
