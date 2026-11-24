@@ -104,7 +104,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-007: Verify explorer application lot A
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the graph skill's whole suite once, build the explorer on this repository and the demo, check RQ-TRC-158's load time, and add the changelog entry.
 - **Requirement refs**: RQ-GXP-001 to RQ-GXP-009, RQ-TRC-158
 - **ADR refs**: ADR-GXP-001
@@ -113,5 +113,5 @@ This plan implements the tasks in the format specified below.
   - Given this repository's graph, Then the first view is drawn in less than 5 s
 - **Dependencies**: TASK-GXP-006
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `agnos-graph` suite with `AGNOS_GRAPH_PERF=1`: Ran 246 tests in 157.4 s, OK, 0 skipped; RQ-TRC-158 test ok. No other component reads the explorer's assets (`git grep`: CHANGELOG only). Explorer built on this repository and on the demo (84 elements, 452 nodes, 83 commits): playback shows 256 / 452 nodes at 2026-09-21. Changelog entry added.
+- **Assumptions**: the demo's explorer is written to a scratch folder, the demo repository left unchanged.

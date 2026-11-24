@@ -891,7 +891,7 @@ TASK-GXP-003|46-60|Done|Add explorer help dialog
 TASK-GXP-004|61-74|Done|Add relation colour choice
 TASK-GXP-005|75-89|Done|Add time period filter
 TASK-GXP-006|90-104|Done|Add time playback loop
-TASK-GXP-007|105-117|Not Started|Verify explorer application lot A
+TASK-GXP-007|105-117|Done|Verify explorer application lot A
 @agnos-process/3.plan/PLAN-HST-001-contribution-history.md
 PLAN-HST-001|1-160||Contribution History
 TASK-HST-001|19-37|Done|Identities and agents from git
