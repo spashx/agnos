@@ -1188,5 +1188,45 @@ class View3DTest(unittest.TestCase):
         self.assertEqual(("true", "true", "true"), (found["moved"], found["same"], found["target"]))
 
 
+# TASK-GXP-014: a point the picker finds at its own screen position, and a pointer event there
+PICKABLE = ("const c = document.querySelector('#graph3d canvas'); const b = c.getBoundingClientRect();"
+            "const id = v.shownIds().find((i) => { const s = v.screenOf(i); return s && v.pick(s.x, s.y) === i; });"
+            "const s = v.screenOf(id); const at = (type, extra) => c.dispatchEvent(new PointerEvent(type, { clientX: b.left + s.x,"
+            " clientY: b.top + s.y, button: 0, pointerId: 1, bubbles: true, cancelable: true, ...extra }));")
+
+
+class Interaction3DTest(View3DTest):
+    """TASK-GXP-014: RQ-GXP-012 (ADR-GXP-002: DEC-GXP-010), in a headless browser with WebGL."""
+
+    # the inherited tests are TASK-GXP-013's, run once there
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-012
+    def test_RQ_GXP_012_given_the_3d_view_when_a_point_is_clicked_then_the_detail_panel_shows_its_node(self):
+        found = self.run_3d(PICKABLE + "r('id', id); at('pointerdown'); at('pointerup');"
+                            "r('detail', document.getElementById('detail').textContent.includes(id));")
+        self.assertNotEqual("undefined", found["id"])
+        self.assertEqual("true", found["detail"])
+
+    # RQ-GXP-012: the tooltip opens after the tooltip delay, inside the 3D panel
+    def test_RQ_GXP_012_given_the_3d_view_when_the_pointer_rests_on_a_point_then_its_tooltip_is_shown_after_the_delay(self):
+        found = self.run_3d(PICKABLE + "const tip = document.getElementById('graph-tip'); at('pointermove', { buttons: 0 });"
+                            "r('early', tip.hidden); setTimeout(() => { r('late', tip.hidden); r('has', tip.textContent.includes(id));"
+                            " r('inside', tip.parentElement.id); }, 1500);")
+        self.assertEqual(("true", "false", "true", "view-graph3d"), (found["early"], found["late"], found["has"], found["inside"]))
+
+    # RQ-GXP-012: the node actions of the context menu, the neighbourhood isolated as the 2D view does
+    def test_RQ_GXP_012_given_the_3d_view_when_a_point_is_right_clicked_and_one_hop_is_chosen_then_only_its_neighbours_show(self):
+        found = self.run_3d(PICKABLE + "const all = v.shownIds().length; c.dispatchEvent(new MouseEvent('contextmenu', { clientX: b.left + s.x,"
+                            " clientY: b.top + s.y, button: 2, bubbles: true, cancelable: true }));"
+                            "const menu = document.getElementById('graph-menu'); r('open', !menu.hidden);"
+                            "[...menu.querySelectorAll('[data-menu]')].find((i) => i.textContent === 'Neighbours, 1 hop').click();"
+                            "const shown = v.shownIds(); r('fewer', shown.length < all); r('has', shown.includes(id));"
+                            "r('same', shown.join('|') === agnosExplorer.shownIds().join('|'));")
+        self.assertEqual(("true", "true", "true", "true"), (found["open"], found["fewer"], found["has"], found["same"]))
+
+
 if __name__ == "__main__":
     unittest.main()

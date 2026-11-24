@@ -59,7 +59,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-014: Add 3D node interaction
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then pick the point under the pointer and reuse the selection, tooltip and node context menu of the 2D view.
 - **Requirement refs**: RQ-GXP-012
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-010)
@@ -69,8 +69,8 @@ This plan implements the tasks in the format specified below.
   - When a point is right-clicked And "Neighbours, 1 hop" is chosen, Then only it and its neighbours are shown
 - **Dependencies**: TASK-GXP-013
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Interaction3DTest` 3 tests failed first (KeyError, no picker), then OK; `test_explorer` 89 tests OK, 1 skipped (RQ-TRC-158, AGNOS_GRAPH_PERF, TASK-GXP-018).
+- **Assumptions**: pick radius 8 CSS px (token); the 3D context menu holds the node actions only, the layouts and Fit being the 2D view's; the tooltip and menu move into the shown graph panel.
 
 ### TASK-GXP-015: Add 3D dimensions menu
 - **Tier**: M

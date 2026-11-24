@@ -909,7 +909,7 @@ PLAN-GXP-002|1-129||Explorer 3D view with dimensions
 TASK-GXP-011|17-29|Done|Document explorer 3D view
 TASK-GXP-012|30-44|Done|Add flat tabs with lazy three.js
 TASK-GXP-013|45-59|Done|Draw 3D points and lines
-TASK-GXP-014|60-74|Not Started|Add 3D node interaction
+TASK-GXP-014|60-74|Done|Add 3D node interaction
 TASK-GXP-015|75-88|Not Started|Add 3D dimensions menu
 TASK-GXP-016|89-102|Not Started|Add 3D camera projections
 TASK-GXP-017|103-116|Not Started|Add 3D reference planes

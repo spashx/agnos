@@ -946,13 +946,18 @@
   let tipTimer = null;
 
   function showTip(node) {
-    /* The hovered node's head and properties beside it, inside the graph view; the selection is left as it is. */
+    showTipAt(node.id(), node.renderedPosition());
+  }
+
+  function showTipAt(id, at) {
+    /* The hovered node's head and properties beside it, inside the shown graph view, 2D or 3D (RQ-GXP-012); the selection
+       is left as it is. The view's canvas has the view's name as its ID. */
     const tip = $(ID_TIP);
-    tip.innerHTML = detailHead(state.model.nodes.get(node.id())) + propertiesHtml(state.model.nodes.get(node.id()));
-    const at = node.renderedPosition();
+    $(`view-${state.view}`).append(tip);
+    tip.innerHTML = detailHead(state.model.nodes.get(id)) + propertiesHtml(state.model.nodes.get(id));
     const gap = tokenNumber(TOKEN_NODE_SIZE);
     tip.hidden = false;
-    const view = $(VIEW_GRAPH);
+    const view = $(state.view);
     const left = Math.min(at.x + gap, view.clientWidth - tip.offsetWidth);
     const top = Math.min(at.y + gap, view.clientHeight - tip.offsetHeight);
     tip.style.left = Math.max(0, left) + UNIT_PX;
@@ -1194,7 +1199,8 @@
     const speed = tokenNumber("--c-graph3d-rotate-speed");
     const dx = event.clientX - g3.drag.x;
     const dy = event.clientY - g3.drag.y;
-    g3.drag = { ...g3.drag, x: event.clientX, y: event.clientY };
+    if (!dx && !dy) return;
+    g3.drag = { ...g3.drag, x: event.clientX, y: event.clientY, moved: true };
     const orbit = g3.orbit;
     if (g3.drag.pan) {
       const scale = speed * g3.camera.position.distanceTo(new window.THREE.Vector3(...orbit.target));
@@ -1215,13 +1221,76 @@
     render3d();
   }
 
+  function screenOf(id) {
+    /* DEC-GXP-010: a point's position in the canvas, in CSS pixels; null when it is behind the camera or outside the view. */
+    const v = new window.THREE.Vector3().fromBufferAttribute(g3.points.geometry.getAttribute("position"), g3.index.get(id))
+      .project(g3.camera);
+    if (Math.abs(v.x) > 1 || Math.abs(v.y) > 1 || Math.abs(v.z) > 1) return null;
+    const canvas = g3.renderer.domElement;
+    return { x: (v.x + 1) * HALF * canvas.clientWidth, y: (1 - v.y) * HALF * canvas.clientHeight };
+  }
+
+  function pick(x, y) {
+    /* DEC-GXP-010: the shown point nearest to (x, y) within the pick radius, or null. */
+    let best = null;
+    let bestDistance = tokenNumber("--c-graph3d-pick-radius");
+    for (const id of g3.ids) {
+      if (!isShown(state.model.nodes.get(id))) continue;
+      const at = screenOf(id);
+      const distance = at ? Math.hypot(at.x - x, at.y - y) : Infinity;
+      if (distance <= bestDistance) [best, bestDistance] = [id, distance];
+    }
+    return best;
+  }
+
+  const canvasPoint = (event) => {
+    const box = g3.renderer.domElement.getBoundingClientRect();
+    return { x: event.clientX - box.left, y: event.clientY - box.top };
+  };
+
+  function onHover3d(event) {
+    /* RQ-GXP-012, RQ-TRC-167: the tooltip of the point under a resting pointer, after the tooltip delay. */
+    if (g3.drag) return;
+    const at = canvasPoint(event);
+    const id = pick(at.x, at.y);
+    if (id === g3.hovered) return;
+    hideTip();
+    g3.hovered = id;
+    if (id) tipTimer = setTimeout(() => showTipAt(id, at), tokenNumber(TOKEN_TIP_DELAY));
+  }
+
+  function onRelease3d(event) {
+    /* RQ-GXP-012: a press released where it started selects the point under it; a drag selects nothing. */
+    const drag = g3.drag;
+    g3.drag = null;
+    if (!drag || drag.moved || event.button !== 0) return;
+    closeMenu();
+    const at = canvasPoint(event);
+    const id = pick(at.x, at.y);
+    if (id) select(id);
+  }
+
+  function onContext3d(event) {
+    /* RQ-GXP-012, RQ-TRC-163: the node actions of the point under the pointer. */
+    event.preventDefault();
+    hideTip();
+    const at = canvasPoint(event);
+    const id = pick(at.x, at.y);
+    if (id) openMenuAt(id, at, false); else closeMenu();
+  }
+
   function wire3d(canvas) {
     canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 && event.button !== BUTTON_MIDDLE) return;
       canvas.setPointerCapture(event.pointerId);
-      g3.drag = { x: event.clientX, y: event.clientY, pan: event.button === BUTTON_MIDDLE || event.shiftKey };
+      hideTip();
+      g3.drag = { x: event.clientX, y: event.clientY, moved: false, pan: event.button === BUTTON_MIDDLE || event.shiftKey };
     });
     canvas.addEventListener(EVENT_POINTER_MOVE, onDrag3d);
-    canvas.addEventListener(EVENT_POINTER_UP, () => { g3.drag = null; });
+    canvas.addEventListener(EVENT_POINTER_MOVE, onHover3d);
+    canvas.addEventListener(EVENT_POINTER_UP, onRelease3d);
+    canvas.addEventListener("contextmenu", onContext3d);
+    canvas.addEventListener("pointerleave", () => { g3.hovered = null; hideTip(); });
     canvas.addEventListener("wheel", onWheel3d, { passive: false });
     if (!g3.observer) {                            // the panel outlives a graph's canvas: observed once
       g3.observer = new ResizeObserver(resize3d);
@@ -1371,23 +1440,29 @@
     arrangeAround(id);
   }
 
-  function menuItems(nodeId) {
+  function menuItems(nodeId, withLayouts) {
     const button = (action, label, tip) => `<button type="button" role="menuitem" data-menu="${action}" title="${tip}">${label}</button>`;
     const layouts = [...$(ID_LAYOUT).options].map((o) => button(`${MENU_LAYOUT}${o.value}`, o.textContent, `Arrange the shown nodes: ${o.textContent}`));
     const node = nodeId ? [`<div class="graph-menu-title">${escapeHtml(nodeId)}</div>`, button(MENU_SELECT, "Select", "Show this node in the detail panel"),
       button(ACTION_HIDE, "Hide", "Hide this node in every view"),
       ...HOPS.map((n) => button(`${MENU_HOPS}${n}`, `Neighbours, ${n} hop${n > 1 ? "s" : ""}`, `Show only the nodes at most ${n} relations away`)), "<hr>"] : [];
+    if (!withLayouts) return node.slice(0, -1).join("");   // RQ-GXP-012: the 3D view has the node actions only
     return [...node, `<div class="graph-menu-title">Layout</div>`, ...layouts, "<hr>",
             button(MENU_FIT, "Fit", "Fit the shown nodes to the view")].join("");
   }
 
   function openMenu(event) {
     /* The menu at the pointer: a node's actions when a node was right-clicked, then the layouts and the fit. */
-    const menu = $(ID_MENU);
     const nodeId = event.target === cy ? null : event.target.id();
-    const at = event.renderedPosition || { x: cy.width() / 2, y: cy.height() / 2 };
+    openMenuAt(nodeId, event.renderedPosition || { x: cy.width() / 2, y: cy.height() / 2 }, true);
+  }
+
+  function openMenuAt(nodeId, at, withLayouts) {
+    /* RQ-TRC-163, RQ-GXP-012: the menu inside the shown graph view, 2D or 3D. */
+    const menu = $(ID_MENU);
+    $(`view-${state.view}`).append(menu);
     menu.dataset.node = nodeId || "";
-    menu.innerHTML = menuItems(nodeId);
+    menu.innerHTML = menuItems(nodeId, withLayouts);
     menu.style.left = at.x + UNIT_PX;
     menu.style.top = at.y + UNIT_PX;
     menu.hidden = false;
@@ -1977,7 +2052,7 @@
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
-    view3d: { ready: show3d, camera: camera3d,     // RQ-GXP-019, RQ-GXP-011, DEC-GXP-007 to DEC-GXP-009
+    view3d: { ready: show3d, camera: camera3d, screenOf, pick,   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
                 && g3.points.geometry.getAttribute("color").array[g3.index.get(id) * RGBA + ALPHA_INDEX] === ALPHA_SHOWN),
               shownRelations: () => { const a = g3.lines.geometry.getAttribute("color").array;
