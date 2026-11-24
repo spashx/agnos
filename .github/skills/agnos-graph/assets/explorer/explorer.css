@@ -155,6 +155,10 @@ body {
 .view.active { display: flex; flex-direction: column; }
 .graph-canvas { flex: 1 1 auto; min-height: 0; background: var(--c-graph-bg); }
 #view-graph { position: relative; }
+/* RQ-GXP-011, DEC-GXP-008: the 3D canvas fills its panel; the renderer sets its size */
+#view-graph3d { position: relative; }
+#graph3d { overflow: hidden; touch-action: none; }
+#graph3d canvas { display: block; }
 .select { min-height: var(--c-control-height); padding: 0 var(--s-space-sm); font: inherit; font-size: var(--s-text-small); color: var(--s-text); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); }
 
 /* RQ-TRC-165 (TASK-TRC-148): the legend, a wrapped band along the graph's bottom edge as the performance center's, drawn

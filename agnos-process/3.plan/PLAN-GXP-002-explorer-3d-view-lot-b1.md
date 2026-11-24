@@ -44,7 +44,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-013: Draw 3D points and lines
 - **Tier**: L
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then draw the shown nodes and relations in two buffers coloured by tokens and overrides, filtered by `isShown`, with the hand-written orbit controller.
 - **Requirement refs**: RQ-GXP-011
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-008, DEC-GXP-009)
@@ -54,8 +54,8 @@ This plan implements the tasks in the format specified below.
   - When the view is dragged, Then the camera rotates around its target
 - **Dependencies**: TASK-GXP-012
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `View3DTest` 3 tests failed first (KeyError, no 3D hook), then OK; `test_explorer` 86 tests OK, 1 skipped (RQ-TRC-158, AGNOS_GRAPH_PERF, TASK-GXP-018). Screenshot of this repository's graph in Graph 3D: 4933 points, 22835 lines drawn.
+- **Assumptions**: the fixture has no function, so type RQ stands for FN in the facet test; the test excludes elements of kind `undefined`, typed UNDEFINED by the model (owner's approval after Error Recovery, 2026-11-25); provisional placement (angle by trigram, radius by type layer, height by date or relation count) until TASK-GXP-015; pan by middle or Shift drag, right click left to RQ-GXP-012.
 
 ### TASK-GXP-014: Add 3D node interaction
 - **Tier**: M

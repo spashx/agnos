@@ -1136,5 +1136,57 @@ class FlatTabsTest(unittest.TestCase):
         self.assertEqual(("three.js 0.149.0MIT", "Graph 2D|Graph 3D"), (found["three"], found["items"]))
 
 
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class View3DTest(unittest.TestCase):
+    """TASK-GXP-013: RQ-GXP-011 (ADR-GXP-002: DEC-GXP-008, DEC-GXP-009), in a headless browser with WebGL."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_3d(self, script):
+        """Runs script once the 3D view is drawn; `v` is its test hook."""
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const v = agnosExplorer.view3d; agnosExplorer.showView('graph3d');"
+                                                     f"v.ready().then(() => {{ {script} }});"))
+
+    # RQ-GXP-011
+    def test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows(self):
+        found = self.run_3d("r('points', v.shownIds().length); r('lines', v.shownRelations());"
+                            "agnosExplorer.showView('nodes'); r('rows', document.querySelectorAll('#node-table tbody tr').length);"
+                            "agnosExplorer.showView('relations'); r('relations', document.querySelectorAll('#relation-table tbody tr').length);")
+        self.assertEqual(found["rows"], found["points"])
+        self.assertEqual(found["relations"], found["lines"])
+        self.assertNotEqual("0", found["points"])
+
+    # RQ-GXP-011: the fixture has no function, so a type it has stands for FN; the test is the same facet
+    def test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown(self):
+        # an element of kind "undefined" is typed UNDEFINED by the model (RQ-TRC-147), not RQ
+        found = self.run_3d("const rq = new Set(window.AGNOS_GRAPH.elements.filter((e) => e.type === 'RQ' && e.kind !== 'undefined')"
+                            ".map((e) => e.id));"
+                            "r('before', v.shownIds().filter((id) => rq.has(id)).length); agnosExplorer.hideTypes(['RQ']);"
+                            "r('after', v.shownIds().filter((id) => rq.has(id)).length);")
+        self.assertNotEqual("0", found["before"])
+        self.assertEqual("0", found["after"])
+
+    # RQ-GXP-011, DEC-GXP-009: a drag rotates the camera around its target, at the same distance
+    def test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target(self):
+        found = self.run_3d("const c = document.querySelector('#graph3d canvas'); const b = c.getBoundingClientRect();"
+                            "const at = (type, x) => c.dispatchEvent(new PointerEvent(type, { clientX: b.left + x, clientY: b.top + b.height / 2,"
+                            " button: 0, buttons: 1, pointerId: 1, bubbles: true }));"
+                            "const before = v.camera(); at('pointerdown', 100); at('pointermove', 200); at('pointerup', 200);"
+                            "const after = v.camera(); r('moved', before.position.some((p, i) => Math.abs(p - after.position[i]) > 1e-6));"
+                            "r('same', Math.abs(before.distance - after.distance) < 1e-6);"
+                            "r('target', before.target.every((t, i) => t === after.target[i]));")
+        self.assertEqual(("true", "true", "true"), (found["moved"], found["same"], found["target"]))
+
+
 if __name__ == "__main__":
     unittest.main()

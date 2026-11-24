@@ -1023,6 +1023,7 @@
   function applyVisibility() {
     /* Nodes and relations of the graph view follow the facets, the query and the hidden list, as the tables do
        (RQ-TRC-151, TASK-TRC-140): an edge's index in the model is its Cytoscape ID. */
+    applyVisibility3d();                           // RQ-GXP-011: the 3D view follows the same filters
     if (!cy) return;
     cy.batch(() => {
       cy.nodes().forEach((n) => n.toggleClass(CLASS_HIDDEN, !isShown(state.model.nodes.get(n.id()))));
@@ -1067,6 +1068,199 @@
   }
 
   // ---- hiding and isolating (RQ-TRC-154) ----------------------------------------------------------------------
+  // ---- 3D view (RQ-GXP-011; ADR-GXP-002: DEC-GXP-008, DEC-GXP-009) -----------------------------------------------
+  const XYZ = 3;                                   // DEC-GXP-008: a position's components
+  const RGBA = 4;                                  // DEC-GXP-008: a vertex colour with its alpha
+  const ALPHA_INDEX = 3;
+  const ALPHA_SHOWN = 1;
+  const ALPHA_HIDDEN = 0;
+  const HALF = 0.5;
+  const FULL_TURN = 2 * Math.PI;
+  const POLE_MARGIN = 0.01;                        // DEC-GXP-009: radians kept off the poles, so that "up" stays defined
+  const NEAR_RATIO = 1e-3;                         // the camera's near and far planes, as fractions and multiples of its distance
+  const FAR_RATIO = 10;
+  const WHEEL_NOTCH = 100;                         // DEC-GXP-009: deltaY of one wheel notch, as Cytoscape reads it
+  const BUTTON_MIDDLE = 1;
+  const START_THETA = Math.PI / 4;                 // DEC-GXP-009: the opening view, from the front right and above
+  const START_PHI = Math.PI / 3;
+  const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
+               orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
+
+  function place3d(model) {
+    /* Each node's [x, y, z]: angle by trigram, radius by type layer, height by first commit date, or by relation count
+       without history (RQ-GXP-009); the Dimensions menu of TASK-GXP-015 makes these choices the reader's. */
+    const extent = tokenNumber("--c-graph3d-extent");
+    const nodes = [...model.nodes.values()];
+    const tris = [...new Set(nodes.map((n) => n.props.tri || NO_VALUE))].sort(compare);
+    const height = (n) => (n.date === undefined ? n.incoming.length + n.outgoing.length : n.date);
+    const values = nodes.map(height);
+    const low = Math.min(...values);
+    const span = Math.max(...values) - low || 1;
+    return new Map(nodes.map((n, i) => {
+      const angle = (tris.indexOf(n.props.tri || NO_VALUE) / tris.length) * FULL_TURN;
+      const radius = ((TYPE_ORDER.indexOf(n.type) + 1) / TYPE_ORDER.length) * extent * HALF;
+      return [n.id, [radius * Math.cos(angle), ((values[i] - low) / span - HALF) * extent, radius * Math.sin(angle)]];
+    }));
+  }
+
+  function setColour(array, at, css, alpha) {
+    const colour = new window.THREE.Color(css);
+    array.set([colour.r, colour.g, colour.b, alpha], at * RGBA);
+  }
+
+  function paintLines() {
+    /* Every 3D line takes its kind's colour, the reader's or the token (RQ-GXP-005), keeping its alpha. */
+    if (!g3.lines) return;
+    const colours = g3.lines.geometry.getAttribute("color");
+    state.model.relations.forEach((r, i) => {
+      const css = relationColour(r.kind);
+      for (const end of [0, 1]) setColour(colours.array, 2 * i + end, css, colours.array[(2 * i + end) * RGBA + ALPHA_INDEX]);
+    });
+    colours.needsUpdate = true;
+    render3d();
+  }
+
+  function buildScene3d() {
+    /* Two buffers whatever the graph's size: one Points, one LineSegments, coloured per vertex (DEC-GXP-008). */
+    const THREE = window.THREE;
+    const places = place3d(state.model);
+    g3.ids = [...state.model.nodes.keys()];
+    g3.index = new Map(g3.ids.map((id, i) => [id, i]));
+    const nodePos = new Float32Array(g3.ids.length * XYZ);
+    const nodeCol = new Float32Array(g3.ids.length * RGBA);
+    g3.ids.forEach((id, i) => {
+      nodePos.set(places.get(id), i * XYZ);
+      setColour(nodeCol, i, typeColour(state.model.nodes.get(id).type), ALPHA_SHOWN);
+    });
+    const relations = state.model.relations;
+    const linePos = new Float32Array(relations.length * 2 * XYZ);
+    relations.forEach((r, i) => linePos.set([...places.get(r.source), ...places.get(r.target)], i * 2 * XYZ));
+    const geometry = (pos, col) => new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(pos, XYZ))
+      .setAttribute("color", new THREE.BufferAttribute(col, RGBA));
+    const material = { vertexColors: true, transparent: true, depthWrite: false };
+    g3.points = new THREE.Points(geometry(nodePos, nodeCol), new THREE.PointsMaterial({ ...material,
+      size: tokenNumber("--c-graph3d-point-size"), sizeAttenuation: false }));
+    g3.lines = new THREE.LineSegments(geometry(linePos, new Float32Array(relations.length * 2 * RGBA)),
+                                      new THREE.LineBasicMaterial(material));
+    g3.scene = new THREE.Scene();
+    g3.scene.add(g3.lines, g3.points);
+    paintLines();
+  }
+
+  function applyVisibility3d() {
+    /* What isShown refuses gets alpha 0; the buffers are kept (DEC-GXP-008, DEC-GXP-003). */
+    if (!g3.points) return;
+    const alpha = (shown) => (shown ? ALPHA_SHOWN : ALPHA_HIDDEN);
+    const nodes = g3.points.geometry.getAttribute("color");
+    g3.ids.forEach((id, i) => { nodes.array[i * RGBA + ALPHA_INDEX] = alpha(isShown(state.model.nodes.get(id))); });
+    const lines = g3.lines.geometry.getAttribute("color");
+    state.model.relations.forEach((r, i) => {
+      for (const end of [0, 1]) lines.array[(2 * i + end) * RGBA + ALPHA_INDEX] = alpha(isRelationShown(r));
+    });
+    nodes.needsUpdate = true;
+    lines.needsUpdate = true;
+    render3d();
+  }
+
+  function placeCamera() {
+    /* DEC-GXP-009: the camera on a sphere around the target, its radius the opening distance divided by the zoom. */
+    const { theta, phi, zoom, target } = g3.orbit;
+    const distance = tokenNumber("--c-graph3d-distance") * tokenNumber("--c-graph3d-extent") / zoom;
+    g3.camera.position.set(target[0] + distance * Math.sin(phi) * Math.sin(theta), target[1] + distance * Math.cos(phi),
+                           target[2] + distance * Math.sin(phi) * Math.cos(theta));
+    g3.camera.near = distance * NEAR_RATIO;
+    g3.camera.far = distance * FAR_RATIO;
+    g3.camera.updateProjectionMatrix();
+    g3.camera.lookAt(...target);
+  }
+
+  function render3d() {
+    if (!g3.renderer) return;
+    placeCamera();
+    g3.renderer.render(g3.scene, g3.camera);
+  }
+
+  function resize3d() {
+    const box = $(VIEW_GRAPH3D);
+    if (!g3.renderer || !box.clientWidth || !box.clientHeight) return;
+    g3.renderer.setSize(box.clientWidth, box.clientHeight);
+    g3.camera.aspect = box.clientWidth / box.clientHeight;
+    render3d();
+  }
+
+  function onDrag3d(event) {
+    /* Left drag rotates; middle or Shift drag pans in the screen's plane (DEC-GXP-009). */
+    if (!g3.drag) return;
+    const speed = tokenNumber("--c-graph3d-rotate-speed");
+    const dx = event.clientX - g3.drag.x;
+    const dy = event.clientY - g3.drag.y;
+    g3.drag = { ...g3.drag, x: event.clientX, y: event.clientY };
+    const orbit = g3.orbit;
+    if (g3.drag.pan) {
+      const scale = speed * g3.camera.position.distanceTo(new window.THREE.Vector3(...orbit.target));
+      const right = new window.THREE.Vector3().setFromMatrixColumn(g3.camera.matrix, 0).multiplyScalar(-dx * scale);
+      const up = new window.THREE.Vector3().setFromMatrixColumn(g3.camera.matrix, 1).multiplyScalar(dy * scale);
+      orbit.target = orbit.target.map((t, i) => t + right.getComponent(i) + up.getComponent(i));
+    } else {
+      orbit.theta -= dx * speed;
+      orbit.phi = Math.min(Math.PI - POLE_MARGIN, Math.max(POLE_MARGIN, orbit.phi - dy * speed));
+    }
+    render3d();
+  }
+
+  function onWheel3d(event) {
+    event.preventDefault();
+    const zoom = g3.orbit.zoom * Math.exp((-event.deltaY / WHEEL_NOTCH) * tokenNumber("--c-graph-wheel-sensitivity"));
+    g3.orbit.zoom = Math.min(tokenNumber("--c-graph-zoom-max"), Math.max(tokenNumber("--c-graph-zoom-min"), zoom));
+    render3d();
+  }
+
+  function wire3d(canvas) {
+    canvas.addEventListener("pointerdown", (event) => {
+      canvas.setPointerCapture(event.pointerId);
+      g3.drag = { x: event.clientX, y: event.clientY, pan: event.button === BUTTON_MIDDLE || event.shiftKey };
+    });
+    canvas.addEventListener(EVENT_POINTER_MOVE, onDrag3d);
+    canvas.addEventListener(EVENT_POINTER_UP, () => { g3.drag = null; });
+    canvas.addEventListener("wheel", onWheel3d, { passive: false });
+    if (!g3.observer) {                            // the panel outlives a graph's canvas: observed once
+      g3.observer = new ResizeObserver(resize3d);
+      g3.observer.observe($(VIEW_GRAPH3D));
+    }
+  }
+
+  function initGraph3d() {
+    /* Draws the 3D view once three.js is loaded and its panel has a size; a new graph draws a new one. */
+    if (g3.renderer || !state.model || !window.THREE || state.view !== VIEW_GRAPH3D) return;
+    const box = $(VIEW_GRAPH3D);
+    g3.renderer = new window.THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    g3.renderer.setPixelRatio(window.devicePixelRatio);
+    g3.renderer.setClearColor(cssValue("--c-graph3d-bg"));
+    g3.camera = new window.THREE.PerspectiveCamera(tokenNumber("--c-graph3d-fov"), 1);
+    box.replaceChildren(g3.renderer.domElement);
+    wire3d(g3.renderer.domElement);
+    buildScene3d();
+    applyVisibility3d();
+    resize3d();
+  }
+
+  function disposeGraph3d() {
+    if (!g3.renderer) return;
+    for (const object of [g3.points, g3.lines]) {
+      object.geometry.dispose();
+      object.material.dispose();
+    }
+    g3.renderer.dispose();
+    $(VIEW_GRAPH3D).replaceChildren();
+    Object.assign(g3, { renderer: null, scene: null, points: null, lines: null, ids: [], index: new Map(), drag: null });
+  }
+
+  function camera3d() {
+    const p = g3.camera.position;
+    return { position: [p.x, p.y, p.z], target: [...g3.orbit.target],
+             distance: p.distanceTo(new window.THREE.Vector3(...g3.orbit.target)) };
+  }
+
   function renderHidden() {
     const chips = [...state.hiddenNodes].sort(compare).map((id) => `<button type="button" class="chip" data-unhide="${escapeHtml(id)}"`
       + ` aria-label="Show ${escapeHtml(id)} again" title="Show ${escapeHtml(id)} again">${escapeHtml(id)} ×</button>`);
@@ -1294,6 +1488,7 @@
   function applyRelationColours() {
     /* Every graph edge and legend line takes its kind's colour. */
     if (cy) cy.batch(() => cy.edges().forEach((e) => e.data(DATA_COLOUR, relationColour(e.data("kind")))));
+    paintLines();                                  // RQ-GXP-011: the 3D lines too
     for (const item of $(ID_LEGEND).querySelectorAll("[data-kind]")) {
       const chosen = appearance.relationColours[item.dataset.kind];
       if (chosen) item.style.setProperty(VAR_KIND_COLOUR, chosen); else item.style.removeProperty(VAR_KIND_COLOUR);
@@ -1498,7 +1693,7 @@
     for (const control of document.querySelectorAll(".graph-control")) control.hidden = view !== VIEW_GRAPH;
     if (state.model) renderTables();
     initGraph();
-    if (view === VIEW_GRAPH3D) loadThree();        // RQ-GXP-019, DEC-GXP-007: on the first show only
+    if (view === VIEW_GRAPH3D) show3d();           // RQ-GXP-019, DEC-GXP-007: three.js on the first show only
   }
 
   // ---- 3D library (RQ-GXP-019, DEC-GXP-007) -------------------------------------------------------------------
@@ -1522,6 +1717,9 @@
     });
     return threeLoading;
   }
+
+  // RQ-GXP-011: the 3D view is drawn once three.js is loaded; resolves when it is
+  const show3d = () => loadThree().then(() => { initGraph3d(); resize3d(); }, () => {});
 
   function render() {
     renderHeader();
@@ -1547,10 +1745,12 @@
       cy.destroy();
       cy = null;
     }
+    disposeGraph3d();                              // RQ-GXP-011: a new graph draws a new 3D view
     render();
     setupTimeBar();                                // RQ-GXP-006, RQ-GXP-009
     refreshMenuTitles();
     initGraph();
+    initGraph3d();
     document.documentElement.dataset.firstViewMs = String(Math.round(performance.now()));   // RQ-TRC-158: read by the tests
   }
 
@@ -1777,7 +1977,11 @@
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
-    view3d: { ready: loadThree },                  // RQ-GXP-019, DEC-GXP-007
+    view3d: { ready: show3d, camera: camera3d,     // RQ-GXP-019, RQ-GXP-011, DEC-GXP-007 to DEC-GXP-009
+              shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
+                && g3.points.geometry.getAttribute("color").array[g3.index.get(id) * RGBA + ALPHA_INDEX] === ALPHA_SHOWN),
+              shownRelations: () => { const a = g3.lines.geometry.getAttribute("color").array;
+                                      return state.model.relations.filter((r, i) => a[2 * i * RGBA + ALPHA_INDEX] === ALPHA_SHOWN).length; } },
     graph: {                                       // RQ-TRC-150, DEC-TRC-090
       cy: () => cy,
       layout: applyLayout,                         // RQ-TRC-162
