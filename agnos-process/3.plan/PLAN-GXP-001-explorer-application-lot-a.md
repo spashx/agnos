@@ -129,6 +129,19 @@ This plan implements the tasks in the format specified below.
 - **Verification**: header test rewritten for the amended RQ-TRC-145, with the RQ-TRC-145 and raw-value tests: 5 OK, 0 skipped.
 - **Assumptions**: the owner's review of 2026-11-25 ("mÃªme format que le perf center", "le graph n'est pas liÃ© Ã  un commit"); the counts stay.
 
+### TASK-GXP-010: Delay period refresh during drag
+- **Tier**: M
+- **Status**: Done
+- **Description**: While a time handle is dragged, move only the bar, its fill and its dates; refresh the views once the handle rests for a token's delay or is released.
+- **Requirement refs**: RQ-GXP-006
+- **ADR refs**: ADR-GXP-001 (DEC-GXP-003)
+- **Acceptance Criteria**:
+  - Given a handle dragged to 2026-11-01, Then its dates show 2026-11-01 at once And the views keep their nodes until the handle rests
+- **Dependencies**: TASK-GXP-009
+- **Assignee**: AI
+- **Verification**: new test failed first (views refreshed at once), then failed on the label still showing the applied period, fixed to follow the handles; time and token tests: 16 OK, 0 skipped.
+- **Assumptions**: 400 ms of rest (token `motion.time-settle`); releasing the handle applies the period at once; before this task every move refreshed every view.
+
 ### TASK-GXP-009: Rearrange explorer header and time bar
 - **Tier**: M
 - **Status**: Done

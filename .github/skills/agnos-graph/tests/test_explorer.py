@@ -943,7 +943,8 @@ class TimePeriodTest(unittest.TestCase):
         return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
                                                      " String(v)); const t = agnosExplorer.time;" + load +
                                                      "const handle = (id, iso) => { const i = document.getElementById(id);"
-                                                     " i.value = t.dayOf(iso); i.dispatchEvent(new Event('input', { bubbles: true })); };"
+                                                     " i.value = t.dayOf(iso); i.dispatchEvent(new Event('input', { bubbles: true }));"
+                                                     " i.dispatchEvent(new Event('change', { bubbles: true })); };"
                                                      "const rows = () => { agnosExplorer.showView('nodes'); return [...document.querySelectorAll("
                                                      "'#node-table tbody tr')].map((tr) => tr.dataset.key).sort().join('|'); };"
                                                      "const menuItem = (menu, label) => { document.querySelector(`[data-menu-title=\"${menu}\"]`).click();"
@@ -967,6 +968,15 @@ class TimePeriodTest(unittest.TestCase):
                               "r('row', Math.abs((track.top + track.bottom) / 2 - (mode.top + mode.bottom) / 2) < mode.height / 2);"
                               "r('right', track.left >= mode.right);")
         self.assertEqual(("true", "true"), (found["row"], found["right"]))
+
+    # RQ-GXP-006 (TASK-GXP-010): while a handle is dragged the views wait; they follow once it rests or is released
+    def test_RQ_GXP_006_given_a_handle_dragged_then_the_views_wait_until_it_rests(self):
+        found = self.run_page("const i = document.getElementById('time-start'); i.value = t.dayOf('2026-11-01');"
+                              "i.dispatchEvent(new Event('input', { bubbles: true })); r('label', document.getElementById('time-range').textContent);"
+                              "r('during', agnosExplorer.shownIds().length);"
+                              "setTimeout(() => r('after', agnosExplorer.shownIds().length), 1500);")
+        self.assertIn("2026-11-01", found["label"])
+        self.assertEqual(("3", "1"), (found["during"], found["after"]))
 
     # RQ-GXP-006, DEC-GXP-004
     def test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit(self):
@@ -1000,6 +1010,7 @@ class TimePlaybackTest(TimePeriodTest):
     test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it = None
     test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit = None
     test_RQ_GXP_006_given_the_time_bar_then_its_track_is_on_the_controls_row_right_of_the_mode = None
+    test_RQ_GXP_006_given_a_handle_dragged_then_the_views_wait_until_it_rests = None
     test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again = None
     test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history = None
 
@@ -1065,7 +1076,7 @@ class TimePeriodGraphTest(unittest.TestCase):
         found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
                                                       f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
                                                       "agnosExplorer.showView('graph'); const i = document.getElementById('time-start');"
-                                                      "i.value = agnosExplorer.time.dayOf('2026-11-01'); i.dispatchEvent(new Event('input'));"
+                                                      "i.value = agnosExplorer.time.dayOf('2026-11-01'); i.dispatchEvent(new Event('input')); i.dispatchEvent(new Event('change'));"
                                                       "r('shown', agnosExplorer.graph.shownIds().join('|'));"))
         self.assertEqual(NEW, found["shown"])
 

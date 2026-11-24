@@ -378,13 +378,14 @@
   function renderCursor() {
     const marker = $("time-cursor");
     marker.hidden = state.cursor === null;
-    const { start, end } = periodRange();
     const days = state.model.time.days;
     if (state.cursor !== null && days) {
       const share = Math.min(1, Math.max(0, (state.cursor - state.model.time.day0) / DAY_MS / days));
       marker.style.left = `${share * PERCENT}%`;
     }
-    const shown = `${isoDay(start)} → ${isoDay(end)}`;
+    // TASK-GXP-010: the days the handles show, which a drag moves before the period follows
+    const handleDay = (id) => isoDay(dayStart(Number($(id).value)));
+    const shown = `${handleDay(ID_TIME_START)} → ${handleDay(ID_TIME_END)}`;
     $("time-range").textContent = state.cursor === null ? shown : `${shown} · ${isoDay(state.cursor)}`;
     $("time-play").textContent = playback.playing ? LABEL_PAUSE : LABEL_PLAY;
   }
@@ -464,12 +465,22 @@
     refreshTime(true);                             // RQ-GXP-008: a window chosen before keeps applying to the new graph
   }
 
+  // TASK-GXP-010: while a handle is dragged only the bar follows; the views wait until it rests or is released
+  const TOKEN_TIME_SETTLE = "--c-time-settle";
+  let settleTimer = 0;
+
   function onTimeHandle(event) {
     /* A handle dragged past the other pushes it along. */
     const start = Number($(ID_TIME_START).value);
     const end = Number($(ID_TIME_END).value);
-    if (event.target.id === ID_TIME_START) setPeriodDays(start, Math.max(start, end));
-    else setPeriodDays(Math.min(start, end), end);
+    const [first, last] = event.target.id === ID_TIME_START ? [start, Math.max(start, end)] : [Math.min(start, end), end];
+    clearTimeout(settleTimer);
+    if (event.type === "change") {
+      setPeriodDays(first, last);
+      return;
+    }
+    renderTimeBar(first, last);
+    settleTimer = setTimeout(() => setPeriodDays(first, last), tokenNumber(TOKEN_TIME_SETTLE));
   }
 
   // ---- shared cells (RQ-TRC-147) ------------------------------------------------------------------------------
@@ -1625,7 +1636,9 @@
     renderMenuBar();
     refreshMenuTitles();                           // RQ-GXP-009: before any graph, the Time menu is disabled
     setupHelp();                                   // RQ-GXP-002
-    for (const id of [ID_TIME_START, ID_TIME_END]) $(id).addEventListener("input", onTimeHandle);   // RQ-GXP-006
+    for (const id of [ID_TIME_START, ID_TIME_END]) {                                   // RQ-GXP-006, TASK-GXP-010
+      for (const type of ["input", "change"]) $(id).addEventListener(type, onTimeHandle);
+    }
     setupPlayback();                               // RQ-GXP-007, RQ-GXP-008
     $(ID_MENUBAR).addEventListener(EVENT_CLICK, onBarClick);
     $(ID_MENUBAR).addEventListener(EVENT_KEYDOWN, onBarKey);
