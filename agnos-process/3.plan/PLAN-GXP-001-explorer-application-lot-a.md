@@ -35,7 +35,7 @@ This plan implements the tasks in the format specified below.
 - **Requirement refs**: RQ-GXP-001, RQ-TRC-164
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-001)
 - **Acceptance Criteria**:
-  - Given the explorer, When File is clicked, Then "Open graph file…", "Import saved queries…" and "Export saved queries…" are listed
+  - Given the explorer, When File is clicked, Then "Open graph fileâ€¦", "Import saved queriesâ€¦" and "Export saved queriesâ€¦" are listed
   - Given an open menu, When the right arrow key is pressed, Then the next menu opens; When Escape is pressed, Then it closes
   - Given every menu item, Then it has a non-empty tooltip
 - **Dependencies**: TASK-GXP-001
@@ -84,7 +84,7 @@ This plan implements the tasks in the format specified below.
   - Given a graph without history, Then no time bar is shown And the Time menu is disabled with a tooltip naming `--history`
 - **Dependencies**: TASK-GXP-004
 - **Assignee**: AI
-- **Verification**: `TimePeriodTest` (4), `TimePeriodGraphTest` (1) and the amended menu and help lists failed first (7: 2 failures, 5 errors), then OK; with the impacted menu, help, tooltip, model, query, facet, selection and token tests: 37 OK, 0 skipped. Screenshot of this repository's explorer: period 2026-09-01 → 2026-11-10, 3117 / 4905 nodes shown.
+- **Verification**: `TimePeriodTest` (4), `TimePeriodGraphTest` (1) and the amended menu and help lists failed first (7: 2 failures, 5 errors), then OK; with the impacted menu, help, tooltip, model, query, facet, selection and token tests: 37 OK, 0 skipped. Screenshot of this repository's explorer: period 2026-09-01 â†’ 2026-11-10, 3117 / 4905 nodes shown.
 - **Assumptions**: days are UTC days from the history's first day; a handle dragged past the other pushes it; sections and undefined IDs, which have no rows, are dated `limits.first` as DEC-GXP-004 states; the tests load a graph written by the test, whose dates are known.
 
 ### TASK-GXP-006: Add time playback loop
@@ -127,4 +127,18 @@ This plan implements the tasks in the format specified below.
 - **Dependencies**: TASK-GXP-007
 - **Assignee**: AI
 - **Verification**: header test rewritten for the amended RQ-TRC-145, with the RQ-TRC-145 and raw-value tests: 5 OK, 0 skipped.
-- **Assumptions**: the owner's review of 2026-11-25 ("même format que le perf center", "le graph n'est pas lié à un commit"); the counts stay.
+- **Assumptions**: the owner's review of 2026-11-25 ("mÃªme format que le perf center", "le graph n'est pas liÃ© Ã  un commit"); the counts stay.
+
+### TASK-GXP-009: Rearrange explorer header and time bar
+- **Tier**: M
+- **Status**: Done
+- **Description**: Move the generation time to the right beside the help and drop its counts, set the menus apart, and put the time track on the controls' row; amend RQ-TRC-145 again.
+- **Requirement refs**: RQ-TRC-145, RQ-GXP-001, RQ-GXP-006
+- **ADR refs**: ADR-GXP-001 (DEC-GXP-001, DEC-GXP-003)
+- **Acceptance Criteria**:
+  - Given the explorer, Then the header's date stands beside the help button And holds no count
+  - Given the time bar, Then its track is on the controls' row, right of the mode
+- **Dependencies**: TASK-GXP-008
+- **Assignee**: AI
+- **Verification**: header and time-bar tests rewritten or added, with the impacted time, header and token tests: 23 OK, 0 skipped; after narrowing the track minimum, 19 OK, 0 skipped. Screenshots: date beside the help, semibold menus after a rule; at 1600 px the track shares the controls' row.
+- **Assumptions**: the owner's review of 2026-11-25; "plus en Ã©vidence" read as semibold titles set apart from the mark by a rule; the track wraps under the controls below 120 px, as on a window of 1400 px or less.

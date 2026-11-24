@@ -209,15 +209,19 @@ class ExplorerPageTest(unittest.TestCase):
         return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute("
                                                      "'data-r-' + k, String(v));" + script))
 
-    # RQ-TRC-145, amended by TASK-GXP-008: the date as the performance center shows it, its UTC value in the tooltip, no commit
-    def test_RQ_TRC_145_given_the_page_then_its_header_shows_the_readable_date_with_utc_tooltip_the_counts_and_no_commit(self):
+    # RQ-TRC-145, amended by TASK-GXP-008 and TASK-GXP-009: the date as the performance center shows it, its UTC value in the
+    # tooltip, on the right beside the help, no commit, no counts
+    def test_RQ_TRC_145_given_the_page_then_its_header_shows_the_readable_date_with_utc_tooltip_on_the_right_alone(self):
         found = self.run_page("const head = document.getElementById('graph-meta'); r('head', head.textContent);"
-                              "r('tip', head.querySelector('[title]').title);")
+                              "r('tip', head.querySelector('[title]').title);"
+                              "const help = document.getElementById('help-button').getBoundingClientRect();"
+                              "const box = head.getBoundingClientRect(); r('beside', box.right <= help.left && help.left - box.right < help.width * 2);")
         self.assertTrue(found["head"].startswith("Generated "))
         self.assertNotIn(GENERATED_AT, found["head"])
-        self.assertNotIn("commit", found["head"])
+        for word in ("commit", "elements", "nodes", "relations"):
+            self.assertNotIn(word, found["head"])
         self.assertEqual(GENERATED_AT.replace("T", " ").replace("Z", " UTC"), found["tip"])
-        self.assertIn(f"{len(self.graph['elements'])} elements", found["head"])
+        self.assertEqual("true", found["beside"])
 
     def test_RQ_TRC_146_given_the_tables_then_they_list_every_node_and_relation_of_the_file(self):
         found = self.run_page("agnosExplorer.showView('nodes'); r('nodes', document.querySelectorAll('#node-table tbody tr').length);"
@@ -956,6 +960,14 @@ class TimePeriodTest(unittest.TestCase):
         self.assertEqual(NEW, found["narrow"])
         self.assertIn("2026-11-01", found["label"])
 
+    # RQ-GXP-006 (TASK-GXP-009): the track shares the controls' row, after the mode, to save height
+    def test_RQ_GXP_006_given_the_time_bar_then_its_track_is_on_the_controls_row_right_of_the_mode(self):
+        found = self.run_page("const box = (id) => document.getElementById(id).getBoundingClientRect();"
+                              "const track = document.querySelector('.time-track').getBoundingClientRect(); const mode = box('time-window');"
+                              "r('row', Math.abs((track.top + track.bottom) / 2 - (mode.top + mode.bottom) / 2) < mode.height / 2);"
+                              "r('right', track.left >= mode.right);")
+        self.assertEqual(("true", "true"), (found["row"], found["right"]))
+
     # RQ-GXP-006, DEC-GXP-004
     def test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit(self):
         found = self.run_page(f"r('undated', t.dateOf('{UNDATED}')); r('old', t.dateOf('{OLD}'));"
@@ -987,6 +999,7 @@ class TimePlaybackTest(TimePeriodTest):
     # the page and helpers of TimePeriodTest; its own tests are not run again here
     test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it = None
     test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit = None
+    test_RQ_GXP_006_given_the_time_bar_then_its_track_is_on_the_controls_row_right_of_the_mode = None
     test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again = None
     test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history = None
 

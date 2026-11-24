@@ -38,12 +38,12 @@ body {
 .mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }
 .mark-bar-green { fill: var(--c-brand-mark-bar-green); }
 .mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
-.graph-meta { margin: 0; color: var(--s-text-muted); font-size: var(--s-text-small); }
+.graph-meta { margin: 0 0 0 auto; color: var(--s-text-muted); font-size: var(--s-text-small); }   /* TASK-GXP-009: on the right, beside the help */
 .graph-meta code { font-family: var(--s-font-mono); }
 /* RQ-GXP-001, DEC-GXP-001: the menu bar; its menus take the context menu's look (.graph-menu) */
-.menubar { display: flex; gap: var(--s-space-2xs); }
+.menubar { display: flex; gap: var(--s-space-2xs); padding-left: var(--s-space-md); border-left: var(--s-stroke-hairline) solid var(--s-border); }   /* TASK-GXP-009: set apart from the mark */
 .menubar-item { position: relative; }
-.menubar-title { font: inherit; padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; }
+.menubar-title { font: inherit; font-weight: var(--s-weight-strong); padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; }
 .menubar-title:hover, .menubar-title[aria-expanded="true"], .menubar-title:focus-visible { background: var(--s-surface-hover); outline: none; }
 .menubar-menu { top: 100%; left: 0; z-index: 4; }
 .load-message { margin: 0; flex-basis: 100%; font-size: var(--s-text-small); color: var(--s-danger); }
@@ -243,7 +243,7 @@ body {
 /* ---- help, licences, About (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002) ----
    Copied from the performance center's matrix.css (RQ-TRC-101, RQ-TRC-112, RQ-TRC-114; DEC-TRC-052, DEC-TRC-058, DEC-TRC-061),
    its card tokens read as this page's panel tokens. */
-.icon-button { display: inline-grid; place-items: center; width: var(--c-control-height); height: var(--c-control-height); padding: var(--s-space-none); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); background: var(--s-surface-raised); cursor: pointer; flex: none; margin-left: auto; }
+.icon-button { display: inline-grid; place-items: center; width: var(--c-control-height); height: var(--c-control-height); padding: var(--s-space-none); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); background: var(--s-surface-raised); cursor: pointer; flex: none; }
 .icon-button svg { width: var(--s-text-heading); height: var(--s-text-heading); fill: var(--s-text-muted); }
 .icon-button:hover { background: var(--c-table-row-hover); }
 .help-dialog { width: min(var(--c-help-width), 100%); height: min(var(--c-help-height), 100%); min-width: min(var(--c-help-min-width), 100%); min-height: min(var(--c-help-min-height), 100%); resize: both; overflow: hidden; padding: var(--s-space-none); color: var(--s-text); background: var(--c-panel-bg); border: var(--s-stroke-hairline) solid var(--c-panel-border); border-radius: var(--s-radius-lg); }
@@ -282,9 +282,9 @@ body {
 
 /* ---- time bar (TASK-GXP-005: RQ-GXP-006, RQ-GXP-009; DEC-GXP-003) ----
    Two range inputs share one track: each lets the pointer reach its own handle only, the fill shows the period between them. */
-.time-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm) var(--s-space-md); padding: var(--s-space-sm) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.time-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); padding: var(--s-space-sm) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
 .time-bar[hidden] { display: none; }
-.time-track { position: relative; order: 1; flex: 1 1 100%; height: var(--c-control-height); }   /* its own row, under the controls */
+.time-track { position: relative; order: 1; flex: 1 1 var(--c-time-track-min-width); height: var(--c-control-height); }   /* TASK-GXP-009: on the controls' row, after the mode */
 .time-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--c-time-track-height); transform: translateY(-50%); border-radius: var(--s-radius-pill); background: var(--c-time-track-bg); }
 .time-fill { position: absolute; top: 50%; height: var(--c-time-track-height); transform: translateY(-50%); border-radius: var(--s-radius-pill); background: var(--c-time-fill); }
 .time-track input[type="range"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; -webkit-appearance: none; appearance: none; }

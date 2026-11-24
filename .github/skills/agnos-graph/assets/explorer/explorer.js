@@ -496,8 +496,8 @@
     const readable = Number.isNaN(when.getTime()) ? meta.generatedAt || NO_VALUE
       : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(when);
     const utc = (meta.generatedAt || NO_VALUE).replace("T", " ").replace(/Z$/, " UTC");
-    $("graph-meta").innerHTML = `<span title="${escapeHtml(utc)}">Generated ${escapeHtml(readable)}</span> · ${graph.elements.length} elements · `
-      + `${nodes.size} nodes · ${relations.length} relations`;
+    // TASK-GXP-009: no counts here, the view's own count line says them
+    $("graph-meta").innerHTML = `<span title="${escapeHtml(utc)}">Generated ${escapeHtml(readable)}</span>`;
     const summary = [["Elements", graph.elements.length], ["Sections", (graph.sections || []).length],
                      ["Files", (graph.files || []).length], ["Nodes", nodes.size], ["Relations", relations.length]];
     $("graph-summary").innerHTML = summary.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
