@@ -889,7 +889,7 @@ TASK-GXP-001|18-30|Done|Document graph explorer application
 TASK-GXP-002|31-45|Done|Add explorer menu bar
 TASK-GXP-003|46-60|Done|Add explorer help dialog
 TASK-GXP-004|61-74|Done|Add relation colour choice
-TASK-GXP-005|75-89|Not Started|Add time period filter
+TASK-GXP-005|75-89|Done|Add time period filter
 TASK-GXP-006|90-104|Not Started|Add time playback loop
 TASK-GXP-007|105-117|Not Started|Verify explorer application lot A
 @agnos-process/3.plan/PLAN-HST-001-contribution-history.md

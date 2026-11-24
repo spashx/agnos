@@ -51,6 +51,16 @@
       <input id="saved-import-file" title="Choose an exported file of saved queries" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
       <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
     </section>
+    <!-- RQ-GXP-006, RQ-GXP-009, DEC-GXP-003: the time bar, shown only when the graph holds a history -->
+    <section id="time-bar" class="time-bar" aria-label="Time period" hidden>
+      <span class="query-label">Period</span>
+      <div class="time-track">
+        <span class="time-fill" id="time-fill" aria-hidden="true"></span>
+        <input id="time-start" type="range" min="0" step="1" aria-label="Period start" title="Drag to set the first day of the period">
+        <input id="time-end" type="range" min="0" step="1" aria-label="Period end" title="Drag to set the last day of the period">
+      </div>
+      <output id="time-range" class="time-range" for="time-start time-end"></output>
+    </section>
     <div class="toolbar">
       <div class="tabs" role="tablist" aria-label="Views">
         <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph" title="Show the graph of the shown nodes and relations">Graph</button>
@@ -166,6 +176,15 @@
         <li><b>Saved queries</b>: + Save query keeps the current query as a button; Edit buttons renames, moves or deletes them. File exports and imports them as a JSON file.</li>
         <li><b>Selection</b>: the detail panel hides the selected node, isolates its neighbourhood and widens it by one hop; hidden nodes are listed above the view, a click shows them again.</li>
       </ul>
+    </section>
+    <section data-help="time" data-title="Time" hidden>
+      <h3>Time</h3>
+      <p>When the graph was built with <code>--history</code>, each node is dated by its first commit in the history read: the first commit that changed its document lines, its file or its function. A node no commit of the history changed is dated the history's first commit.</p>
+      <ul>
+        <li><b>Period</b>: drag the two handles of the time bar to choose the first and the last day; every view shows only the nodes dated in the period, and the relations between them.</li>
+        <li><b>Time menu</b>: Whole history, Last 7 days and Last 30 days set the period at once.</li>
+      </ul>
+      <p>The graph is the state at one commit: the period shows when today's nodes first appeared, not what was removed before. Without <code>--history</code>, the time bar is hidden and the Time menu is disabled.</p>
     </section>
     <section data-help="appearance" data-title="Appearance" hidden>
       <h3>Appearance</h3>

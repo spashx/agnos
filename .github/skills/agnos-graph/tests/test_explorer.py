@@ -739,7 +739,7 @@ class MenuBarTest(unittest.TestCase):
         found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
                               "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
                               ".map((b) => b.textContent).join('|'));")
-        self.assertEqual("File|View|Filter|Appearance|Help", found["menus"])   # TASK-GXP-004 added Appearance
+        self.assertEqual("File|View|Filter|Time|Appearance|Help", found["menus"])   # TASK-GXP-004 Appearance, TASK-GXP-005 Time
         self.assertEqual("", found["untitled"])
 
     # RQ-GXP-001: an item that does not apply to the current view is disabled
@@ -752,7 +752,7 @@ class MenuBarTest(unittest.TestCase):
         self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
 
 
-HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Appearance|Licenses|About"   # RQ-GXP-002: stated, not read
+HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Time|Appearance|Licenses|About"   # RQ-GXP-002: stated, not read
 
 
 class HelpDialogTest(unittest.TestCase):
@@ -891,6 +891,112 @@ class RelationColourTest(unittest.TestCase):
                               "r('tip', document.querySelector('#graph-legend [data-kind=\"contains\"] .legend-kind').title);")
         self.assertEqual("true", found["edge"])
         self.assertIn("contains", found["tip"])
+
+
+# RQ-GXP-006, DEC-GXP-004: a graph whose history dates its nodes: OLD first changed on 2026-07-14, NEW on 2026-11-05, UNDATED
+# never changed in the history read; written by the test, so that each date is known
+HISTORY_FIRST = "2026-07-14T10:00:00+00:00"
+HISTORY_LAST = "2026-11-05T10:00:00+00:00"
+OLD, NEW, UNDATED = "RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003"
+
+
+def dated_graph():
+    """A graph of three requirements with a history of two commits (graph-format.md, history block)."""
+    element = lambda i, title: {"id": i, "type": "RQ", "tri": "DEM", "status": "", "title": title, "doc": "FTR-DEM-001.md",
+                                "first": 1, "last": 2, "kind": "element"}
+    commit = lambda h, date, subject: {"hash": h, "date": date, "subject": subject, "author": 0, "coAuthors": [], "kind": "human"}
+    return {"meta": {"generatedAt": GENERATED_AT, "commit": "0123456789"}, "elements": [element(OLD, "Old"), element(NEW, "New"),
+            element(UNDATED, "Undated")], "edges": [], "files": [], "sections": [], "links": [], "tasks": {},
+            "history": {"commits": [commit("aaaaaaaaaa", HISTORY_FIRST, "first"), commit("bbbbbbbbbb", HISTORY_LAST, "later")],
+                        "people": [{"name": "Dev"}], "interventions": {"elements": {OLD: [[0, 3]], NEW: [[1, 4]]}},
+                        "limits": {"first": HISTORY_FIRST, "last": HISTORY_LAST}}}
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TimePeriodTest(unittest.TestCase):
+    """TASK-GXP-005: RQ-GXP-006, RQ-GXP-009 (ADR-GXP-001: DEC-GXP-003, DEC-GXP-004), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script, dated=True):
+        # RQ-GXP-006: helpers moving a handle as the reader does and reading the node table
+        load = f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});" if dated else ""
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const t = agnosExplorer.time;" + load +
+                                                     "const handle = (id, iso) => { const i = document.getElementById(id);"
+                                                     " i.value = t.dayOf(iso); i.dispatchEvent(new Event('input', { bubbles: true })); };"
+                                                     "const rows = () => { agnosExplorer.showView('nodes'); return [...document.querySelectorAll("
+                                                     "'#node-table tbody tr')].map((tr) => tr.dataset.key).sort().join('|'); };"
+                                                     "const menuItem = (menu, label) => { document.querySelector(`[data-menu-title=\"${menu}\"]`).click();"
+                                                     " [...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+                                                     + script))
+
+    # RQ-GXP-006
+    def test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it(self):
+        found = self.run_page("r('bar', document.getElementById('time-bar').hidden); r('all', rows());"
+                              "handle('time-start', '2026-11-01'); r('narrow', rows());"
+                              "r('label', document.getElementById('time-range').textContent);")
+        self.assertEqual("false", found["bar"])
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["all"])
+        self.assertEqual(NEW, found["narrow"])
+        self.assertIn("2026-11-01", found["label"])
+
+    # RQ-GXP-006, DEC-GXP-004
+    def test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit(self):
+        found = self.run_page(f"r('undated', t.dateOf('{UNDATED}')); r('old', t.dateOf('{OLD}'));"
+                              "handle('time-end', '2026-07-14'); r('first-day', rows());")
+        self.assertEqual(found["undated"], found["old"])
+        self.assertEqual("|".join(sorted((OLD, UNDATED))), found["first-day"])
+
+    # RQ-GXP-006: the Time menu gives back the whole history
+    def test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again(self):
+        found = self.run_page("handle('time-start', '2026-11-01'); menuItem('time', 'Whole history'); r('rows', rows());")
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["rows"])
+
+    # RQ-GXP-009
+    def test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history(self):
+        found = self.run_page("const title = document.querySelector('[data-menu-title=\"time\"]');"
+                              "r('bar', document.getElementById('time-bar').hidden); r('disabled', title.disabled); r('tip', title.title);"
+                              "r('rows', rows().split('|').length);", dated=False)
+        nodes = len(self.graph["elements"]) + len(self.graph["sections"]) + len(self.graph["files"])
+        self.assertEqual(("true", "true"), (found["bar"], found["disabled"]))
+        self.assertIn("--history", found["tip"])
+        self.assertEqual(str(nodes), found["rows"])
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class TimePeriodGraphTest(unittest.TestCase):
+    """TASK-GXP-005: RQ-GXP-006 in the graph view (DEC-GXP-003: the period is one more term of the visibility every view reads)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    # RQ-GXP-006
+    def test_RQ_GXP_006_given_the_graph_view_when_the_period_starts_in_november_then_only_its_nodes_are_drawn(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
+                                                      "agnosExplorer.showView('graph'); const i = document.getElementById('time-start');"
+                                                      "i.value = agnosExplorer.time.dayOf('2026-11-01'); i.dispatchEvent(new Event('input'));"
+                                                      "r('shown', agnosExplorer.graph.shownIds().join('|'));"))
+        self.assertEqual(NEW, found["shown"])
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-005: Add time period filter
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then date the nodes from the history, add the time bar with start and end handles and the Time menu, apply the period in `isShown`, disable it without history, and write its help topic.
 - **Requirement refs**: RQ-GXP-006, RQ-GXP-009
 - **ADR refs**: ADR-GXP-001 (DEC-GXP-003, DEC-GXP-004)
@@ -84,8 +84,8 @@ This plan implements the tasks in the format specified below.
   - Given a graph without history, Then no time bar is shown And the Time menu is disabled with a tooltip naming `--history`
 - **Dependencies**: TASK-GXP-004
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `TimePeriodTest` (4), `TimePeriodGraphTest` (1) and the amended menu and help lists failed first (7: 2 failures, 5 errors), then OK; with the impacted menu, help, tooltip, model, query, facet, selection and token tests: 37 OK, 0 skipped. Screenshot of this repository's explorer: period 2026-09-01 → 2026-11-10, 3117 / 4905 nodes shown.
+- **Assumptions**: days are UTC days from the history's first day; a handle dragged past the other pushes it; sections and undefined IDs, which have no rows, are dated `limits.first` as DEC-GXP-004 states; the tests load a graph written by the test, whose dates are known.
 
 ### TASK-GXP-006: Add time playback loop
 - **Tier**: M

@@ -132,14 +132,17 @@
   const state = { model: null, view: DEFAULT_VIEW, selected: null, sort: { [VIEW_NODES]: null, [VIEW_RELATIONS]: null },
                   hiddenNodes: new Set(), isolate: null,                             // RQ-TRC-154: what every view hides
                   off: { type: new Set(), tri: new Set(), status: new Set(), kind: new Set(), field: new Set() },   // RQ-TRC-151
-                  queryNodes: null, queryRelations: null };                          // RQ-TRC-152
+                  queryNodes: null, queryRelations: null,                            // RQ-TRC-152
+                  period: null };                     // RQ-GXP-006, DEC-GXP-003: { start, end, startDay, endDay }, null for the whole history
   let cy = null;                                                                       // DEC-TRC-090: the graph view
 
   // ---- visibility, shared by every view (RQ-TRC-151, RQ-TRC-152, RQ-TRC-154) ----------------------------------
   const facetAllows = (facet, item) => facet.values(item).some((v) => !state.off[facet.key].has(v));
+  // RQ-GXP-006, DEC-GXP-003: the period is one more term, so that every view applies it as it applies a facet
+  const inPeriod = (node) => !state.period || (node.date >= state.period.start && node.date <= state.period.end);
   const isShown = (node) => FACETS.filter((f) => f.of === FACET_NODES).every((f) => facetAllows(f, node))
     && !state.hiddenNodes.has(node.id) && (!state.isolate || state.isolate.has(node.id))
-    && (!state.queryNodes || state.queryNodes.has(node.id));
+    && (!state.queryNodes || state.queryNodes.has(node.id)) && inPeriod(node);
   const isRelationShown = (relation) => isShown(state.model.nodes.get(relation.source))
     && isShown(state.model.nodes.get(relation.target))
     && FACETS.filter((f) => f.of === FACET_RELATIONS).every((f) => facetAllows(f, relation))
@@ -253,7 +256,81 @@
       nodes.get(relation.source).outgoing.push(relation);
       nodes.get(relation.target).incoming.push(relation);
     }
-    return { graph, nodes, relations };
+    return { graph, nodes, relations, time: dateNodes(graph, nodes) };   // RQ-GXP-006: once every node exists
+  }
+
+  // ---- time (TASK-GXP-005: RQ-GXP-006, RQ-GXP-009; DEC-GXP-003, DEC-GXP-004) -----------------------------------
+  const DAY_MS = 86_400_000;
+  const ISO_DAY_LENGTH = 10;                       // "YYYY-MM-DD"
+  const RECENT_DAYS = [7, 30];                     // the Time menu's shortcuts
+  const ID_TIME_BAR = "time-bar";
+  const ID_TIME_START = "time-start";
+  const ID_TIME_END = "time-end";
+  const PERCENT = 100;
+
+  function dateNodes(graph, nodes) {
+    /* DEC-GXP-004: each node's date is its earliest commit in history.interventions, a node without rows the history's first
+       commit; returns the history's first and last instants and its days, or null when the graph holds no history. */
+    const history = graph.history;
+    if (!history || !history.commits || !history.commits.length) return null;
+    const times = history.commits.map((c) => Date.parse(c.date));
+    const limits = history.limits || {};
+    const first = Date.parse(limits.first) || Math.min(...times);
+    const last = Date.parse(limits.last) || Math.max(...times);
+    for (const node of nodes.values()) node.date = first;
+    for (const [scope, key] of [["elements", (id) => id], ["files", (path) => path],
+                                ["functions", (index) => functionId(graph, Number(index))]]) {
+      for (const [id, rows] of Object.entries((history.interventions || {})[scope] || {})) {
+        const node = nodes.get(key(id));
+        if (node && rows.length) node.date = Math.min(...rows.map(([index]) => times[index]));
+      }
+    }
+    const day0 = Math.floor(first / DAY_MS) * DAY_MS;
+    return { first, last, day0, days: Math.floor((last - day0) / DAY_MS) };
+  }
+
+  const dayOf = (instant) => Math.floor((instant - state.model.time.day0) / DAY_MS);
+  const dayStart = (day) => state.model.time.day0 + day * DAY_MS;
+  const isoDay = (instant) => new Date(instant).toISOString().slice(0, ISO_DAY_LENGTH);
+  const hasTime = () => Boolean(state.model && state.model.time);
+
+  function renderTimeBar(startDay, endDay) {
+    /* The handles, the filled period between them and its first and last days. */
+    const { days } = state.model.time;
+    $(ID_TIME_START).value = String(startDay);
+    $(ID_TIME_END).value = String(endDay);
+    const share = (day) => (days ? (day / days) * PERCENT : 0);
+    $("time-fill").style.left = `${share(startDay)}%`;
+    $("time-fill").style.right = `${PERCENT - share(endDay)}%`;
+    $("time-range").textContent = `${isoDay(dayStart(startDay))} → ${isoDay(dayStart(endDay))}`;
+  }
+
+  function setPeriodDays(startDay, endDay) {
+    /* RQ-GXP-006: the period from the first to the last day, both included; the whole history is no period at all. */
+    const { days } = state.model.time;
+    const start = Math.max(0, Math.min(startDay, days));
+    const end = Math.max(start, Math.min(endDay, days));
+    state.period = start === 0 && end === days ? null
+      : { start: dayStart(start), end: dayStart(end + 1) - 1, startDay: start, endDay: end };
+    renderTimeBar(start, end);
+    refresh();
+  }
+
+  function setupTimeBar() {
+    /* RQ-GXP-009: no history, no time bar; otherwise its handles span the history's days. */
+    $(ID_TIME_BAR).hidden = !hasTime();
+    if (!hasTime()) return;
+    const { days } = state.model.time;
+    for (const id of [ID_TIME_START, ID_TIME_END]) $(id).max = String(days);
+    renderTimeBar(0, days);
+  }
+
+  function onTimeHandle(event) {
+    /* A handle dragged past the other pushes it along. */
+    const start = Number($(ID_TIME_START).value);
+    const end = Number($(ID_TIME_END).value);
+    if (event.target.id === ID_TIME_START) setPeriodDays(start, Math.max(start, end));
+    else setPeriodDays(Math.min(start, end), end);
   }
 
   // ---- shared cells (RQ-TRC-147) ------------------------------------------------------------------------------
@@ -1019,6 +1096,11 @@
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
         { label: "Show all", tip: "Check every facet value, clear the query, the hidden nodes and the isolation", action: showAll, enabled: loaded },
       ] },
+      { name: "time", title: "Time", tip: "Show only the nodes first changed in a period", items: [   // RQ-GXP-006, RQ-GXP-009
+        { label: "Whole history", tip: "Show the nodes of every date", action: () => setPeriodDays(0, state.model.time.days), enabled: hasTime },
+        ...RECENT_DAYS.map((n) => ({ label: `Last ${n} days`, tip: `Show only the nodes first changed in the last ${n} days of the history`,
+          action: () => setPeriodDays(state.model.time.days - n + 1, state.model.time.days), enabled: hasTime })),
+      ], enabled: hasTime, offTip: "Build the graph with --history to filter by time" },
       { name: "appearance", title: "Appearance", tip: "Choose the colour of each relation kind", items: [   // RQ-GXP-005
         ...KIND_ORDER.map((kind) => ({ label: `Colour of ${kind}…`, tip: `Choose the colour of the ${KIND_NAMES[kind]} relations in the graph and its legend`,
           action: () => chooseRelationColour(kind), enabled: () => Boolean(state.model) && state.model.relations.some((r) => r.kind === kind) })),
@@ -1170,6 +1252,15 @@
       + `${menu.items.map((entry, i) => item(entry, m, i)).join("")}</div></div>`).join("");
   }
 
+  function refreshMenuTitles() {
+    /* RQ-GXP-009: a menu with an enabled test is disabled, with a tooltip saying why, when the loaded graph cannot use it. */
+    for (const menu of barMenus.filter((m) => m.enabled)) {
+      const on = menu.enabled();
+      barTitle(menu.name).disabled = !on;
+      barTitle(menu.name).title = on ? menu.tip : menu.offTip;
+    }
+  }
+
   const barEntry = (button) => {
     const [m, i] = button.dataset.item.split(ITEM_SEPARATOR).map(Number);
     return barMenus[m].items[i];
@@ -1262,11 +1353,14 @@
     state.isolate = null;
     state.queryNodes = null;
     state.queryRelations = null;
+    state.period = null;                           // RQ-GXP-006: a new graph shows its whole history
     if (cy) {
       cy.destroy();
       cy = null;
     }
     render();
+    setupTimeBar();                                // RQ-GXP-006, RQ-GXP-009
+    refreshMenuTitles();
     initGraph();
     document.documentElement.dataset.firstViewMs = String(Math.round(performance.now()));   // RQ-TRC-158: read by the tests
   }
@@ -1378,7 +1472,9 @@
   function wire() {
     // RQ-GXP-001, DEC-GXP-001: the menu bar
     renderMenuBar();
+    refreshMenuTitles();                           // RQ-GXP-009: before any graph, the Time menu is disabled
     setupHelp();                                   // RQ-GXP-002
+    for (const id of [ID_TIME_START, ID_TIME_END]) $(id).addEventListener("input", onTimeHandle);   // RQ-GXP-006
     $(ID_MENUBAR).addEventListener(EVENT_CLICK, onBarClick);
     $(ID_MENUBAR).addEventListener(EVENT_KEYDOWN, onBarKey);
     document.addEventListener(EVENT_CLICK, (event) => { if (!event.target.closest(`#${ID_MENUBAR}`)) closeBarMenus(false); });
@@ -1484,6 +1580,8 @@
     saved: { list: () => saved.list, add: addSaved, edit: editSaved, move: moveSaved, remove: removeSaved, load: loadSaved,
              exportText, importText },                                       // RQ-TRC-153
     appearance: { load: loadRelationColours, set: setRelationColour, reset: resetRelationColours, relationColour },   // RQ-GXP-005
+    time: { dayOf: (iso) => dayOf(Date.parse(iso)), dateOf: (id) => new Date(state.model.nodes.get(id).date).toISOString(),
+            setPeriodDays, period: () => state.period },                                                         // RQ-GXP-006
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     graph: {                                       // RQ-TRC-150, DEC-TRC-090
