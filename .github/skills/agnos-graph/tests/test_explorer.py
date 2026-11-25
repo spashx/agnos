@@ -547,6 +547,7 @@ class CallGraphAndHistoryTest(unittest.TestCase):
 
 
 LOAD_LIMIT_MS = 5000          # RQ-TRC-158
+FRAME_LIMIT_MS = 3000         # RQ-GXP-019
 
 
 @unittest.skipUnless(ONLINE and HAS_TREE_SITTER and os.environ.get("AGNOS_GRAPH_PERF"),
@@ -569,6 +570,32 @@ class LoadTimeTest(unittest.TestCase):
             found = re.search(r'data-first-view-ms="(\d+)"', done.stdout.decode("utf-8", errors="replace"))
             self.assertIsNotNone(found)
             self.assertLess(int(found.group(1)), LOAD_LIMIT_MS)
+
+    # TASK-GXP-018: RQ-GXP-019, from the tab's click to the first drawn 3D frame, three.js's download included; real time,
+    # no virtual time budget: the script element three.js is loaded by delays the load event the dump waits for
+    def test_RQ_GXP_019_given_this_repository_graph_when_graph_3d_is_clicked_then_its_first_frame_is_drawn_in_less_than_3_s(self):
+        repo = HERE.parents[3]
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(repo / "agnos-process"), "--sources", str(repo / ".github"), "--out", str(out),
+                                     "--call-graph", "--history", "--explorer"])
+            self.assertEqual(0, code, err)
+            page = out.parent / PAGE_NAME
+            page.write_text(page.read_text(encoding="utf-8").replace("</body>", "<script>const t0 = performance.now();"
+                            "document.getElementById('tab-graph3d').click(); agnosExplorer.view3d.ready().then(() =>"
+                            " document.documentElement.dataset.firstFrameMs = String(Math.round(performance.now() - t0)));</script></body>"),
+                            encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k.upper() != COMPAT_LAYER_VAR}
+            with tempfile.TemporaryDirectory() as profile:
+                done = subprocess.run([BROWSER, "--headless=new", "--no-first-run", f"--user-data-dir={profile}",
+                                       f"--window-size={BROWSER_WINDOW}", "--dump-dom", page.resolve().as_uri()],
+                                      capture_output=True, timeout=300, check=False, env=env)
+            dom = done.stdout.decode("utf-8", errors="replace")
+            frame = re.search(r'data-first-frame-ms="(\d+)"', dom)
+            first = re.search(r'data-first-view-ms="(\d+)"', dom)
+            self.assertIsNotNone(frame)
+            self.assertLess(int(frame.group(1)), FRAME_LIMIT_MS)
+            self.assertLess(int(first.group(1)), LOAD_LIMIT_MS)
 
 
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)

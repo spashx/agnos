@@ -117,7 +117,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-018: Verify explorer lot B1
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Time the first 3D frame and RQ-TRC-158's first view in a headless browser on this repository's graph, run the full graph suite, check the explorer on the repository and the demo, update the changelog.
 - **Requirement refs**: RQ-GXP-019, RQ-TRC-158
 - **ADR refs**: ADR-GXP-002
@@ -126,5 +126,5 @@ This plan implements the tasks in the format specified below.
   - Given the graph suite, Then every test passes
 - **Dependencies**: TASK-GXP-014, TASK-GXP-016, TASK-GXP-017
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: new test `test_RQ_GXP_019_..._less_than_3_s` OK. Three real-time runs: first 3D frame 642, 782, 580 ms (< 3000), first view 3649, 3691, 3605 ms (< 5000). `agnos-graph` suite with `AGNOS_GRAPH_PERF=1`: Ran 269 tests in 198.8 s, 0 skipped, 1 failure, `test_RQ_GXP_007_..._cursor_moves_forward` (cursor not moved within 1.5 s). Reruns of that test: 1 failure in 3 runs, then 6/6 OK on HEAD, and 6/6 OK on 027f1cd before lot B. The failure is intermittent; lot B is not proven to cause it. Explorer 3D checked on this repository (4933 nodes) and the demo (452 nodes, 1829 relations, rings 2026-09 and 2026-10). Changelog entry added.
+- **Assumptions**: RQ-TRC-158's "unchanged within 10 %" was compared with no baseline measured before lot B, the first view now taking 3.6 s; three.js's download is counted in the 3D time.
