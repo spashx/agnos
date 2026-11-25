@@ -74,17 +74,17 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-015: Add 3D dimensions menu
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add the dimensions table and the Dimensions menu placing and drawing the points, with the defaults of RQ-GXP-013.
-- **Requirement refs**: RQ-GXP-013, RQ-GXP-009
+- **Requirement refs**: RQ-GXP-013, RQ-GXP-009, RQ-GXP-001
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-011)
 - **Acceptance Criteria**:
   - Given the 3D view, When the height is set to the changed lines, Then the most changed nodes are the highest
   - Given a graph without history, Then the history's dimensions are disabled And the height defaults to the relation count
 - **Dependencies**: TASK-GXP-013
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Dimensions3DTest` 4 tests failed first (KeyError, no dimension choice), then OK; `test_explorer` 93 tests OK, 1 skipped (RQ-TRC-158, AGNOS_GRAPH_PERF, TASK-GXP-018); the RQ-GXP-001 menu test updated for Dimensions. Screenshot of this repository's graph: five choices, defaults first commit date, trigram, layer, type, type.
+- **Assumptions**: the Dimensions menu items focus five choices on the 3D view's toolbar, a menu of 60 items being unreadable; layer = the process layer of a type (requirements, architecture, plan, documents, code, undefined); main author = the person most often author or co-author of the node's commits; author kind = the node's most frequent commit kind; a category colour takes the type colours in turn, a number goes from the edge colour to the accent; a size scales 0.5 to 2 times, the first category largest; a new graph returns to the defaults.
 
 ### TASK-GXP-016: Add 3D camera projections
 - **Tier**: M

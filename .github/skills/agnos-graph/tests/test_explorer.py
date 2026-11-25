@@ -748,7 +748,7 @@ class MenuBarTest(unittest.TestCase):
         found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
                               "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
                               ".map((b) => b.textContent).join('|'));")
-        self.assertEqual("File|View|Filter|Time|Appearance|Help", found["menus"])   # TASK-GXP-004 Appearance, TASK-GXP-005 Time
+        self.assertEqual("File|View|Filter|Time|Appearance|Dimensions|Help", found["menus"])   # TASK-GXP-004 Appearance, TASK-GXP-005 Time, TASK-GXP-015 Dimensions
         self.assertEqual("", found["untitled"])
 
     # RQ-GXP-001: an item that does not apply to the current view is disabled
@@ -1226,6 +1226,45 @@ class Interaction3DTest(View3DTest):
                             "const shown = v.shownIds(); r('fewer', shown.length < all); r('has', shown.includes(id));"
                             "r('same', shown.join('|') === agnosExplorer.shownIds().join('|'));")
         self.assertEqual(("true", "true", "true", "true"), (found["open"], found["fewer"], found["has"], found["same"]))
+
+
+HISTORY_DIMENSIONS = "first|last|commits|lines|author|authorKind"   # RQ-GXP-013: the dimensions read from the history
+
+
+class Dimensions3DTest(View3DTest):
+    """TASK-GXP-015: RQ-GXP-013, RQ-GXP-009 (ADR-GXP-002: DEC-GXP-011), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-013
+    def test_RQ_GXP_013_given_the_3d_view_when_the_height_is_set_to_the_changed_lines_then_the_most_changed_is_highest(self):
+        found = self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))}); agnosExplorer.showView('graph3d');"
+                            "const height = document.getElementById('dim-height'); height.value = 'lines';"
+                            "height.dispatchEvent(new Event('change'));"
+                            f"const y = (id) => v.positionOf(id)[1]; r('highest', y('{NEW}') > y('{OLD}') && y('{OLD}') > y('{UNDATED}'));")
+        self.assertEqual("true", found["highest"])
+
+    # RQ-GXP-013: the defaults
+    def test_RQ_GXP_013_given_a_graph_with_history_then_the_defaults_are_date_trigram_layer_type_type(self):
+        found = self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))}); agnosExplorer.showView('graph3d');"
+                            "r('dims', ['height', 'angle', 'radius', 'colour', 'size'].map((d) => document.getElementById('dim-' + d).value).join('|'));")
+        self.assertEqual("first|tri|layer|type|type", found["dims"])
+
+    # RQ-GXP-013, RQ-GXP-009
+    def test_RQ_GXP_013_given_a_graph_without_history_then_its_dimensions_are_disabled_and_height_is_the_relation_count(self):
+        found = self.run_3d("const height = document.getElementById('dim-height'); r('height', height.value);"
+                            "r('off', [...height.options].filter((o) => o.disabled).map((o) => o.value).join('|'));")
+        self.assertEqual(("relations", HISTORY_DIMENSIONS), (found["height"], found["off"]))
+
+    # RQ-GXP-013, RQ-GXP-001: the Dimensions menu reaches each choice, in the 3D view only
+    def test_RQ_GXP_013_given_the_dimensions_menu_then_each_dimension_item_focuses_its_choice(self):
+        found = self.run_3d("document.querySelector('[data-menu-title=\"dimensions\"]').click();"
+                            "const items = [...document.querySelectorAll('#menubar [data-menu=\"dimensions\"] [role=menuitem]')];"
+                            "r('items', items.map((i) => i.textContent).join('|')); items[1].click();"
+                            "r('focus', document.activeElement.id);")
+        self.assertEqual(("Height…|Angle…|Radius…|Colour…|Size…", "dim-angle"), (found["items"], found["focus"]))
 
 
 if __name__ == "__main__":

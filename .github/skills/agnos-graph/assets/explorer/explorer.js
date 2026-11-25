@@ -1088,24 +1088,135 @@
   const BUTTON_MIDDLE = 1;
   const START_THETA = Math.PI / 4;                 // DEC-GXP-009: the opening view, from the front right and above
   const START_PHI = Math.PI / 3;
+  const ATTR_SCALE = "pointScale";                 // DEC-GXP-011: the per-point size factor of the shader
   const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
                orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
 
-  function place3d(model) {
-    /* Each node's [x, y, z]: angle by trigram, radius by type layer, height by first commit date, or by relation count
-       without history (RQ-GXP-009); the Dimensions menu of TASK-GXP-015 makes these choices the reader's. */
-    const extent = tokenNumber("--c-graph3d-extent");
+  // ---- 3D dimensions (RQ-GXP-013, RQ-GXP-009; DEC-GXP-011) ----------------------------------------------------
+  const DIM_ROLES = ["height", "angle", "radius", "colour", "size"];
+  const DIM_ROLE_LABELS = { height: "Height", angle: "Angle", radius: "Radius", colour: "Colour", size: "Size" };
+  const DIM_NUMBER = "number";
+  const DIM_CATEGORY = "category";
+  const RADIUS_FLOOR = 0.1;                        // a numeric radius keeps its lowest points off the axis
+  // The process layer of each node type: requirements, architecture, plan, the documents' sections, the code
+  const LAYER_ORDER = ["requirements", "architecture", "plan", "documents", "code", "undefined"];
+  const LAYER_OF = { FTR: LAYER_ORDER[0], RQ: LAYER_ORDER[0], ADR: LAYER_ORDER[1], DEC: LAYER_ORDER[1], PLAN: LAYER_ORDER[2],
+                     TASK: LAYER_ORDER[2], [TYPE_SECTION]: LAYER_ORDER[3], [TYPE_FILE]: LAYER_ORDER[4], [TYPE_FUNCTION]: LAYER_ORDER[4],
+                     [TYPE_UNDEFINED]: LAYER_ORDER[5] };
+
+  function historyRows(model) {
+    /* Each node's history rows, [commit index, changed lines], from history.interventions (DEC-GXP-004); cached. */
+    if (model.rows) return model.rows;
+    const graph = model.graph;
+    model.rows = new Map();
+    for (const [scope, key] of [["elements", (id) => id], ["files", (path) => path],
+                                ["functions", (index) => functionId(graph, Number(index))]]) {
+      for (const [id, rows] of Object.entries(graph.history?.interventions?.[scope] || {})) model.rows.set(key(id), rows);
+    }
+    return model.rows;
+  }
+
+  const rowsOf = (model, n) => historyRows(model).get(n.id) || [];
+  const commitOf = (model, index) => model.graph.history.commits[index];
+  const mostFrequent = (values) => {
+    const counts = new Map();
+    for (const v of values) counts.set(v, (counts.get(v) || 0) + 1);
+    return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0];
+  };
+
+  // DEC-GXP-011: each dimension, a function from a node to a number or a category; `history` ones need --history
+  const DIMENSIONS = [
+    { key: "first", label: "First commit date", kind: DIM_NUMBER, history: true, of: (n) => n.date },
+    { key: "last", label: "Last commit date", kind: DIM_NUMBER, history: true,
+      of: (n, m) => Math.max(n.date, ...rowsOf(m, n).map(([i]) => Date.parse(commitOf(m, i).date))) },
+    { key: "commits", label: "Commit count", kind: DIM_NUMBER, history: true, of: (n, m) => rowsOf(m, n).length },
+    { key: "lines", label: "Changed lines", kind: DIM_NUMBER, history: true, of: (n, m) => rowsOf(m, n).reduce((s, [, l]) => s + l, 0) },
+    { key: "relations", label: "Relation count", kind: DIM_NUMBER, of: (n) => n.incoming.length + n.outgoing.length },
+    { key: "tri", label: "Trigram", kind: DIM_CATEGORY, of: (n) => n.props.tri || NO_VALUE },
+    { key: "type", label: "Type", kind: DIM_CATEGORY, order: TYPE_ORDER, of: (n) => n.type },
+    { key: "status", label: "Status", kind: DIM_CATEGORY, of: (n) => n.props.status || NO_VALUE },
+    { key: "author", label: "Main author", kind: DIM_CATEGORY, history: true, of: (n, m) => {
+      const who = mostFrequent(rowsOf(m, n).flatMap(([i]) => [commitOf(m, i).author, ...(commitOf(m, i).coAuthors || [])]));
+      return who === undefined ? NO_VALUE : m.graph.history.people?.[who]?.name || NO_VALUE;
+    } },
+    { key: "authorKind", label: "Author kind", kind: DIM_CATEGORY, history: true,
+      of: (n, m) => mostFrequent(rowsOf(m, n).map(([i]) => commitOf(m, i).kind)) || NO_VALUE },
+    { key: "tier", label: "Task tier", kind: DIM_CATEGORY, of: (n) => n.props.tier || NO_VALUE },
+    { key: "layer", label: "Layer", kind: DIM_CATEGORY, order: LAYER_ORDER, of: (n) => LAYER_OF[n.type] },
+  ];
+  const dimension = (key) => DIMENSIONS.find((d) => d.key === key);
+  const dimSelects = () => document.querySelectorAll(".graph3d-control[data-role]");
+
+  function defaultDims(model) {
+    /* RQ-GXP-013: height by first commit date, by relation count without history (RQ-GXP-009). */
+    return { height: model.time ? "first" : "relations", angle: "tri", radius: "layer", colour: "type", size: "type" };
+  }
+
+  function renderDims() {
+    /* Each choice lists every dimension, the history's disabled when the graph has none, and shows the current one. */
+    for (const select of dimSelects()) {
+      select.innerHTML = DIMENSIONS.map((d) => `<option value="${d.key}"${d.history && !state.model.time ? " disabled" : ""}>`
+        + `${escapeHtml(d.label)}</option>`).join("");
+      select.value = g3.dims[select.dataset.role];
+    }
+  }
+
+  function scaleOf(key, model) {
+    /* A dimension over the nodes: per node, t in [0, 1] and its category's slot; with the category count (1 for numbers). */
+    const dim = dimension(key);
     const nodes = [...model.nodes.values()];
-    const tris = [...new Set(nodes.map((n) => n.props.tri || NO_VALUE))].sort(compare);
-    const height = (n) => (n.date === undefined ? n.incoming.length + n.outgoing.length : n.date);
-    const values = nodes.map(height);
-    const low = Math.min(...values);
-    const span = Math.max(...values) - low || 1;
-    return new Map(nodes.map((n, i) => {
-      const angle = (tris.indexOf(n.props.tri || NO_VALUE) / tris.length) * FULL_TURN;
-      const radius = ((TYPE_ORDER.indexOf(n.type) + 1) / TYPE_ORDER.length) * extent * HALF;
-      return [n.id, [radius * Math.cos(angle), ((values[i] - low) / span - HALF) * extent, radius * Math.sin(angle)]];
+    const values = new Map(nodes.map((n) => [n.id, dim.of(n, model)]));
+    if (dim.kind === DIM_NUMBER) {
+      const all = [...values.values()];
+      const low = Math.min(...all);
+      const span = Math.max(...all) - low || 1;
+      return { count: 1, slot: () => 0, t: (id) => (values.get(id) - low) / span };
+    }
+    const present = new Set(values.values());
+    const order = dim.order ? dim.order.filter((c) => present.has(c)) : [...present].sort(compare);
+    const slots = new Map(order.map((c, i) => [c, i]));
+    const last = Math.max(order.length - 1, 1);
+    return { count: order.length, slot: (id) => slots.get(values.get(id)), t: (id) => slots.get(values.get(id)) / last };
+  }
+
+  function place3d(model) {
+    /* Each node's [x, y, z] from the reader's height, angle and radius dimensions (DEC-GXP-011). */
+    const extent = tokenNumber("--c-graph3d-extent");
+    const [height, angle, radius] = ["height", "angle", "radius"].map((role) => scaleOf(g3.dims[role], model));
+    const turn = (id) => (angle.count > 1 ? angle.slot(id) / angle.count : angle.t(id)) * FULL_TURN;
+    const away = (id) => (radius.count > 1 ? (radius.slot(id) + 1) / radius.count : RADIUS_FLOOR + (1 - RADIUS_FLOOR) * radius.t(id));
+    return new Map([...model.nodes.keys()].map((id) => {
+      const r = away(id) * extent * HALF;
+      return [id, [r * Math.cos(turn(id)), (height.t(id) - HALF) * extent, r * Math.sin(turn(id))]];
     }));
+  }
+
+  function pointColours(model) {
+    /* DEC-GXP-011: the type colours by type; a category's slot takes the type colours in turn; a number goes from the low to
+       the high colour token. */
+    const scale = scaleOf(g3.dims.colour, model);
+    if (g3.dims.colour === "type") return (id) => typeColour(model.nodes.get(id).type);
+    if (scale.count > 1) return (id) => typeColour(TYPE_ORDER[scale.slot(id) % TYPE_ORDER.length]);
+    const low = new window.THREE.Color(cssValue("--c-graph3d-colour-low"));
+    const high = new window.THREE.Color(cssValue("--c-graph3d-colour-high"));
+    return (id) => `#${low.clone().lerp(high, scale.t(id)).getHexString()}`;
+  }
+
+  function pointScales(model) {
+    /* DEC-GXP-011: a point's size factor between the size tokens: a larger number is larger, a former category larger. */
+    const scale = scaleOf(g3.dims.size, model);
+    const min = tokenNumber("--c-graph3d-size-min");
+    const max = tokenNumber("--c-graph3d-size-max");
+    return (id) => (scale.count > 1 ? max - scale.t(id) * (max - min) : min + scale.t(id) * (max - min));
+  }
+
+  function setDimension(role, key) {
+    /* RQ-GXP-013: the reader's choice redraws the 3D view's points and lines; the camera is kept. */
+    g3.dims[role] = key;
+    if (!g3.renderer) return;
+    disposeScene3d();
+    buildScene3d();
+    applyVisibility3d();
   }
 
   function setColour(array, at, css, alpha) {
@@ -1133,9 +1244,13 @@
     g3.index = new Map(g3.ids.map((id, i) => [id, i]));
     const nodePos = new Float32Array(g3.ids.length * XYZ);
     const nodeCol = new Float32Array(g3.ids.length * RGBA);
+    const nodeScale = new Float32Array(g3.ids.length);
+    const colourOf = pointColours(state.model);
+    const scaleOfPoint = pointScales(state.model);
     g3.ids.forEach((id, i) => {
       nodePos.set(places.get(id), i * XYZ);
-      setColour(nodeCol, i, typeColour(state.model.nodes.get(id).type), ALPHA_SHOWN);
+      setColour(nodeCol, i, colourOf(id), ALPHA_SHOWN);
+      nodeScale[i] = scaleOfPoint(id);
     });
     const relations = state.model.relations;
     const linePos = new Float32Array(relations.length * 2 * XYZ);
@@ -1143,8 +1258,13 @@
     const geometry = (pos, col) => new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(pos, XYZ))
       .setAttribute("color", new THREE.BufferAttribute(col, RGBA));
     const material = { vertexColors: true, transparent: true, depthWrite: false };
-    g3.points = new THREE.Points(geometry(nodePos, nodeCol), new THREE.PointsMaterial({ ...material,
-      size: tokenNumber("--c-graph3d-point-size"), sizeAttenuation: false }));
+    const pointMaterial = new THREE.PointsMaterial({ ...material, size: tokenNumber("--c-graph3d-point-size"), sizeAttenuation: false });
+    pointMaterial.onBeforeCompile = (shader) => {  // DEC-GXP-011: a size factor per point
+      shader.vertexShader = `attribute float ${ATTR_SCALE};\n${shader.vertexShader.replace("gl_PointSize = size;",
+                                                                                            `gl_PointSize = size * ${ATTR_SCALE};`)}`;
+    };
+    g3.points = new THREE.Points(geometry(nodePos, nodeCol).setAttribute(ATTR_SCALE, new THREE.BufferAttribute(nodeScale, 1)),
+                                 pointMaterial);
     g3.lines = new THREE.LineSegments(geometry(linePos, new Float32Array(relations.length * 2 * RGBA)),
                                       new THREE.LineBasicMaterial(material));
     g3.scene = new THREE.Scene();
@@ -1308,17 +1428,24 @@
     g3.camera = new window.THREE.PerspectiveCamera(tokenNumber("--c-graph3d-fov"), 1);
     box.replaceChildren(g3.renderer.domElement);
     wire3d(g3.renderer.domElement);
+    g3.dims = g3.dims || defaultDims(state.model);
+    renderDims();
     buildScene3d();
     applyVisibility3d();
     resize3d();
   }
 
-  function disposeGraph3d() {
-    if (!g3.renderer) return;
+  function disposeScene3d() {
     for (const object of [g3.points, g3.lines]) {
       object.geometry.dispose();
       object.material.dispose();
     }
+  }
+
+  function disposeGraph3d() {
+    g3.dims = null;                                // RQ-GXP-013: a new graph starts from the default dimensions
+    if (!g3.renderer) return;
+    disposeScene3d();
     g3.renderer.dispose();
     $(VIEW_GRAPH3D).replaceChildren();
     Object.assign(g3, { renderer: null, scene: null, points: null, lines: null, ids: [], index: new Map(), drag: null });
@@ -1540,6 +1667,9 @@
         { label: "Reset colours", tip: "Give every relation kind its default colour again",
           action: resetRelationColours, enabled: () => Object.keys(appearance.relationColours).length > 0 },
       ] },
+      { name: "dimensions", title: "Dimensions", tip: "Choose what the height, angle, radius, colour and size of the 3D view show",
+        items: DIM_ROLES.map((role) => ({ label: `${DIM_ROLE_LABELS[role]}…`, tip: `Choose what the ${role} of the 3D points shows`,   // RQ-GXP-013
+          action: () => $(`dim-${role}`).focus(), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })) },
       { name: "help", title: "Help", tip: "The guide of each view, the licences and the About", items: [   // RQ-GXP-002
         { label: "Help", tip: "What the current view shows and how to use it", action: () => openHelp(state.view), enabled: always },
         null,
@@ -1766,6 +1896,7 @@
     for (const tab of document.querySelectorAll(SELECTOR_TAB)) tab.setAttribute(ATTR_SELECTED, String(tab.dataset.view === view));
     for (const name of VIEWS) $(`view-${name}`).classList.toggle(CLASS_ACTIVE, name === view);
     for (const control of document.querySelectorAll(".graph-control")) control.hidden = view !== VIEW_GRAPH;
+    for (const control of document.querySelectorAll(".graph3d-control")) control.hidden = view !== VIEW_GRAPH3D;   // RQ-GXP-013
     if (state.model) renderTables();
     initGraph();
     if (view === VIEW_GRAPH3D) show3d();           // RQ-GXP-019, DEC-GXP-007: three.js on the first show only
@@ -1934,6 +2065,7 @@
 
   // ---- wiring -------------------------------------------------------------------------------------------------
   function wire() {
+    for (const select of dimSelects()) select.addEventListener("change", () => setDimension(select.dataset.role, select.value));   // RQ-GXP-013
     // RQ-GXP-001, DEC-GXP-001: the menu bar
     renderMenuBar();
     refreshMenuTitles();                           // RQ-GXP-009: before any graph, the Time menu is disabled
@@ -2052,7 +2184,8 @@
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
-    view3d: { ready: show3d, camera: camera3d, screenOf, pick,   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
+    view3d: { ready: show3d, camera: camera3d, screenOf, pick, dims: () => ({ ...g3.dims }),   // RQ-GXP-013
+              positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
                 && g3.points.geometry.getAttribute("color").array[g3.index.get(id) * RGBA + ALPHA_INDEX] === ALPHA_SHOWN),
               shownRelations: () => { const a = g3.lines.geometry.getAttribute("color").array;

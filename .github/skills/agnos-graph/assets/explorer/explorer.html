@@ -92,6 +92,17 @@
         <select id="graph-direction" class="select graph-control" aria-label="Layout direction" title="Arrange the type columns, tree and grid layouts left to right or top to bottom">
           <option value="lr">Left to right</option><option value="tb">Top to bottom</option>
         </select>
+        <!-- RQ-GXP-013, DEC-GXP-011: what each dimension of the 3D view shows; the script fills the options -->
+        <label class="query-label graph3d-control" for="dim-height">Height</label>
+        <select id="dim-height" class="select graph3d-control" data-role="height" title="What the height of the 3D points shows"></select>
+        <label class="query-label graph3d-control" for="dim-angle">Angle</label>
+        <select id="dim-angle" class="select graph3d-control" data-role="angle" title="What the angle of the 3D points around the axis shows"></select>
+        <label class="query-label graph3d-control" for="dim-radius">Radius</label>
+        <select id="dim-radius" class="select graph3d-control" data-role="radius" title="What the distance of the 3D points from the axis shows"></select>
+        <label class="query-label graph3d-control" for="dim-colour">Colour</label>
+        <select id="dim-colour" class="select graph3d-control" data-role="colour" title="What the colour of the 3D points shows"></select>
+        <label class="query-label graph3d-control" for="dim-size">Size</label>
+        <select id="dim-size" class="select graph3d-control" data-role="size" title="What the size of the 3D points shows"></select>
         <button type="button" class="button" id="show-all" title="Check every facet value, clear the query, the hidden nodes and the isolation">Show all</button>
       </div>
       <p id="view-count" class="view-count"></p>
