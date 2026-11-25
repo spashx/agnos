@@ -1287,10 +1287,38 @@
     render3d();
   }
 
+  // ---- 3D projections (RQ-GXP-014; DEC-GXP-012) ----------------------------------------------------------------
+  const ISOMETRIC_PHI = Math.acos(1 / Math.sqrt(3));   // the polar angle of the cube's diagonal: equal axes on screen
+  const HALF_TURN = Math.PI;
+  const DEGREES = 180;
+  // Perspective and Orthographic keep the angles; the others are orthographic presets of them
+  const PROJECTIONS = [
+    { label: "Perspective", tip: "Draw the 3D view in perspective, the far points smaller", ortho: false },
+    { label: "Orthographic", tip: "Draw the 3D view without perspective, from the same angle", ortho: true },
+    { label: "Isometric", tip: "Look along the cube's diagonal, without perspective", ortho: true, theta: HALF_TURN / 4, phi: ISOMETRIC_PHI },
+    { label: "Top", tip: "Look down the height axis, the angle sectors seen from above", ortho: true, theta: 0, phi: POLE_MARGIN },
+    { label: "Front", tip: "Look along the depth axis, the heights level", ortho: true, theta: 0, phi: HALF_TURN / 2 },
+    { label: "Side", tip: "Look along the width axis, the heights level", ortho: true, theta: HALF_TURN / 2, phi: HALF_TURN / 2 },
+  ];
+
+  function setProjection(projection) {
+    /* RQ-GXP-014: switches to the perspective or the orthographic camera, then to the preset's angles if it has any. */
+    g3.camera = projection.ortho ? g3.ortho : g3.perspective;
+    if (projection.theta !== undefined) Object.assign(g3.orbit, { theta: projection.theta, phi: projection.phi });
+    render3d();
+  }
+
+  function frameOrtho(distance) {
+    /* DEC-GXP-012: the orthographic frustum shows at the target what the perspective one shows there. */
+    const half = distance * Math.tan((tokenNumber("--c-graph3d-fov") * Math.PI) / DEGREES / 2);
+    Object.assign(g3.ortho, { left: -half * g3.aspect, right: half * g3.aspect, top: half, bottom: -half });
+  }
+
   function placeCamera() {
     /* DEC-GXP-009: the camera on a sphere around the target, its radius the opening distance divided by the zoom. */
     const { theta, phi, zoom, target } = g3.orbit;
     const distance = tokenNumber("--c-graph3d-distance") * tokenNumber("--c-graph3d-extent") / zoom;
+    if (g3.camera === g3.ortho) frameOrtho(distance);
     g3.camera.position.set(target[0] + distance * Math.sin(phi) * Math.sin(theta), target[1] + distance * Math.cos(phi),
                            target[2] + distance * Math.sin(phi) * Math.cos(theta));
     g3.camera.near = distance * NEAR_RATIO;
@@ -1309,7 +1337,8 @@
     const box = $(VIEW_GRAPH3D);
     if (!g3.renderer || !box.clientWidth || !box.clientHeight) return;
     g3.renderer.setSize(box.clientWidth, box.clientHeight);
-    g3.camera.aspect = box.clientWidth / box.clientHeight;
+    g3.aspect = box.clientWidth / box.clientHeight;
+    g3.perspective.aspect = g3.aspect;
     render3d();
   }
 
@@ -1425,7 +1454,10 @@
     g3.renderer = new window.THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     g3.renderer.setPixelRatio(window.devicePixelRatio);
     g3.renderer.setClearColor(cssValue("--c-graph3d-bg"));
-    g3.camera = new window.THREE.PerspectiveCamera(tokenNumber("--c-graph3d-fov"), 1);
+    g3.perspective = new window.THREE.PerspectiveCamera(tokenNumber("--c-graph3d-fov"), 1);
+    g3.ortho = new window.THREE.OrthographicCamera();   // RQ-GXP-014, DEC-GXP-012
+    g3.aspect = 1;
+    g3.camera = g3.perspective;
     box.replaceChildren(g3.renderer.domElement);
     wire3d(g3.renderer.domElement);
     g3.dims = g3.dims || defaultDims(state.model);
@@ -1646,6 +1678,9 @@
         ...VIEW_ITEMS.map(([view, label]) => ({ label, tip: `Show the ${label.toLowerCase()} view`, action: () => showView(view), enabled: always })),
         null,
         { label: "Fit", tip: "Fit the shown nodes to the graph view", action: fitGraph, enabled: () => state.view === VIEW_GRAPH && Boolean(cy) },
+        null,                                                                                     // RQ-GXP-014
+        ...PROJECTIONS.map((p) => ({ label: p.label, tip: p.tip, action: () => setProjection(p),
+          enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
       ] },
       { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
@@ -2185,6 +2220,8 @@
     shownIds: () => [...state.model.nodes.values()].filter(isShown).map((n) => n.id),
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     view3d: { ready: show3d, camera: camera3d, screenOf, pick, dims: () => ({ ...g3.dims }),   // RQ-GXP-013
+              cameraKind: () => (g3.camera === g3.ortho ? "orthographic" : "perspective"),   // RQ-GXP-014
+              project: (p) => { const s = new window.THREE.Vector3(...p).project(g3.camera); return { x: s.x, y: s.y }; },
               positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
                 && g3.points.geometry.getAttribute("color").array[g3.index.get(id) * RGBA + ALPHA_INDEX] === ALPHA_SHOWN),

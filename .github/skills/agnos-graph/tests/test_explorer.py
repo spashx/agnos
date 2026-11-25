@@ -1267,5 +1267,39 @@ class Dimensions3DTest(View3DTest):
         self.assertEqual(("Height…|Angle…|Radius…|Colour…|Size…", "dim-angle"), (found["items"], found["focus"]))
 
 
+# TASK-GXP-016: choose an item of the View menu by its label
+CHOOSE_VIEW = ("const choose = (label) => { document.querySelector('[data-menu-title=\"view\"]').click();"
+               " [...document.querySelectorAll('#menubar [data-menu=\"view\"] [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+               "const rise = (p) => { const a = v.project(p); const b = v.project([p[0], p[1] + 10, p[2]]); return Math.hypot(a.x - b.x, a.y - b.y); };")
+
+
+class Projection3DTest(View3DTest):
+    """TASK-GXP-016: RQ-GXP-014 (ADR-GXP-002: DEC-GXP-012), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-014 (amended by TASK-GXP-016): no perspective, a height difference has one screen length wherever it lies
+    def test_RQ_GXP_014_given_isometric_then_a_height_difference_has_the_same_screen_length_wherever_it_lies(self):
+        # project() gives normalised device coordinates, so the lengths are compared relatively
+        found = self.run_3d(CHOOSE_VIEW + "const near = [-40, 0, -40]; const far = [40, 0, 40];"
+                            "const gap = () => Math.abs(rise(near) - rise(far)) / Math.max(rise(near), rise(far));"
+                            "r('persp', gap() > 0.05); choose('Isometric'); r('kind', v.cameraKind()); r('iso', gap() < 1e-4);")
+        self.assertEqual(("true", "orthographic", "true"), (found["persp"], found["kind"], found["iso"]))
+
+    # RQ-GXP-014
+    def test_RQ_GXP_014_given_front_then_two_points_of_the_same_height_share_the_same_screen_height(self):
+        found = self.run_3d(CHOOSE_VIEW + "choose('Front'); r('same', Math.abs(v.project([-40, 5, -40]).y - v.project([40, 5, 40]).y) < 1e-3);")
+        self.assertEqual("true", found["same"])
+
+    # RQ-GXP-014: Top looks down the height axis; Perspective comes back
+    def test_RQ_GXP_014_given_top_then_the_camera_looks_down_and_perspective_restores_the_perspective_camera(self):
+        found = self.run_3d(CHOOSE_VIEW + "choose('Top'); const c = v.camera();"
+                            "r('down', Math.hypot(c.position[0] - c.target[0], c.position[2] - c.target[2]) < c.distance * 0.02"
+                            " && c.position[1] > c.target[1]); choose('Perspective'); r('kind', v.cameraKind());")
+        self.assertEqual(("true", "perspective"), (found["down"], found["kind"]))
+
+
 if __name__ == "__main__":
     unittest.main()

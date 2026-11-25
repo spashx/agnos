@@ -88,17 +88,18 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-016: Add 3D camera projections
 - **Tier**: M
-- **Status**: Not Started
-- **Description**: Write the tests first, then add the perspective and orthographic cameras and the isometric, top, front and side presets to the View menu, points at a fixed screen size.
+- **Status**: Done
+- **Description**: Write the tests first, then add the perspective and orthographic cameras and the isometric, top, front and side presets to the View menu, points at a fixed screen size; amend RQ-GXP-014's isometric criterion.
 - **Requirement refs**: RQ-GXP-014
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-012)
 - **Acceptance Criteria**:
-  - Given the 3D view, When "Isometric" is chosen, Then two points of the same height share the same screen height
+  - Given the 3D view, When "Isometric" is chosen, Then a given height difference has the same screen length wherever it lies
+  - When "Front" is chosen, Then two points of the same height share the same screen height
   - When "Top" is chosen, Then the camera looks down the height axis
 - **Dependencies**: TASK-GXP-013
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Projection3DTest` 3 tests failed first (KeyError, no projection), then the isometric test failed on its own threshold (NDC lengths compared absolutely), fixed to a relative comparison, then OK; `test_explorer` 96 tests, 95 OK and 1 skipped (RQ-TRC-158, AGNOS_GRAPH_PERF, TASK-GXP-018) on the run before that test fix, the 3 projection tests OK after it.
+- **Assumptions**: RQ-GXP-014 amended (owner, 2026-11-25): an isometric view looks down, so equal heights at different depths differ on screen; the orthographic frustum shows at the target what the perspective one shows; Perspective and Orthographic keep the angles, the presets set them.
 
 ### TASK-GXP-017: Add 3D reference planes
 - **Tier**: M

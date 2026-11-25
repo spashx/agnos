@@ -152,7 +152,7 @@ nœuds"); a dark theme; editing the graph; a server.
 - **Statement**: WHEN the reader chooses a projection in the View menu, the explorer SHALL draw the 3D view in perspective, orthographic or isometric projection, or from the top, the front or the side, keeping the points readable at every zoom.
 - **Rationale**: an orthographic or isometric view compares heights without perspective (owner, 2026-11-24).
 - **Priority**: Must
-- **Acceptance Criteria**: Given the 3D view, When "Isometric" is chosen, Then two points of the same height are drawn at the same height on the screen wherever they are; When "Top" is chosen, Then the angle sectors are seen from above.
+- **Acceptance Criteria**: Given the 3D view, When "Isometric" is chosen, Then a given height difference is drawn with the same screen length wherever it lies; When "Front" is chosen, Then two points of the same height are drawn at the same height on the screen; When "Top" is chosen, Then the angle sectors are seen from above. (Amended by TASK-GXP-016, owner, 2026-11-25: an isometric view looks down, so equal heights at different depths differ on screen.)
 - **Dependencies**: RQ-GXP-011
 
 ### RQ-GXP-015: 3D reference planes
