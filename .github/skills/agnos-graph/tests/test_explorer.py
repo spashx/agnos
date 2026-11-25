@@ -1301,5 +1301,46 @@ class Projection3DTest(View3DTest):
         self.assertEqual(("true", "perspective"), (found["down"], found["kind"]))
 
 
+# TASK-GXP-017: the height of an instant when the height is the first commit date of dated_graph(), extent 100 (tokens)
+HEIGHT_OF = (f"const low = Date.parse('{HISTORY_FIRST}'); const high = Date.parse('{HISTORY_LAST}');"
+             "const heightOf = (t) => ((t - low) / (high - low) - 0.5) * 100;")
+
+
+class Planes3DTest(View3DTest):
+    """TASK-GXP-017: RQ-GXP-015 (ADR-GXP-002: DEC-GXP-013), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    def run_dated(self, script):
+        return self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
+                           "agnosExplorer.showView('graph3d');" + HEIGHT_OF + script)
+
+    # RQ-GXP-015
+    def test_RQ_GXP_015_given_height_by_first_commit_date_then_a_ring_labelled_2026_08_lies_at_that_month_height(self):
+        found = self.run_dated("const ring = v.rings().find((g) => g.label === '2026-08');"
+                               "r('labels', v.rings().map((g) => g.label).join('|'));"
+                               "r('at', Math.abs(ring.y - heightOf(new Date(2026, 7, 1).getTime())) < 1e-3);")
+        self.assertEqual(("2026-08|2026-09|2026-10|2026-11", "true"), (found["labels"], found["at"]))
+
+    # RQ-GXP-015, RQ-GXP-007: the grid plane follows the playback cursor
+    def test_RQ_GXP_015_given_play_pressed_then_the_grid_plane_rises_with_the_cursor(self):
+        found = self.run_dated("r('idle', v.plane().visible); document.getElementById('time-play').click();"
+                               "const y1 = v.plane().y; agnosExplorer.time.advance(10); const y2 = v.plane().y;"
+                               "r('shown', v.plane().visible); r('rises', y2 > y1);"
+                               "r('at', Math.abs(y2 - heightOf(agnosExplorer.time.cursor())) < 1e-3);")
+        self.assertEqual(("false", "true", "true", "true"), (found["idle"], found["shown"], found["rises"], found["at"]))
+
+    # RQ-GXP-015: the angle's category labels, each overlay toggled in the View menu
+    def test_RQ_GXP_015_given_angle_by_trigram_then_its_labels_are_shown_and_the_view_menu_hides_them(self):
+        found = self.run_3d(CHOOSE_VIEW + "r('labels', v.labels().sort().join('|'));"
+                            "r('tris', [...new Set([...document.querySelectorAll('#facets [data-facet=\"tri\"] input')].map((i) => i.value))].sort().join('|'));"
+                            "choose('Angle labels'); r('off', v.labels().length);")
+        self.assertNotEqual("", found["labels"])
+        self.assertEqual(found["tris"], found["labels"])
+        self.assertEqual("0", found["off"])
+
+
 if __name__ == "__main__":
     unittest.main()

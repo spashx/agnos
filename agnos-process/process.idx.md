@@ -912,7 +912,7 @@ TASK-GXP-013|45-59|Done|Draw 3D points and lines
 TASK-GXP-014|60-74|Done|Add 3D node interaction
 TASK-GXP-015|75-88|Done|Add 3D dimensions menu
 TASK-GXP-016|89-103|Done|Add 3D camera projections
-TASK-GXP-017|104-117|Not Started|Add 3D reference planes
+TASK-GXP-017|104-117|Done|Add 3D reference planes
 TASK-GXP-018|118-130|Not Started|Verify explorer lot B1
 @agnos-process/3.plan/PLAN-HST-001-contribution-history.md
 PLAN-HST-001|1-160||Contribution History

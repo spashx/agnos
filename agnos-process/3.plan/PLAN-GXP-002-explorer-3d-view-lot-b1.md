@@ -103,7 +103,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-017: Add 3D reference planes
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then draw the month rings, the cursor's grid plane and the angle's labels, each toggled in the View menu.
 - **Requirement refs**: RQ-GXP-015
 - **ADR refs**: ADR-GXP-002 (DEC-GXP-013)
@@ -112,8 +112,8 @@ This plan implements the tasks in the format specified below.
   - When Play is pressed, Then the grid plane rises with the cursor
 - **Dependencies**: TASK-GXP-015
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Planes3DTest` 3 tests failed first (KeyError, no overlay), then OK; `test_explorer` 99 tests OK, 1 skipped (RQ-TRC-158, AGNOS_GRAPH_PERF, TASK-GXP-018). Screenshot of this repository's graph: rings 2026-08 to 2026-11, layer labels.
+- **Assumptions**: rings and plane only while the height is a date (first or last commit); one ring per calendar month start after the history's first instant; the plane only while the playback cursor is set; the three overlays on by default, kept across graphs; category dimensions name an absent value `(none)`, as the facets do.
 
 ### TASK-GXP-018: Verify explorer lot B1
 - **Tier**: M

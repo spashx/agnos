@@ -392,6 +392,7 @@
     const shown = `${handleDay(ID_TIME_START)} → ${handleDay(ID_TIME_END)}`;
     $("time-range").textContent = state.cursor === null ? shown : `${shown} · ${isoDay(state.cursor)}`;
     $("time-play").textContent = playback.playing ? LABEL_PAUSE : LABEL_PLAY;
+    updatePlane3d();                               // RQ-GXP-015: the 3D grid plane follows the cursor
   }
 
   function setCursor(instant) {
@@ -1090,6 +1091,7 @@
   const START_PHI = Math.PI / 3;
   const ATTR_SCALE = "pointScale";                 // DEC-GXP-011: the per-point size factor of the shader
   const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
+               show: { rings: true, plane: true, labels: true },   // RQ-GXP-015: the reader's overlay choices, kept across graphs
                orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
 
   // ---- 3D dimensions (RQ-GXP-013, RQ-GXP-009; DEC-GXP-011) ----------------------------------------------------
@@ -1132,16 +1134,16 @@
     { key: "commits", label: "Commit count", kind: DIM_NUMBER, history: true, of: (n, m) => rowsOf(m, n).length },
     { key: "lines", label: "Changed lines", kind: DIM_NUMBER, history: true, of: (n, m) => rowsOf(m, n).reduce((s, [, l]) => s + l, 0) },
     { key: "relations", label: "Relation count", kind: DIM_NUMBER, of: (n) => n.incoming.length + n.outgoing.length },
-    { key: "tri", label: "Trigram", kind: DIM_CATEGORY, of: (n) => n.props.tri || NO_VALUE },
+    { key: "tri", label: "Trigram", kind: DIM_CATEGORY, of: (n) => n.props.tri || NONE },
     { key: "type", label: "Type", kind: DIM_CATEGORY, order: TYPE_ORDER, of: (n) => n.type },
-    { key: "status", label: "Status", kind: DIM_CATEGORY, of: (n) => n.props.status || NO_VALUE },
+    { key: "status", label: "Status", kind: DIM_CATEGORY, of: (n) => n.props.status || NONE },
     { key: "author", label: "Main author", kind: DIM_CATEGORY, history: true, of: (n, m) => {
       const who = mostFrequent(rowsOf(m, n).flatMap(([i]) => [commitOf(m, i).author, ...(commitOf(m, i).coAuthors || [])]));
-      return who === undefined ? NO_VALUE : m.graph.history.people?.[who]?.name || NO_VALUE;
+      return who === undefined ? NONE : m.graph.history.people?.[who]?.name || NONE;
     } },
     { key: "authorKind", label: "Author kind", kind: DIM_CATEGORY, history: true,
-      of: (n, m) => mostFrequent(rowsOf(m, n).map(([i]) => commitOf(m, i).kind)) || NO_VALUE },
-    { key: "tier", label: "Task tier", kind: DIM_CATEGORY, of: (n) => n.props.tier || NO_VALUE },
+      of: (n, m) => mostFrequent(rowsOf(m, n).map(([i]) => commitOf(m, i).kind)) || NONE },
+    { key: "tier", label: "Task tier", kind: DIM_CATEGORY, of: (n) => n.props.tier || NONE },
     { key: "layer", label: "Layer", kind: DIM_CATEGORY, order: LAYER_ORDER, of: (n) => LAYER_OF[n.type] },
   ];
   const dimension = (key) => DIMENSIONS.find((d) => d.key === key);
@@ -1170,13 +1172,13 @@
       const all = [...values.values()];
       const low = Math.min(...all);
       const span = Math.max(...all) - low || 1;
-      return { count: 1, slot: () => 0, t: (id) => (values.get(id) - low) / span };
+      return { count: 1, slot: () => 0, t: (id) => (values.get(id) - low) / span, at: (value) => (value - low) / span };
     }
     const present = new Set(values.values());
     const order = dim.order ? dim.order.filter((c) => present.has(c)) : [...present].sort(compare);
     const slots = new Map(order.map((c, i) => [c, i]));
     const last = Math.max(order.length - 1, 1);
-    return { count: order.length, slot: (id) => slots.get(values.get(id)), t: (id) => slots.get(values.get(id)) / last };
+    return { count: order.length, categories: order, slot: (id) => slots.get(values.get(id)), t: (id) => slots.get(values.get(id)) / last };
   }
 
   function place3d(model) {
@@ -1208,6 +1210,119 @@
     const min = tokenNumber("--c-graph3d-size-min");
     const max = tokenNumber("--c-graph3d-size-max");
     return (id) => (scale.count > 1 ? max - scale.t(id) * (max - min) : min + scale.t(id) * (max - min));
+  }
+
+  // ---- 3D reference planes (RQ-GXP-015; DEC-GXP-013) ----------------------------------------------------------
+  const RING_SEGMENTS = 64;
+  const GRID_DIVISIONS = 10;
+  const LABEL_OUTSIDE = 1.1;                       // the angle's labels just outside the outer ring
+  const DATE_DIMENSIONS = ["first", "last"];
+  const MONTH_DIGITS = 2;
+  const ID_LABELS_3D = "graph3d-labels";
+  const OVERLAYS = [
+    { key: "rings", label: "Month rings", tip: "Show or hide a ring per month at its date's height, when the height is a date" },
+    { key: "plane", label: "Cursor plane", tip: "Show or hide the grid plane at the playback cursor's date, when the height is a date" },
+    { key: "labels", label: "Angle labels", tip: "Show or hide the names of the angle's categories around the 3D view" },
+  ];
+  const monthLabel = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(MONTH_DIGITS, "0")}`;
+
+  function monthStarts(first, last) {
+    /* The reader's calendar month starts after the history's first instant, up to its last. */
+    const starts = [];
+    const d = new Date(first);
+    for (let m = new Date(d.getFullYear(), d.getMonth() + 1, 1); m.getTime() <= last; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
+      starts.push(m);
+    }
+    return starts;
+  }
+
+  function labelElement(text, overlay, pos) {
+    const el = document.createElement("span");
+    el.className = "graph3d-label";
+    el.textContent = text;
+    $(ID_LABELS_3D).append(el);
+    return { text, overlay, pos, el };
+  }
+
+  function buildOverlays3d() {
+    /* Month rings and the cursor plane need a date height; the angle labels need a category angle (DEC-GXP-013). */
+    const THREE = window.THREE;
+    const extent = tokenNumber("--c-graph3d-extent");
+    const colour = cssValue("--c-graph3d-ring");
+    const group = new THREE.Group();
+    const overlay = { group, rings: [], labels: [], plane: null, heightAt: null };
+    const time = state.model.time;
+    if (time && DATE_DIMENSIONS.includes(g3.dims.height)) {
+      const scale = scaleOf(g3.dims.height, state.model);
+      overlay.heightAt = (instant) => (scale.at(instant) - HALF) * extent;
+      const circle = new THREE.BufferGeometry().setFromPoints(Array.from({ length: RING_SEGMENTS }, (_, i) =>
+        new THREE.Vector3(Math.cos((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF, 0, Math.sin((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF)));
+      for (const month of monthStarts(time.first, time.last)) {
+        const y = overlay.heightAt(month.getTime());
+        const line = new THREE.LineLoop(circle, new THREE.LineBasicMaterial({ color: colour }));
+        line.position.y = y;
+        group.add(line);
+        overlay.rings.push({ label: monthLabel(month), y, line, tag: labelElement(monthLabel(month), "rings", [extent * HALF, y, 0]) });
+      }
+      overlay.plane = new THREE.GridHelper(extent, GRID_DIVISIONS, colour, colour);
+      group.add(overlay.plane);
+    }
+    const angle = scaleOf(g3.dims.angle, state.model);
+    if (angle.categories) {
+      const r = extent * HALF * LABEL_OUTSIDE;
+      overlay.labels = angle.categories.map((c, i) => labelElement(c, "labels",
+        [r * Math.cos((i / angle.count) * FULL_TURN), -extent * HALF, r * Math.sin((i / angle.count) * FULL_TURN)]));
+    }
+    g3.scene.add(group);
+    g3.overlay = overlay;
+    applyOverlays3d();
+  }
+
+  function applyOverlays3d() {
+    /* Each overlay as the reader toggled it; the plane only while the playback cursor is set (RQ-GXP-007). */
+    const o = g3.overlay;
+    if (!o) return;
+    for (const ring of o.rings) ring.line.visible = g3.show.rings;
+    if (o.plane) {
+      o.plane.visible = g3.show.plane && state.cursor !== null;
+      if (o.plane.visible) o.plane.position.y = o.heightAt(state.cursor);
+    }
+  }
+
+  function placeLabels3d() {
+    /* HTML labels keep the design system's type (DEC-GXP-013), placed at their point's projection each frame. */
+    if (!g3.overlay) return;
+    const canvas = g3.renderer.domElement;
+    for (const tag of [...g3.overlay.rings.map((r) => r.tag), ...g3.overlay.labels]) {
+      const p = new window.THREE.Vector3(...tag.pos).project(g3.camera);
+      tag.el.hidden = !g3.show[tag.overlay] || Math.abs(p.z) > 1;
+      tag.el.style.left = (p.x + 1) * HALF * canvas.clientWidth + UNIT_PX;
+      tag.el.style.top = (1 - p.y) * HALF * canvas.clientHeight + UNIT_PX;
+    }
+  }
+
+  function g3Labels() {
+    /* The layer of the HTML labels over the 3D canvas, made once. */
+    let layer = $(ID_LABELS_3D);
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = ID_LABELS_3D;
+      layer.className = "graph3d-labels";
+    }
+    return layer;
+  }
+
+  function toggleOverlay(key) {
+    g3.show[key] = !g3.show[key];
+    applyOverlays3d();
+    render3d();
+  }
+
+  function updatePlane3d() {
+    /* RQ-GXP-015: the grid plane rises with the playback cursor. */
+    if (!g3.renderer) return;
+    applyOverlays3d();
+    render3d();
   }
 
   function setDimension(role, key) {
@@ -1269,6 +1384,7 @@
                                       new THREE.LineBasicMaterial(material));
     g3.scene = new THREE.Scene();
     g3.scene.add(g3.lines, g3.points);
+    buildOverlays3d();                             // RQ-GXP-015
     paintLines();
   }
 
@@ -1331,6 +1447,7 @@
     if (!g3.renderer) return;
     placeCamera();
     g3.renderer.render(g3.scene, g3.camera);
+    placeLabels3d();                               // RQ-GXP-015
   }
 
   function resize3d() {
@@ -1458,7 +1575,7 @@
     g3.ortho = new window.THREE.OrthographicCamera();   // RQ-GXP-014, DEC-GXP-012
     g3.aspect = 1;
     g3.camera = g3.perspective;
-    box.replaceChildren(g3.renderer.domElement);
+    box.replaceChildren(g3.renderer.domElement, g3Labels());
     wire3d(g3.renderer.domElement);
     g3.dims = g3.dims || defaultDims(state.model);
     renderDims();
@@ -1472,6 +1589,9 @@
       object.geometry.dispose();
       object.material.dispose();
     }
+    g3.overlay?.group.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });   // RQ-GXP-015
+    g3.overlay = null;
+    $(ID_LABELS_3D).replaceChildren();
   }
 
   function disposeGraph3d() {
@@ -1479,7 +1599,7 @@
     if (!g3.renderer) return;
     disposeScene3d();
     g3.renderer.dispose();
-    $(VIEW_GRAPH3D).replaceChildren();
+    $(VIEW_GRAPH3D).replaceChildren(g3Labels());
     Object.assign(g3, { renderer: null, scene: null, points: null, lines: null, ids: [], index: new Map(), drag: null });
   }
 
@@ -1680,6 +1800,9 @@
         { label: "Fit", tip: "Fit the shown nodes to the graph view", action: fitGraph, enabled: () => state.view === VIEW_GRAPH && Boolean(cy) },
         null,                                                                                     // RQ-GXP-014
         ...PROJECTIONS.map((p) => ({ label: p.label, tip: p.tip, action: () => setProjection(p),
+          enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
+        null,                                                                                     // RQ-GXP-015
+        ...OVERLAYS.map((o) => ({ label: o.label, tip: o.tip, action: () => toggleOverlay(o.key),
           enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
       ] },
       { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
@@ -2221,6 +2344,9 @@
     counts: () => ({ nodes: state.model ? state.model.nodes.size : 0, relations: state.model ? state.model.relations.length : 0 }),
     view3d: { ready: show3d, camera: camera3d, screenOf, pick, dims: () => ({ ...g3.dims }),   // RQ-GXP-013
               cameraKind: () => (g3.camera === g3.ortho ? "orthographic" : "perspective"),   // RQ-GXP-014
+              rings: () => g3.overlay.rings.filter((g) => g.line.visible).map(({ label, y }) => ({ label, y })),   // RQ-GXP-015
+              plane: () => ({ visible: Boolean(g3.overlay.plane?.visible), y: g3.overlay.plane?.position.y }),
+              labels: () => g3.overlay.labels.filter((l) => !l.el.hidden).map((l) => l.text),
               project: (p) => { const s = new window.THREE.Vector3(...p).project(g3.camera); return { x: s.x, y: s.y }; },
               positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
