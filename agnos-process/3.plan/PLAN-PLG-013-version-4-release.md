@@ -17,7 +17,7 @@ This plan implements the tasks in the format specified below.
 ### TASK-PLG-081: Regenerate demo repository
 - **Tier**: S
 - **Status**: Done
-- **Description**: Rebuild `agnos-lightweight-process.demo` with `agnos-meta-demo build -Verify` from this working tree.
+- **Description**: Rebuild `agnos-demo` with `agnos-meta-demo build -Verify` from this working tree.
 - **Requirement refs**: RQ-DMO-020, RQ-DMO-021
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given this working tree, When `build -Verify` runs, Then every demo requirement prints PASS And the exit code is 0.

@@ -8,7 +8,7 @@ Accepted — approved by the owner on 2026-11-08, for FTR-WEB-001 (RQ-WEB-001 to
 The presentation website must follow AGNOS's evolutions, in English and French, with visuals continuous with the Performance Center.
 The mock-up of 2026-11-08 (a prototype under `site.tmp/`, outside the process) proved the approach: Markdown content per language, a
 template without text, screenshots linking to the demo, a chain card, one page with a language switch, 105 fields per language. The demo
-Performance Center page is produced by `agnos-perf-center` on `agnos-lightweight-process.demo`, which `agnos-meta-demo` builds.
+Performance Center page is produced by `agnos-perf-center` on `agnos-demo`, which `agnos-meta-demo` builds.
 
 ## Decision
 

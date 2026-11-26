@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-demo
-description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-lightweight-process.demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario."
+description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario."
 argument-hint: "build [--verify] | verify"
 ---
 
@@ -11,7 +11,7 @@ Canonical procedure, shared by GitHub Copilot (`.github/skills/agnos-meta-demo/`
 (`.claude/skills/agnos-meta-demo/`, which points here). It is a **maintainer tool**: the demo holds no AGNOS
 file but the `CLAUDE.md` and `AGENTS.md` written by `agnos-init` <!-- RQ-MTA-005, RQ-INI-008 -->, and this repository's CLAUDE.md and AGENTS.md do not list it.
 
-The demo repository is created next to this one as `agnos-lightweight-process.demo`. Its history is
+The demo repository is created next to this one as `agnos-demo`. Its history is
 simulated: four fictitious people of the company Acme (`linda-pm`, product manager; `john-ux`, UX designer;
 `andy-tech` and `sachin-tech`, architecture, development and tests; e-mails `@acme.example`), each working mostly with
 an agent <!-- RQ-DMO-011, RQ-DMO-023 / DEC-DMO-003, DEC-DMO-009 -->, five sessions on `feature/<TRI>` branches (BKG, NTF, CLI, then DSN, a design system made with

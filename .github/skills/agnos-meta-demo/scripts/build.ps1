@@ -6,7 +6,7 @@
   Runs replay.ps1 with the skill's scenario and content and this working tree as the toolkit, records
   that the global git configuration was left unchanged, then runs verify.ps1 when -Verify is given.
   Exit code 0 on success, 1 otherwise.
-.PARAMETER Demo    Target folder (default: sibling of this repository, agnos-lightweight-process.demo).
+.PARAMETER Demo    Target folder (default: sibling of this repository, agnos-demo).
 .PARAMETER Verify  Run verify.ps1 after the build.
 .PARAMETER SkipRebuild  Passed to verify.ps1 (skips the reproducibility rebuild).
 #>
@@ -18,7 +18,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
+$DEMO_FOLDER_NAME = 'agnos-demo'
 $BUILD_RECORD = '.git/agnos-demo-build.json'
 
 $toolkit = (& git -C $PSScriptRoot rev-parse --show-toplevel).Trim()

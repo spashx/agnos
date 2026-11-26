@@ -1,6 +1,6 @@
 ---
 name: agnos-meta-demo
-description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-lightweight-process.demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario."
+description: "AGNOS maintainer skill. Builds, rebuilds and verifies agnos-demo, the simulated two-month demonstration project that shows the AGNOS process applied by a team and serves as the reference to demonstrate and test AGNOS. USE FOR: refreshing the demo after AGNOS evolves, checking it against its requirements, extending its scenario."
 argument-hint: "build [--verify] | verify"
 ---
 

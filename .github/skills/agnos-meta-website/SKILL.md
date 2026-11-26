@@ -15,7 +15,7 @@ argument-hint: "build --demo <demo repository> --out <folder> [--demo-page <perf
 
 | Argument | Meaning |
 |---|---|
-| `--demo <folder>` | The demo repository (`agnos-lightweight-process.demo`, built by `agnos-meta-demo`): its Performance Center is generated when no page is given <!-- TASK-WEB-017: no measure since RQ-WEB-005 was deprecated --> |
+| `--demo <folder>` | The demo repository (`agnos-demo`, built by `agnos-meta-demo`): its Performance Center is generated when no page is given <!-- TASK-WEB-017: no measure since RQ-WEB-005 was deprecated --> |
 | `--out <folder>` | Where the site is written, typically the working copy of `spashx/agnos.site`: `index.html`, `screens/` and `demo/` are replaced there, nothing else is touched |
 | `--demo-page <file>` | A `perf-center.html` already generated, copied into `demo/` with its `perf-center.json` and `perf-center.data.js` |
 

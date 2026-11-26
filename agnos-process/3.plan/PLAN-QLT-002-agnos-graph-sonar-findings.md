@@ -35,3 +35,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `agnos-meta-qa check` on both scripts: 2 open, both cognitive-complexity (was 9 open: 7 E501); `ast.parse` of both: OK; tests skipped: session `tests=false`.
 - **Assumptions**: Tier M since 7 lines change, above Tier S's 5; the 2 complexity findings are left for a later task, as the owner asked; `# RQ-TRC-144` comment on graph.py's `--explorer` line shortened by dropping "which stays".
+
+### TASK-QLT-010: Rename old repository name in live files
+- **Tier**: M
+- **Status**: Done
+- **Description**: Replace `agnos-lightweight-process.demo` by `agnos-demo` in the demo, release and website skills, the wording of FTR-DMO-001, ADR-DMO-001, ADR-WEB-001, PLAN-DMO-001 and PLAN-PLG-013, and `agnos-lightweight-process` by `agnos` in FTR-DMO-001. ADR-DOC-001, FTR-MTA-001 and PLAN-INI-001 keep the old name, which they cite as history.
+- **Requirement refs**: RQ-DMO-001
+- **ADR refs**: ADR-DMO-001
+- **Acceptance Criteria**: Given the repository, When `git grep -i lightweight-process` runs, Then only the 3 historical mentions are left, And the scripts still parse.
+- **Dependencies**: None
+- **Assignee**: AI
+- **Verification**: `git grep -n -I -i lightweight-process`: 3 hits (ADR-DOC-001:8, FTR-MTA-001:52, PLAN-INI-001:50); `ast.parse` of `release.py` and `test_page.py`, and `tokens.json` parse: OK; tests skipped: session `tests=false`.
+- **Assumptions**: the renamed local folder is `agnos-demo`, the dev's own folder name and the demo's remote `spashx/agnos-demo`; no requirement amendment beyond the folder name; the `.complexipy_cache` folder, ignored by git, was deleted; the demo skill's tests and `build -Verify` were not run.

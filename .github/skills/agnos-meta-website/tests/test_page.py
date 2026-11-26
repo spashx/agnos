@@ -160,7 +160,7 @@ class TestTheCards(unittest.TestCase):
         self.assertIn(".cards{grid-template-columns:minmax(0,1fr)}", css.split("@media (max-width: 640px)")[1])
 
 
-DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-lightweight-process.demo" / "client" / "design" / "tokens.json"
+DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-demo" / "client" / "design" / "tokens.json"
 STYLES = ("primary", "danger")
 # site token -> the demo's token whose resolved value it repeats
 SAMPLE_TOKENS = {"web-sample-primary-background": "button.primary.background",
