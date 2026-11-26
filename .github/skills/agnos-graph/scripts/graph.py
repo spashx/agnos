@@ -19,8 +19,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-TRC-077: the process folder's names, generated beside this script
-import explorer  # noqa: E402  RQ-TRC-144 / DEC-TRC-084: the graph explorer page, beside this script
+# RQ-PLG-036 / DEC-TRC-077: the process folder's names, generated beside this script
+import agnos_layout  # noqa: E402
+# RQ-TRC-144 / DEC-TRC-084: the graph explorer page, beside this script
+import explorer  # noqa: E402
+# RQ-QLT-011: the suppression comments hold nothing but the rule, so SonarQube reads them
 
 # RQ-TRC-067: a literal written more than once is a named constant.
 PROG = "agnos-graph"

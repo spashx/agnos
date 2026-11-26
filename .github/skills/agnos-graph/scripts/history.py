@@ -812,7 +812,7 @@ REASON_NO_TIER = "no-tier"
 DAY_LENGTH = 10                                    # "2026-10-27" at the head of an ISO author date: the author's day
 SECONDS_PER_DAY = 86400
 COMMIT_TYPE_RE = re.compile(r"^([a-z]+)(?:\([^)]*\))?!?:")
-ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}(?![0-9])")
+ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}(?!\d)", re.ASCII)
 
 
 def load_delivery_settings(path=DELIVERY_PATH):

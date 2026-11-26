@@ -130,3 +130,14 @@ Out of scope: hooks, blocking anything, correcting the code from the skill, a So
 - **Priority**: Should
 - **Acceptance Criteria**: Given the file's diagnostics, When they are read, Then each one left is recorded with its reason, And the page tests pass.
 - **Dependencies**: DEC-QLT-007
+
+### RQ-QLT-011: Open findings count of agnos-graph scripts
+- **Category**: Non-Functional
+- **NFR Type**: Maintainability
+- **EARS Type**: Ubiquitous
+- **Statement**: The SonarQube diagnostics of the scripts of `agnos-graph` SHALL hold no open finding, with no change of behaviour.
+- **Metric**: 0 open SonarQube findings in `history.py` and `graph.py` (4 at the start: 2 in each file).
+- **Measurement Method**: VS Code's diagnostics of both files, and a syntax check of both.
+- **Priority**: Should
+- **Acceptance Criteria**: Given the corrected scripts, When their diagnostics are read, Then none is left, And each script still parses.
+- **Dependencies**: DEC-QLT-007
