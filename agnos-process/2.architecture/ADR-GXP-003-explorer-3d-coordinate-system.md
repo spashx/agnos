@@ -1,7 +1,7 @@
 # ADR-GXP-003: Explorer 3D coordinate system
 
 ## Status
-Accepted (owner, 2026-11-26) — for FTR-GXP-001 (RQ-GXP-020, RQ-GXP-021). Extends ADR-GXP-002 (DEC-GXP-011, DEC-GXP-012,
+Accepted (owner, 2026-11-26) — for FTR-GXP-001 (RQ-GXP-020 to RQ-GXP-022). Extends ADR-GXP-002 (DEC-GXP-011, DEC-GXP-012,
 DEC-GXP-013), applies ADR-TRC-002 (the design system, DEC-TRC-009, DEC-TRC-010).
 
 ## Context
@@ -23,6 +23,12 @@ and a cartesian layout with a trihedron, each toggled in the View menu, in a dec
 - **Rationale**: the dimensions table stays unchanged (DEC-GXP-011); switching layout redraws the two buffers as a dimension choice does, the camera kept (DEC-GXP-008).
 - **Requirement refs**: RQ-GXP-021
 - **Dependencies**: DEC-GXP-011, DEC-GXP-008, DEC-GXP-013
+
+### DEC-GXP-016: Date dimensions scaled on the period
+- **Statement**: The explorer SHALL normalise every date dimension, and draw the month rings, over the selected period, or over the history's first to last commit without one, clamping outside dates, and SHALL redraw the 3D scene when the period changes while a date dimension is chosen.
+- **Rationale**: the shown nodes all lie in the period (RQ-GXP-006), so the rest of the scale is empty; the redraw is the dimension change's (DEC-GXP-015), after the time bar's settle (TASK-GXP-010); the playback cursor keeps the period's scale, so that no point moves during a playback.
+- **Requirement refs**: RQ-GXP-022
+- **Dependencies**: DEC-GXP-011, DEC-GXP-013, DEC-GXP-003, DEC-GXP-015
 
 ## Consequences
 - Easier: a new layout is one function; the indicator reads the axes of any layout.

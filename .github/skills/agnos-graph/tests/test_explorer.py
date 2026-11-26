@@ -1452,5 +1452,33 @@ class Trihedron3DTest(Cartesian3DTest):
         self.assertEqual(("true", "false"), (found["disabled"], found["shown"]))
 
 
+# TASK-GXP-024: the period from 2026-10-01 to the history's last day
+PERIOD_OCTOBER = (f"const t = agnosExplorer.time; const lastDay = t.dayOf('{HISTORY_LAST}');"
+                  "const setOctober = () => t.setPeriodDays(t.dayOf('2026-10-01T12:00:00Z'), lastDay);")
+
+
+class PeriodScale3DTest(Trihedron3DTest):
+    """TASK-GXP-024: RQ-GXP-022 (ADR-GXP-003: DEC-GXP-016), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn = None
+    test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled = None
+
+    # RQ-GXP-022: the date height spans the period; no ring before it
+    def test_RQ_GXP_022_given_a_period_then_the_date_height_spans_it_and_no_ring_lies_before_it(self):
+        found = self.run_dated(PERIOD_OCTOBER + "setOctober(); const p = t.period();"
+                               "r('rings', v.rings().map((g) => g.label).join('|'));"
+                               "const nov = v.rings().find((g) => g.label === '2026-11');"
+                               "r('at', Math.abs(nov.y - ((new Date(2026, 10, 1).getTime() - p.start) / (p.end - p.start) - 0.5) * 100) < 1e-3);"
+                               "r('inside', v.shownIds().every((id) => Math.abs(v.positionOf(id)[1]) <= 50 + 1e-3));")
+        self.assertEqual(("2026-11", "true", "true"), (found["rings"], found["at"], found["inside"]))
+
+    # RQ-GXP-022: the whole history gives back the former positions
+    def test_RQ_GXP_022_given_the_whole_history_again_then_the_positions_return(self):
+        found = self.run_dated(PERIOD_OCTOBER + f"const y = () => v.positionOf('{NEW}')[1]; const before = y();"
+                               "setOctober(); r('moved', y() !== before); t.setPeriodDays(0, lastDay); r('back', Math.abs(y() - before) < 1e-6);")
+        self.assertEqual(("true", "true"), (found["moved"], found["back"]))
+
+
 if __name__ == "__main__":
     unittest.main()

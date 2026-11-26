@@ -5,8 +5,8 @@ The 3D view's axis indicator in its bottom left corner, and a cartesian layout w
 the View menu, before lot B2 (RQ-GXP-016 to RQ-GXP-018).
 
 ## References
-- **Requirement refs**: RQ-GXP-020, RQ-GXP-021, RQ-GXP-002, RQ-GXP-019
-- **ADR refs**: ADR-GXP-003 (DEC-GXP-014, DEC-GXP-015); ADR-GXP-002; design system ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010), RQ-TRC-018
+- **Requirement refs**: RQ-GXP-020, RQ-GXP-021, RQ-GXP-022, RQ-GXP-002, RQ-GXP-019
+- **ADR refs**: ADR-GXP-003 (DEC-GXP-014 to DEC-GXP-016); ADR-GXP-002; design system ADR-TRC-002 (DEC-TRC-009, DEC-TRC-010), RQ-TRC-018
 - **Requirements handed to another component**: None; every change stays in `agnos-graph`'s explorer assets and tests.
 
 This plan implements the tasks in the format specified below.
@@ -85,3 +85,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `agnos-graph` suite with `AGNOS_GRAPH_PERF=1`: Ran 278 tests in 238.6 s, OK, 0 skipped (RQ-GXP-019 first 3D frame test included). Screenshot of this repository's graph (2100 nodes) in cartesian layout: indicator labels clipped at the left edge and dozens of trigram graduations, both fixed (labels kept inside the canvas, at most 12 category graduations, token); the 8 3D test classes rerun after the fix: Ran 25 tests, OK. Changelog shortened to delivery entries on the owner's request.
 - **Assumptions**: the full suite ran partly before the two display fixes, hence the 3D classes rerun after them.
+
+### TASK-GXP-024: Scale 3D dates on the period
+- **Tier**: L
+- **Status**: Done
+- **Description**: Write the tests first, then normalise the 3D date dimensions and month rings over the selected period, redrawn when the period changes; add RQ-GXP-022 and DEC-GXP-016.
+- **Requirement refs**: RQ-GXP-022
+- **ADR refs**: ADR-GXP-003 (DEC-GXP-016)
+- **Acceptance Criteria**:
+  - Given height by first commit date And the period from 2026-10-01, Then the only ring is 2026-11 at its height in the period And every shown point lies within the cylinder
+  - When the whole history is selected again, Then the former positions return
+- **Dependencies**: TASK-GXP-023
+- **Assignee**: AI
+- **Verification**: `PeriodScale3DTest` 2 tests failed first (rings 2026-08 to 2026-11, positions unmoved), then OK; a first version scaling the whole history on calendar days failed 2 `Planes3DTest` tests, so without a period the scale stays the first to last commit; `PeriodScale3DTest`, `Planes3DTest`, `Dimensions3DTest`, `Trihedron3DTest`, `Cartesian3DTest`: Ran 15 tests, OK. Full suite with `AGNOS_GRAPH_PERF=1`: Ran 280 tests, 0 skipped, 1 failure, `test_RQ_GXP_019_..._less_than_3_s` (first 3D frame, under the suite's load); that test alone: 3 runs OK. The change runs on a period change only, not on the first 3D show.
+- **Assumptions**: the owner's screenshot answered the task's presentation; the scale follows the period, not the playback cursor; outside dates clamped to the period's ends.

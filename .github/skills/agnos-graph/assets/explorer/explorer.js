@@ -331,6 +331,8 @@
       : { start: dayStart(start), end: dayStart(end + 1) - 1, startDay: start, endDay: end };
     renderTimeBar(start, end);
     refreshTime(true);
+    // RQ-GXP-022: a date dimension of the 3D view takes the new period's scale
+    if (DIM_ROLES.some((role) => DATE_DIMENSIONS.includes(g3.dims?.[role]))) redraw3d();
   }
 
   // ---- playback (TASK-GXP-006: RQ-GXP-007, RQ-GXP-008; DEC-GXP-006) ------------------------------------------
@@ -1165,12 +1167,20 @@
     }
   }
 
+  // RQ-GXP-022, DEC-GXP-016: the dates the 3D view spans: the selected period, or the history's first to last commit
+  const dateRange3d = () => state.period || { start: state.model.time.first, end: state.model.time.last };
+
   function scaleOf(key, model) {
     /* A dimension over the nodes: per node, t in [0, 1] and its category's slot; with the category count (1 for numbers). */
     const dim = dimension(key);
     const nodes = [...model.nodes.values()];
     const values = new Map(nodes.map((n) => [n.id, dim.of(n, model)]));
     if (dim.kind === DIM_NUMBER) {
+      if (model.time && DATE_DIMENSIONS.includes(key)) {   // RQ-GXP-022, DEC-GXP-016: a date spans the period, clamped
+        const { start, end } = dateRange3d();
+        const at = (value) => Math.min(1, Math.max(0, (value - start) / (end - start)));
+        return { count: 1, low: start, span: end - start, slot: () => 0, t: (id) => at(values.get(id)), at };
+      }
       const all = [...values.values()];
       const low = Math.min(...all);
       const span = Math.max(...all) - low || 1;
@@ -1272,7 +1282,8 @@
       overlay.heightAt = (instant) => (scale.at(instant) - HALF) * extent;
       const circle = new THREE.BufferGeometry().setFromPoints(Array.from({ length: RING_SEGMENTS }, (_, i) =>
         new THREE.Vector3(Math.cos((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF, 0, Math.sin((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF)));
-      for (const month of isCartesian() ? [] : monthStarts(time.first, time.last)) {   // RQ-GXP-021: no ring in cartesian
+      const { start, end } = dateRange3d();        // RQ-GXP-022: the rings of the period only
+      for (const month of isCartesian() ? [] : monthStarts(start, end)) {   // RQ-GXP-021: no ring in cartesian
         const y = overlay.heightAt(month.getTime());
         const line = new THREE.LineLoop(circle, new THREE.LineBasicMaterial({ color: colour }));
         line.position.y = y;

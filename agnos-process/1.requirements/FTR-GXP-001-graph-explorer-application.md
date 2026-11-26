@@ -14,7 +14,7 @@ visual"; flat tabs Graph 2D, Graph 3D, Nodes, Relations; delivery in two lots, A
 then B (3D); a hand-written orbit controller; the 3D view usable without history, the history being one dimension among
 others; the node colours kept; the help and About copied from the performance center.
 
-Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session. RQ-GXP-020 and RQ-GXP-021 (PLAN-GXP-003).
+Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session. RQ-GXP-020 to RQ-GXP-022 (PLAN-GXP-003).
 
 Out of scope: nodes deleted before the graph's commit (the graph is the state at one commit, so the time filter shows when
 today's nodes first appeared, not what was removed); a choice of node type colours (owner: "en gardant la couleur des
@@ -208,6 +208,15 @@ nœuds"); a dark theme; editing the graph; a server.
 - **Priority**: Should
 - **Acceptance Criteria**: Given the 3D view, When the cartesian layout is chosen, Then no month ring is drawn And the node of greatest angle value has the greatest x; When the axes are unchecked, Then the trihedron is hidden; When the cylindrical layout is chosen, Then the axes choice is disabled.
 - **Dependencies**: RQ-GXP-013, RQ-GXP-015
+
+### RQ-GXP-022: 3D date scale on the period
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE a period is selected, the 3D view SHALL scale each date dimension, its month rings and its graduations from the period's start to its end, a date outside it drawn at the nearest end; WHILE no period is selected, from the history's first to last commit.
+- **Rationale**: the dates outside the period take room for nothing (owner, 2026-11-26).
+- **Priority**: Should
+- **Acceptance Criteria**: Given height by first commit date And the period from 2026-10-01 to the last commit, Then the only ring is 2026-11 at that month's height in the period And every shown point lies within the cylinder; When the whole history is selected again, Then the former positions return.
+- **Dependencies**: RQ-GXP-006, RQ-GXP-013, RQ-GXP-015, RQ-GXP-021
 
 ---
 
