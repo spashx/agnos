@@ -926,7 +926,7 @@ TASK-GXP-019|17-29|Done|Document explorer 3D cartesian layout
 TASK-GXP-020|30-44|Done|Add 3D axis indicator
 TASK-GXP-021|45-59|Done|Add 3D cartesian layout
 TASK-GXP-022|60-74|Done|Add 3D graduated trihedron
-TASK-GXP-023|75-87|Not Started|Verify explorer 3D cartesian layout
+TASK-GXP-023|75-87|Done|Verify explorer 3D cartesian layout
 @agnos-process/3.plan/PLAN-HST-001-contribution-history.md
 PLAN-HST-001|1-160||Contribution History
 TASK-HST-001|19-37|Done|Identities and agents from git

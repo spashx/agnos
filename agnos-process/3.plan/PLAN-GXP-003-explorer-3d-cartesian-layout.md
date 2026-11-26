@@ -74,7 +74,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-023: Verify explorer 3D cartesian layout
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the full graph suite with the timing tests, check the explorer on this repository's graph, update the changelog.
 - **Requirement refs**: RQ-GXP-019, RQ-GXP-020, RQ-GXP-021
 - **ADR refs**: ADR-GXP-003
@@ -83,5 +83,5 @@ This plan implements the tasks in the format specified below.
   - Given the graph suite, Then every test passes
 - **Dependencies**: TASK-GXP-022
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `agnos-graph` suite with `AGNOS_GRAPH_PERF=1`: Ran 278 tests in 238.6 s, OK, 0 skipped (RQ-GXP-019 first 3D frame test included). Screenshot of this repository's graph (2100 nodes) in cartesian layout: indicator labels clipped at the left edge and dozens of trigram graduations, both fixed (labels kept inside the canvas, at most 12 category graduations, token); the 8 3D test classes rerun after the fix: Ran 25 tests, OK. Changelog shortened to delivery entries on the owner's request.
+- **Assumptions**: the full suite ran partly before the two display fixes, hence the 3D classes rerun after them.

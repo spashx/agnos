@@ -6,24 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Changed
-- Every new decision of an ADR names its `Requirement refs` and its `Dependencies` on other decisions, and its `Rationale` may no longer be "None"; the demo and the user's guide show the four fields, existing decisions are not rewritten <!-- TASK-PLG-096, RQ-PLG-040 -->
-- The plan template names its references `Requirement refs` and `ADR refs`, as the task template does; `agnos-init` renames the former `Requirements` and `ADRs` lines of each plan's `## References` section when it updates a project, reported `converted <path>`; this repository, the demo and the user's guide are converted <!-- TASK-INI-021, TASK-INI-022, RQ-INI-022, RQ-INI-023 -->
-- The graph file moves to its own folder, `agnos-process/4.knowledge/graph/agnos-graph.json`, where `agnos-perf-center` reads it; a former `4.knowledge/agnos-graph.json` is left as it is <!-- TASK-TRC-131, RQ-TRC-142 -->
-- The Performance Center's outputs are lowercase: `perf-center.html`, `perf-center.json`, `perf-center.data.js`; update ignore rules and links to the former `PERF-CENTER.*` names <!-- TASK-TRC-132, RQ-TRC-143 -->
-
-- The graph explorer's header shows the generation time as the Performance Center does, in the reader's date and time with the UTC value in its tooltip, and no longer the commit: the graph is read from the working tree, not from a commit <!-- TASK-GXP-008, RQ-TRC-145 -->
-
 ### Added
-- `agnos-graph.json` holds a `sections` block: the `##` sections of the features, ADRs and plans that hold no requirement, decision or task, their `###` subsections, and the IDs each cites; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-125, TASK-TRC-126, RQ-TRC-134 to RQ-TRC-137 -->
-- `agnos-graph.json` holds a `links` block: for each citation made by a requirement, a decision, a task or a plan, the link field holding it (`Requirement refs`, `ADR refs`, `Dependencies`) or `text`, so that a declared link is told from a mention; features and ADRs keep untyped links; every other block, and the Performance Center, are unchanged <!-- TASK-TRC-128, TASK-TRC-129, RQ-TRC-138 to RQ-TRC-141 -->
-- `agnos-graph --explorer` writes `graph-explorer.html` and `agnos-graph.data.js` beside the graph: a page, opened from disk, to explore every node, relation and property of the graph (link fields, sections, files, functions, calls, history), with a graph view of movable nodes, sortable tables, facets, a query language (`type:RQ !cited-by:TASK[Requirement refs]`, `edge kind:refs field:text`) and saved query buttons; the graph file is the same with or without it, and the Performance Center never writes it <!-- TASK-TRC-133 to TASK-TRC-138, RQ-TRC-144 to RQ-TRC-158 -->
-- The graph explorer resizes its table columns, checks or unchecks a whole facet with "All" and "None", keeps its counts clear of scrollbars, offers automatic layouts (type columns, grid, circle, concentric, tree, force-directed) and a right-click menu showing a node's neighbours at 1, 2 or 3 hops, offers a left-to-right or top-to-bottom direction for the type columns, tree and grid layouts, shows a foldable legend band of node types and relation kinds along the graph's bottom, gives every control a tooltip, shows a hovered graph node's properties in a tooltip after 1 s, and says that an undefined node's ID is cited but defined nowhere <!-- TASK-TRC-141 to TASK-TRC-150, RQ-TRC-159 to RQ-TRC-167 -->
-- The graph explorer becomes an application: a menu bar (File, View, Filter, Time, Appearance, Help) navigable with the keyboard; a help dialog with a guide per view, the licences of AGNOS and of its libraries, and an About with the AGNOS version, as the Performance Center's; a colour per relation kind chosen from the Appearance menu or the legend, kept in the browser; with a graph built with `--history`, a time bar whose two handles choose a period that filters every view by the first commit of each node, and a playback (Play, Pause, Stop, Loop, speed, cumulative or sliding window of 7 or 30 days) that makes the graph grow; without `--history`, the time bar is hidden and the Time menu disabled <!-- TASK-GXP-002 to TASK-GXP-006, RQ-GXP-001 to RQ-GXP-009 -->
-- The graph explorer shows a Graph 3D tab beside Graph 2D, Nodes and Relations: three.js, loaded from cdnjs only when the tab is first shown, draws the shown nodes and relations under the same facets, query and period, rotated, zoomed and panned with the mouse; a point is selected, hovered or right-clicked as in the 2D view; the Dimensions menu chooses what the height, angle, radius, colour and size show (dates, commits, changed lines, relations, trigram, type, status, author, tier, layer); the View menu offers perspective, orthographic, isometric, top, front and side projections, month rings, a grid plane that follows the playback and the angle's labels; three.js joins the licence list <!-- TASK-GXP-012 to TASK-GXP-017, RQ-GXP-010 to RQ-GXP-015, RQ-GXP-019 -->
+- Graph explorer: `agnos-graph --explorer` writes a page to browse the project graph in 2D and 3D, with filters, queries, a timeline and a help <!-- TASK-TRC-133 to TASK-TRC-150, TASK-GXP-002 to TASK-GXP-022, RQ-TRC-144 to RQ-TRC-167, RQ-GXP-001 to RQ-GXP-021 -->
+- The graph file records the sections of the process documents and the kind of each link (declared reference or mention) <!-- TASK-TRC-125, TASK-TRC-126, TASK-TRC-128, TASK-TRC-129, RQ-TRC-134 to RQ-TRC-141 -->
 
-### Fixed
-- The graph explorer's graph view hides the relations an unchecked relation kind, link field or query excludes; only their ends were hidden before <!-- TASK-TRC-140, RQ-TRC-151 -->
+### Changed
+- ADR decisions always state their requirements, dependencies and rationale <!-- TASK-PLG-096, RQ-PLG-040 -->
+- Plan references are named `Requirement refs` and `ADR refs`, as in tasks; `agnos-init` converts existing plans <!-- TASK-INI-021, TASK-INI-022, RQ-INI-022, RQ-INI-023 -->
+- The graph file moves to `agnos-process/4.knowledge/graph/agnos-graph.json` <!-- TASK-TRC-131, RQ-TRC-142 -->
+- The Performance Center's files are now lowercase (`perf-center.html`…): update your links and ignore rules <!-- TASK-TRC-132, RQ-TRC-143 -->
 
 ## [4.0.0]
 

@@ -1311,7 +1311,10 @@
     /* An axis's graduations, [t in [0, 1], text]: each category, or a number's even steps, a date as its day. */
     const key = g3.dims[role];
     const scale = scaleOf(key, state.model);
-    if (scale.categories) return scale.categories.map((c, i) => [i / Math.max(scale.count - 1, 1), c]);
+    if (scale.categories) {                        // one category in `stride`, so that the texts stay readable
+      const stride = Math.ceil(scale.count / tokenNumber("--c-graph3d-category-ticks"));
+      return scale.categories.map((c, i) => [i / Math.max(scale.count - 1, 1), c]).filter((_, i) => i % stride === 0);
+    }
     const steps = tokenNumber("--c-graph3d-ticks");
     const text = (v) => (DATE_DIMENSIONS.includes(key) ? new Date(v).toISOString().slice(0, ISO_DAY) : String(Number(v.toPrecision(TICK_DIGITS))));
     return Array.from({ length: steps + 1 }, (_, k) => [k / steps, text(scale.low + (scale.span * k) / steps)]);
@@ -1473,7 +1476,8 @@
     renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     for (const tag of ind.labels) {
       const p = new window.THREE.Vector3(...tag.pos).project(ind.camera);
-      tag.el.style.left = (p.x + 1) * HALF * size + UNIT_PX;
+      // the label centred on its point, kept inside the canvas's left edge
+      tag.el.style.left = Math.max((p.x + 1) * HALF * size, tag.el.offsetWidth * HALF) + UNIT_PX;
       tag.el.style.top = canvas.clientHeight - size + (1 - p.y) * HALF * size + UNIT_PX;
     }
   }
