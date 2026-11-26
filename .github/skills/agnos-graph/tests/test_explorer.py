@@ -1424,5 +1424,33 @@ class Cartesian3DTest(Indicator3DTest):
         self.assertEqual("X: Trigram|Y: First commit date|Z: Layer", found["labels"])
 
 
+class Trihedron3DTest(Cartesian3DTest):
+    """TASK-GXP-022: RQ-GXP-021 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_no_ring_is_drawn_and_the_greatest_angle_value_has_the_greatest_x = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_chosen_again_then_the_positions_return = None
+    test_RQ_GXP_021_given_the_cartesian_layout_then_the_indicator_reads_x_y_and_z_with_their_dimensions = None
+
+    # RQ-GXP-021: three axes named after their dimensions, graduated
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); const t = v.trihedron(); r('shown', t.visible);"
+                               "r('names', t.names.sort().join('|')); r('ticks', t.ticks.length);")
+        self.assertEqual(("true", "X: Trigram|Y: First commit date|Z: Layer"), (found["shown"], found["names"]))
+        self.assertGreater(int(found["ticks"]), 3)
+
+    # RQ-GXP-021: toggled in the View menu
+    def test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); choose('Axes'); const t = v.trihedron();"
+                               "r('shown', t.visible); r('labels', t.names.length + t.ticks.length);")
+        self.assertEqual(("false", "0"), (found["shown"], found["labels"]))
+
+    # RQ-GXP-021: no trihedron in the cylindrical layout, its choice disabled
+    def test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled(self):
+        found = self.run_dated("document.querySelector('[data-menu-title=\"view\"]').click();"
+                               "const item = [...document.querySelectorAll('#menubar [data-menu=\"view\"] [role=menuitem]')].find((i) => i.textContent === 'Axes');"
+                               "r('disabled', item.disabled); r('shown', v.trihedron().visible);")
+        self.assertEqual(("true", "false"), (found["disabled"], found["shown"]))
+
+
 if __name__ == "__main__":
     unittest.main()

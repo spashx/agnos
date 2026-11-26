@@ -59,7 +59,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-022: Add 3D graduated trihedron
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then draw three graduated, labelled axes from the origin in the cartesian layout, toggled in the View menu, disabled in cylindrical; update the 3D help topic.
 - **Requirement refs**: RQ-GXP-021, RQ-GXP-002
 - **ADR refs**: ADR-GXP-003 (DEC-GXP-015)
@@ -69,8 +69,8 @@ This plan implements the tasks in the format specified below.
   - When the cylindrical layout is chosen, Then the axes choice is disabled
 - **Dependencies**: TASK-GXP-021
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Trihedron3DTest` 3 tests failed first (KeyError, no trihedron hook), then OK (Ran 3 tests, OK). Full suite in TASK-GXP-023.
+- **Assumptions**: the axes start at the cube's low corner; a number axis is graduated in 4 even steps (token), a date as YYYY-MM-DD, a category at each slot; shown by default, kept across graphs; the 3D help lives in the Graph topic (RQ-GXP-010), one item added there.
 
 ### TASK-GXP-023: Verify explorer 3D cartesian layout
 - **Tier**: M

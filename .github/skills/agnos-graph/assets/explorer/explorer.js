@@ -1092,7 +1092,7 @@
   const ATTR_SCALE = "pointScale";                 // DEC-GXP-011: the per-point size factor of the shader
   const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
                show: { rings: true, plane: true, labels: true,   // RQ-GXP-015: the reader's overlay choices, kept across graphs
-                       indicator: true },                          // RQ-GXP-020
+                       indicator: true, axes: true },              // RQ-GXP-020, RQ-GXP-021
                layout: "cylindrical",                              // RQ-GXP-021: kept across graphs
                orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
 
@@ -1174,7 +1174,7 @@
       const all = [...values.values()];
       const low = Math.min(...all);
       const span = Math.max(...all) - low || 1;
-      return { count: 1, slot: () => 0, t: (id) => (values.get(id) - low) / span, at: (value) => (value - low) / span };
+      return { count: 1, low, span, slot: () => 0, t: (id) => (values.get(id) - low) / span, at: (value) => (value - low) / span };
     }
     const present = new Set(values.values());
     const order = dim.order ? dim.order.filter((c) => present.has(c)) : [...present].sort(compare);
@@ -1288,9 +1288,65 @@
       overlay.labels = angle.categories.map((c, i) => labelElement(c, "labels",
         [r * Math.cos((i / angle.count) * FULL_TURN), -extent * HALF, r * Math.sin((i / angle.count) * FULL_TURN)]));
     }
+    if (isCartesian()) overlay.axes = buildTrihedron3d(group, extent);   // RQ-GXP-021
     g3.scene.add(group);
     g3.overlay = overlay;
     applyOverlays3d();
+  }
+
+  // ---- 3D trihedron (RQ-GXP-021; ADR-GXP-003: DEC-GXP-015) ----------------------------------------------------
+  const KEY_AXES = "axes";
+  const TICK_LENGTH = 0.02;                        // a graduation's mark, as a fraction of the extent
+  const TICK_LABEL_MARKS = 4;                      // a graduation's text, that many marks away from its axis
+  const TICK_DIGITS = 3;                           // a number graduation's significant digits
+  const ISO_DAY = 10;                              // the length of YYYY-MM-DD
+  // Each cartesian axis: its role, its direction, the direction its graduation marks point to
+  const TRIHEDRON = [
+    { role: "angle", name: "X", to: [1, 0, 0], mark: [0, -1, 0], colour: "--c-graph3d-axis-x" },
+    { role: "height", name: "Y", to: [0, 1, 0], mark: [-1, 0, 0], colour: "--c-graph3d-axis-y" },
+    { role: "radius", name: "Z", to: [0, 0, 1], mark: [0, -1, 0], colour: "--c-graph3d-axis-z" },
+  ];
+
+  function graduations(role) {
+    /* An axis's graduations, [t in [0, 1], text]: each category, or a number's even steps, a date as its day. */
+    const key = g3.dims[role];
+    const scale = scaleOf(key, state.model);
+    if (scale.categories) return scale.categories.map((c, i) => [i / Math.max(scale.count - 1, 1), c]);
+    const steps = tokenNumber("--c-graph3d-ticks");
+    const text = (v) => (DATE_DIMENSIONS.includes(key) ? new Date(v).toISOString().slice(0, ISO_DAY) : String(Number(v.toPrecision(TICK_DIGITS))));
+    return Array.from({ length: steps + 1 }, (_, k) => [k / steps, text(scale.low + (scale.span * k) / steps)]);
+  }
+
+  function buildTrihedron3d(group, extent) {
+    /* RQ-GXP-021: three axes from the low corner, each graduated and named after its dimension. */
+    const THREE = window.THREE;
+    const origin = new THREE.Vector3(-extent * HALF, -extent * HALF, -extent * HALF);
+    const axes = { lines: [], names: [], ticks: [] };
+    for (const axis of TRIHEDRON) {
+      const along = new THREE.Vector3(...axis.to).multiplyScalar(extent);
+      const mark = new THREE.Vector3(...axis.mark).multiplyScalar(extent * TICK_LENGTH);
+      const points = [origin, origin.clone().add(along)];
+      for (const [t, text] of graduations(axis.role)) {
+        const at = origin.clone().addScaledVector(along, t);
+        points.push(at, at.clone().add(mark));
+        axes.ticks.push(labelElement(text, KEY_AXES, at.clone().addScaledVector(mark, TICK_LABEL_MARKS).toArray()));
+      }
+      const line = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points),
+                                          new THREE.LineBasicMaterial({ color: cssValue(axis.colour) }));
+      group.add(line);
+      axes.lines.push(line);
+      axes.names.push(labelElement(`${axis.name}: ${dimLabel(axis.role)}`, KEY_AXES,
+                                   origin.clone().addScaledVector(along, LABEL_OUTSIDE).toArray()));
+    }
+    return axes;
+  }
+
+  function trihedron3d() {
+    /* Test hook: whether the trihedron is drawn, and its shown names and graduations. */
+    const axes = g3.overlay?.axes;
+    const visible = Boolean(axes) && g3.show.axes;
+    const shown = (tags) => (visible ? tags.filter((t) => !t.el.hidden).map((t) => t.text) : []);
+    return { visible, names: axes ? shown(axes.names) : [], ticks: axes ? shown(axes.ticks) : [] };
   }
 
   function applyOverlays3d() {
@@ -1298,6 +1354,7 @@
     const o = g3.overlay;
     if (!o) return;
     for (const ring of o.rings) ring.line.visible = g3.show.rings;
+    for (const line of o.axes?.lines || []) line.visible = g3.show.axes;   // RQ-GXP-021
     if (o.plane) {
       o.plane.visible = g3.show.plane && state.cursor !== null;
       if (o.plane.visible) o.plane.position.y = o.heightAt(state.cursor);
@@ -1308,7 +1365,8 @@
     /* HTML labels keep the design system's type (DEC-GXP-013), placed at their point's projection each frame. */
     if (!g3.overlay) return;
     const canvas = g3.renderer.domElement;
-    for (const tag of [...g3.overlay.rings.map((r) => r.tag), ...g3.overlay.labels]) {
+    const axes = g3.overlay.axes ? [...g3.overlay.axes.names, ...g3.overlay.axes.ticks] : [];   // RQ-GXP-021
+    for (const tag of [...g3.overlay.rings.map((r) => r.tag), ...g3.overlay.labels, ...axes]) {
       const p = new window.THREE.Vector3(...tag.pos).project(g3.camera);
       tag.el.hidden = !g3.show[tag.overlay] || Math.abs(p.z) > 1;
       tag.el.style.left = (p.x + 1) * HALF * canvas.clientWidth + UNIT_PX;
@@ -1927,6 +1985,8 @@
         null,                                                                                     // RQ-GXP-021
         ...LAYOUTS_3D.map((l) => ({ label: l.label, tip: l.tip, action: () => setLayout(l.key),
           enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
+        { label: "Axes", tip: "Show or hide the three graduated axes of the cartesian layout",
+          action: () => toggleOverlay(KEY_AXES), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) && isCartesian() },
       ] },
       { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
@@ -2471,7 +2531,7 @@
               plane: () => ({ visible: Boolean(g3.overlay.plane?.visible), y: g3.overlay.plane?.position.y }),
               labels: () => g3.overlay.labels.filter((l) => !l.el.hidden).map((l) => l.text),
               indicator: indicator3d,                                                                 // RQ-GXP-020
-              layout: () => g3.layout,                                                                // RQ-GXP-021
+              layout: () => g3.layout, trihedron: trihedron3d,                                        // RQ-GXP-021
               project: (p) => { const s = new window.THREE.Vector3(...p).project(g3.camera); return { x: s.x, y: s.y }; },
               positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
