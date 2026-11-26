@@ -23,3 +23,15 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: N/A (Tier S)
 - **Assumptions**: `re.ASCII` keeps `[0-9]`'s ASCII-only matching; the traceability comment of the two imports stays in `graph.py`, above them.
+
+### TASK-QLT-009: Rewrap long lines of agnos-graph scripts
+- **Tier**: M
+- **Status**: Done
+- **Description**: Rewrap the 7 lines above 120 characters that `agnos-meta-qa` reports in `graph.py` (4) and `history.py` (3), with no change of behaviour. The 2 cognitive-complexity findings stay out of this task.
+- **Requirement refs**: RQ-QLT-011
+- **ADR refs**: ADR-QLT-001 (DEC-QLT-006)
+- **Acceptance Criteria**: Given both scripts, When `agnos-meta-qa check` runs on them, Then no E501 finding is open, And both still parse.
+- **Dependencies**: TASK-QLT-008
+- **Assignee**: AI
+- **Verification**: `agnos-meta-qa check` on both scripts: 2 open, both cognitive-complexity (was 9 open: 7 E501); `ast.parse` of both: OK; tests skipped: session `tests=false`.
+- **Assumptions**: Tier M since 7 lines change, above Tier S's 5; the 2 complexity findings are left for a later task, as the owner asked; `# RQ-TRC-144` comment on graph.py's `--explorer` line shortened by dropping "which stays".

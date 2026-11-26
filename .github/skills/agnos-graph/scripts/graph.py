@@ -370,13 +370,14 @@ def line_fields(lines, element):
 
 # RQ-TRC-138, RQ-TRC-141, DEC-TRC-081: reads the model, never changes it.
 def element_links(process_dir, model):
-    """[[source, target, [[line, field]]]] of every refs edge whose source is a requirement, a decision, a task or a plan,
-    in edge order, one field per proof line."""
+    """[[source, target, [[line, field]]]] of every refs edge whose source is a requirement, a decision, a task or a
+    plan, in edge order, one field per proof line."""
     process_dir = Path(process_dir)
     lines_of, fields_of, rows = {}, {}, []
     for (source, target, kind), proofs in sorted(model.edges.items()):
         element = model.elements.get(source)
-        if kind != KEY_REFS or element is None or element[KEY_KIND] != KEY_ELEMENT or element[KEY_TYPE] not in LINK_FIELDS:
+        if (kind != KEY_REFS or element is None or element[KEY_KIND] != KEY_ELEMENT
+                or element[KEY_TYPE] not in LINK_FIELDS):
             continue
         if source not in fields_of:
             doc = element["doc"]
@@ -602,7 +603,8 @@ def state_data(model, meta, tasks, call_graph=None, history=None, sections=(), l
 
 # RQ-TRC-129, RQ-TRC-156
 def write_state(path, data):
-    """The graph file, one sorted JSON document; returns its text, which the explorer's data script holds (DEC-TRC-085)."""
+    """The graph file, one sorted JSON document; returns its text, which the explorer's data script holds
+    (DEC-TRC-085)."""
     text = json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding=ENCODING, newline="\n")
@@ -708,7 +710,7 @@ def main(argv=None):
         return 1
     text = write_state(out, data)
     written = out.as_posix()
-    if args.explorer:                                   # RQ-TRC-144, RQ-TRC-156: after the graph, which stays as written
+    if args.explorer:                                   # RQ-TRC-144, RQ-TRC-156: after the graph, as written
         try:
             written += f", {explorer.write_explorer(out, text).as_posix()}"
         except explorer.ExplorerError as error:
