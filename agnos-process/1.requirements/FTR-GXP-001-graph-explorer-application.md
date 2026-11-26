@@ -203,10 +203,10 @@ nœuds"); a dark theme; editing the graph; a server.
 ### RQ-GXP-021: 3D cartesian layout
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN the reader chooses the cartesian layout in the View menu, the 3D view SHALL place each point at the x, y and z given by the angle, height and radius dimensions, without month rings or angle labels, and SHALL show, while the axes are checked in the View menu, three graduated axes from the origin labelled with their dimensions; WHEN the cylindrical layout is chosen, the 3D view SHALL return to RQ-GXP-013's placement, the axes choice disabled.
+- **Statement**: WHEN the reader chooses the cartesian layout in the View menu, the 3D view SHALL place each point at the x, y and z given by the angle, height and radius dimensions, without month rings or angle labels, its height, angle and radius choices named Y, X and Z in the X, Y, Z order, and SHALL show, while the axes are checked in the View menu, three graduated axes from the origin labelled with their dimensions; WHEN the cylindrical layout is chosen, the 3D view SHALL return to RQ-GXP-013's placement, the axes choice disabled.
 - **Rationale**: a traditional trihedron reads three quantities directly, where the cylinder shows sectors (owner, 2026-11-26).
 - **Priority**: Should
-- **Acceptance Criteria**: Given the 3D view, When the cartesian layout is chosen, Then no month ring is drawn And the node of greatest angle value has the greatest x; When the axes are unchecked, Then the trihedron is hidden; When the cylindrical layout is chosen, Then the axes choice is disabled.
+- **Acceptance Criteria**: Given the 3D view, When the cartesian layout is chosen, Then no month ring is drawn And the node of greatest angle value has the greatest x; When the axes are unchecked, Then the trihedron is hidden; When the cylindrical layout is chosen, Then the axes choice is disabled. (Amended by TASK-GXP-025, owner, 2026-11-26: Given the cartesian layout, Then the toolbar and the Dimensions menu read X, Y, Z, Colour, Size; When the cylindrical layout is chosen, Then they read Height, Angle, Radius again.)
 - **Dependencies**: RQ-GXP-013, RQ-GXP-015
 
 ### RQ-GXP-022: 3D date scale on the period

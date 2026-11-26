@@ -1457,6 +1457,26 @@ PERIOD_OCTOBER = (f"const t = agnosExplorer.time; const lastDay = t.dayOf('{HIST
                   "const setOctober = () => t.setPeriodDays(t.dayOf('2026-10-01T12:00:00Z'), lastDay);")
 
 
+class AxisNames3DTest(Trihedron3DTest):
+    """TASK-GXP-025: RQ-GXP-021 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn = None
+    test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled = None
+
+    # RQ-GXP-021: the toolbar's choices and the Dimensions menu read X, Y, Z in cartesian, Height, Angle, Radius again in cylindrical
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_the_choices_read_x_y_z_and_back_in_cylindrical(self):
+        found = self.run_dated(CHOOSE_VIEW + "const names = () => [...document.querySelectorAll('label.graph3d-control')].map((l) => l.textContent).join('|');"
+                               "const items = () => { document.querySelector('[data-menu-title=\"dimensions\"]').click();"
+                               " const t = [...document.querySelectorAll('#menubar [data-menu=\"dimensions\"] [role=menuitem]')].map((i) => i.textContent).join('|');"
+                               " document.querySelector('[data-menu-title=\"dimensions\"]').click(); return t; };"
+                               "choose('Cartesian layout'); r('cart', names()); r('menu', items());"
+                               "const x = document.querySelector('label[for=\"dim-angle\"]').textContent; r('x', x);"
+                               "choose('Cylindrical layout'); r('cyl', names());")
+        self.assertEqual(("X|Y|Z|Colour|Size", "X…|Y…|Z…|Colour…|Size…", "X", "Height|Angle|Radius|Colour|Size"),
+                         (found["cart"], found["menu"], found["x"], found["cyl"]))
+
+
 class PeriodScale3DTest(Trihedron3DTest):
     """TASK-GXP-024: RQ-GXP-022 (ADR-GXP-003: DEC-GXP-016), in a headless browser with WebGL."""
 

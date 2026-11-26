@@ -1201,6 +1201,28 @@
     { key: LAYOUT_CARTESIAN, label: "Cartesian layout", tip: "Place the 3D points on three straight axes: x by the angle, y by the height, z by the radius" },
   ];
   const isCartesian = () => g3.layout === LAYOUT_CARTESIAN;
+  // TASK-GXP-025: in cartesian, the placing roles are named after their axes, in the axes' order
+  const ROLE_AXIS = { angle: "X", height: "Y", radius: "Z" };
+  const ROLE_TIP_CYLINDRICAL = { height: "the height of the 3D points", angle: "the angle of the 3D points around the axis",
+                                 radius: "the distance of the 3D points from the axis" };
+  const ROLE_ORDER_CARTESIAN = ["angle", "height", "radius", "colour", "size"];
+  const dimRoles = () => (isCartesian() ? ROLE_ORDER_CARTESIAN : DIM_ROLES);
+  const roleName = (role) => (isCartesian() && ROLE_AXIS[role]) || DIM_ROLE_LABELS[role];
+
+  function nameRoles() {
+    /* RQ-GXP-021: the toolbar's placing choices read X, Y, Z in cartesian, Height, Angle, Radius in cylindrical, in that order. */
+    const colour = document.querySelector('label[for="dim-colour"]');
+    for (const role of Object.keys(ROLE_AXIS)) {
+      const label = document.querySelector(`label[for="dim-${role}"]`);
+      const select = $(`dim-${role}`);
+      label.textContent = roleName(role);
+      select.title = isCartesian() ? `What the ${ROLE_AXIS[role]} position of the 3D points shows`
+        : `What ${ROLE_TIP_CYLINDRICAL[role]} shows`;
+    }
+    for (const role of dimRoles().filter((r) => ROLE_AXIS[r])) {
+      colour.before(document.querySelector(`label[for="dim-${role}"]`), $(`dim-${role}`));
+    }
+  }
 
   function place3d(model) {
     /* Each node's [x, y, z] from the reader's height, angle and radius dimensions (DEC-GXP-011), by the layout
@@ -1511,6 +1533,7 @@
   function setLayout(key) {
     /* RQ-GXP-021: the reader's layout redraws the 3D view as a dimension choice does; the camera is kept. */
     g3.layout = key;
+    nameRoles();                                   // TASK-GXP-025
     redraw3d();
   }
 
@@ -2024,8 +2047,10 @@
           action: resetRelationColours, enabled: () => Object.keys(appearance.relationColours).length > 0 },
       ] },
       { name: "dimensions", title: "Dimensions", tip: "Choose what the height, angle, radius, colour and size of the 3D view show",
-        items: DIM_ROLES.map((role) => ({ label: `${DIM_ROLE_LABELS[role]}…`, tip: `Choose what the ${role} of the 3D points shows`,   // RQ-GXP-013
-          action: () => $(`dim-${role}`).focus(), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })) },
+        // RQ-GXP-013; RQ-GXP-021: the item at place i names the role of that place in the current layout
+        items: DIM_ROLES.map((_, i) => ({ label: `${DIM_ROLE_LABELS[DIM_ROLES[i]]}…`, tip: "Choose what this dimension of the 3D points shows",
+          name: () => `${roleName(dimRoles()[i])}…`,
+          action: () => $(`dim-${dimRoles()[i]}`).focus(), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })) },
       { name: "help", title: "Help", tip: "The guide of each view, the licences and the About", items: [   // RQ-GXP-002
         { label: "Help", tip: "What the current view shows and how to use it", action: () => openHelp(state.view), enabled: always },
         null,
@@ -2193,7 +2218,12 @@
       const open = menu.dataset.menu === name;
       menu.hidden = !open;
       barTitle(menu.dataset.menu).setAttribute(ATTR_EXPANDED, String(open));
-      if (open) for (const button of menu.querySelectorAll(SELECTOR_BAR_ITEM)) button.disabled = !barEntry(button).enabled();
+      if (open) {
+        for (const button of menu.querySelectorAll(SELECTOR_BAR_ITEM)) {
+          button.disabled = !barEntry(button).enabled();
+          if (barEntry(button).name) button.textContent = barEntry(button).name();   // RQ-GXP-021: a name that follows the layout
+        }
+      }
     }
   }
 

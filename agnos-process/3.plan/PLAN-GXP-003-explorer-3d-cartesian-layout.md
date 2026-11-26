@@ -99,3 +99,17 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: `PeriodScale3DTest` 2 tests failed first (rings 2026-08 to 2026-11, positions unmoved), then OK; a first version scaling the whole history on calendar days failed 2 `Planes3DTest` tests, so without a period the scale stays the first to last commit; `PeriodScale3DTest`, `Planes3DTest`, `Dimensions3DTest`, `Trihedron3DTest`, `Cartesian3DTest`: Ran 15 tests, OK. Full suite with `AGNOS_GRAPH_PERF=1`: Ran 280 tests, 0 skipped, 1 failure, `test_RQ_GXP_019_..._less_than_3_s` (first 3D frame, under the suite's load); that test alone: 3 runs OK. The change runs on a period change only, not on the first 3D show.
 - **Assumptions**: the owner's screenshot answered the task's presentation; the scale follows the period, not the playback cursor; outside dates clamped to the period's ends.
+
+### TASK-GXP-025: Name cartesian dimension choices
+- **Tier**: M
+- **Status**: Done
+- **Description**: Write the tests first, then name the toolbar's height, angle and radius choices and the Dimensions menu items X, Y, Z in the X, Y, Z order in cartesian, back to Height, Angle, Radius in cylindrical; amend RQ-GXP-021.
+- **Requirement refs**: RQ-GXP-021, RQ-GXP-013
+- **ADR refs**: ADR-GXP-003 (DEC-GXP-015)
+- **Acceptance Criteria**:
+  - Given the cartesian layout, Then the toolbar and the Dimensions menu read X, Y, Z, Colour, Size
+  - When the cylindrical layout is chosen, Then they read Height, Angle, Radius, Colour, Size again
+- **Dependencies**: TASK-GXP-021
+- **Assignee**: AI
+- **Verification**: `AxisNames3DTest` failed first (toolbar read Height|Angle|Radius in cartesian), then OK; `test_explorer`: Ran 112 tests, OK, 2 skipped (RQ-TRC-158 and RQ-GXP-019 load times, need AGNOS_GRAPH_PERF=1; this change touches neither first view).
+- **Assumptions**: the choices keep their roles and values across layouts (X = angle, Y = height, Z = radius, DEC-GXP-015); a menu item takes the name of its place's role when its menu opens.
