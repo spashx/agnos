@@ -1395,5 +1395,34 @@ class Indicator3DTest(Planes3DTest):
         self.assertEqual(("true", "false", "0"), (found["turns"], found["shown"], found["labels"]))
 
 
+class Cartesian3DTest(Indicator3DTest):
+    """TASK-GXP-021: RQ-GXP-021, RQ-GXP-020 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_020_given_the_3d_view_then_the_indicator_is_shown_and_its_height_axis_reads_the_first_commit_date = None
+    test_RQ_GXP_020_given_the_height_set_to_the_changed_lines_then_the_indicator_height_axis_reads_the_changed_lines = None
+    test_RQ_GXP_020_given_the_axis_indicator_unchecked_then_it_is_hidden = None
+
+    # RQ-GXP-021: no ring nor angle label; x grows with the angle's value
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_no_ring_is_drawn_and_the_greatest_angle_value_has_the_greatest_x(self):
+        found = self.run_dated(CHOOSE_VIEW + "r('before', v.rings().length); choose('Cartesian layout'); r('layout', v.layout());"
+                               "r('rings', v.rings().length); r('labels', v.labels().length);"
+                               "const angle = document.getElementById('dim-angle'); angle.value = 'lines'; angle.dispatchEvent(new Event('change'));"
+                               f"const x = (id) => v.positionOf(id)[0]; r('x', x('{NEW}') > x('{OLD}') && x('{OLD}') > x('{UNDATED}'));")
+        self.assertNotEqual("0", found["before"])
+        self.assertEqual(("cartesian", "0", "0", "true"), (found["layout"], found["rings"], found["labels"], found["x"]))
+
+    # RQ-GXP-021: the cylindrical layout gives back RQ-GXP-013's positions
+    def test_RQ_GXP_021_given_the_cylindrical_layout_chosen_again_then_the_positions_return(self):
+        found = self.run_dated(CHOOSE_VIEW + f"const p = () => v.positionOf('{NEW}').join(','); const before = p();"
+                               "choose('Cartesian layout'); r('moved', p() !== before); choose('Cylindrical layout');"
+                               "r('layout', v.layout()); r('back', p() === before);")
+        self.assertEqual(("true", "cylindrical", "true"), (found["moved"], found["layout"], found["back"]))
+
+    # RQ-GXP-021, RQ-GXP-020: the indicator names x, y and z
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_the_indicator_reads_x_y_and_z_with_their_dimensions(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); r('labels', v.indicator().labels.sort().join('|'));")
+        self.assertEqual("X: Trigram|Y: First commit date|Z: Layer", found["labels"])
+
+
 if __name__ == "__main__":
     unittest.main()

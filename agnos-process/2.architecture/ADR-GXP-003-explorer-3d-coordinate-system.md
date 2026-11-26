@@ -20,7 +20,7 @@ and a cartesian layout with a trihedron, each toggled in the View menu, in a dec
 
 ### DEC-GXP-015: Layout as a pure placement function
 - **Statement**: The explorer SHALL compute each point's position by a layout function chosen in the View menu, cylindrical or cartesian, from the same normalised dimension values, the cartesian one also drawing a graduated trihedron overlay.
-- **Rationale**: the dimensions table stays unchanged (DEC-GXP-011); switching layout rewrites the position buffer only, as a filter rewrites the alpha (DEC-GXP-008).
+- **Rationale**: the dimensions table stays unchanged (DEC-GXP-011); switching layout redraws the two buffers as a dimension choice does, the camera kept (DEC-GXP-008).
 - **Requirement refs**: RQ-GXP-021
 - **Dependencies**: DEC-GXP-011, DEC-GXP-008, DEC-GXP-013
 
@@ -66,7 +66,7 @@ sequenceDiagram
     Reader->>Menu: choose Cartesian
     Menu->>V: layout = cartesian
     V->>L: position per node
-    V->>V: rewrite position buffer, hide rings
+    V->>V: redraw buffers, no rings
     loop each frame
         V->>V: render main viewport
         V->>I: copy camera orientation

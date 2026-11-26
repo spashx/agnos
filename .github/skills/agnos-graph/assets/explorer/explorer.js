@@ -1093,6 +1093,7 @@
   const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
                show: { rings: true, plane: true, labels: true,   // RQ-GXP-015: the reader's overlay choices, kept across graphs
                        indicator: true },                          // RQ-GXP-020
+               layout: "cylindrical",                              // RQ-GXP-021: kept across graphs
                orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
 
   // ---- 3D dimensions (RQ-GXP-013, RQ-GXP-009; DEC-GXP-011) ----------------------------------------------------
@@ -1182,10 +1183,23 @@
     return { count: order.length, categories: order, slot: (id) => slots.get(values.get(id)), t: (id) => slots.get(values.get(id)) / last };
   }
 
+  // RQ-GXP-021, DEC-GXP-015: the layouts placing the dimensions' values, chosen in the View menu
+  const LAYOUT_CYLINDRICAL = "cylindrical";
+  const LAYOUT_CARTESIAN = "cartesian";
+  const LAYOUTS_3D = [
+    { key: LAYOUT_CYLINDRICAL, label: "Cylindrical layout", tip: "Place the 3D points by height, angle around the axis and radius" },
+    { key: LAYOUT_CARTESIAN, label: "Cartesian layout", tip: "Place the 3D points on three straight axes: x by the angle, y by the height, z by the radius" },
+  ];
+  const isCartesian = () => g3.layout === LAYOUT_CARTESIAN;
+
   function place3d(model) {
-    /* Each node's [x, y, z] from the reader's height, angle and radius dimensions (DEC-GXP-011). */
+    /* Each node's [x, y, z] from the reader's height, angle and radius dimensions (DEC-GXP-011), by the layout
+       (DEC-GXP-015). */
     const extent = tokenNumber("--c-graph3d-extent");
     const [height, angle, radius] = ["height", "angle", "radius"].map((role) => scaleOf(g3.dims[role], model));
+    if (isCartesian()) {
+      return new Map([...model.nodes.keys()].map((id) => [id, [angle, height, radius].map((s) => (s.t(id) - HALF) * extent)]));
+    }
     const turn = (id) => (angle.count > 1 ? angle.slot(id) / angle.count : angle.t(id)) * FULL_TURN;
     const away = (id) => (radius.count > 1 ? (radius.slot(id) + 1) / radius.count : RADIUS_FLOOR + (1 - RADIUS_FLOOR) * radius.t(id));
     return new Map([...model.nodes.keys()].map((id) => {
@@ -1258,7 +1272,7 @@
       overlay.heightAt = (instant) => (scale.at(instant) - HALF) * extent;
       const circle = new THREE.BufferGeometry().setFromPoints(Array.from({ length: RING_SEGMENTS }, (_, i) =>
         new THREE.Vector3(Math.cos((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF, 0, Math.sin((i / RING_SEGMENTS) * FULL_TURN) * extent * HALF)));
-      for (const month of monthStarts(time.first, time.last)) {
+      for (const month of isCartesian() ? [] : monthStarts(time.first, time.last)) {   // RQ-GXP-021: no ring in cartesian
         const y = overlay.heightAt(month.getTime());
         const line = new THREE.LineLoop(circle, new THREE.LineBasicMaterial({ color: colour }));
         line.position.y = y;
@@ -1269,7 +1283,7 @@
       group.add(overlay.plane);
     }
     const angle = scaleOf(g3.dims.angle, state.model);
-    if (angle.categories) {
+    if (angle.categories && !isCartesian()) {     // RQ-GXP-021: no angle label in cartesian
       const r = extent * HALF * LABEL_OUTSIDE;
       overlay.labels = angle.categories.map((c, i) => labelElement(c, "labels",
         [r * Math.cos((i / angle.count) * FULL_TURN), -extent * HALF, r * Math.sin((i / angle.count) * FULL_TURN)]));
@@ -1338,7 +1352,15 @@
   const dimLabel = (role) => dimension(g3.dims[role]).label;
 
   function indicatorAxes() {
-    /* RQ-GXP-020: the cylinder's height axis, its radius at angle 0, and its angle's quarter turn from x towards z. */
+    /* RQ-GXP-020: the cylinder's height axis, its radius at angle 0, and its angle's quarter turn from x towards z;
+       RQ-GXP-021: the cartesian x, y and z. */
+    if (isCartesian()) {
+      return [
+        { to: [1, 0, 0], colour: "--c-graph3d-axis-x", text: `X: ${dimLabel("angle")}` },
+        { to: AXIS_UP, colour: "--c-graph3d-axis-y", text: `Y: ${dimLabel("height")}` },
+        { to: [0, 0, 1], colour: "--c-graph3d-axis-z", text: `Z: ${dimLabel("radius")}` },
+      ];
+    }
     return [
       { to: AXIS_UP, colour: "--c-graph3d-axis-y", text: `Height: ${dimLabel("height")}` },
       { to: [1, 0, 0], colour: "--c-graph3d-axis-x", text: `Radius: ${dimLabel("radius")}` },
@@ -1410,6 +1432,16 @@
   function setDimension(role, key) {
     /* RQ-GXP-013: the reader's choice redraws the 3D view's points and lines; the camera is kept. */
     g3.dims[role] = key;
+    redraw3d();
+  }
+
+  function setLayout(key) {
+    /* RQ-GXP-021: the reader's layout redraws the 3D view as a dimension choice does; the camera is kept. */
+    g3.layout = key;
+    redraw3d();
+  }
+
+  function redraw3d() {
     if (!g3.renderer) return;
     disposeScene3d();
     buildScene3d();
@@ -1892,6 +1924,9 @@
           enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
         { label: "Axis indicator", tip: "Show or hide the axes of the bottom left corner, named after the dimensions they show",   // RQ-GXP-020
           action: () => toggleOverlay(KEY_INDICATOR), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) },
+        null,                                                                                     // RQ-GXP-021
+        ...LAYOUTS_3D.map((l) => ({ label: l.label, tip: l.tip, action: () => setLayout(l.key),
+          enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
       ] },
       { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
@@ -2436,6 +2471,7 @@
               plane: () => ({ visible: Boolean(g3.overlay.plane?.visible), y: g3.overlay.plane?.position.y }),
               labels: () => g3.overlay.labels.filter((l) => !l.el.hidden).map((l) => l.text),
               indicator: indicator3d,                                                                 // RQ-GXP-020
+              layout: () => g3.layout,                                                                // RQ-GXP-021
               project: (p) => { const s = new window.THREE.Vector3(...p).project(g3.camera); return { x: s.x, y: s.y }; },
               positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))

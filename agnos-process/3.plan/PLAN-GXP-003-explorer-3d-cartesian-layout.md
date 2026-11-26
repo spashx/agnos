@@ -44,7 +44,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-021: Add 3D cartesian layout
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add the cylindrical and cartesian layout choice to the View menu, placing points at x, y, z from the angle, height and radius values, rings and angle labels hidden in cartesian.
 - **Requirement refs**: RQ-GXP-021, RQ-GXP-020
 - **ADR refs**: ADR-GXP-003 (DEC-GXP-015)
@@ -54,8 +54,8 @@ This plan implements the tasks in the format specified below.
   - Given the cartesian layout, Then the indicator's axes read x, y and z with their dimensions
 - **Dependencies**: TASK-GXP-020
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Cartesian3DTest` 3 tests failed first (KeyError, no layout hook), then OK; with `Indicator3DTest`, `Planes3DTest`, `Dimensions3DTest`: Ran 13 tests, OK. Full suite in TASK-GXP-023.
+- **Assumptions**: each cartesian coordinate is (t - 0.5) × extent of its dimension, a category at its slot; the layout is kept across graphs, cylindrical by default; switching redraws the scene as a dimension choice does (ADR-GXP-003 rationale worded so); the cursor plane is kept in cartesian.
 
 ### TASK-GXP-022: Add 3D graduated trihedron
 - **Tier**: M
