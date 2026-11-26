@@ -1369,5 +1369,31 @@ class Planes3DTest(View3DTest):
         self.assertEqual("0", found["off"])
 
 
+class Indicator3DTest(Planes3DTest):
+    """TASK-GXP-020: RQ-GXP-020 (ADR-GXP-003: DEC-GXP-014), in a headless browser with WebGL."""
+
+    test_RQ_GXP_015_given_height_by_first_commit_date_then_a_ring_labelled_2026_08_lies_at_that_month_height = None
+    test_RQ_GXP_015_given_play_pressed_then_the_grid_plane_rises_with_the_cursor = None
+    test_RQ_GXP_015_given_angle_by_trigram_then_its_labels_are_shown_and_the_view_menu_hides_them = None
+
+    # RQ-GXP-020: shown by default, its height axis named from the height dimension
+    def test_RQ_GXP_020_given_the_3d_view_then_the_indicator_is_shown_and_its_height_axis_reads_the_first_commit_date(self):
+        found = self.run_dated("const i = v.indicator(); r('shown', i.visible); r('labels', i.labels.join('|'));")
+        self.assertEqual("true", found["shown"])
+        self.assertIn("Height: First commit date", found["labels"].split("|"))
+
+    # RQ-GXP-020: the labels follow the Dimensions choices
+    def test_RQ_GXP_020_given_the_height_set_to_the_changed_lines_then_the_indicator_height_axis_reads_the_changed_lines(self):
+        found = self.run_dated("const height = document.getElementById('dim-height'); height.value = 'lines';"
+                               "height.dispatchEvent(new Event('change')); r('labels', v.indicator().labels.join('|'));")
+        self.assertIn("Height: Changed lines", found["labels"].split("|"))
+
+    # RQ-GXP-020: toggled in the View menu; it turns with the camera
+    def test_RQ_GXP_020_given_the_axis_indicator_unchecked_then_it_is_hidden(self):
+        found = self.run_3d(CHOOSE_VIEW + "const before = v.indicator().up; choose('Top'); r('turns', before.some((c, i) => Math.abs(c - v.indicator().up[i]) > 1e-3));"
+                            "choose('Axis indicator'); const i = v.indicator(); r('shown', i.visible); r('labels', i.labels.length);")
+        self.assertEqual(("true", "false", "0"), (found["turns"], found["shown"], found["labels"]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -29,7 +29,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-020: Add 3D axis indicator
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then draw the axis indicator in a bottom left viewport following the camera, labelled from the dimensions, toggled in the View menu.
 - **Requirement refs**: RQ-GXP-020
 - **ADR refs**: ADR-GXP-003 (DEC-GXP-014)
@@ -39,8 +39,8 @@ This plan implements the tasks in the format specified below.
   - When the axis indicator is unchecked, Then the indicator is hidden
 - **Dependencies**: TASK-GXP-019
 - **Assignee**: AI
-- **Verification**: pending
-- **Assumptions**: pending
+- **Verification**: `Indicator3DTest` 3 tests failed first (KeyError, no indicator hook), then OK (Ran 3 tests, OK). Full suite run in TASK-GXP-023.
+- **Assumptions**: in the cylindrical layout the indicator shows the height axis, the radius at angle 0 and a quarter arc for the angle; its square is 96 CSS px, cleared to the 3D background; axes x, y, z in Okabe-Ito vermillion, green, blue (new tokens axis-x/y/z).
 
 ### TASK-GXP-021: Add 3D cartesian layout
 - **Tier**: M

@@ -923,7 +923,7 @@ TASK-GXP-018|118-130|Done|Verify explorer lot B1
 @agnos-process/3.plan/PLAN-GXP-003-explorer-3d-cartesian-layout.md
 PLAN-GXP-003|1-87||Explorer 3D cartesian layout with axis indicator
 TASK-GXP-019|17-29|Done|Document explorer 3D cartesian layout
-TASK-GXP-020|30-44|Not Started|Add 3D axis indicator
+TASK-GXP-020|30-44|Done|Add 3D axis indicator
 TASK-GXP-021|45-59|Not Started|Add 3D cartesian layout
 TASK-GXP-022|60-74|Not Started|Add 3D graduated trihedron
 TASK-GXP-023|75-87|Not Started|Verify explorer 3D cartesian layout

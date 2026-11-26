@@ -1091,7 +1091,8 @@
   const START_PHI = Math.PI / 3;
   const ATTR_SCALE = "pointScale";                 // DEC-GXP-011: the per-point size factor of the shader
   const g3 = { renderer: null, scene: null, camera: null, points: null, lines: null, ids: [], index: new Map(), drag: null,
-               show: { rings: true, plane: true, labels: true },   // RQ-GXP-015: the reader's overlay choices, kept across graphs
+               show: { rings: true, plane: true, labels: true,   // RQ-GXP-015: the reader's overlay choices, kept across graphs
+                       indicator: true },                          // RQ-GXP-020
                orbit: { theta: START_THETA, phi: START_PHI, zoom: 1, target: [0, 0, 0] } };
 
   // ---- 3D dimensions (RQ-GXP-013, RQ-GXP-009; DEC-GXP-011) ----------------------------------------------------
@@ -1325,6 +1326,87 @@
     render3d();
   }
 
+  // ---- 3D axis indicator (RQ-GXP-020; ADR-GXP-003: DEC-GXP-014) ----------------------------------------------
+  const INDICATOR_DISTANCE = 3;                    // its camera's distance from its origin, its axes one unit long
+  const INDICATOR_FRAME = 1.7;                     // the half width its orthographic camera shows, labels included
+  const INDICATOR_LABEL_AT = 1.3;                  // its labels just past its axes' ends
+  const INDICATOR_NEAR = 0.1;
+  const INDICATOR_FAR = 10;
+  const ARC_SEGMENTS = 16;
+  const KEY_INDICATOR = "indicator";
+  const AXIS_UP = [0, 1, 0];
+  const dimLabel = (role) => dimension(g3.dims[role]).label;
+
+  function indicatorAxes() {
+    /* RQ-GXP-020: the cylinder's height axis, its radius at angle 0, and its angle's quarter turn from x towards z. */
+    return [
+      { to: AXIS_UP, colour: "--c-graph3d-axis-y", text: `Height: ${dimLabel("height")}` },
+      { to: [1, 0, 0], colour: "--c-graph3d-axis-x", text: `Radius: ${dimLabel("radius")}` },
+      { to: [0, 0, 1], arc: true, colour: "--c-graph3d-axis-z", text: `Angle: ${dimLabel("angle")}` },
+    ];
+  }
+
+  function buildIndicator3d() {
+    /* DEC-GXP-014: a small scene of its own, drawn into the corner viewport by the same renderer. */
+    const THREE = window.THREE;
+    const scene = new THREE.Scene();
+    const origin = new THREE.Vector3();
+    const labels = indicatorAxes().map((axis) => {
+      const end = new THREE.Vector3(...axis.to);
+      const points = axis.arc
+        ? Array.from({ length: ARC_SEGMENTS + 1 }, (_, i) => new THREE.Vector3(Math.cos((i / ARC_SEGMENTS) * FULL_TURN / 4), 0,
+                                                                               Math.sin((i / ARC_SEGMENTS) * FULL_TURN / 4)))
+        : [origin, end];
+      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: cssValue(axis.colour) })));
+      return labelElement(axis.text, KEY_INDICATOR, end.multiplyScalar(INDICATOR_LABEL_AT).toArray());
+    });
+    const camera = new THREE.OrthographicCamera(-INDICATOR_FRAME, INDICATOR_FRAME, INDICATOR_FRAME, -INDICATOR_FRAME,
+                                                INDICATOR_NEAR, INDICATOR_FAR);
+    g3.indicator = { scene, camera, labels };
+  }
+
+  function orientIndicator3d() {
+    /* DEC-GXP-014: the indicator's camera looks at its origin from the main camera's direction. */
+    const { camera } = g3.indicator;
+    camera.position.copy(g3.camera.position).sub(new window.THREE.Vector3(...g3.orbit.target)).normalize()
+      .multiplyScalar(INDICATOR_DISTANCE);
+    camera.up.copy(g3.camera.up);
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+  }
+
+  function renderIndicator3d() {
+    /* RQ-GXP-020: drawn last, in a square of the bottom left corner; its labels placed in that square. */
+    const ind = g3.indicator;
+    if (!ind) return;
+    for (const tag of ind.labels) tag.el.hidden = !g3.show.indicator;
+    if (!g3.show.indicator) return;
+    orientIndicator3d();
+    const size = tokenNumber("--c-graph3d-indicator-size");
+    const renderer = g3.renderer;
+    const canvas = renderer.domElement;
+    renderer.setScissorTest(true);
+    renderer.setScissor(0, 0, size, size);
+    renderer.setViewport(0, 0, size, size);
+    renderer.render(ind.scene, ind.camera);
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    for (const tag of ind.labels) {
+      const p = new window.THREE.Vector3(...tag.pos).project(ind.camera);
+      tag.el.style.left = (p.x + 1) * HALF * size + UNIT_PX;
+      tag.el.style.top = canvas.clientHeight - size + (1 - p.y) * HALF * size + UNIT_PX;
+    }
+  }
+
+  function indicator3d() {
+    /* Test hook: whether it is drawn, its shown labels, and its height axis's direction on screen. */
+    const ind = g3.indicator;
+    const visible = Boolean(ind) && g3.show.indicator;
+    if (ind) orientIndicator3d();
+    const up = ind ? new window.THREE.Vector3(...AXIS_UP).project(ind.camera) : { x: 0, y: 0 };
+    return { visible, labels: visible ? ind.labels.map((l) => l.text) : [], up: [up.x, up.y] };
+  }
+
   function setDimension(role, key) {
     /* RQ-GXP-013: the reader's choice redraws the 3D view's points and lines; the camera is kept. */
     g3.dims[role] = key;
@@ -1385,6 +1467,7 @@
     g3.scene = new THREE.Scene();
     g3.scene.add(g3.lines, g3.points);
     buildOverlays3d();                             // RQ-GXP-015
+    buildIndicator3d();                            // RQ-GXP-020
     paintLines();
   }
 
@@ -1448,6 +1531,7 @@
     placeCamera();
     g3.renderer.render(g3.scene, g3.camera);
     placeLabels3d();                               // RQ-GXP-015
+    renderIndicator3d();                           // RQ-GXP-020
   }
 
   function resize3d() {
@@ -1591,6 +1675,8 @@
     }
     g3.overlay?.group.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });   // RQ-GXP-015
     g3.overlay = null;
+    g3.indicator?.scene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });   // RQ-GXP-020
+    g3.indicator = null;
     $(ID_LABELS_3D).replaceChildren();
   }
 
@@ -1804,6 +1890,8 @@
         null,                                                                                     // RQ-GXP-015
         ...OVERLAYS.map((o) => ({ label: o.label, tip: o.tip, action: () => toggleOverlay(o.key),
           enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) })),
+        { label: "Axis indicator", tip: "Show or hide the axes of the bottom left corner, named after the dimensions they show",   // RQ-GXP-020
+          action: () => toggleOverlay(KEY_INDICATOR), enabled: () => state.view === VIEW_GRAPH3D && Boolean(g3.renderer) },
       ] },
       { name: "filter", title: "Filter", tip: "Clear the query or show every node", items: [
         { label: "Clear query", tip: "Clear the query and show what the facets allow", action: () => query(""), enabled: loaded },
@@ -2347,6 +2435,7 @@
               rings: () => g3.overlay.rings.filter((g) => g.line.visible).map(({ label, y }) => ({ label, y })),   // RQ-GXP-015
               plane: () => ({ visible: Boolean(g3.overlay.plane?.visible), y: g3.overlay.plane?.position.y }),
               labels: () => g3.overlay.labels.filter((l) => !l.el.hidden).map((l) => l.text),
+              indicator: indicator3d,                                                                 // RQ-GXP-020
               project: (p) => { const s = new window.THREE.Vector3(...p).project(g3.camera); return { x: s.x, y: s.y }; },
               positionOf: (id) => [...g3.points.geometry.getAttribute("position").array.slice(g3.index.get(id) * XYZ, (g3.index.get(id) + 1) * XYZ)],   // RQ-GXP-019, RQ-GXP-011, RQ-GXP-012, DEC-GXP-007 to DEC-GXP-010
               shownIds: () => g3.ids.filter((id) => isShown(state.model.nodes.get(id))
