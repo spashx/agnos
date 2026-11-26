@@ -14,7 +14,7 @@ visual"; flat tabs Graph 2D, Graph 3D, Nodes, Relations; delivery in two lots, A
 then B (3D); a hand-written orbit controller; the 3D view usable without history, the history being one dimension among
 others; the node colours kept; the help and About copied from the performance center.
 
-Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session.
+Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session. RQ-GXP-020 and RQ-GXP-021 (PLAN-GXP-003).
 
 Out of scope: nodes deleted before the graph's commit (the graph is the state at one commit, so the time filter shows when
 today's nodes first appeared, not what was removed); a choice of node type colours (owner: "en gardant la couleur des
@@ -190,6 +190,24 @@ nœuds"); a dark theme; editing the graph; a server.
 - **Priority**: Could
 - **Acceptance Criteria**: Given the 3D view, When the presentation mode is chosen, Then the menus and panels are hidden And the view rotates; When Escape is pressed, Then the layout is restored.
 - **Dependencies**: RQ-GXP-011
+
+### RQ-GXP-020: 3D axis indicator
+- **Category**: Functional
+- **EARS Type**: State-driven
+- **Statement**: WHILE the axis indicator is checked in the View menu, the 3D view SHALL show in its bottom left corner three axes turning with the camera, each labelled with the dimension it shows, the indicator being checked by default.
+- **Rationale**: the reader knows what each direction shows without opening the Dimensions menu (owner, 2026-11-26).
+- **Priority**: Should
+- **Acceptance Criteria**: Given the 3D view, Then the indicator's height axis reads the first commit date; When the height is set to the changed lines, Then it reads the changed lines; When the axis indicator is unchecked, Then the indicator is hidden.
+- **Dependencies**: RQ-GXP-013, RQ-GXP-014, RQ-GXP-021
+
+### RQ-GXP-021: 3D cartesian layout
+- **Category**: Functional
+- **EARS Type**: Event-driven
+- **Statement**: WHEN the reader chooses the cartesian layout in the View menu, the 3D view SHALL place each point at the x, y and z given by the angle, height and radius dimensions, without month rings or angle labels, and SHALL show, while the axes are checked in the View menu, three graduated axes from the origin labelled with their dimensions; WHEN the cylindrical layout is chosen, the 3D view SHALL return to RQ-GXP-013's placement, the axes choice disabled.
+- **Rationale**: a traditional trihedron reads three quantities directly, where the cylinder shows sectors (owner, 2026-11-26).
+- **Priority**: Should
+- **Acceptance Criteria**: Given the 3D view, When the cartesian layout is chosen, Then no month ring is drawn And the node of greatest angle value has the greatest x; When the axes are unchecked, Then the trihedron is hidden; When the cylindrical layout is chosen, Then the axes choice is disabled.
+- **Dependencies**: RQ-GXP-013, RQ-GXP-015
 
 ---
 
