@@ -17,9 +17,9 @@ created with `preserveDrawingBuffer` (DEC-GXP-007) under HTML labels (DEC-GXP-01
 
 ## Decision
 
-### DEC-GXP-017: Named view snapshots in browser storage
-- **Statement**: The explorer SHALL keep each saved view in `localStorage` as a named JSON snapshot of the tab, the query text, the unchecked facet values, the hidden and isolated node IDs, the period's dates, the 3D dimensions, layout, projection and orbit, and the relation colours, under a key of its own, and SHALL export and import the list as a JSON file, the saved queries' export and this one opening a save dialog that remembers its last folder where the browser offers `showSaveFilePicker`, a download elsewhere.
-- **Rationale**: the store and the file of the saved queries (DEC-TRC-093) already work offline and are understood by the reader; a snapshot of plain values, not of the internal sets, survives a reload and a newer graph of the same project; the export is the reader's copy on disk, and a dialog reopened in `agnos-process/4.knowledge/graph/` once chosen keeps it with the graph (owner, 2026-11-27), where a page cannot name a folder itself.
+### DEC-GXP-017: View snapshot in a JSON file
+- **Statement**: The explorer SHALL export the current view as one JSON snapshot of the tab, the query text, the unchecked facet values, the hidden and isolated node IDs, the period's dates, the 3D dimensions, layout, projection and orbit, and the relation colours, and SHALL import such a file to restore it, keeping no view in the browser; the view's and the saved queries' exports SHALL open a save dialog that remembers its last folder where the browser offers `showSaveFilePicker`, a download elsewhere. (Amended by TASK-GXP-030, owner, 2026-11-27: the named views of `localStorage` removed.)
+- **Rationale**: a view is a file the reader keeps, versions and shares, the browser holding none (owner, 2026-11-27); a snapshot of plain values, not of the internal sets, applies to a newer graph of the same project; a dialog reopened in `agnos-process/4.knowledge/graph/` once chosen keeps the file with the graph, where a page cannot name a folder itself; the saved queries keep their store (DEC-TRC-093).
 - **Requirement refs**: RQ-GXP-016
 - **Dependencies**: DEC-TRC-093, DEC-GXP-003, DEC-GXP-005, DEC-GXP-011, DEC-GXP-012
 
@@ -37,8 +37,8 @@ created with `preserveDrawingBuffer` (DEC-GXP-007) under HTML labels (DEC-GXP-01
 
 ## Consequences
 - Easier: a new view setting needs one snapshot field and its setter; the images need no new library.
-- Harder: a snapshot field renamed later needs a reading of the former name.
-- Constrained: the views live in one browser until exported; a 3D label style not drawn by the label tokens is not in the image.
+- Harder: a snapshot field renamed later needs a reading of the former name; a view not exported is lost with the page.
+- Constrained: reopening a view always goes through the file dialog, no list of views being kept; a 3D label style not drawn by the label tokens is not in the image.
 
 ## Alternatives Considered
 - **The view in the page's URL**: shareable by link, but the hidden node lists of a large graph exceed a URL's length. Rejected.
@@ -58,14 +58,14 @@ created with `preserveDrawingBuffer` (DEC-GXP-007) under HTML labels (DEC-GXP-01
 title: Explorer view capture, static view
 ---
 classDiagram
-    class SavedViews { list store() load() exportText() importText() }
+    class ViewFile { exportView() importView() }
     class ViewSnapshot { name tab query off hidden isolate period dims layout projection orbit colours }
     class ExplorerState { state g3 appearance }
     class ImageExport { exportImage() }
     class Graph2D { cy png() }
     class Graph3D { renderer labels }
-    SavedViews "1" o-- "*" ViewSnapshot
-    SavedViews --> ExplorerState : snapshot, restore through setters
+    ViewFile "1" --> "1" ViewSnapshot
+    ViewFile --> ExplorerState : snapshot, restore through setters
     ImageExport --> Graph2D : visible viewport
     ImageExport --> Graph3D : canvas and labels
 ```
@@ -77,15 +77,15 @@ title: Explorer view capture, saving, restoring and exporting
 sequenceDiagram
     actor Reader
     participant Menu as File menu
-    participant SV as SavedViews
+    participant VF as ViewFile
     participant S as Explorer setters
     participant IE as ImageExport
-    Reader->>Menu: Save view…, name
-    Menu->>SV: snapshot of state, g3, appearance
-    SV->>SV: localStorage
-    Reader->>Menu: open a saved view
-    Menu->>SV: restore(name)
-    SV->>S: colours, facets, hidden, query, period, dimensions, projection, tab
+    Reader->>Menu: Export view…
+    Menu->>VF: snapshot of state, g3, appearance
+    VF-->>Reader: JSON file, save dialog
+    Reader->>Menu: Import view…, a file
+    Menu->>VF: restore(file)
+    VF->>S: colours, facets, hidden, query, period, dimensions, projection, tab
     S-->>Reader: every view redrawn
     Reader->>Menu: Export image
     Menu->>IE: current view

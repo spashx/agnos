@@ -164,13 +164,13 @@ nœuds"); a dark theme; editing the graph; a server.
 - **Acceptance Criteria**: Given the 3D view with height by first commit date, Then a ring labelled 2026-08 lies at that month's height; When Play is pressed, Then the grid plane rises with the cursor.
 - **Dependencies**: RQ-GXP-013, RQ-GXP-007
 
-### RQ-GXP-016: Saved explorer views
+### RQ-GXP-016: Explorer view files
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN the reader saves a view, the explorer SHALL keep under its name the tab, the query, the facets, the hidden and isolated nodes, the period, the dimensions, the projection and the relation colours, restore them all when the view is opened, and export and import the saved views as a JSON file.
+- **Statement**: WHEN the reader exports the view, the explorer SHALL write to a JSON file the tab, the query, the facets, the hidden and isolated nodes, the period, the dimensions, the projection and the relation colours, and WHEN the reader imports a view file, SHALL restore them all, keeping no view in the browser. (Amended by TASK-GXP-030, owner, 2026-11-27: a view is a file only, the saved views of the browser removed.)
 - **Rationale**: a reader returns to a prepared view and shares it.
 - **Priority**: Should
-- **Acceptance Criteria**: Given a 3D view in isometric projection with a period, When it is saved, reloaded and opened, Then the same tab, projection, period and shown nodes are restored.
+- **Acceptance Criteria**: Given a 3D view in isometric projection with a period, When it is exported, the state reset and the file imported, Then the same tab, projection, period and shown nodes are restored; Given the explorer, Then the browser's storage holds no view.
 - **Dependencies**: RQ-TRC-153, RQ-GXP-005, RQ-GXP-013, RQ-GXP-014
 
 ### RQ-GXP-017: Graph image export

@@ -756,11 +756,11 @@ class MenuBarTest(unittest.TestCase):
                                                      "const key = (k) => document.activeElement.dispatchEvent(new KeyboardEvent('keydown',"
                                                      " { key: k, bubbles: true }));" + script))
 
-    # RQ-GXP-001; RQ-GXP-016 (TASK-GXP-027): the views' items follow the saved queries', no view saved yet;
+    # RQ-GXP-001; RQ-GXP-016 (TASK-GXP-030): the view's export and import follow the saved queries', no saved view;
     # RQ-GXP-017 (TASK-GXP-028): Export image last
     def test_RQ_GXP_001_given_the_explorer_when_file_is_clicked_then_open_import_and_export_are_listed(self):
         found = self.run_page("title('file').click(); r('items', shown());")
-        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…|Save view…|Import views…|Export views…"
+        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…|Export view…|Import view…"
                          "|Export image",
                          found["items"])
 
@@ -1503,17 +1503,17 @@ class PeriodScale3DTest(Trihedron3DTest):
         self.assertEqual(("true", "true"), (found["moved"], found["back"]))
 
 
-# TASK-GXP-027: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018): the state a saved view restores, read from the hooks
+# TASK-GXP-027, TASK-GXP-030: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018): the state a view file restores, read from the hooks
 VIEW_STATE = ("const e = agnosExplorer; const shot = () => ({ tab: document.querySelector('.tab[aria-selected=true]').dataset.view,"
               " kind: v.cameraKind(), period: JSON.stringify(t.period()), query: document.getElementById('query').value,"
               " shown: e.shownIds().sort().join('|') });"
               "const reset = () => { e.showAll(); choose('Perspective'); t.setPeriodDays(0, 1e6); e.showView('nodes'); };")
-SAVED_VIEW = "Mine"
+VIEW_FILE_NAME = "agnos-graph-view.json"         # RQ-GXP-016 (TASK-GXP-030): the view file's suggested name
 
 
 @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
-class SavedViewsTest(unittest.TestCase):
-    """TASK-GXP-027: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018), in a headless browser with WebGL, each run in a
+class ViewFilesTest(unittest.TestCase):
+    """TASK-GXP-030: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018), in a headless browser with WebGL, each run in a
     fresh profile."""
 
     @classmethod
@@ -1528,7 +1528,7 @@ class SavedViewsTest(unittest.TestCase):
         cls.tmp.cleanup()
 
     def run_dated(self, script):
-        """RQ-GXP-016: runs script once the 3D view of dated_graph() is drawn; `w` holds the saved views' hooks."""
+        """RQ-GXP-016: runs script once the 3D view of dated_graph() is drawn; `w` holds the view file's hooks."""
         return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
                                                      " String(v)); const v = agnosExplorer.view3d; const t = agnosExplorer.time;"
                                                      " const w = agnosExplorer.views;"
@@ -1537,66 +1537,62 @@ class SavedViewsTest(unittest.TestCase):
                                                      f"v.ready().then(() => {{ {script} }}).catch((error) => r('error', error.message));"))
 
     # RQ-GXP-016
-    def test_RQ_GXP_016_given_an_isometric_3d_view_with_a_period_a_query_and_a_hidden_node_when_saved_reloaded_and_opened_then_it_is_restored(self):
+    def test_RQ_GXP_016_given_an_isometric_3d_view_with_a_period_a_query_and_a_hidden_node_when_exported_reset_and_imported_then_it_is_restored(self):
         found = self.run_dated("choose('Isometric'); t.setPeriodDays(0, t.dayOf('2026-10-01')); e.query('type:RQ');"
-                               f"e.hide('{UNDATED}'); const before = shot(); w.save('{SAVED_VIEW}'); reset(); const between = shot();"
-                               f"w.load(); w.open('{SAVED_VIEW}'); v.ready().then(() => {{ const after = shot();"
+                               f"e.hide('{UNDATED}'); const before = shot(); const text = w.exportText(); reset(); const between = shot();"
+                               "const ok = w.importText(text); v.ready().then(() => { const after = shot();"
                                " r('before', JSON.stringify(before)); r('between', JSON.stringify(between)); r('after', JSON.stringify(after));"
-                               " r('names', w.list().map((x) => x.name).join('|')); });")
+                               " r('ok', ok); });")
         self.assertNotIn("error", found)
         before = json.loads(found["before"].replace("&quot;", '"'))
         self.assertEqual(("graph3d", "orthographic", OLD), (before["tab"], before["kind"], before["shown"]))
         self.assertNotEqual(found["before"], found["between"])
         self.assertEqual(found["before"], found["after"])
-        self.assertEqual(SAVED_VIEW, found["names"])
+        self.assertEqual("true", found["ok"])
 
-    # RQ-GXP-016, DEC-GXP-017
-    def test_RQ_GXP_016_given_saved_views_exported_when_the_store_is_emptied_and_the_file_imported_then_the_same_views_are_listed(self):
-        found = self.run_dated("w.save('First'); choose('Top'); w.save('Second'); const text = w.exportText();"
-                               "localStorage.clear(); w.load(); const fresh = w.list().length; const ok = w.importText(text); w.load();"
-                               "r('fresh', fresh); r('ok', ok); r('names', w.list().map((x) => x.name).join('|'));"
-                               "r('file', JSON.parse(text).views.map((x) => x.name).join('|'));")
+    # RQ-GXP-016, DEC-GXP-017: a view is a file only: no saved view in the File menu, no view in the browser's storage
+    def test_RQ_GXP_016_given_a_view_exported_then_the_file_menu_has_no_saved_view_and_the_storage_holds_no_view(self):
+        found = self.run_dated("w.exportFile().then(() => { document.querySelector('[data-menu-title=\"file\"]').click();"
+                               " const items = [...document.querySelectorAll('#menubar [data-menu=\"file\"] [role=menuitem]')];"
+                               " r('items', items.map((i) => i.textContent).join('|'));"
+                               " r('untitled', items.filter((i) => !(i.title || '').trim()).length);"
+                               " r('keys', Object.keys(localStorage).filter((k) => /view/i.test(k)).join('|')); });")
         self.assertNotIn("error", found)
-        self.assertEqual(("0", "true", "First|Second", "First|Second"), (found["fresh"], found["ok"], found["names"], found["file"]))
+        items = found["items"].split("|")
+        for label in ("Export view…", "Import view…"):
+            self.assertIn(label, items)
+        for label in ("Save view…", "Import views…", "Export views…"):
+            self.assertNotIn(label, items)
+        self.assertEqual(("0", ""), (found["untitled"], found["keys"]))
 
-    # RQ-GXP-016, DEC-GXP-018: a value the loaded graph cannot apply is skipped, the others restored
-    def test_RQ_GXP_016_given_a_saved_view_hiding_a_node_the_graph_lacks_when_opened_then_the_other_values_are_restored(self):
-        found = self.run_dated("choose('Isometric'); e.query('type:RQ'); w.save('Foreign');"
+    # RQ-GXP-016, DEC-GXP-018: a value the loaded graph cannot apply is skipped, the others restored; a file of no view refused
+    def test_RQ_GXP_016_given_a_view_file_hiding_a_node_the_graph_lacks_when_imported_then_the_other_values_are_restored(self):
+        found = self.run_dated("choose('Isometric'); e.query('type:RQ');"
                                "const text = w.exportText().replace('\"hidden\": []', '\"hidden\": [\"RQ-ZZZ-999\"]');"
-                               "w.importText(text); reset(); let failed = '';"
-                               "try { w.open('Foreign'); } catch (error) { failed = error.message; }"
-                               "v.ready().then(() => { const after = shot(); r('failed', failed); r('kind', after.kind);"
-                               " r('query', after.query); r('tab', after.tab); r('shown', after.shown); });")
+                               "reset(); let failed = ''; let ok = null;"
+                               "try { ok = w.importText(text); } catch (error) { failed = error.message; }"
+                               "v.ready().then(() => { const after = shot(); r('failed', failed); r('ok', ok); r('kind', after.kind);"
+                               " r('query', after.query); r('tab', after.tab); r('shown', after.shown);"
+                               " r('bad', w.importText('{\"nothing\": 1}')); });")
         self.assertNotIn("error", found)
-        self.assertEqual(("", "orthographic", "type:RQ", "graph3d"), (found["failed"], found["kind"], found["query"], found["tab"]))
+        self.assertEqual(("", "true", "orthographic", "type:RQ", "graph3d", "false"),
+                         (found["failed"], found["ok"], found["kind"], found["query"], found["tab"], found["bad"]))
         self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["shown"])
 
-    # RQ-GXP-016, DEC-GXP-017: both exports open a save dialog remembering its folder, else download the file
-    def test_RQ_GXP_016_given_a_save_dialog_when_views_or_queries_are_exported_then_it_is_used_else_the_file_is_downloaded(self):
+    # RQ-GXP-016, DEC-GXP-017: the view's and the queries' exports open a save dialog remembering its folder, else download
+    def test_RQ_GXP_016_given_a_save_dialog_when_the_view_or_queries_are_exported_then_it_is_used_else_the_file_is_downloaded(self):
         found = self.run_dated("const calls = []; const written = [];"
                                "window.showSaveFilePicker = (options) => { calls.push(options); return Promise.resolve({"
                                " createWritable: () => Promise.resolve({ write: (text) => { written.push(text); return Promise.resolve(); },"
                                " close: () => Promise.resolve() }) }); };"
-                               "w.save('First'); Promise.all([agnosExplorer.saveText('a.json', w.exportText()),"
-                               " agnosExplorer.saveText('b.json', agnosExplorer.saved.exportText())]).then(() => {"
+                               "Promise.all([w.exportFile(), agnosExplorer.saveText('b.json', agnosExplorer.saved.exportText())]).then(() => {"
                                " r('ids', calls.map((c) => Boolean(c.id)).join('|')); r('names', calls.map((c) => c.suggestedName).join('|'));"
                                " r('written', written.length); delete window.showSaveFilePicker; const clicked = [];"
                                " HTMLAnchorElement.prototype.click = function () { clicked.push(this.download); };"
-                               " return agnosExplorer.saveText('c.json', w.exportText()).then(() => r('download', clicked.join('|'))); });")
+                               " return w.exportFile().then(() => r('download', clicked.join('|'))); });")
         self.assertNotIn("error", found)
-        self.assertEqual(("true|true", "a.json|b.json", "2", "c.json"),
+        self.assertEqual(("true|true", f"{VIEW_FILE_NAME}|b.json", "2", VIEW_FILE_NAME),
                          (found["ids"], found["names"], found["written"], found["download"]))
-
-    # RQ-GXP-016, RQ-GXP-001: the File menu saves, lists, imports and exports the views
-    def test_RQ_GXP_016_given_a_saved_view_then_the_file_menu_lists_it_with_save_import_and_export(self):
-        found = self.run_dated(f"w.save('{SAVED_VIEW}'); document.querySelector('[data-menu-title=\"file\"]').click();"
-                               "const items = [...document.querySelectorAll('#menubar [data-menu=\"file\"] [role=menuitem]')];"
-                               "r('items', items.map((i) => i.textContent).join('|'));"
-                               "r('untitled', items.filter((i) => !(i.title || '').trim()).length);")
-        self.assertNotIn("error", found)
-        for label in ("Save view…", "Import views…", "Export views…", SAVED_VIEW):
-            self.assertIn(label, found["items"].split("|"))
-        self.assertEqual("0", found["untitled"])
 
 
 # TASK-GXP-028: the current view's PNG decoded, its size compared with the view's box, and the File menu's item state

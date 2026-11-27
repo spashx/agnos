@@ -2030,20 +2030,17 @@
     const always = () => true;
     const loaded = () => Boolean(state.model);
     return [
-      { name: "file", title: "File", tip: "Open a graph file, save and open views, import or export the saved queries and views", items: [
+      { name: "file", title: "File", tip: "Open a graph file, import or export the saved queries and the view, export an image", items: [
         { label: "Open graph file…", tip: "Open an agnos-graph.json file from the disk; dropping it on the page works too",
           action: () => $("file-input").click(), enabled: always },
         { label: "Import saved queries…", tip: "Replace the saved query buttons by those of an exported file",
           action: () => $("saved-import-file").click(), enabled: always },
         { label: "Export saved queries…", tip: "Save the saved query buttons to a JSON file", action: downloadSaved, enabled: always },
-        null,                                                                                     // RQ-GXP-016, DEC-GXP-017
-        { label: "Save view…", tip: "Keep the current tab, query, facets, hidden nodes, period, 3D dimensions, projection and colours under a name",
-          action: askViewName, enabled: loaded },
-        ...views.list.map((v) => ({ label: v.name, tip: `Open the saved view ${v.name}`, action: () => openView(v.name), enabled: loaded })),
-        { label: "Import views…", tip: "Replace the saved views by those of an exported file",
-          action: () => $(ID_VIEWS_IMPORT).click(), enabled: always },
-        { label: "Export views…", tip: "Save the saved views to a JSON file",
-          action: () => saveText(VIEWS_EXPORT_NAME, viewsText()), enabled: () => views.list.length > 0 },
+        null,                                                                                     // RQ-GXP-016, DEC-GXP-017 (TASK-GXP-030)
+        { label: "Export view…", tip: "Save the current tab, query, facets, hidden nodes, period, 3D dimensions, projection and colours to a JSON file",
+          action: exportViewFile, enabled: loaded },
+        { label: "Import view…", tip: "Restore the view of an exported view file",
+          action: () => $(ID_VIEW_IMPORT).click(), enabled: loaded },
         null,                                                                                     // RQ-GXP-017, DEC-GXP-019
         { label: "Export image", tip: "Save the current 2D or 3D graph view as a PNG image of its size",
           action: exportImage, enabled: canExportImage },
@@ -2163,15 +2160,11 @@
     input.click();
   }
 
-  // ---- saved views (TASK-GXP-027: RQ-GXP-016; DEC-GXP-017, DEC-GXP-018) ---------------------------------------
-  const VIEW_STORE_KEY = "agnos-graph-explorer.saved-views";
-  const VIEWS_EXPORT_NAME = "agnos-graph-explorer-views.json";
-  const ID_VIEWS_IMPORT = "views-import-file";
-  const views = { list: [] };                      // DEC-GXP-017: [{ name, state }], in the order saved
+  // ---- view file (TASK-GXP-027, TASK-GXP-030: RQ-GXP-016; DEC-GXP-017, DEC-GXP-018) ----------------------------
+  const VIEW_EXPORT_NAME = "agnos-graph-view.json";
+  const ID_VIEW_IMPORT = "view-import-file";
   const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
-
-  const validViews = (list) => Array.isArray(list)
-    && list.every((v) => v && typeof v.name === "string" && v.name && v.state && typeof v.state === "object");
+  const validView = (view) => Boolean(view) && typeof view === "object" && !Array.isArray(view);   // DEC-GXP-017: { view: {...} }
 
   function snapshotView() {
     /* DEC-GXP-017: the current view as plain values: IDs, dates and labels, never the internal sets, so that it survives a
@@ -2192,63 +2185,28 @@
     };
   }
 
-  function loadViews() {
-    /* RQ-GXP-016: the reader's saved views from the browser's storage, none when absent or unreadable; then listed. */
-    let stored = null;
+  // DEC-GXP-017 (TASK-GXP-030): the view file's text, `{ view: snapshot }`, so that a later key can sit beside it
+  const viewText = () => `${JSON.stringify({ view: snapshotView() }, null, 2)}\n`;
+
+  function exportViewFile() {
+    /* RQ-GXP-016, DEC-GXP-017 (TASK-GXP-030): the current view written to a file through the save dialog, none kept in the browser. */
+    return saveText(VIEW_EXPORT_NAME, viewText());
+  }
+
+  function importView(text) {
+    /* RQ-GXP-016, DEC-GXP-017, DEC-GXP-018 (TASK-GXP-030): restores the view of a view file at once, or says why it cannot;
+       never throws. */
+    let view;
     try {
-      stored = JSON.parse(localStorage.getItem(VIEW_STORE_KEY));
+      view = JSON.parse(text).view;
     } catch (error) {
-      stored = null;
+      view = null;
     }
-    views.list = validViews(stored) ? stored : [];
-    refreshViewsMenu();
-  }
-
-  function storeViews() {
-    try {
-      localStorage.setItem(VIEW_STORE_KEY, JSON.stringify(views.list));
-    } catch (error) {
-      $(ID_QUERY_MESSAGE).textContent = `The views could not be kept in this browser: ${error.message}`;
-    }
-    refreshViewsMenu();
-  }
-
-  function refreshViewsMenu() {
-    /* RQ-GXP-016, RQ-GXP-001: the File menu lists the saved views, so it is drawn again when they change. */
-    renderMenuBar();
-    refreshMenuTitles();
-  }
-
-  function saveView(name) {
-    /* RQ-GXP-016: keeps the current view under its name, replacing a view of the same name. */
-    const entry = { name, state: snapshotView() };
-    const at = views.list.findIndex((v) => v.name === name);
-    if (at < 0) views.list.push(entry); else views.list[at] = entry;
-    storeViews();
-  }
-
-  function askViewName() {
-    /* RQ-GXP-016: the name of the view to save, asked as the browser asks; an empty answer saves nothing. */
-    const name = (window.prompt("Name of the view to save", "") || "").trim();
-    if (name) saveView(name);
-  }
-
-  const viewsText = () => `${JSON.stringify({ views: views.list }, null, 2)}\n`;
-
-  function importViews(text) {
-    /* RQ-GXP-016, DEC-GXP-017: replaces the saved views by those of an exported file, or says why it cannot. */
-    let list;
-    try {
-      list = JSON.parse(text).views;
-    } catch (error) {
-      list = null;
-    }
-    if (!validViews(list)) {
-      $(ID_QUERY_MESSAGE).textContent = "The file holds no list of saved views (views: [{name, state}])";
+    if (!state.model || !validView(view)) {
+      $(ID_QUERY_MESSAGE).textContent = "The file holds no explorer view (view: {tab, query, …})";
       return false;
     }
-    views.list = list.map(({ name, state: s }) => ({ name, state: s }));
-    storeViews();
+    restoreView(view);
     return true;
   }
 
@@ -2299,12 +2257,9 @@
     render3d();
   }
 
-  function openView(name) {
-    /* RQ-GXP-016, DEC-GXP-018: restores a saved view in the setters' order, the tab last; a value the loaded graph cannot
-       apply is skipped, never an error. */
-    const entry = views.list.find((v) => v.name === name);
-    if (!entry || !state.model) return;
-    const s = entry.state;
+  function restoreView(s) {
+    /* RQ-GXP-016, DEC-GXP-018 (TASK-GXP-030): restores a view in the setters' order, the tab last; a value the loaded graph
+       cannot apply is skipped, never an error. */
     restoreFilters(s);
     restorePeriod(s);
     restore3d(s);
@@ -2754,9 +2709,9 @@
       if (file) file.text().then(importText);
       event.target.value = "";
     });
-    $(ID_VIEWS_IMPORT).addEventListener("change", (event) => {   // RQ-GXP-016: the saved views' file
+    $(ID_VIEW_IMPORT).addEventListener("change", (event) => {    // RQ-GXP-016 (TASK-GXP-030): the view file
       const file = event.target.files[0];
-      if (file) file.text().then(importViews);
+      if (file) file.text().then(importView);
       event.target.value = "";
     });
     // RQ-TRC-151, RQ-TRC-152: the query bar and the facets
@@ -2799,7 +2754,6 @@
   wire();
   loadSaved();
   loadRelationColours();                           // RQ-GXP-005
-  loadViews();                                     // RQ-GXP-016
   showView(DEFAULT_VIEW);
   if (window.AGNOS_GRAPH && Array.isArray(window.AGNOS_GRAPH.elements)) loadGraph(window.AGNOS_GRAPH);
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
@@ -2809,8 +2763,7 @@
     saved: { list: () => saved.list, add: addSaved, edit: editSaved, move: moveSaved, remove: removeSaved, load: loadSaved,
              exportText, importText },                                       // RQ-TRC-153
     appearance: { load: loadRelationColours, set: setRelationColour, reset: resetRelationColours, relationColour },   // RQ-GXP-005
-    views: { save: saveView, list: () => views.list, open: openView, load: loadViews, exportText: viewsText,
-             importText: importViews },                                      // RQ-GXP-016, DEC-GXP-017, DEC-GXP-018
+    views: { exportText: viewText, importText: importView, exportFile: exportViewFile },   // RQ-GXP-016, DEC-GXP-017, DEC-GXP-018
     saveText,                                                                // DEC-GXP-017
     imageBlob, exportImage,                                                  // RQ-GXP-017, DEC-GXP-019
     time: { dayOf: (iso) => dayOf(Date.parse(iso)), dateOf: (id) => new Date(state.model.nodes.get(id).date).toISOString(),

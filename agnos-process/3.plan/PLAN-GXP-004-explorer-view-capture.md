@@ -74,3 +74,19 @@ This plan implements the tasks in the format specified below.
 - **Assignee**: AI
 - **Verification**: full graph suite with `AGNOS_GRAPH_PERF=1`: Ran 290 tests in 247.9 s, OK, 0 skipped; explorer written on this repository (1229 elements, call graph and history, exit 0) and on the demo (84 elements, sources `service` and `client`, exit 0); in headless Edge on each page: a view saved and opened (`views=check`, `opened=yes`), `imageBlob()` on the default Graph 2D view gave `image/png` (529501 and 693189 bytes), no error; CHANGELOG.md Unreleased: one entry for saved views and image export.
 - **Assumptions**: run by a subagent, reviewed by the session agent; the PNG checked on the default view, Graph 2D (`DEFAULT_VIEW`); the 3D PNG is covered by `ImageExportTest`.
+
+### TASK-GXP-030: Replace saved views by view files
+- **Tier**: L
+- **Status**: Done
+- **Description**: Amend RQ-GXP-016 and DEC-GXP-017, then write the tests first and replace the browser's saved views by Export view… and Import view… in the File menu, the view written to and restored from a JSON file, no view in `localStorage`; the saved queries unchanged; correct the changelog entry.
+- **Requirement refs**: RQ-GXP-016, RQ-GXP-001, RQ-GXP-002
+- **ADR refs**: ADR-GXP-004 (DEC-GXP-017 amended, DEC-GXP-018)
+- **Acceptance Criteria**:
+  - Given a 3D view in isometric projection with a period, a query and a hidden node, When it is exported, the state reset and the file imported, Then the same tab, projection, period, query and shown nodes are restored
+  - Given the File menu, Then it lists Export view… and Import view… And no Save view… nor saved view; Given a view exported, Then `localStorage` holds no view key
+  - Given a view file hiding a node the loaded graph lacks, When it is imported, Then the other values are restored And no error is raised
+  - Given the full graph suite with `AGNOS_GRAPH_PERF=1`, Then every test passes or each failure is reported with its cause
+- **Dependencies**: TASK-GXP-029
+- **Assignee**: AI
+- **Verification**: `ViewFilesTest` and `MenuBarTest`: Ran 8 tests, 5 failed first (no `exportFile`, no restore, old File items), then OK; ViewFiles, MenuBar, HelpDialog, SavedQueries, ImageExport, Projection3D: Ran 27 tests, OK, 0 skipped; full suite with `AGNOS_GRAPH_PERF=1`: Ran 289 tests in 280.7 s, OK, 0 skipped (5 saved-view tests replaced by 4); in review, after the line endings were set back to LF: ViewFiles, MenuBar, SavedQueries, ImageExport: Ran 18 tests, OK; `test_literals.py` OK; `node --check` OK; no `saved-views` key nor Save view left in the explorer's assets.
+- **Assumptions**: implemented by a subagent, reviewed by the session agent; the file holds `{ "view": snapshot }`; an import restores at once; Export view and Import view disabled without a graph. The CRLF that the session's Python edits wrote into this plan since d92a206 is set back to LF.
