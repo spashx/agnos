@@ -31,7 +31,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-027: Add saved explorer views
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then save the current view under a name from the File menu, list the saved views there, restore one through the explorer's setters, and export and import them as a JSON file, the views' and the saved queries' export opening a save dialog that remembers its folder where the browser offers it; add the help topic's lines.
 - **Requirement refs**: RQ-GXP-016, RQ-GXP-001, RQ-GXP-002
 - **ADR refs**: ADR-GXP-004 (DEC-GXP-017, DEC-GXP-018)
@@ -42,8 +42,8 @@ This plan implements the tasks in the format specified below.
   - Given a browser offering `showSaveFilePicker`, When the views or the saved queries are exported, Then a save dialog opens with the last folder chosen; Given one without it, Then the file is downloaded
 - **Dependencies**: TASK-GXP-026
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `SavedViewsTest` 5 tests failed first (`views` undefined), then OK; re-run in review: `SavedViewsTest`, `MenuBarTest`: Ran 9 tests, OK, 0 skipped; neighbouring classes (SavedQueries, HelpDialog, Projection3D, RelationColour, ExplorerPage/Files/Tokens): Ran 49 tests, OK, 0 skipped; `test_literals.py` OK; `node --check explorer.js` OK. `MenuBarTest`'s File items test updated for the three new items (new behaviour, RQ-GXP-016).
+- **Assumptions**: implemented by a subagent, reviewed by the session agent; the name asked with `window.prompt`; a name already saved is replaced; no delete; the help lines in the Overview topic, the help having no File topic; Export views disabled with no view; a restored preset resets the orbit angles, then the saved orbit applies.
 
 ### TASK-GXP-028: Add graph image export
 - **Tier**: M

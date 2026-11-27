@@ -759,11 +759,33 @@
   }
 
   function downloadSaved() {
+    return saveText(EXPORT_NAME, exportText());   // RQ-GXP-016, DEC-GXP-017: through the save dialog
+  }
+
+  // ---- saving a file (RQ-GXP-016, RQ-TRC-153; DEC-GXP-017) ----------------------------------------------------
+  const SAVE_DIALOG_ID = "agnos-graph-explorer";   // the browser remembers the dialog's last folder by this id
+  const MIME_JSON = "application/json";
+  const EXTENSION_JSON = ".json";
+  const ERROR_ABORT = "AbortError";
+
+  function saveText(name, text) {
+    /* RQ-GXP-016, DEC-GXP-017: a save dialog reopened in its last folder where the browser offers showSaveFilePicker, else a
+       download; the reader closing the dialog is no error. */
+    if (window.showSaveFilePicker) {
+      return window.showSaveFilePicker({ id: SAVE_DIALOG_ID, suggestedName: name,
+                                         types: [{ description: "JSON file", accept: { [MIME_JSON]: [EXTENSION_JSON] } }] })
+        .then((handle) => handle.createWritable())
+        .then((stream) => stream.write(text).then(() => stream.close()))
+        .catch((error) => {
+          if (error.name !== ERROR_ABORT) $(ID_QUERY_MESSAGE).textContent = `The file could not be saved: ${error.message}`;
+        });
+    }
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([exportText()], { type: "application/json" }));
-    link.download = EXPORT_NAME;
+    link.href = URL.createObjectURL(new Blob([text], { type: MIME_JSON }));
+    link.download = name;
     link.click();
     URL.revokeObjectURL(link.href);
+    return Promise.resolve();
   }
 
   function savedEditor() {
@@ -1629,9 +1651,12 @@
   ];
 
   function setProjection(projection) {
-    /* RQ-GXP-014: switches to the perspective or the orthographic camera, then to the preset's angles if it has any. */
-    g3.camera = projection.ortho ? g3.ortho : g3.perspective;
+    /* RQ-GXP-014: switches to the perspective or the orthographic camera, then to the preset's angles if it has any.
+       RQ-GXP-016, DEC-GXP-018: kept by its label, so that a view restored before the 3D view is drawn applies on its draw. */
+    g3.projection = projection.label;
     if (projection.theta !== undefined) Object.assign(g3.orbit, { theta: projection.theta, phi: projection.phi });
+    if (!g3.renderer) return;
+    g3.camera = projection.ortho ? g3.ortho : g3.perspective;
     render3d();
   }
 
@@ -1786,7 +1811,8 @@
     g3.perspective = new window.THREE.PerspectiveCamera(tokenNumber("--c-graph3d-fov"), 1);
     g3.ortho = new window.THREE.OrthographicCamera();   // RQ-GXP-014, DEC-GXP-012
     g3.aspect = 1;
-    g3.camera = g3.perspective;
+    // RQ-GXP-016, DEC-GXP-018: the projection chosen or restored before this draw
+    g3.camera = PROJECTIONS.find((p) => p.label === g3.projection)?.ortho ? g3.ortho : g3.perspective;
     box.replaceChildren(g3.renderer.domElement, g3Labels());
     wire3d(g3.renderer.domElement);
     g3.dims = g3.dims || defaultDims(state.model);
@@ -2001,12 +2027,20 @@
     const always = () => true;
     const loaded = () => Boolean(state.model);
     return [
-      { name: "file", title: "File", tip: "Open a graph file, import or export the saved queries", items: [
+      { name: "file", title: "File", tip: "Open a graph file, save and open views, import or export the saved queries and views", items: [
         { label: "Open graph file…", tip: "Open an agnos-graph.json file from the disk; dropping it on the page works too",
           action: () => $("file-input").click(), enabled: always },
         { label: "Import saved queries…", tip: "Replace the saved query buttons by those of an exported file",
           action: () => $("saved-import-file").click(), enabled: always },
         { label: "Export saved queries…", tip: "Save the saved query buttons to a JSON file", action: downloadSaved, enabled: always },
+        null,                                                                                     // RQ-GXP-016, DEC-GXP-017
+        { label: "Save view…", tip: "Keep the current tab, query, facets, hidden nodes, period, 3D dimensions, projection and colours under a name",
+          action: askViewName, enabled: loaded },
+        ...views.list.map((v) => ({ label: v.name, tip: `Open the saved view ${v.name}`, action: () => openView(v.name), enabled: loaded })),
+        { label: "Import views…", tip: "Replace the saved views by those of an exported file",
+          action: () => $(ID_VIEWS_IMPORT).click(), enabled: always },
+        { label: "Export views…", tip: "Save the saved views to a JSON file",
+          action: () => saveText(VIEWS_EXPORT_NAME, viewsText()), enabled: () => views.list.length > 0 },
       ] },
       { name: "view", title: "View", tip: "Choose the view, fit the graph", items: [
         ...VIEW_ITEMS.map(([view, label]) => ({ label, tip: `Show the ${label.toLowerCase()} view`, action: () => showView(view), enabled: always })),
@@ -2121,6 +2155,154 @@
     input.dataset.kind = kind;
     input.value = relationColour(kind).toLowerCase();
     input.click();
+  }
+
+  // ---- saved views (TASK-GXP-027: RQ-GXP-016; DEC-GXP-017, DEC-GXP-018) ---------------------------------------
+  const VIEW_STORE_KEY = "agnos-graph-explorer.saved-views";
+  const VIEWS_EXPORT_NAME = "agnos-graph-explorer-views.json";
+  const ID_VIEWS_IMPORT = "views-import-file";
+  const views = { list: [] };                      // DEC-GXP-017: [{ name, state }], in the order saved
+  const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+
+  const validViews = (list) => Array.isArray(list)
+    && list.every((v) => v && typeof v.name === "string" && v.name && v.state && typeof v.state === "object");
+
+  function snapshotView() {
+    /* DEC-GXP-017: the current view as plain values: IDs, dates and labels, never the internal sets, so that it survives a
+       reload and a newer graph of the same project. */
+    const iso = (instant) => new Date(instant).toISOString();
+    return {
+      tab: state.view,
+      query: $(ID_QUERY).value,
+      off: Object.fromEntries(Object.entries(state.off).map(([key, values]) => [key, [...values]])),
+      hidden: [...state.hiddenNodes],
+      isolate: state.isolate ? [...state.isolate] : null,
+      period: state.period ? { start: iso(state.period.start), end: iso(state.period.end) } : null,
+      dims: g3.dims ? { ...g3.dims } : null,
+      layout: g3.layout,
+      projection: g3.projection || PROJECTIONS[0].label,
+      orbit: { ...g3.orbit, target: [...g3.orbit.target] },
+      colours: { ...appearance.relationColours },
+    };
+  }
+
+  function loadViews() {
+    /* RQ-GXP-016: the reader's saved views from the browser's storage, none when absent or unreadable; then listed. */
+    let stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem(VIEW_STORE_KEY));
+    } catch (error) {
+      stored = null;
+    }
+    views.list = validViews(stored) ? stored : [];
+    refreshViewsMenu();
+  }
+
+  function storeViews() {
+    try {
+      localStorage.setItem(VIEW_STORE_KEY, JSON.stringify(views.list));
+    } catch (error) {
+      $(ID_QUERY_MESSAGE).textContent = `The views could not be kept in this browser: ${error.message}`;
+    }
+    refreshViewsMenu();
+  }
+
+  function refreshViewsMenu() {
+    /* RQ-GXP-016, RQ-GXP-001: the File menu lists the saved views, so it is drawn again when they change. */
+    renderMenuBar();
+    refreshMenuTitles();
+  }
+
+  function saveView(name) {
+    /* RQ-GXP-016: keeps the current view under its name, replacing a view of the same name. */
+    const entry = { name, state: snapshotView() };
+    const at = views.list.findIndex((v) => v.name === name);
+    if (at < 0) views.list.push(entry); else views.list[at] = entry;
+    storeViews();
+  }
+
+  function askViewName() {
+    /* RQ-GXP-016: the name of the view to save, asked as the browser asks; an empty answer saves nothing. */
+    const name = (window.prompt("Name of the view to save", "") || "").trim();
+    if (name) saveView(name);
+  }
+
+  const viewsText = () => `${JSON.stringify({ views: views.list }, null, 2)}\n`;
+
+  function importViews(text) {
+    /* RQ-GXP-016, DEC-GXP-017: replaces the saved views by those of an exported file, or says why it cannot. */
+    let list;
+    try {
+      list = JSON.parse(text).views;
+    } catch (error) {
+      list = null;
+    }
+    if (!validViews(list)) {
+      $(ID_QUERY_MESSAGE).textContent = "The file holds no list of saved views (views: [{name, state}])";
+      return false;
+    }
+    views.list = list.map(({ name, state: s }) => ({ name, state: s }));
+    storeViews();
+    return true;
+  }
+
+  function restoreFilters(s) {
+    /* DEC-GXP-018: the relation colours, facets, hidden and isolated nodes and query, through their setters; an ID or a value
+       the loaded graph lacks is left out. */
+    const known = (ids) => (Array.isArray(ids) ? ids.filter((id) => state.model.nodes.has(id)) : []);
+    appearance.relationColours = Object.fromEntries(Object.entries(s.colours || {})
+      .filter(([kind, colour]) => KIND_ORDER.includes(kind) && typeof colour === "string"));
+    storeRelationColours();
+    applyRelationColours();
+    for (const key of Object.keys(state.off)) state.off[key] = new Set(Array.isArray(s.off?.[key]) ? s.off[key] : []);
+    renderFacets();
+    state.hiddenNodes = new Set(known(s.hidden));
+    const isolated = known(s.isolate);             // an isolation of nodes all absent is no isolation
+    state.isolate = isolated.length ? new Set(isolated) : null;
+    query(typeof s.query === "string" ? s.query : "");
+  }
+
+  function restorePeriod(s) {
+    /* DEC-GXP-018: the period by its dates, mapped onto the loaded history's days; nothing without a history. */
+    if (!hasTime()) return;
+    const start = Date.parse(s.period?.start);
+    const end = Date.parse(s.period?.end);
+    if (isNumber(start) && isNumber(end)) setPeriodDays(dayOf(start), dayOf(end));
+    else setPeriodDays(0, state.model.time.days);
+  }
+
+  function restore3d(s) {
+    /* DEC-GXP-018: the 3D dimensions, layout, projection and orbit, kept in g3 so that a 3D view drawn later applies them. */
+    const dimension = new Set(DIMENSIONS.map((d) => d.key));
+    const dims = Object.entries(s.dims || {}).filter(([role, key]) => DIM_ROLES.includes(role) && dimension.has(key));
+    if (dims.length) g3.dims = { ...(g3.dims || defaultDims(state.model)), ...Object.fromEntries(dims) };
+    if (LAYOUTS_3D.some((l) => l.key === s.layout)) {
+      g3.layout = s.layout;
+      nameRoles();
+    }
+    if (g3.renderer) {
+      renderDims();
+      redraw3d();
+    }
+    const projection = PROJECTIONS.find((p) => p.label === s.projection);
+    if (projection) setProjection(projection);
+    const o = s.orbit || {};
+    if ([o.theta, o.phi, o.zoom].every(isNumber) && Array.isArray(o.target) && o.target.length === XYZ && o.target.every(isNumber)) {
+      Object.assign(g3.orbit, { theta: o.theta, phi: o.phi, zoom: o.zoom, target: [...o.target] });
+    }
+    render3d();
+  }
+
+  function openView(name) {
+    /* RQ-GXP-016, DEC-GXP-018: restores a saved view in the setters' order, the tab last; a value the loaded graph cannot
+       apply is skipped, never an error. */
+    const entry = views.list.find((v) => v.name === name);
+    if (!entry || !state.model) return;
+    const s = entry.state;
+    restoreFilters(s);
+    restorePeriod(s);
+    restore3d(s);
+    if (VIEWS.includes(s.tab)) showView(s.tab);
   }
 
   // ---- help (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002), copied from the performance center's setupHelp ----
@@ -2516,6 +2698,11 @@
       if (file) file.text().then(importText);
       event.target.value = "";
     });
+    $(ID_VIEWS_IMPORT).addEventListener("change", (event) => {   // RQ-GXP-016: the saved views' file
+      const file = event.target.files[0];
+      if (file) file.text().then(importViews);
+      event.target.value = "";
+    });
     // RQ-TRC-151, RQ-TRC-152: the query bar and the facets
     $("query-run").addEventListener(EVENT_CLICK, () => runQuery($(ID_QUERY).value));
     $("query-clear").addEventListener(EVENT_CLICK, () => query(""));
@@ -2556,6 +2743,7 @@
   wire();
   loadSaved();
   loadRelationColours();                           // RQ-GXP-005
+  loadViews();                                     // RQ-GXP-016
   showView(DEFAULT_VIEW);
   if (window.AGNOS_GRAPH && Array.isArray(window.AGNOS_GRAPH.elements)) loadGraph(window.AGNOS_GRAPH);
   else $(ID_MESSAGE).textContent = MESSAGE_NO_GRAPH;
@@ -2565,6 +2753,9 @@
     saved: { list: () => saved.list, add: addSaved, edit: editSaved, move: moveSaved, remove: removeSaved, load: loadSaved,
              exportText, importText },                                       // RQ-TRC-153
     appearance: { load: loadRelationColours, set: setRelationColour, reset: resetRelationColours, relationColour },   // RQ-GXP-005
+    views: { save: saveView, list: () => views.list, open: openView, load: loadViews, exportText: viewsText,
+             importText: importViews },                                      // RQ-GXP-016, DEC-GXP-017, DEC-GXP-018
+    saveText,                                                                // DEC-GXP-017
     time: { dayOf: (iso) => dayOf(Date.parse(iso)), dateOf: (id) => new Date(state.model.nodes.get(id).date).toISOString(),
             setPeriodDays, period: () => state.period,                                                           // RQ-GXP-006
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008

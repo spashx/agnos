@@ -49,6 +49,8 @@
       </div>
       <div id="saved-queries" class="saved-queries" aria-label="Saved queries"></div>
       <input id="saved-import-file" title="Choose an exported file of saved queries" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
+      <!-- RQ-GXP-016, DEC-GXP-017: the file of the saved views, chosen from File, Import views -->
+      <input id="views-import-file" title="Choose an exported file of saved views" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved views">
       <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
     </section>
     <!-- RQ-GXP-006, RQ-GXP-009, DEC-GXP-003: the time bar, shown only when the graph holds a history -->
@@ -168,8 +170,10 @@
       <p>The graph explorer shows the state of an AGNOS project at one commit, as <code>agnos-graph</code> wrote it: every element (features, requirements, ADRs, decisions, plans, tasks), the sections of their documents, the scanned source files, and, when the graph was built with them, the functions and the history.</p>
       <p>It shows the state and judges nothing: coverage, findings and scores are the performance center's.</p>
       <ul>
-        <li><b>Menus</b>: File opens a graph file and imports or exports the saved queries; View chooses the view; Filter clears the query or shows every node; Help opens this guide.</li>
+        <li><b>Menus</b>: File opens a graph file, saves and opens views, and imports or exports the saved queries and views; View chooses the view; Filter clears the query or shows every node; Help opens this guide.</li>
         <li><b>Panels</b>: the facets on the left, the view in the middle, the selected node's detail on the right. Drag their edges, or use the arrow keys on them, to resize.</li>
+        <!-- RQ-GXP-016 -->
+        <li><b>Saved views</b>: File, Save view… keeps under a name the tab, the query, the facets, the hidden and isolated nodes, the period, the 3D dimensions, layout and projection, and the relation colours; the view's name in the File menu restores them all. The views are kept in this browser: File, Export views… saves them to a JSON file, Import views… reads them back. Both exports open a save dialog that remembers its last folder, in browsers that offer one; elsewhere the file is downloaded.</li>
         <li><b>Another graph</b>: drop an <code>agnos-graph.json</code> file on the page, or choose File, Open graph file.</li>
       </ul>
     </section>
