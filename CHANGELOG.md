@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Graph explorer: `agnos-graph --explorer` writes a page to browse the project graph in 2D and 3D, with filters, queries, a timeline and a help <!-- TASK-TRC-133 to TASK-TRC-150, TASK-GXP-002 to TASK-GXP-022, RQ-TRC-144 to RQ-TRC-167, RQ-GXP-001 to RQ-GXP-021 -->
+- Graph explorer: save the current view under a name and reopen it, export and import the saved views, and export the 2D or 3D graph as a PNG image, from the File menu <!-- TASK-GXP-027, TASK-GXP-028, RQ-GXP-016, RQ-GXP-017 -->
 - The graph file records the sections of the process documents and the kind of each link (declared reference or mention) <!-- TASK-TRC-125, TASK-TRC-126, TASK-TRC-128, TASK-TRC-129, RQ-TRC-134 to RQ-TRC-141 -->
 
 ### Changed

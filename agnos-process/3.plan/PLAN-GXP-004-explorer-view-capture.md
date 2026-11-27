@@ -62,7 +62,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-029: Verify explorer view capture
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Run the full graph suite, open the explorer on this repository and the demo, and add the changelog entry.
 - **Requirement refs**: RQ-GXP-016, RQ-GXP-017, RQ-GXP-019
 - **ADR refs**: ADR-GXP-004
@@ -72,5 +72,5 @@ This plan implements the tasks in the format specified below.
   - Given CHANGELOG.md, Then its Unreleased section has one user-facing entry for saved views and image export
 - **Dependencies**: TASK-GXP-027, TASK-GXP-028
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: full graph suite with `AGNOS_GRAPH_PERF=1`: Ran 290 tests in 247.9 s, OK, 0 skipped; explorer written on this repository (1229 elements, call graph and history, exit 0) and on the demo (84 elements, sources `service` and `client`, exit 0); in headless Edge on each page: a view saved and opened (`views=check`, `opened=yes`), `imageBlob()` on the default Graph 2D view gave `image/png` (529501 and 693189 bytes), no error; CHANGELOG.md Unreleased: one entry for saved views and image export.
+- **Assumptions**: run by a subagent, reviewed by the session agent; the PNG checked on the default view, Graph 2D (`DEFAULT_VIEW`); the 3D PNG is covered by `ImageExportTest`.
