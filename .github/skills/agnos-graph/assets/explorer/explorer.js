@@ -768,25 +768,28 @@
   const EXTENSION_JSON = ".json";
   const ERROR_ABORT = "AbortError";
 
-  function saveText(name, text) {
-    /* RQ-GXP-016, DEC-GXP-017: a save dialog reopened in its last folder where the browser offers showSaveFilePicker, else a
-       download; the reader closing the dialog is no error. */
+  function saveBlob(name, blob, description, extension) {
+    /* RQ-GXP-016, RQ-GXP-017, DEC-GXP-017, DEC-GXP-019: a save dialog reopened in its last folder where the browser offers
+       showSaveFilePicker, else a download; the reader closing the dialog is no error. */
     if (window.showSaveFilePicker) {
       return window.showSaveFilePicker({ id: SAVE_DIALOG_ID, suggestedName: name,
-                                         types: [{ description: "JSON file", accept: { [MIME_JSON]: [EXTENSION_JSON] } }] })
+                                         types: [{ description, accept: { [blob.type]: [extension] } }] })
         .then((handle) => handle.createWritable())
-        .then((stream) => stream.write(text).then(() => stream.close()))
+        .then((stream) => stream.write(blob).then(() => stream.close()))
         .catch((error) => {
           if (error.name !== ERROR_ABORT) $(ID_QUERY_MESSAGE).textContent = `The file could not be saved: ${error.message}`;
         });
     }
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([text], { type: MIME_JSON }));
+    link.href = URL.createObjectURL(blob);
     link.download = name;
     link.click();
     URL.revokeObjectURL(link.href);
     return Promise.resolve();
   }
+
+  // RQ-GXP-016, DEC-GXP-017: a JSON text through saveBlob
+  const saveText = (name, text) => saveBlob(name, new Blob([text], { type: MIME_JSON }), "JSON file", EXTENSION_JSON);
 
   function savedEditor() {
     const item = saved.editing === EDIT_NEW ? { label: "", query: $(ID_QUERY).value.trim() } : saved.list[saved.editing];
@@ -2041,6 +2044,9 @@
           action: () => $(ID_VIEWS_IMPORT).click(), enabled: always },
         { label: "Export views…", tip: "Save the saved views to a JSON file",
           action: () => saveText(VIEWS_EXPORT_NAME, viewsText()), enabled: () => views.list.length > 0 },
+        null,                                                                                     // RQ-GXP-017, DEC-GXP-019
+        { label: "Export image", tip: "Save the current 2D or 3D graph view as a PNG image of its size",
+          action: exportImage, enabled: canExportImage },
       ] },
       { name: "view", title: "View", tip: "Choose the view, fit the graph", items: [
         ...VIEW_ITEMS.map(([view, label]) => ({ label, tip: `Show the ${label.toLowerCase()} view`, action: () => showView(view), enabled: always })),
@@ -2303,6 +2309,56 @@
     restorePeriod(s);
     restore3d(s);
     if (VIEWS.includes(s.tab)) showView(s.tab);
+  }
+
+  // ---- image export (TASK-GXP-028: RQ-GXP-017; DEC-GXP-019) ----------------------------------------------------
+  const MIME_PNG = "image/png";
+  const EXTENSION_PNG = ".png";
+  const IMAGE_NAME_PREFIX = "agnos-graph-";
+  const TEXT_CENTER = "center";
+  const TEXT_MIDDLE = "middle";
+
+  const canExportImage = () => (state.view === VIEW_GRAPH && Boolean(cy)) || (state.view === VIEW_GRAPH3D && Boolean(g3.renderer));
+
+  function image2d() {
+    /* DEC-GXP-019: Cytoscape's PNG of the visible viewport, at the view's CSS size (scale 1, no device pixel ratio). */
+    const box = $(VIEW_GRAPH).getBoundingClientRect();
+    return cy.png({ output: "blob-promise", full: false, scale: 1, maxWidth: Math.round(box.width), maxHeight: Math.round(box.height),
+                    bg: cssValue("--c-graph-bg") });
+  }
+
+  function image3d() {
+    /* DEC-GXP-019: the 3D canvas, its last frame kept by preserveDrawingBuffer, then its shown HTML labels in their computed
+       type (DEC-GXP-013), drawn on a canvas of the view's CSS size. */
+    render3d();
+    const box = $(VIEW_GRAPH3D).getBoundingClientRect();
+    const out = document.createElement("canvas");
+    out.width = Math.round(box.width);
+    out.height = Math.round(box.height);
+    const context = out.getContext("2d");
+    context.drawImage(g3.renderer.domElement, 0, 0, out.width, out.height);
+    context.textAlign = TEXT_CENTER;
+    context.textBaseline = TEXT_MIDDLE;
+    for (const label of $(ID_LABELS_3D).querySelectorAll(".graph3d-label")) {
+      if (label.hidden) continue;
+      const style = getComputedStyle(label);
+      const at = label.getBoundingClientRect();
+      context.font = style.font;
+      context.fillStyle = style.color;
+      context.fillText(label.textContent, at.left + at.width * HALF - box.left, at.top + at.height * HALF - box.top);
+    }
+    // built at once from the data URL, so that the image does not wait on toBlob's asynchronous encoding
+    const bytes = atob(out.toDataURL(MIME_PNG).split(",")[1]);
+    return Promise.resolve(new Blob([Uint8Array.from(bytes, (c) => c.charCodeAt(0))], { type: MIME_PNG }));
+  }
+
+  // RQ-GXP-017: the current graph view's PNG; null on a table view
+  const imageBlob = () => (!canExportImage() ? Promise.resolve(null) : state.view === VIEW_GRAPH3D ? image3d() : image2d());
+
+  function exportImage() {
+    /* RQ-GXP-017, DEC-GXP-019: saves the current graph view as agnos-graph-<view>.png through the save dialog. */
+    const view = state.view;
+    return imageBlob().then((blob) => blob && saveBlob(`${IMAGE_NAME_PREFIX}${view}${EXTENSION_PNG}`, blob, "PNG image", EXTENSION_PNG));
   }
 
   // ---- help (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002), copied from the performance center's setupHelp ----
@@ -2756,6 +2812,7 @@
     views: { save: saveView, list: () => views.list, open: openView, load: loadViews, exportText: viewsText,
              importText: importViews },                                      // RQ-GXP-016, DEC-GXP-017, DEC-GXP-018
     saveText,                                                                // DEC-GXP-017
+    imageBlob, exportImage,                                                  // RQ-GXP-017, DEC-GXP-019
     time: { dayOf: (iso) => dayOf(Date.parse(iso)), dateOf: (id) => new Date(state.model.nodes.get(id).date).toISOString(),
             setPeriodDays, period: () => state.period,                                                           // RQ-GXP-006
             advance, cursor: () => state.cursor, setCursor: (iso) => setCursor(Date.parse(iso)) },               // RQ-GXP-007, RQ-GXP-008

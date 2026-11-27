@@ -941,7 +941,7 @@ TASK-GXP-025|103-115|Done|Name cartesian dimension choices
 PLAN-GXP-004|1-76||Explorer saved views with image export
 TASK-GXP-026|18-31|Done|Document explorer view capture
 TASK-GXP-027|32-47|Done|Add saved explorer views
-TASK-GXP-028|48-62|Not Started|Add graph image export
+TASK-GXP-028|48-62|Done|Add graph image export
 TASK-GXP-029|63-76|Not Started|Verify explorer view capture
 @agnos-process/3.plan/PLAN-HST-001-contribution-history.md
 PLAN-HST-001|1-160||Contribution History

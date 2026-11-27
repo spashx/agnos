@@ -47,7 +47,7 @@ This plan implements the tasks in the format specified below.
 
 ### TASK-GXP-028: Add graph image export
 - **Tier**: M
-- **Status**: Not Started
+- **Status**: Done
 - **Description**: Write the tests first, then add "Export image" to the File menu, saving the current 2D or 3D graph view as a PNG of the view's size, the 3D labels drawn over its canvas; disabled on the table views; add the help topic's line.
 - **Requirement refs**: RQ-GXP-017, RQ-GXP-001, RQ-GXP-002
 - **ADR refs**: ADR-GXP-004 (DEC-GXP-019)
@@ -57,8 +57,8 @@ This plan implements the tasks in the format specified below.
   - Given the Nodes view, Then "Export image" is disabled
 - **Dependencies**: TASK-GXP-026
 - **Assignee**: AI
-- **Verification**:
-- **Assumptions**:
+- **Verification**: `ImageExportTest` 4 tests failed first (no item, no hooks), then OK; one targeted fix after a batch failure (3D PNG encoded asynchronously after the headless dump: now `toDataURL`, size read from the PNG header); ImageExport, MenuBar, HelpDialog, SavedViews, SavedQueries: Ran 25 tests, OK, 0 skipped; re-run in review: ImageExport, MenuBar, SavedViews: Ran 13 tests, OK; `test_literals.py` OK. `MenuBarTest`'s File items updated for Export image (new behaviour).
+- **Assumptions**: implemented by a subagent, reviewed by the session agent; the PNG at the view's CSS size, without the screen's pixel ratio; 2D background `--c-graph-bg`; the 3D labels drawn with their computed font and colour; `saveText` generalised to `saveBlob`.
 
 ### TASK-GXP-029: Verify explorer view capture
 - **Tier**: M

@@ -756,10 +756,12 @@ class MenuBarTest(unittest.TestCase):
                                                      "const key = (k) => document.activeElement.dispatchEvent(new KeyboardEvent('keydown',"
                                                      " { key: k, bubbles: true }));" + script))
 
-    # RQ-GXP-001; RQ-GXP-016 (TASK-GXP-027): the views' items follow the saved queries', no view saved yet
+    # RQ-GXP-001; RQ-GXP-016 (TASK-GXP-027): the views' items follow the saved queries', no view saved yet;
+    # RQ-GXP-017 (TASK-GXP-028): Export image last
     def test_RQ_GXP_001_given_the_explorer_when_file_is_clicked_then_open_import_and_export_are_listed(self):
         found = self.run_page("title('file').click(); r('items', shown());")
-        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…|Save view…|Import views…|Export views…",
+        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…|Save view…|Import views…|Export views…"
+                         "|Export image",
                          found["items"])
 
     # RQ-GXP-001
@@ -1595,6 +1597,69 @@ class SavedViewsTest(unittest.TestCase):
         for label in ("Save view…", "Import views…", "Export views…", SAVED_VIEW):
             self.assertIn(label, found["items"].split("|"))
         self.assertEqual("0", found["untitled"])
+
+
+# TASK-GXP-028: the current view's PNG decoded, its size compared with the view's box, and the File menu's item state
+IMAGE_SIZE = ("const e = agnosExplorer; const box = (id) => document.getElementById(id).getBoundingClientRect();"
+              # the PNG's size from its IHDR chunk (width and height at bytes 16 and 20), read faster than a decoding
+              "const sized = (id) => e.imageBlob().then((b) => b.arrayBuffer().then((a) => { const d = new DataView(a);"
+              " r('type', b.type); r('image', d.getUint32(16) + 'x' + d.getUint32(20));"
+              " r('view', Math.round(box(id).width) + 'x' + Math.round(box(id).height)); }));"
+              "const exportItem = () => { document.querySelector('[data-menu-title=\"file\"]').click();"
+              " return [...document.querySelectorAll('#menubar [data-menu=\"file\"] [role=menuitem]')]"
+              ".find((i) => i.textContent === 'Export image'); };")
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class ImageExportTest(unittest.TestCase):
+    """TASK-GXP-028: RQ-GXP-017 (ADR-GXP-004: DEC-GXP-019), in a headless browser with WebGL."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const v = agnosExplorer.view3d;" + IMAGE_SIZE + script))
+
+    # RQ-GXP-017
+    def test_RQ_GXP_017_given_the_3d_view_when_export_image_is_chosen_then_a_png_of_the_view_size_is_saved(self):
+        found = self.run_page("e.showView('graph3d'); v.ready().then(() => { const item = exportItem();"
+                              " r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled); return sized('graph3d'); });")
+        self.assertEqual("false", found["disabled"])
+        self.assertEqual("image/png", found["type"])
+        self.assertEqual(found["view"], found["image"])
+
+    # RQ-GXP-017
+    def test_RQ_GXP_017_given_the_2d_view_when_export_image_is_chosen_then_a_png_of_the_view_size_is_saved(self):
+        found = self.run_page("e.showView('graph'); const item = exportItem();"
+                              "r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled); sized('graph');")
+        self.assertEqual("false", found["disabled"])
+        self.assertEqual("image/png", found["type"])
+        self.assertEqual(found["view"], found["image"])
+
+    # RQ-GXP-017: the table views have no image
+    def test_RQ_GXP_017_given_the_nodes_view_then_export_image_is_disabled(self):
+        found = self.run_page("e.showView('nodes'); const item = exportItem();"
+                              "r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled);")
+        self.assertEqual("true", found["disabled"])
+
+    # RQ-GXP-017, DEC-GXP-019: the image goes through the save dialog, as a PNG named after the view
+    def test_RQ_GXP_017_given_a_save_dialog_when_the_image_is_exported_then_it_is_offered_as_a_png_named_after_the_view(self):
+        found = self.run_page("let asked = null; window.showSaveFilePicker = (o) => { asked = o; return Promise.resolve("
+                              "{ createWritable: () => Promise.resolve({ write: () => Promise.resolve(), close: () => Promise.resolve() }) }); };"
+                              "e.showView('graph'); e.exportImage().then(() => { r('name', asked.suggestedName);"
+                              " r('accept', Object.keys(asked.types[0].accept).join('|')); r('id', asked.id); });")
+        self.assertEqual("agnos-graph-graph.png", found["name"])
+        self.assertEqual("image/png", found["accept"])
+        self.assertEqual("agnos-graph-explorer", found["id"])
 
 
 if __name__ == "__main__":
