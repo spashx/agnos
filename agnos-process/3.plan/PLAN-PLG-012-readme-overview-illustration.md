@@ -5,8 +5,8 @@ Replace the README's overview image by the proposal the owner chose (AC v2), kee
 `assets/`, and keep those sources out of the marketplace.
 
 ## References
-- **Requirements**: RQ-PLG-047
-- **ADRs**: None
+- **Requirement refs**: RQ-PLG-047
+- **ADR refs**: None
 
 This plan implements the tasks in the format specified below.
 ---

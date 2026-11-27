@@ -1,8 +1,9 @@
 # FTR-DMO-001: Demo repository
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
-A second repository, `agnos-lightweight-process.demo`, shows the AGNOS process applied to a software
+A second repository, `agnos-demo`, shows the AGNOS process applied to a software
 project, so that the process can be validated and its capabilities demonstrated. The repository looks
 like a clone of this one, stripped of this repository's own process data, in which the development of a
 small software product has started: its source code in two languages, the process artifacts that led to
@@ -28,15 +29,15 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 ### RQ-DMO-001: Sibling independent repository
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The demo repository SHALL be a new git repository named `agnos-lightweight-process.demo`,
-  located in the same parent directory as the `agnos-lightweight-process` directory.
+- **Statement**: The demo repository SHALL be a new git repository named `agnos-demo`,
+  located in the same parent directory as the `agnos` directory.
 - **Rationale**: The demo is a separate product repository, not a folder of this one.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
-  - **Given** the parent directory of `agnos-lightweight-process`
+  - **Given** the parent directory of `agnos`
   - **When** its entries are listed and `git rev-parse --show-toplevel` is run in the demo directory
-  - **Then** `agnos-lightweight-process.demo` is a sibling directory
-  - **And** its top-level directory is itself, not `agnos-lightweight-process`
+  - **Then** `agnos-demo` is a sibling directory
+  - **And** its top-level directory is itself, not `agnos`
 - **Dependencies**: None
 
 ### RQ-DMO-002: The project without AGNOS
@@ -225,7 +226,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **NFR Type**: Security
 - **EARS Type**: Unwanted-behavior
 - **Statement**: IF the demo repository is created or rebuilt, THEN the operation SHALL NOT push anything,
-  configure a remote, modify the global or system git configuration, or modify `agnos-lightweight-process`;
+  configure a remote, modify the global or system git configuration, or modify `agnos`;
   the files of this repository changed to deliver the feature are only the `process/` artifacts of DMO and
   the `agnos-meta-demo` skill folders.
 - **Metric**: 0 remote in the demo; global git configuration unchanged; 0 modified file in this repository
@@ -267,7 +268,7 @@ from the trigrams of this repository (TRC, IDX, DSY, AGT, FIX, DMO).
 - **Metric**: "Functions traced" score of the demo between 8.5 inclusive and 10.0 exclusive (score 3.0, 154
   functions of 219 uncited, on 2026-11-12).
 - **Measurement Method**: `agnos-perf-center` on the demo with `--history --call-graph`, as `agnos-meta-demo verify`
-  runs it; the `functions-traced` check of `PERF-CENTER.json`.
+  runs it; the `functions-traced` check of `perf-center.json`.
 - **Priority**: Must
 - **Acceptance Criteria** (Gherkin):
   - **Given** the demo rebuilt by `build`

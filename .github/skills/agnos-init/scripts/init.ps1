@@ -94,6 +94,43 @@ function Move-ProcessPath([string]$Root, [string]$From, [string]$To) {
   }
 }
 
+# RQ-INI-023 / DEC-INI-017: the former plan reference names, renamed in the References section only.
+$PLAN_FOLDER = "$AGNOS_FOLDER/3.plan"
+$PLAN_FILTER = 'PLAN-*.md'
+$HEADING_PATTERN = '^#'
+$REFERENCES_PATTERN = '^## References[ \t\r]*$'
+$FIELD_RENAMES = @(@('^([ \t]*- )\*\*Requirements\*\*:', '$1**Requirement refs**:'), @('^([ \t]*- )\*\*ADRs\*\*:', '$1**ADR refs**:'))
+
+# RQ-INI-023 / DEC-INI-017: the text of a plan with its References lines renamed, every other byte as it was.
+function Convert-PlanText([string]$Text) {
+  $inReferences = $false
+  $lines = $Text.Split($LF)
+  for ($n = 0; $n -lt $lines.Length; $n++) {
+    if ($lines[$n] -cmatch $HEADING_PATTERN) { $inReferences = $lines[$n] -cmatch $REFERENCES_PATTERN; continue }
+    if ($inReferences) {
+      foreach ($rename in $FIELD_RENAMES) { $lines[$n] = $lines[$n] -creplace $rename[0], $rename[1] }
+    }
+  }
+  return [string]::Join($LF, $lines)
+}
+
+# RQ-INI-023 / DEC-INI-017: converts each plan of the project, in name order, reporting each file changed.
+function Convert-Plans([string]$Root) {
+  $folder = Join-Path $Root $PLAN_FOLDER
+  if (-not (Test-Path -LiteralPath $folder -PathType Container)) { return }
+  $names = @(Get-ChildItem -LiteralPath $folder -Filter $PLAN_FILTER -File | ForEach-Object { $_.Name })
+  [Array]::Sort($names, [StringComparer]::Ordinal)
+  foreach ($name in $names) {
+    $path = Join-Path $folder $name
+    $old = Read-Bytes $path
+    $new = Convert-PlanText $old
+    if ($new -cne $old) {
+      [System.IO.File]::WriteAllBytes($path, $BYTES.GetBytes($new))
+      Write-Output "$($REPORT_PREFIX)converted $PLAN_FOLDER/$name"
+    }
+  }
+}
+
 # RQ-INI-016 / DEC-INI-012: whether git's rules ignore the session state, tracked or not; outside a git repository,
 # whether .gitignore holds its line.
 function Test-Ignored([string]$Root, [string]$GitignoreText) {
@@ -126,6 +163,7 @@ try {
     }
     Write-Output "$($REPORT_PREFIX)moved $AGNOS_LEGACY_FOLDER to $AGNOS_FOLDER"
   }
+  Convert-Plans $targetFull                                   # RQ-INI-023
   foreach ($plan in $plans) {
     if ($plan.Text -ceq $plan.Old) {                          # RQ-INI-003
       Write-Output "$($REPORT_PREFIX)unchanged $($plan.File)"

@@ -5,8 +5,8 @@ Build the `agnos-trace` skill of FTR-TRC-001: the generator (link model, coverag
 self-contained page with its interactive graph, then package and run it on this repository.
 
 ## References
-- **Requirements**: RQ-TRC-001 to RQ-TRC-025 (FTR-TRC-001)
-- **ADRs**: ADR-TRC-001, ADR-TRC-002, ADR-TRC-003
+- **Requirement refs**: RQ-TRC-001 to RQ-TRC-025 (FTR-TRC-001)
+- **ADR refs**: ADR-TRC-001, ADR-TRC-002, ADR-TRC-003
 
 This plan implements the tasks in the format specified below.
 ---

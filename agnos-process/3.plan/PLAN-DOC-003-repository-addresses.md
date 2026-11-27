@@ -6,8 +6,8 @@ make the README, the guide and the demo's README link the AGNOS places (owner re
 imported into the local clone `../agnos-demo`; nothing is pushed.
 
 ## References
-- **Requirements**: RQ-DOC-007, RQ-DOC-008, RQ-WEB-020
-- **ADRs**: ADR-DOC-001 (DEC-DOC-001), ADR-WEB-001 (DEC-WEB-008)
+- **Requirement refs**: RQ-DOC-007, RQ-DOC-008, RQ-WEB-020
+- **ADR refs**: ADR-DOC-001 (DEC-DOC-001), ADR-WEB-001 (DEC-WEB-008)
 
 This plan implements the tasks in the format specified below.
 ---

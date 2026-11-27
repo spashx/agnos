@@ -7,8 +7,8 @@ Implements FTR-RSI-001: the `agnos-self-improvement` skill, its budget script, a
 the RECURSIVE SELF-IMPROVEMENT SESSIONS section of the instructions file.
 
 ## References
-- **Requirements**: RQ-RSI-001, RQ-RSI-002, RQ-RSI-003, RQ-RSI-004
-- **ADRs**: ADR-RSI-001 (DEC-RSI-001, DEC-RSI-002, DEC-RSI-003)
+- **Requirement refs**: RQ-RSI-001, RQ-RSI-002, RQ-RSI-003, RQ-RSI-004
+- **ADR refs**: ADR-RSI-001 (DEC-RSI-001, DEC-RSI-002, DEC-RSI-003)
 
 ---
 

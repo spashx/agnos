@@ -4,6 +4,19 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- Graph explorer: `agnos-graph --explorer` writes a page to browse the project graph in 2D and 3D, with filters, queries, a timeline and a help <!-- TASK-TRC-133 to TASK-TRC-150, TASK-GXP-002 to TASK-GXP-022, RQ-TRC-144 to RQ-TRC-167, RQ-GXP-001 to RQ-GXP-021 -->
+- Graph explorer: export the current view to a file and import it back, and export the 2D or 3D graph as a PNG image, from the File menu <!-- TASK-GXP-027, TASK-GXP-028, TASK-GXP-030, RQ-GXP-016, RQ-GXP-017 -->
+- The graph file records the sections of the process documents and the kind of each link (declared reference or mention) <!-- TASK-TRC-125, TASK-TRC-126, TASK-TRC-128, TASK-TRC-129, RQ-TRC-134 to RQ-TRC-141 -->
+
+### Changed
+- ADR decisions always state their requirements, dependencies and rationale <!-- TASK-PLG-096, RQ-PLG-040 -->
+- Plan references are named `Requirement refs` and `ADR refs`, as in tasks; `agnos-init` converts existing plans <!-- TASK-INI-021, TASK-INI-022, RQ-INI-022, RQ-INI-023 -->
+- The graph file moves to `agnos-process/4.knowledge/graph/agnos-graph.json` <!-- TASK-TRC-131, RQ-TRC-142 -->
+- The Performance Center's files are now lowercase (`perf-center.html`…): update your links and ignore rules <!-- TASK-TRC-132, RQ-TRC-143 -->
+
 ## [4.0.0]
 
 ### Changed

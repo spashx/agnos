@@ -6,8 +6,8 @@ exclusions depend on both, then state the layers. Everything stays on the local 
 build is the next plan.
 
 ## References
-- **Requirements**: RQ-MTA-001 to RQ-MTA-005; amended: RQ-DMO-002, RQ-DMO-020
-- **ADRs**: ADR-MTA-001 (DEC-MTA-002, DEC-MTA-003, DEC-MTA-006); amended: DEC-DMO-006
+- **Requirement refs**: RQ-MTA-001 to RQ-MTA-005; amended: RQ-DMO-002, RQ-DMO-020
+- **ADR refs**: ADR-MTA-001 (DEC-MTA-002, DEC-MTA-003, DEC-MTA-006); amended: DEC-DMO-006
 
 This plan implements the tasks in the format specified below.
 ---

@@ -1,7 +1,7 @@
 # PLAN-DEM-001: Demo Plan
 
 ## References
-- **ADRs**: ADR-DEM-001
+- **ADR refs**: ADR-DEM-001
 
 ## Tasks
 

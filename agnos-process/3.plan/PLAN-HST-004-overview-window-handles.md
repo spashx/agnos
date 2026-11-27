@@ -4,8 +4,8 @@
 Give the History's overview window a handle at each end, as the Delivery slider has. Page tests need the network.
 
 ## References
-- **Requirements**: RQ-HST-027 to RQ-HST-029
-- **ADRs**: ADR-HST-002 (DEC-HST-012); ADR-TRC-002 (design system)
+- **Requirement refs**: RQ-HST-027 to RQ-HST-029
+- **ADR refs**: ADR-HST-002 (DEC-HST-012); ADR-TRC-002 (design system)
 
 This plan implements the tasks in the format specified below.
 ---

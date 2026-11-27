@@ -5,8 +5,8 @@ Build the marketplace of FTR-PLG-001 locally and prove it by a real install. No 
 and the systems first, then the output, then the install.
 
 ## References
-- **Requirements**: RQ-PLG-001 to RQ-PLG-011
-- **ADRs**: ADR-PLG-001, ADR-MTA-001, ADR-MTA-002, ADR-INI-001
+- **Requirement refs**: RQ-PLG-001 to RQ-PLG-011
+- **ADR refs**: ADR-PLG-001, ADR-MTA-001, ADR-MTA-002, ADR-INI-001
 
 This plan implements the tasks in the format specified below.
 ---

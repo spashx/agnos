@@ -5,8 +5,8 @@ Implement RQ-DOC-001 to RQ-DOC-004 in two tasks: the report script with its test
 and the Haiku sub-agent. Done on the current branch at the owner's request (no new session).
 
 ## References
-- **Requirements**: RQ-DOC-001, RQ-DOC-002, RQ-DOC-003, RQ-DOC-004
-- **ADRs**: None (Tier M tasks)
+- **Requirement refs**: RQ-DOC-001, RQ-DOC-002, RQ-DOC-003, RQ-DOC-004
+- **ADR refs**: None (Tier M tasks)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -5,8 +5,8 @@ Frame the site's screenshots at 1291:720, the ratio of the owner's captures, thr
 image's ratio at build, and rebuild the site from the demo of PLAN-DMO-004.
 
 ## References
-- **Requirements**: RQ-WEB-019, RQ-WEB-012, RQ-WEB-015, RQ-WEB-001
-- **ADRs**: ADR-WEB-001 (DEC-WEB-004, DEC-WEB-005, DEC-WEB-007); ADR-TRC-002 (design system)
+- **Requirement refs**: RQ-WEB-019, RQ-WEB-012, RQ-WEB-015, RQ-WEB-001
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-004, DEC-WEB-005, DEC-WEB-007); ADR-TRC-002 (design system)
 
 This plan implements the tasks in the format specified below.
 ---

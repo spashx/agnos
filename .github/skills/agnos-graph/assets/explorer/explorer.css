@@ -1,0 +1,305 @@
+/* Graph explorer page style (FTR-TRC-014; ADR-TRC-025: DEC-TRC-084, DEC-TRC-091; DEC-TRC-010: every visual value is a
+   design token, --s-* or --c-*, compiled from assets/explorer/tokens.json). */
+
+/* RQ-TRC-148: three panels side by side; --facets-size and --detail-size are set by the splitters, the tokens give their defaults. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--s-font-sans);
+  font-size: var(--s-text-body);
+  line-height: var(--s-line-normal);
+  color: var(--s-text);
+  background: var(--s-surface-subtle);
+}
+#app {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: var(--facets-size, var(--c-sidebar-width)) var(--c-splitter-width)
+    minmax(var(--c-main-min-width), 1fr) var(--c-splitter-width) var(--detail-size, var(--c-detail-width));
+  grid-template-areas: "header header header header header" "facets split-left main split-right detail";
+}
+.visually-hidden { position: absolute; width: var(--s-stroke-hairline); height: var(--s-stroke-hairline); overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- header (RQ-TRC-145) ---- */
+#header {
+  grid-area: header;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm) var(--s-space-xl);
+  min-height: var(--c-header-height);
+  padding: var(--s-space-sm) var(--s-space-lg);
+  background: var(--c-header-bg);
+  border-bottom: var(--s-stroke-hairline) solid var(--c-header-border);
+}
+.brand { display: flex; align-items: center; gap: var(--s-space-sm); }
+.brand h1 { margin: 0; font-size: var(--s-text-heading); font-weight: var(--s-weight-bold); }
+.brand-mark { width: var(--c-brand-mark-size); height: var(--c-brand-mark-size); flex: none; }
+.mark-tile { fill: var(--c-brand-mark-tile); }
+.mark-bar-light { fill: var(--c-brand-mark-bar-light); }
+.mark-bar-blue { fill: var(--c-brand-mark-bar-blue); }
+.mark-bar-green { fill: var(--c-brand-mark-bar-green); }
+.mark-bar-yellow { fill: var(--c-brand-mark-bar-yellow); }
+.graph-meta { margin: 0 0 0 auto; color: var(--s-text-muted); font-size: var(--s-text-small); }   /* TASK-GXP-009: on the right, beside the help */
+.graph-meta code { font-family: var(--s-font-mono); }
+/* RQ-GXP-001, DEC-GXP-001: the menu bar; its menus take the context menu's look (.graph-menu) */
+.menubar { display: flex; gap: var(--s-space-2xs); padding-left: var(--s-space-md); border-left: var(--s-stroke-hairline) solid var(--s-border); }   /* TASK-GXP-009: set apart from the mark */
+.menubar-item { position: relative; }
+.menubar-title { font: inherit; font-weight: var(--s-weight-strong); padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; }
+.menubar-title:hover, .menubar-title[aria-expanded="true"], .menubar-title:focus-visible { background: var(--s-surface-hover); outline: none; }
+.menubar-menu { top: 100%; left: 0; z-index: 4; }
+.load-message { margin: 0; flex-basis: 100%; font-size: var(--s-text-small); color: var(--s-danger); }
+.load-message:empty { display: none; }
+.button {
+  display: inline-flex; align-items: center; min-height: var(--c-control-height);
+  padding: 0 var(--s-space-md); border-radius: var(--s-radius-md);
+  border: var(--s-stroke-hairline) solid var(--s-border-strong); background: var(--s-surface-raised);
+  color: var(--s-text); font: inherit; font-size: var(--s-text-small); cursor: pointer;
+}
+.button:hover { background: var(--s-surface-hover); }
+.button:focus-visible, .tab:focus-visible, .splitter:focus-visible, .data-table tbody tr:focus-visible, .relation-link:focus-visible {
+  outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: calc(-1 * var(--s-stroke-focus));
+}
+
+/* ---- panels ---- */
+.panel {
+  min-width: 0; overflow-y: auto;
+  background: var(--c-panel-bg);
+  padding: var(--s-space-lg);
+}
+#facets { grid-area: facets; border-right: var(--s-stroke-hairline) solid var(--c-panel-border); }
+#detail { grid-area: detail; border-left: var(--s-stroke-hairline) solid var(--c-panel-border); }
+.panel-section + .panel-section { margin-top: var(--s-space-xl); }
+.panel-title {
+  margin: 0 0 var(--s-space-sm); font-size: var(--s-text-caption); font-weight: var(--s-weight-bold);
+  letter-spacing: var(--s-tracking-caps); text-transform: uppercase; color: var(--s-text-muted);
+}
+.summary { display: grid; grid-template-columns: auto 1fr; gap: var(--s-space-xs) var(--s-space-md); margin: 0; font-size: var(--s-text-small); }
+.summary dt { color: var(--s-text-muted); }
+.summary dd { margin: 0; text-align: right; font-family: var(--s-font-mono); }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-space-xs); font-size: var(--s-text-small); }
+.legend li { display: flex; align-items: center; gap: var(--s-space-sm); }
+.legend .count { margin-left: auto; font-family: var(--s-font-mono); color: var(--s-text-muted); }
+
+/* RQ-TRC-148, DEC-TRC-012 (copied): the splitters */
+.splitter { cursor: col-resize; background: transparent; position: relative; }
+.splitter::after { content: ""; position: absolute; inset: 0 auto 0 50%; width: var(--s-stroke-hairline); background: var(--s-border); }
+#split-left { grid-area: split-left; }
+#split-right { grid-area: split-right; }
+.splitter:hover, .splitter.dragging, .splitter:focus-visible { background: var(--s-accent-subtle); }
+.splitter:hover::after, .splitter.dragging::after { width: var(--s-stroke-focus); background: var(--c-splitter-hover); }
+
+/* ---- type colours (RQ-TRC-147, RQ-TRC-157, DEC-TRC-091): one surface and one text token per node type ---- */
+.type-label { font-family: var(--s-font-mono); font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); color: var(--type-text); }
+.swatch { display: inline-block; width: var(--c-swatch-size); height: var(--c-swatch-size); border-radius: var(--s-radius-sm); background: var(--type-surface); }
+[data-type="FTR"] { --type-surface: var(--s-type-ftr); --type-text: var(--s-type-ftr-text); }
+[data-type="RQ"] { --type-surface: var(--s-type-rq); --type-text: var(--s-type-rq-text); }
+[data-type="ADR"] { --type-surface: var(--s-type-adr); --type-text: var(--s-type-adr-text); }
+[data-type="DEC"] { --type-surface: var(--s-type-dec); --type-text: var(--s-type-dec-text); }
+[data-type="PLAN"] { --type-surface: var(--s-type-plan); --type-text: var(--s-type-plan-text); }
+[data-type="TASK"] { --type-surface: var(--s-type-task); --type-text: var(--s-type-task-text); }
+[data-type="SEC"] { --type-surface: var(--s-type-sec); --type-text: var(--s-type-sec-text); }
+[data-type="FILE"] { --type-surface: var(--s-type-file); --type-text: var(--s-type-file-text); }
+[data-type="FN"] { --type-surface: var(--s-type-fn); --type-text: var(--s-type-fn-text); }
+[data-type="UNDEFINED"] { --type-surface: var(--s-type-undefined); --type-text: var(--s-type-undefined-text); }
+
+/* ---- query bar (RQ-TRC-152, RQ-TRC-153) ---- */
+.query-bar { display: grid; gap: var(--s-space-xs); padding: var(--s-space-sm) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.query-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); }
+.query-label { font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); color: var(--s-text-muted); }
+#query { flex: 1 1 auto; min-width: 0; min-height: var(--c-control-height); padding: 0 var(--s-space-md); font-family: var(--s-font-mono); font-size: var(--s-text-small); color: var(--s-text); background: var(--s-surface-subtle); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); }
+#query:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); }
+.button-primary { background: var(--s-text); color: var(--s-text-on-accent); border-color: var(--s-text); }
+.button-primary:hover { background: var(--s-accent-hover); }
+.saved-queries { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs); }
+.saved-queries:empty { display: none; }
+.saved-item { display: inline-flex; align-items: center; gap: var(--s-space-2xs); }
+.saved-run { font-family: var(--s-font-sans); }
+.saved-tool { font: inherit; font-size: var(--s-text-small); min-width: var(--c-control-height); min-height: var(--c-control-height); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text-muted); cursor: pointer; }
+.saved-tool:hover { background: var(--s-surface-hover); color: var(--s-text); }
+.saved-editor { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); padding: var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); background: var(--s-surface-subtle); }
+.saved-editor input { min-height: var(--c-control-height); padding: 0 var(--s-space-sm); font: inherit; font-size: var(--s-text-small); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-sm); }
+#saved-query { flex: 1 1 auto; font-family: var(--s-font-mono); }
+.query-message { margin: 0; font-size: var(--s-text-small); color: var(--s-text-muted); }
+.query-message.error { color: var(--s-danger); }
+.query-message:empty { display: none; }
+
+/* ---- facets (RQ-TRC-151) ---- */
+.facet { border: 0; margin: var(--s-space-xl) 0 0; padding: 0; min-width: 0; }
+.facet legend { padding: 0; }
+/* RQ-TRC-161: the room of a scrollbar is kept, so that the right-aligned counts stay beside it, never under it */
+#facets, .facet-values { scrollbar-gutter: stable; }
+.facet-bulk-row { display: flex; gap: var(--s-space-xs); margin-bottom: var(--s-space-xs); }
+.facet-bulk { font: inherit; font-size: var(--s-text-caption); padding: 0 var(--s-space-sm); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-sm); background: var(--s-surface-raised); color: var(--s-text-muted); cursor: pointer; }
+.facet-bulk:hover { background: var(--s-surface-hover); color: var(--s-text); }
+.facet-values { list-style: none; margin: 0; padding: 0 var(--s-space-xs) 0 0; display: grid; gap: var(--s-space-2xs); font-size: var(--s-text-small); max-height: var(--c-facet-max-height); overflow-y: auto; }
+.facet-values label { display: flex; align-items: center; gap: var(--s-space-sm); cursor: pointer; }
+.facet-values input { margin: 0; }
+.facet-values .count { margin-left: auto; font-family: var(--s-font-mono); color: var(--s-text-muted); }
+
+/* ---- central views ---- */
+#main { grid-area: main; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--s-surface); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); padding: var(--s-space-sm) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.tabs { display: inline-flex; border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); overflow: hidden; }
+.tab { font: inherit; font-size: var(--s-text-small); min-height: var(--c-control-height); padding: 0 var(--s-space-md); border: 0; background: var(--s-surface-raised); color: var(--s-text-muted); cursor: pointer; }
+.tab + .tab { border-left: var(--s-stroke-hairline) solid var(--s-border-strong); }
+.tab[aria-selected="true"] { background: var(--s-text); color: var(--s-text-on-accent); }
+.graph-controls { display: flex; align-items: center; gap: var(--s-space-xs); }
+.graph-control[hidden] { display: none; }
+.hidden-list { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs) var(--s-space-sm); padding: 0 var(--s-space-lg); font-size: var(--s-text-small); }
+.hidden-list:not(:empty) { padding-block: var(--s-space-sm); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.chip-note { color: var(--s-text-muted); }
+.chip { font: inherit; font-family: var(--s-font-mono); font-size: var(--s-text-caption); padding: var(--s-space-2xs) var(--s-space-sm); border-radius: var(--s-radius-pill); border: var(--s-stroke-hairline) solid var(--s-border-strong); background: var(--s-surface-raised); color: var(--s-text); cursor: pointer; }
+.chip:hover { background: var(--s-surface-hover); }
+.detail-actions { display: flex; flex-wrap: wrap; gap: var(--s-space-xs); margin-bottom: var(--s-space-lg); }
+.view-count { margin: 0 0 0 auto; font-size: var(--s-text-small); color: var(--s-text-muted); }
+.view { flex: 1 1 auto; min-height: 0; display: none; }
+.view.active { display: flex; flex-direction: column; }
+.graph-canvas { flex: 1 1 auto; min-height: 0; background: var(--c-graph-bg); }
+#view-graph { position: relative; }
+/* RQ-GXP-011, DEC-GXP-008: the 3D canvas fills its panel; the renderer sets its size */
+#view-graph3d { position: relative; }
+#graph3d { overflow: hidden; touch-action: none; }
+#graph3d canvas { display: block; }
+/* RQ-GXP-015, DEC-GXP-013: the month and angle labels over the 3D canvas, placed by the script */
+.graph3d-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.graph3d-label { position: absolute; transform: translate(-50%, -50%); font-size: var(--s-text-caption); color: var(--c-graph-label-color); white-space: nowrap; }
+.select { min-height: var(--c-control-height); padding: 0 var(--s-space-sm); font: inherit; font-size: var(--s-text-small); color: var(--s-text); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); }
+
+/* RQ-TRC-165 (TASK-TRC-148): the legend, a wrapped band along the graph's bottom edge as the performance center's, drawn
+   from the graph's own tokens */
+.graph-legend { position: absolute; z-index: 2; left: var(--s-space-sm); bottom: var(--s-space-sm); max-width: calc(100% - 2 * var(--s-space-sm)); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs) var(--s-space-md); padding: var(--s-space-xs) var(--s-space-md); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
+.legend-toggle { font: inherit; font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); letter-spacing: var(--s-tracking-caps); text-transform: uppercase; padding: 0; border: 0; background: transparent; color: var(--s-text-muted); cursor: pointer; }
+.legend-toggle::after { content: " ▾"; }
+.graph-legend.folded .legend-toggle::after { content: " ▸"; }
+.graph-legend.folded .legend-body { display: none; }
+.legend-body, .legend-body .legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-xs) var(--s-space-md); }
+.legend-body .legend li .count { margin-left: var(--s-space-2xs); }
+.legend-line { display: inline-block; width: var(--c-legend-line-width); border-top: var(--s-stroke-focus) solid var(--kind-colour); }
+[data-kind="contains"] { --kind-colour: var(--c-graph-edge-contains); }
+[data-kind="contains"] .legend-line { border-top-style: dashed; }
+/* RQ-GXP-005: a legend kind is a button choosing its colour; a reader's colour is set inline as --kind-colour */
+.legend-kind { display: inline-flex; align-items: center; gap: var(--s-space-sm); padding: 0; font: inherit; color: inherit; border: 0; background: transparent; cursor: pointer; }
+.legend-kind:hover span:last-child, .legend-kind:focus-visible span:last-child { text-decoration: underline; }
+[data-kind="refs"] { --kind-colour: var(--c-graph-edge-cites); }
+[data-kind="code"] { --kind-colour: var(--c-graph-edge-code); }
+[data-kind="call"] { --kind-colour: var(--c-graph-edge-call); }
+
+/* RQ-TRC-167: the hovered node's tooltip, the detail panel's head and properties, kept inside the graph view */
+.graph-tip { position: absolute; z-index: 4; max-width: var(--c-graph-tip-max-width); max-height: calc(100% - 2 * var(--s-space-sm)); overflow: hidden; padding: var(--s-space-sm) var(--s-space-md); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); pointer-events: none; }
+.graph-tip[hidden] { display: none; }
+.graph-tip .properties { margin-bottom: 0; }
+
+/* RQ-TRC-163, DEC-TRC-095: the graph's context menu, at the pointer */
+.graph-menu { position: absolute; z-index: 3; display: grid; min-width: var(--c-detail-label-width); padding: var(--s-space-xs); background: var(--s-surface-raised); border: var(--s-stroke-hairline) solid var(--s-border-strong); border-radius: var(--s-radius-md); box-shadow: var(--s-shadow); font-size: var(--s-text-small); }
+.graph-menu[hidden] { display: none; }
+.graph-menu-title { padding: var(--s-space-2xs) var(--s-space-sm); font-size: var(--s-text-caption); font-weight: var(--s-weight-bold); color: var(--s-text-muted); text-transform: uppercase; letter-spacing: var(--s-tracking-caps); }
+.graph-menu button { font: inherit; text-align: left; padding: var(--s-space-xs) var(--s-space-sm); border: 0; border-radius: var(--s-radius-sm); background: transparent; color: var(--s-text); cursor: pointer; white-space: nowrap; }
+.graph-menu button:hover, .graph-menu button:focus-visible { background: var(--s-surface-hover); outline: none; }
+.graph-menu button:disabled { color: var(--s-text-subtle); background: transparent; cursor: default; }
+.graph-menu hr { width: 100%; margin: var(--s-space-xs) 0; border: 0; border-top: var(--s-stroke-hairline) solid var(--s-border); }
+
+/* RQ-TRC-149: the tables scroll inside the central view under a fixed header row */
+.table-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--s-text-small); }
+.data-table th {
+  position: sticky; top: 0; z-index: 1;
+  text-align: left; font-weight: var(--s-weight-medium); color: var(--s-text-muted);
+  background: var(--c-table-header-bg); border-bottom: var(--s-stroke-hairline) solid var(--s-border);
+  padding: var(--s-space-sm) var(--s-space-md); cursor: pointer; user-select: none; white-space: nowrap;
+}
+/* RQ-TRC-159: a resized table is laid out fixed, at the widths its columns were given */
+.data-table.resized { table-layout: fixed; }
+.data-table.resized td { max-width: none; }
+.col-resize { position: absolute; top: 0; right: 0; bottom: 0; width: var(--c-table-column-handle-width); cursor: col-resize; touch-action: none; }
+.col-resize:hover, .col-resize.dragging { background: var(--c-splitter-hover); }
+.data-table th[aria-sort="ascending"]::after { content: " ▲"; }
+.data-table th[aria-sort="descending"]::after { content: " ▼"; }
+.data-table td { padding: var(--s-space-xs) var(--s-space-md); border-bottom: var(--s-stroke-hairline) solid var(--s-surface-hover); vertical-align: top; white-space: nowrap; max-width: var(--c-table-cell-max-width); overflow: hidden; text-overflow: ellipsis; }
+.data-table tbody tr { cursor: pointer; }
+.data-table tbody tr:hover { background: var(--c-table-row-hover); }
+.data-table tbody tr[aria-selected="true"] { background: var(--c-table-row-selected); }
+.data-table .mono { font-family: var(--s-font-mono); }
+.data-table .muted { color: var(--s-text-muted); }
+
+/* ---- detail panel (RQ-TRC-154) ---- */
+.detail-empty { color: var(--s-text-muted); font-size: var(--s-text-small); }
+.detail-id { margin: var(--s-space-xs) 0 0; font-family: var(--s-font-mono); font-size: var(--s-text-heading); font-weight: var(--s-weight-bold); word-break: break-all; }
+.detail-title { margin: var(--s-space-2xs) 0 var(--s-space-lg); }
+.properties { display: grid; grid-template-columns: var(--c-detail-label-width) minmax(0, 1fr); gap: var(--s-space-xs) var(--s-space-md); margin: 0 0 var(--s-space-lg); font-size: var(--s-text-small); }
+.properties dt { color: var(--s-text-muted); font-family: var(--s-font-mono); }
+.properties dd { margin: 0; font-family: var(--s-font-mono); overflow-wrap: anywhere; white-space: pre-wrap; }
+.relations { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-space-sm); }
+.relation-link {
+  display: grid; gap: var(--s-space-2xs); width: 100%; text-align: left; font: inherit; font-size: var(--s-text-small);
+  padding: var(--s-space-sm) var(--s-space-md); border-radius: var(--s-radius-md);
+  border: var(--s-stroke-hairline) solid var(--s-border); background: var(--s-surface-subtle); color: var(--s-text); cursor: pointer;
+}
+.relation-link:hover { background: var(--s-surface-hover); }
+.relation-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); }
+.relation-end { font-family: var(--s-font-mono); font-weight: var(--s-weight-bold); }
+.pill { font-size: var(--s-text-caption); padding: 0 var(--s-space-sm); border-radius: var(--s-radius-pill); background: var(--s-accent-border); color: var(--s-accent-hover); }
+.proof { font-family: var(--s-font-mono); font-size: var(--s-text-caption); color: var(--s-text-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* RQ-TRC-145: the drop zone over the whole page */
+.drop-zone {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--s-accent-subtle); border: var(--s-stroke-accent) dashed var(--s-accent);
+  font-size: var(--s-text-title); color: var(--s-accent-hover);
+}
+.drop-zone[hidden] { display: none; }
+
+/* ---- help, licences, About (TASK-GXP-003: RQ-GXP-002 to RQ-GXP-004; DEC-GXP-002) ----
+   Copied from the performance center's matrix.css (RQ-TRC-101, RQ-TRC-112, RQ-TRC-114; DEC-TRC-052, DEC-TRC-058, DEC-TRC-061),
+   its card tokens read as this page's panel tokens. */
+.icon-button { display: inline-grid; place-items: center; width: var(--c-control-height); height: var(--c-control-height); padding: var(--s-space-none); border: var(--s-stroke-hairline) solid var(--s-border); border-radius: var(--s-radius-md); background: var(--s-surface-raised); cursor: pointer; flex: none; }
+.icon-button svg { width: var(--s-text-heading); height: var(--s-text-heading); fill: var(--s-text-muted); }
+.icon-button:hover { background: var(--c-table-row-hover); }
+.help-dialog { width: min(var(--c-help-width), 100%); height: min(var(--c-help-height), 100%); min-width: min(var(--c-help-min-width), 100%); min-height: min(var(--c-help-min-height), 100%); resize: both; overflow: hidden; padding: var(--s-space-none); color: var(--s-text); background: var(--c-panel-bg); border: var(--s-stroke-hairline) solid var(--c-panel-border); border-radius: var(--s-radius-lg); }
+.help-dialog[open] { display: grid; grid-template: auto minmax(0, 1fr) / auto minmax(0, 1fr); }
+.help-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: var(--s-space-md) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--c-panel-border); }
+.help-title { margin: var(--s-space-none); font-size: var(--s-text-heading); font-weight: var(--s-weight-strong); }
+.help-list { display: flex; flex-direction: column; gap: var(--s-space-xs); padding: var(--s-space-md); border-right: var(--s-stroke-hairline) solid var(--c-panel-border); }
+.help-topic { padding: var(--s-space-xs) var(--s-space-md); color: var(--s-text-muted); font: inherit; text-align: left; white-space: nowrap; background: none; border: none; border-radius: var(--s-radius-md); cursor: pointer; }
+.help-topic:hover { background: var(--c-table-row-hover); }
+.help-topic[aria-current] { color: var(--s-text); font-weight: var(--s-weight-strong); background: var(--c-table-row-hover); }
+.help-body { padding: var(--s-space-md) var(--s-space-xl); overflow-y: auto; }
+.help-body section[hidden] { display: none; }
+.help-body h3 { margin-top: var(--s-space-none); font-size: var(--s-text-heading); }
+.help-body code { font-family: var(--s-font-mono); }
+.about-brand { display: flex; align-items: center; gap: var(--s-space-lg); margin-bottom: var(--s-space-md); }
+.about-brand-text { display: flex; flex-direction: column; gap: var(--s-space-2xs); }
+.about-wordmark { color: var(--s-text); font-size: var(--s-text-wordmark); font-weight: var(--s-weight-bold); line-height: var(--s-line-display); letter-spacing: var(--s-tracking-wordmark); }
+.about-tagline { color: var(--s-text-muted); font-size: var(--s-text-small); font-weight: var(--s-weight-medium); line-height: var(--s-line-snug); letter-spacing: var(--s-tracking-tagline); }
+.brand-mark-large { display: block; width: var(--c-brand-mark-size-large); height: var(--c-brand-mark-size-large); }
+.about-links { display: flex; flex-wrap: wrap; gap: var(--s-space-md); }
+.about-link { display: flex; align-items: center; gap: var(--s-space-md); padding: var(--s-space-md) var(--s-space-lg); color: var(--s-text); text-decoration: none; border: var(--s-stroke-hairline) solid var(--c-panel-border); border-radius: var(--s-radius-lg); }
+.about-link:hover { color: var(--s-accent); border-color: var(--s-accent); }
+.about-icon { width: var(--c-control-height); height: var(--c-control-height); flex: none; fill: currentColor; }
+.about-text { display: flex; align-items: center; gap: var(--s-space-xs); }
+.licence-list { display: flex; flex-wrap: wrap; gap: var(--s-space-md); }
+.licence-badge { display: inline-flex; height: var(--c-badge-height); overflow: hidden; border-radius: var(--c-badge-radius); font-size: var(--s-text-caption); font-weight: var(--s-weight-strong); line-height: var(--c-badge-height); text-decoration: none; }
+.licence-badge-label, .licence-badge-value { padding: var(--s-space-none) var(--s-space-sm); white-space: nowrap; }
+.licence-badge-label { color: var(--c-badge-label-ink); background: var(--c-badge-label-bg); }
+.licence-badge-value { color: var(--c-badge-ink); }
+.licence-badge-value[data-tone="green"] { background: var(--c-badge-tone-green); }
+.licence-badge-value[data-tone="blue"] { background: var(--c-badge-tone-blue); }
+.licence-badge-value[data-tone="yellow"] { background: var(--c-badge-tone-yellow); }
+.licence-badge-value[data-tone="light"] { background: var(--c-badge-tone-light); }
+.licence-badge-link:hover .licence-badge-value { text-decoration: underline; }
+.licence-badge-link:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-stroke-focus); }
+
+/* ---- time bar (TASK-GXP-005: RQ-GXP-006, RQ-GXP-009; DEC-GXP-003) ----
+   Two range inputs share one track: each lets the pointer reach its own handle only, the fill shows the period between them. */
+.time-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-space-sm); padding: var(--s-space-sm) var(--s-space-lg); border-bottom: var(--s-stroke-hairline) solid var(--s-border); }
+.time-bar[hidden] { display: none; }
+.time-track { position: relative; order: 1; flex: 1 1 var(--c-time-track-min-width); height: var(--c-control-height); }   /* TASK-GXP-009: on the controls' row, after the mode */
+.time-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--c-time-track-height); transform: translateY(-50%); border-radius: var(--s-radius-pill); background: var(--c-time-track-bg); }
+.time-fill { position: absolute; top: 50%; height: var(--c-time-track-height); transform: translateY(-50%); border-radius: var(--s-radius-pill); background: var(--c-time-fill); }
+.time-track input[type="range"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.time-track input[type="range"]::-webkit-slider-thumb { width: var(--c-time-thumb-size); height: var(--c-time-thumb-size); border-radius: var(--s-radius-pill); background: var(--c-time-thumb); border: var(--s-stroke-focus) solid var(--c-time-thumb-ring); box-shadow: var(--s-shadow); cursor: pointer; pointer-events: auto; -webkit-appearance: none; appearance: none; }
+.time-track input[type="range"]::-moz-range-thumb { width: var(--c-time-thumb-size); height: var(--c-time-thumb-size); border-radius: var(--s-radius-pill); background: var(--c-time-thumb); border: var(--s-stroke-focus) solid var(--c-time-thumb-ring); box-shadow: var(--s-shadow); cursor: pointer; pointer-events: auto; }
+.time-track input[type="range"]:focus-visible { outline: var(--s-stroke-focus) solid var(--s-focus); outline-offset: var(--s-stroke-focus); }
+.time-range { font-family: var(--s-font-mono); font-size: var(--s-text-small); color: var(--s-text-muted); white-space: nowrap; }
+/* RQ-GXP-007, RQ-GXP-008: the playback controls and its cursor across the track */
+.time-cursor { position: absolute; top: 0; bottom: 0; width: var(--c-time-cursor-width); transform: translateX(-50%); background: var(--c-time-cursor); pointer-events: none; }
+.time-cursor[hidden] { display: none; }
+.time-option { display: inline-flex; align-items: center; gap: var(--s-space-xs); font-size: var(--s-text-small); white-space: nowrap; }

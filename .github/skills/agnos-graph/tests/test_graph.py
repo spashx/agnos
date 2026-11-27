@@ -25,9 +25,12 @@ PROCESS = FIXTURE / "process"
 SOURCES = FIXTURE / "src"
 CALLS = FIXTURE / "calls"
 GENERATED_AT = "2026-11-22T10:00Z"
+GRAPH_FOLDER_FILE = "4.knowledge/graph/agnos-graph.json"   # RQ-TRC-142 / DEC-TRC-086: the default path, stated, not read
+FORMER_GRAPH_FILE = "4.knowledge/agnos-graph.json"         # RQ-TRC-142: the path before TASK-TRC-131
 HAS_TREE_SITTER = importlib.util.find_spec("tree_sitter") is not None
 NEEDS_TREE_SITTER = "tree-sitter is not installed (pip install -r .github/skills/agnos-graph/requirements-callgraph.txt)"
-STATE_KEYS = {"meta", "elements", "edges", "files", "tasks"}
+STATE_KEYS = {"meta", "elements", "edges", "files", "tasks", "sections",   # sections: RQ-TRC-137, TASK-TRC-125
+              "links"}                                                      # links: RQ-TRC-141, TASK-TRC-128
 JUDGEMENT_KEYS = {"coverage", "quality", "findings"}
 OPTIONAL_KEYS = {"callGraph", "history", "delivery"}
 GIT_IDENTITY = ["-c", "user.name=Tester", "-c", "user.email=tester@example.com"]
@@ -143,6 +146,15 @@ class GraphFileTest(unittest.TestCase):
         self.assertTrue((process / agnos_layout.GRAPH_FILE).is_file())
         self.assertIn("agnos-graph:", stdout.strip().splitlines()[-1])
 
+    def test_RQ_TRC_142_given_no_out_option_then_the_graph_is_written_to_the_graph_folder(self):
+        """TASK-TRC-131: RQ-TRC-142 (DEC-TRC-086): Given no --out, When the graph is built, Then it is in 4.knowledge/graph/."""
+        process = self.tmp / "process"
+        shutil.copytree(PROCESS, process)
+        code, _, err = run_main(["--process", str(process), "--sources", str(SOURCES)])
+        self.assertEqual(0, code, err)
+        self.assertTrue((process / GRAPH_FOLDER_FILE).is_file())
+        self.assertFalse((process / FORMER_GRAPH_FILE).exists())
+
 
 class StateDateTest(unittest.TestCase):
     """TASK-TRC-117: RQ-TRC-130 (DEC-TRC-074)."""
@@ -192,7 +204,8 @@ class IndependenceTest(unittest.TestCase):
         tree = ast.parse((HERE.parent / "scripts" / "graph.py").read_text(encoding="utf-8"))
         imported = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
         imported |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
-        self.assertEqual({"agnos_layout"}, imported - set(sys.stdlib_module_names))
+        # explorer: the skill's own module beside the script (TASK-TRC-133, RQ-TRC-144 / DEC-TRC-084)
+        self.assertEqual({"agnos_layout", "explorer"}, imported - set(sys.stdlib_module_names))
 
 
 if __name__ == "__main__":

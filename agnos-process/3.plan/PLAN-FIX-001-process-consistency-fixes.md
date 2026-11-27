@@ -4,8 +4,8 @@
 Implements FTR-FIX-001: design-system dependencies of the UI requirements and the tier of TASK-DSY-002.
 
 ## References
-- **Requirements**: RQ-FIX-001 to RQ-FIX-004
-- **ADRs**: ADR-FIX-001 (DEC-FIX-001, DEC-FIX-002)
+- **Requirement refs**: RQ-FIX-001 to RQ-FIX-004
+- **ADR refs**: ADR-FIX-001 (DEC-FIX-001, DEC-FIX-002)
 
 ---
 

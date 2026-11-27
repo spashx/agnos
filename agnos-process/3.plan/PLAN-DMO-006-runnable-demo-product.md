@@ -6,8 +6,8 @@ as the README says, the service gets its entry point and a rooms file in the dem
 import and the website are rebuilt. Owner request of 2026-11-18, before the 4.0.0 release.
 
 ## References
-- **Requirements**: RQ-DMO-027, RQ-DMO-003, RQ-DMO-008, RQ-DMO-009, RQ-DMO-021, RQ-DMO-022
-- **ADRs**: ADR-DMO-001
+- **Requirement refs**: RQ-DMO-027, RQ-DMO-003, RQ-DMO-008, RQ-DMO-009, RQ-DMO-021, RQ-DMO-022
+- **ADR refs**: ADR-DMO-001
 
 This plan implements the tasks in the format specified below.
 ---

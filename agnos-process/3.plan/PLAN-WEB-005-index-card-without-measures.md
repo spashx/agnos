@@ -6,8 +6,8 @@ their bars, which the owner judges of no use; the card keeps its title, text, ex
 RQ-WEB-005 is deprecated; the check of a variable left in a field stays, under RQ-WEB-004.
 
 ## References
-- **Requirements**: RQ-WEB-005 (deprecated 2026-11-13), RQ-WEB-001, RQ-WEB-004, RQ-WEB-018 (amended 2026-11-13), RQ-WEB-015
-- **ADRs**: ADR-WEB-001 (DEC-WEB-002 amended 2026-11-13, DEC-WEB-003, DEC-WEB-005)
+- **Requirement refs**: RQ-WEB-005 (deprecated 2026-11-13), RQ-WEB-001, RQ-WEB-004, RQ-WEB-018 (amended 2026-11-13), RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-002 amended 2026-11-13, DEC-WEB-003, DEC-WEB-005)
 
 This plan implements the tasks in the format specified below.
 ---

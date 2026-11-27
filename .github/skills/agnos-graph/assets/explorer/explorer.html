@@ -1,0 +1,267 @@
+<!doctype html>
+<!-- Graph explorer page template (FTR-TRC-014; ADR-TRC-025: DEC-TRC-084, DEC-TRC-088; RQ-TRC-145, RQ-TRC-148, RQ-TRC-155).
+     graph.py --explorer replaces the markers: tokens, style, libraries, script, title, data script. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@TITLE@</title>
+<style>
+/*@TOKENS@*/
+/*@CSS@*/
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <div class="brand">
+      <!-- RQ-TRC-114, DEC-TRC-056 (copied): the AGNOS brand mark "Spans", as the performance center draws it -->
+      <svg class="brand-mark" viewBox="0 0 24 24" role="img" aria-label="AGNOS"><rect class="mark-tile" width="24" height="24" rx="5.5"></rect><rect class="mark-bar-light" x="4" y="3" width="16" height="3" rx="1"></rect><rect class="mark-bar-blue" x="4" y="8" width="6" height="3" rx="1"></rect><rect class="mark-bar-green" x="10" y="13" width="5" height="3" rx="1"></rect><rect class="mark-bar-yellow" x="15" y="18" width="5" height="3" rx="1"></rect></svg>
+      <h1>Graph explorer</h1>
+    </div>
+    <!-- RQ-GXP-001, DEC-GXP-001: the menu bar, filled by the script from its list of menus -->
+    <div id="menubar" class="menubar" role="menubar" aria-label="Menus"></div>
+    <p id="graph-meta" class="graph-meta"></p>
+    <!-- RQ-GXP-002, DEC-GXP-002: the help button, copied from the performance center (RQ-TRC-101, DEC-TRC-052) -->
+    <button class="icon-button" id="help-button" type="button" title="What this view shows and how to use it" aria-label="Help" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 15h2v2h-2Zm1-11a4 4 0 0 1 2.2 7.3c-.8.6-1.2 1-1.2 1.7h-2c0-1.6.9-2.4 2-3.2A2 2 0 1 0 10 10H8a4 4 0 0 1 4-4Z"></path></svg>
+    </button>
+    <input id="file-input" aria-label="Graph file" title="Choose an agnos-graph.json file" type="file" accept=".json,application/json" class="visually-hidden">
+    <p id="load-message" class="load-message" role="status" aria-live="polite"></p>
+  </header>
+  <aside id="facets" class="panel" aria-label="Facets">
+    <section class="panel-section">
+      <h2 class="panel-title">Graph</h2>
+      <dl id="graph-summary" class="summary"></dl>
+    </section>
+    <div id="facet-list"></div>
+  </aside>
+  <div id="split-left" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+       aria-label="Resize the facets panel" aria-controls="facets"></div>
+  <main id="main">
+    <section class="query-bar" aria-label="Query">
+      <div class="query-row">
+        <label for="query" class="query-label">Query</label>
+        <input id="query" title="Type a query, then press Enter or Run; click a facet value while this field is focused to write its term" type="text" spellcheck="false" autocomplete="off"
+               placeholder="type:RQ tri:TRC status:!Done   ·   type:RQ !cited-by:TASK[Requirement refs]   ·   edge kind:refs field:text">
+        <button type="button" class="button button-primary" id="query-run" title="Run the query in every view">Run</button>
+        <button type="button" class="button" id="query-clear" title="Clear the query and show what the facets allow">Clear</button>
+      </div>
+      <div id="saved-queries" class="saved-queries" aria-label="Saved queries"></div>
+      <input id="saved-import-file" title="Choose an exported file of saved queries" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import saved queries">
+      <!-- RQ-GXP-016, DEC-GXP-017 (TASK-GXP-030): the view file, chosen from File, Import view -->
+      <input id="view-import-file" title="Choose an exported view file" type="file" accept=".json,application/json" class="visually-hidden" aria-label="Import view">
+      <p id="query-message" class="query-message" role="status" aria-live="polite"></p>
+    </section>
+    <!-- RQ-GXP-006, RQ-GXP-009, DEC-GXP-003: the time bar, shown only when the graph holds a history -->
+    <section id="time-bar" class="time-bar" aria-label="Time period" hidden>
+      <span class="query-label">Period</span>
+      <!-- RQ-GXP-007, RQ-GXP-008, DEC-GXP-006: the playback controls -->
+      <button type="button" class="button" id="time-play" title="Play the period from its first day: the graph grows day by day">Play</button>
+      <button type="button" class="button" id="time-stop" title="Stop the playback and show the whole period again">Stop</button>
+      <div class="time-track">
+        <span class="time-fill" id="time-fill" aria-hidden="true"></span>
+        <span class="time-cursor" id="time-cursor" aria-hidden="true" hidden></span>
+        <input id="time-start" type="range" min="0" step="1" aria-label="Period start" title="Drag to set the first day of the period">
+        <input id="time-end" type="range" min="0" step="1" aria-label="Period end" title="Drag to set the last day of the period">
+      </div>
+      <output id="time-range" class="time-range" for="time-start time-end"></output>
+      <label class="time-option" title="At the end of the period, play it again from its first day"><input id="time-loop" type="checkbox" title="Play the period in a loop"> Loop</label>
+      <select id="time-speed" class="select" aria-label="Playback speed" title="Days of history played per second"></select>
+      <select id="time-window" class="select" aria-label="Playback mode" title="Show every node since the first day of the period, or only those of the last days before the cursor">
+        <option value="0">Cumulative</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option>
+      </select>
+    </section>
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button type="button" role="tab" class="tab" data-view="graph" id="tab-graph" title="Show the graph of the shown nodes and relations">Graph 2D</button>
+        <!-- RQ-GXP-010, DEC-GXP-007: the 3D graph view -->
+        <button type="button" role="tab" class="tab" data-view="graph3d" id="tab-graph3d" title="Show the shown nodes and relations in three dimensions">Graph 3D</button>
+        <button type="button" role="tab" class="tab" data-view="nodes" id="tab-nodes" title="Show the table of the shown nodes">Nodes</button>
+        <button type="button" role="tab" class="tab" data-view="relations" id="tab-relations" title="Show the table of the shown relations">Relations</button>
+      </div>
+      <div class="graph-controls">
+        <button type="button" class="button graph-control" id="graph-zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" class="button graph-control" id="graph-zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="button graph-control" id="graph-fit" title="Fit the shown nodes to the view">Fit</button>
+        <!-- RQ-TRC-162, DEC-TRC-094: the automatic layouts -->
+        <label class="query-label graph-control" for="graph-layout">Layout</label>
+        <select id="graph-layout" class="select graph-control" title="Arrange the shown nodes with an automatic layout">
+          <option value="columns">Type columns</option><option value="grid">Grid</option><option value="circle">Circle</option>
+          <option value="concentric">Concentric</option><option value="breadthfirst">Tree</option><option value="cose">Force-directed</option>
+        </select>
+        <!-- RQ-TRC-166, DEC-TRC-094: the direction of the layouts that have one -->
+        <select id="graph-direction" class="select graph-control" aria-label="Layout direction" title="Arrange the type columns, tree and grid layouts left to right or top to bottom">
+          <option value="lr">Left to right</option><option value="tb">Top to bottom</option>
+        </select>
+        <!-- RQ-GXP-013, DEC-GXP-011: what each dimension of the 3D view shows; the script fills the options -->
+        <label class="query-label graph3d-control" for="dim-height">Height</label>
+        <select id="dim-height" class="select graph3d-control" data-role="height" title="What the height of the 3D points shows"></select>
+        <label class="query-label graph3d-control" for="dim-angle">Angle</label>
+        <select id="dim-angle" class="select graph3d-control" data-role="angle" title="What the angle of the 3D points around the axis shows"></select>
+        <label class="query-label graph3d-control" for="dim-radius">Radius</label>
+        <select id="dim-radius" class="select graph3d-control" data-role="radius" title="What the distance of the 3D points from the axis shows"></select>
+        <label class="query-label graph3d-control" for="dim-colour">Colour</label>
+        <select id="dim-colour" class="select graph3d-control" data-role="colour" title="What the colour of the 3D points shows"></select>
+        <label class="query-label graph3d-control" for="dim-size">Size</label>
+        <select id="dim-size" class="select graph3d-control" data-role="size" title="What the size of the 3D points shows"></select>
+        <button type="button" class="button" id="show-all" title="Check every facet value, clear the query, the hidden nodes and the isolation">Show all</button>
+      </div>
+      <p id="view-count" class="view-count"></p>
+    </div>
+    <div id="hidden-list" class="hidden-list" aria-live="polite"></div>
+    <section id="view-graph" class="view" role="tabpanel" aria-labelledby="tab-graph">
+      <div id="graph" class="graph-canvas"></div>
+      <!-- RQ-TRC-163, DEC-TRC-095: the graph's context menu, filled when it opens -->
+      <div id="graph-menu" class="graph-menu" role="menu" aria-label="Graph actions" hidden></div>
+      <!-- RQ-TRC-167: the hovered node's tooltip, filled when it opens -->
+      <div id="graph-tip" class="graph-tip" role="tooltip" hidden></div>
+      <!-- RQ-GXP-005, DEC-GXP-005: the colour picker of a relation kind, opened from the Appearance menu or the legend -->
+      <input id="relation-colour" type="color" class="visually-hidden" aria-label="Relation colour" title="The colour of the chosen relation kind">
+      <!-- RQ-TRC-165: the legend of the node types and relation kinds present, filled from the graph -->
+      <aside id="graph-legend" class="graph-legend" aria-label="Legend">
+        <button type="button" class="legend-toggle" aria-expanded="true" title="Fold or unfold the legend">Legend</button>
+        <div class="legend-body"></div>
+      </aside>
+    </section>
+    <!-- RQ-GXP-010, RQ-GXP-011, DEC-GXP-007: the 3D graph view, drawn once three.js is loaded -->
+    <section id="view-graph3d" class="view" role="tabpanel" aria-labelledby="tab-graph3d">
+      <div id="graph3d" class="graph-canvas"></div>
+    </section>
+    <section id="view-nodes" class="view" role="tabpanel" aria-labelledby="tab-nodes">
+      <div class="table-scroll">
+        <table id="node-table" class="data-table">
+          <thead><tr>
+            <th scope="col" data-key="id">ID</th><th scope="col" data-key="type">Type</th><th scope="col" data-key="tri">Trigram</th>
+            <th scope="col" data-key="status">Status</th><th scope="col" data-key="title">Title</th>
+            <th scope="col" data-key="location">Location</th><th scope="col" data-key="incoming">In</th><th scope="col" data-key="outgoing">Out</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="view-relations" class="view" role="tabpanel" aria-labelledby="tab-relations">
+      <div class="table-scroll">
+        <table id="relation-table" class="data-table">
+          <thead><tr>
+            <th scope="col" data-key="source">Source</th><th scope="col" data-key="target">Target</th><th scope="col" data-key="kind">Kind</th>
+            <th scope="col" data-key="field">Field</th><th scope="col" data-key="line">Line</th><th scope="col" data-key="proof">Proof</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <div id="split-right" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+       aria-label="Resize the detail panel" aria-controls="detail"></div>
+  <aside id="detail" class="panel" aria-label="Detail" aria-live="polite"></aside>
+</div>
+<!-- RQ-GXP-002, DEC-GXP-002: the reader's guide, one topic per view, with Licenses and About; copied from the performance
+     center's help dialog (RQ-TRC-101, DEC-TRC-052), its licence badges (RQ-TRC-111, RQ-TRC-112) and its About (RQ-TRC-114, RQ-TRC-116) -->
+<dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+  <header class="help-head">
+    <h2 class="help-title" id="help-title">Help</h2>
+    <button class="button" id="help-close" type="button" title="Close the help (Esc)">Close</button>
+  </header>
+  <nav class="help-list" id="help-list" aria-label="Help topics"></nav>
+  <div class="help-body" id="help-body">
+    <section data-help="overview" data-title="Overview" hidden>
+      <h3>Overview</h3>
+      <p>The graph explorer shows the state of an AGNOS project at one commit, as <code>agnos-graph</code> wrote it: every element (features, requirements, ADRs, decisions, plans, tasks), the sections of their documents, the scanned source files, and, when the graph was built with them, the functions and the history.</p>
+      <p>It shows the state and judges nothing: coverage, findings and scores are the performance center's.</p>
+      <ul>
+        <li><b>Menus</b>: File opens a graph file, imports or exports the saved queries and the view, and exports an image; View chooses the view; Filter clears the query or shows every node; Help opens this guide.</li>
+        <li><b>Panels</b>: the facets on the left, the view in the middle, the selected node's detail on the right. Drag their edges, or use the arrow keys on them, to resize.</li>
+        <!-- RQ-GXP-016 -->
+        <li><b>View files</b>: File, Export view… writes to a JSON file the tab, the query, the facets, the hidden and isolated nodes, the period, the 3D dimensions, layout and projection, and the relation colours; File, Import view… reads such a file and restores them all. No view is kept in this browser. Both exports open a save dialog that remembers its last folder, in browsers that offer one; elsewhere the file is downloaded.</li>
+        <!-- RQ-GXP-017 -->
+        <li><b>Image</b>: on Graph 2D or Graph 3D, File, Export image saves the view as a PNG image of its size, the 3D labels included, through the same save dialog.</li>
+        <li><b>Another graph</b>: drop an <code>agnos-graph.json</code> file on the page, or choose File, Open graph file.</li>
+      </ul>
+    </section>
+    <section data-help="graph" data-title="Graph" hidden>
+      <h3>Graph</h3>
+      <p>Every shown node and relation, coloured by type and by relation kind, as the legend at the bottom says.</p>
+      <ul>
+        <li><b>Move</b>: drag a node; it keeps its place when the filters change. Drag the background to pan, use the wheel or the + and − buttons to zoom, Fit to see every shown node.</li>
+        <li><b>Layout</b>: type columns, grid, circle, concentric, tree or force-directed, left to right or top to bottom where the layout has a direction.</li>
+        <li><b>Right-click</b> a node to select it, hide it or show only its neighbours at 1, 2 or 3 hops; the background to choose a layout.</li>
+        <li><b>Hover</b> a node to read its properties without changing the selection.</li>
+        <!-- RQ-GXP-020, RQ-GXP-021 -->
+        <li><b>Graph 3D</b>: the View menu chooses the cylindrical layout (height, angle around the axis, radius) or the cartesian one (x by the angle, y by the height, z by the radius, on three graduated axes it shows or hides); the axis indicator of the bottom left corner names what each direction shows.</li>
+      </ul>
+    </section>
+    <section data-help="nodes" data-title="Nodes" hidden>
+      <h3>Nodes</h3>
+      <p>One row per shown node: ID, type, trigram, status, title, location, and its incoming and outgoing relation counts.</p>
+      <p>Click a header to sort, again to reverse; drag a header's right edge to resize its column. Click a row, or press Enter on it, to show the node in the detail panel.</p>
+    </section>
+    <section data-help="relations" data-title="Relations" hidden>
+      <h3>Relations</h3>
+      <p>One row per shown relation: its source and target, its kind (<code>contains</code>, <code>refs</code>, <code>code</code>, <code>call</code>), the link field it was declared in (<code>Requirement refs</code>, <code>Dependencies</code>…, or <code>text</code> for a mention), the line and the proof text.</p>
+      <p>Sort and resize the columns as in the node table.</p>
+    </section>
+    <section data-help="filters" data-title="Facets and queries" hidden>
+      <h3>Facets and queries</h3>
+      <p>Every filter applies to every view at once.</p>
+      <ul>
+        <li><b>Facets</b>: uncheck a type, trigram, status, relation kind or link field to hide its nodes or relations; All and None check or uncheck a whole facet.</li>
+        <li><b>Query</b>: space-separated terms, all met: <code>key:value</code>, <code>key:a,b</code>, <code>key:!value</code>, <code>key:~text</code>, <code>cites:TYPE[field]</code>, <code>cited-by:TYPE[field]</code>, each negated by a leading <code>!</code>; a query starting with <code>edge</code> selects relations by <code>kind</code>, <code>field</code>, <code>from</code> and <code>to</code>. Clicking a facet value while the query field has the focus writes its term.</li>
+        <li><b>Saved queries</b>: + Save query keeps the current query as a button; Edit buttons renames, moves or deletes them. File exports and imports them as a JSON file.</li>
+        <li><b>Selection</b>: the detail panel hides the selected node, isolates its neighbourhood and widens it by one hop; hidden nodes are listed above the view, a click shows them again.</li>
+      </ul>
+    </section>
+    <section data-help="time" data-title="Time" hidden>
+      <h3>Time</h3>
+      <p>When the graph was built with <code>--history</code>, each node is dated by its first commit in the history read: the first commit that changed its document lines, its file or its function. A node no commit of the history changed is dated the history's first commit.</p>
+      <ul>
+        <li><b>Period</b>: drag the two handles of the time bar to choose the first and the last day; every view shows only the nodes dated in the period, and the relations between them.</li>
+        <li><b>Time menu</b>: Whole history, Last 7 days and Last 30 days set the period at once.</li>
+        <li><b>Playback</b>: Play moves a cursor from the period's first day to its last, at the chosen speed in days per second: the views show the nodes dated up to the cursor, so the graph grows before your eyes. Pause keeps the cursor where it is; Stop shows the whole period again. With Loop checked, the playback starts again from the first day, until it is paused or stopped.</li>
+        <li><b>Mode</b>: Cumulative shows every node since the period's first day; Last 7 days and Last 30 days show only the nodes dated in those days before the cursor, to see where the work moves.</li>
+      </ul>
+      <p>The graph is the state at one commit: the period shows when today's nodes first appeared, not what was removed before. Without <code>--history</code>, the time bar is hidden and the Time menu is disabled.</p>
+    </section>
+    <section data-help="appearance" data-title="Appearance" hidden>
+      <h3>Appearance</h3>
+      <p>Each relation kind has a colour, drawn in the graph and in its legend. To bring a kind forward, choose Appearance, Colour of &lt;kind&gt;…, or click the kind in the legend, then pick a colour.</p>
+      <p>The colours are kept in this browser. Appearance, Reset colours gives every kind its default colour again. The node types keep their colours.</p>
+    </section>
+    <!-- RQ-GXP-003: the application's licence is written here; the script adds one badge per library of the record and links each tabled licence to its SPDX page -->
+    <section data-help="licenses" data-title="Licenses" hidden>
+      <h3>Licenses</h3>
+      <div class="licence-list" id="licence-list">
+        <span class="licence-badge"><span class="licence-badge-label">AGNOS</span><span class="licence-badge-value">AGPL-3.0</span></span>
+      </div>
+    </section>
+    <!-- RQ-GXP-004: the lockup of the performance center's About: the large mark with the name and the tagline beside it -->
+    <section data-help="about" data-title="About" hidden>
+      <h3>About</h3>
+      <div class="about-brand">
+        <svg class="brand-mark brand-mark-large" viewBox="0 0 24 24" aria-hidden="true"><rect class="mark-tile" width="24" height="24" rx="5.5"></rect><rect class="mark-bar-light" x="4" y="3" width="16" height="3" rx="1"></rect><rect class="mark-bar-blue" x="4" y="8" width="6" height="3" rx="1"></rect><rect class="mark-bar-green" x="10" y="13" width="5" height="3" rx="1"></rect><rect class="mark-bar-yellow" x="15" y="18" width="5" height="3" rx="1"></rect></svg>
+        <div class="about-brand-text"><span class="about-wordmark">AGNOS @APP_VERSION@</span><span class="about-tagline">Agentic efficiency by traceability</span></div>
+      </div>
+      <p>This app is generated by agnos-graph, a skill of the AGNOS process.</p>
+      <div class="about-links">
+        <a class="about-link" href="https://github.com/spashx" target="_blank" rel="noopener noreferrer">
+          <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3Z"></path></svg>
+          <span class="about-text">https://github.com/spashx</span>
+        </a>
+        <a class="about-link" href="https://www.linkedin.com/in/64493197" target="_blank" rel="noopener noreferrer">
+          <svg class="about-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"></path></svg>
+          <span class="about-text">https://www.linkedin.com/in/64493197</span>
+        </a>
+      </div>
+    </section>
+  </div>
+</dialog>
+<script id="library-record" type="application/json">@LIBRARY_RECORD@</script>
+<div id="drop-zone" class="drop-zone" hidden><p>Drop a graph file to explore it</p></div>
+@LIBRARIES@
+<script id="default-queries" type="application/json">@PRESETS@</script>
+<script src="@DATA_SCRIPT@"></script>
+<script>
+/*@SCRIPT@*/
+</script>
+</body>
+</html>

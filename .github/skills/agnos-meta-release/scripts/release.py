@@ -78,7 +78,7 @@ CITED_PATH_RE = re.compile(r"(^|/)tests?/")      # a project has its own process
 TEST_FILE_PREFIX = "test"
 
 # RQ-MTA-011 / DEC-MTA-010
-DEMO_FOLDER_NAME = "agnos-lightweight-process.demo"
+DEMO_FOLDER_NAME = "agnos-demo"
 FIXED_TIME = "2000-01-01T00:00:00Z"
 PERF_PAGE = f"{agnos_layout.FOLDER}/{agnos_layout.PERF_CENTER_PAGE}"
 PERF_RESULTS = tuple(f"{PERF_PAGE.rsplit('.', 1)[0]}{suffix}" for suffix in (".json", ".data.js")) + (
@@ -833,7 +833,7 @@ def parse_args(argv):
     parser.add_argument("--dry-run", action="store_true", help="rehearse; the only mode that exists")
     parser.add_argument("--output", required=True, help="folder to write, outside the repository and empty")
     parser.add_argument("--repo", default=".", help="repository root (default: the current folder)")
-    parser.add_argument("--demo", help="the demo repository (default: agnos-lightweight-process.demo beside the repository)")
+    parser.add_argument("--demo", help="the demo repository (default: agnos-demo beside the repository)")
     return parser.parse_args(argv)
 
 

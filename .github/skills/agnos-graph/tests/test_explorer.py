@@ -1,0 +1,1662 @@
+"""Tests of the graph explorer page written by agnos-graph --explorer (FTR-TRC-014; ADR-TRC-025: DEC-TRC-084, DEC-TRC-085,
+DEC-TRC-088, DEC-TRC-089, DEC-TRC-091; design system ADR-TRC-002: DEC-TRC-009, DEC-TRC-010).
+
+TASK-TRC-133: RQ-TRC-144 to RQ-TRC-149, RQ-TRC-154 to RQ-TRC-157.
+Run from the repository root: python -m unittest discover -s .github/skills/agnos-graph/tests -v
+The page tests need a Chromium-family browser (set AGNOS_GRAPH_BROWSER); without one they are skipped, never failed.
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / "scripts"))
+sys.path.insert(0, str(HERE))
+import agnos_layout  # noqa: E402  RQ-PLG-036: the graph file's name, as the script reads it
+from test_graph import (PROCESS, SOURCES, GENERATED_AT, HAS_TREE_SITTER, NEEDS_TREE_SITTER, run_main,  # noqa: E402
+                        committed_fixture, isolated_git)
+
+ASSETS = HERE.parent / "assets" / "explorer"
+TOKENS = ASSETS / "tokens.json"
+PAGE_NAME = "graph-explorer.html"                 # RQ-TRC-144: stated, not read from the script
+DATA_NAME = "agnos-graph.data.js"
+DATA_GLOBAL = "window.AGNOS_GRAPH"                # DEC-TRC-088
+NODE_TYPES = ("ftr", "rq", "adr", "dec", "plan", "task", "sec", "file", "fn", "undefined")   # RQ-TRC-146, RQ-TRC-147
+BACKGROUNDS = ("surface", "surface-subtle", "surface-selected")                              # RQ-TRC-157
+CONTRAST_MIN = 4.5
+RAW_VISUAL_RE = re.compile(r"#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(|\b\d+(?:\.\d+)?px\b")    # DEC-TRC-010
+BROWSER_CANDIDATES = (
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+)
+BROWSER_NAMES = ("chromium", "chromium-browser", "google-chrome", "chrome", "msedge", "microsoft-edge")
+BROWSER_BUDGET_MS = "8000"
+BROWSER_WINDOW = "1600,1000"
+COMPAT_LAYER_VAR = "__COMPAT_LAYER"               # under this Windows shim, Edge dumps an empty DOM
+NEEDS_BROWSER = "no Chromium-family browser found (set AGNOS_GRAPH_BROWSER)"
+
+
+def find_browser():
+    """A Chromium-family browser: $AGNOS_GRAPH_BROWSER, a usual install path or one on the PATH."""
+    if os.environ.get("AGNOS_GRAPH_BROWSER"):
+        return os.environ["AGNOS_GRAPH_BROWSER"]
+    found = [p for p in BROWSER_CANDIDATES if Path(p).is_file()] + [shutil.which(n) for n in BROWSER_NAMES]
+    return next((p for p in found if p), None)
+
+
+BROWSER = find_browser()
+CDN_PROBE = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"   # the library the graph view loads
+CDN_TIMEOUT_S = 5
+NEEDS_NETWORK = "no Chromium-family browser, or cdnjs unreachable: the graph view loads Cytoscape.js from it (DEC-TRC-090)"
+
+
+def cdn_reachable():
+    """True when cdnjs answers: the graph view loads Cytoscape.js from it (RQ-TRC-150, DEC-TRC-090)."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(urllib.request.Request(CDN_PROBE, method="HEAD"), timeout=CDN_TIMEOUT_S).close()
+        return True
+    except OSError:
+        return False
+
+
+ONLINE = bool(BROWSER) and cdn_reachable()
+
+
+def rendered_dom_after(page, script):
+    """The DOM once the page ran, then the given script, from a headless browser (--dump-dom) (RQ-TRC-145)."""
+    copy = page.with_name("scripted-" + page.name)
+    copy.write_text(page.read_text(encoding="utf-8").replace("</body>", f"<script>{script}</script></body>"),
+                    encoding="utf-8")
+    env = {k: v for k, v in os.environ.items() if k.upper() != COMPAT_LAYER_VAR}
+    with tempfile.TemporaryDirectory() as profile:
+        done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+                               f"--user-data-dir={profile}", f"--virtual-time-budget={BROWSER_BUDGET_MS}",
+                               f"--window-size={BROWSER_WINDOW}", "--dump-dom", copy.resolve().as_uri()],
+                              capture_output=True, timeout=120, check=False, env=env)
+    return done.stdout.decode("utf-8", errors="replace")
+
+
+def results(dom):
+    """The values a test script left in data-r-* attributes of the root element."""
+    return dict(re.findall(r'data-r-([a-z-]+)="([^"]*)"', dom))
+
+
+def build(tmp, *extra):
+    """The graph of the fixture, built in tmp with the given options; returns (exit code, graph path, stderr)."""
+    out = Path(tmp) / "graph" / "agnos-graph.json"
+    code, _, err = run_main(["--process", str(PROCESS), "--sources", str(SOURCES), "--out", str(out),
+                             "--generated-at", GENERATED_AT, *extra])
+    return code, out, err
+
+
+def luminance(hex_colour):
+    """WCAG 2.1 relative luminance of a #RRGGBB colour (RQ-TRC-157)."""
+    channels = [int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def contrast(a, b):
+    """WCAG 2.1 contrast ratio of two #RRGGBB colours (RQ-TRC-157)."""
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+class ExplorerFilesTest(unittest.TestCase):
+    """TASK-TRC-133: RQ-TRC-144, RQ-TRC-145, RQ-TRC-155, RQ-TRC-156 (DEC-TRC-085, DEC-TRC-088)."""
+
+    def test_RQ_TRC_144_given_explorer_when_the_graph_is_built_then_the_page_and_its_data_are_beside_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = build(tmp, "--explorer")
+            self.assertEqual(0, code, err)
+            self.assertEqual({out.name, PAGE_NAME, DATA_NAME}, {p.name for p in out.parent.iterdir()})
+
+    def test_RQ_TRC_144_given_no_explorer_when_the_graph_is_built_then_no_explorer_file_is_written(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = build(tmp)
+            self.assertEqual(0, code, err)
+            self.assertEqual({out.name}, {p.name for p in out.parent.iterdir()})
+
+    def test_RQ_TRC_156_given_explorer_or_not_then_the_graph_file_holds_the_same_bytes(self):
+        with tempfile.TemporaryDirectory() as plain, tempfile.TemporaryDirectory() as explored:
+            self.assertEqual(0, build(plain)[0])
+            self.assertEqual(0, build(explored, "--explorer")[0])
+            self.assertEqual(build(plain)[1].read_bytes(), build(explored, "--explorer")[1].read_bytes())
+
+    def test_RQ_TRC_145_given_the_data_script_then_it_sets_the_global_to_the_graph(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _, out, _ = build(tmp, "--explorer")
+            text = (out.parent / DATA_NAME).read_text(encoding="utf-8")
+            self.assertTrue(text.startswith(DATA_GLOBAL + " = "))
+            self.assertEqual(json.loads(out.read_text(encoding="utf-8")),
+                             json.loads(text[len(DATA_GLOBAL) + len(" = "):].rstrip().rstrip(";")))
+
+    def test_RQ_TRC_155_given_the_page_then_it_is_english_and_loads_its_data_script(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _, out, _ = build(tmp, "--explorer")
+            page = (out.parent / PAGE_NAME).read_text(encoding="utf-8")
+            self.assertIn('<html lang="en">', page)
+            self.assertIn(f'<script src="{DATA_NAME}"></script>', page)
+            self.assertIn("<title>Graph explorer", page)
+            self.assertNotRegex(page, r"/\*@[A-Z_]+@\*/|@[A-Z_]+@")    # every marker replaced
+
+
+class ExplorerTokensTest(unittest.TestCase):
+    """TASK-TRC-133: RQ-TRC-147, RQ-TRC-157 (DEC-TRC-009, DEC-TRC-010, DEC-TRC-091)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tokens = json.loads(TOKENS.read_text(encoding="utf-8"))
+
+    def colour(self, semantic):
+        return self.tokens["global"][self.tokens["semantic"][semantic]]
+
+    def test_RQ_TRC_147_given_the_tokens_then_each_node_type_has_a_surface_and_a_text_colour(self):
+        for kind in NODE_TYPES:
+            self.assertIn(f"type-{kind}", self.tokens["semantic"])
+            self.assertIn(f"type-{kind}-text", self.tokens["semantic"])
+
+    def test_RQ_TRC_157_given_each_type_text_token_then_its_contrast_on_every_background_is_at_least_4_5(self):
+        ratios = {(kind, bg): round(contrast(self.colour(f"type-{kind}-text"), self.colour(bg)), 2)
+                  for kind in NODE_TYPES for bg in BACKGROUNDS}
+        self.assertEqual({}, {k: r for k, r in ratios.items() if r < CONTRAST_MIN})
+
+    def test_RQ_TRC_114_given_the_header_then_it_draws_the_agnos_mark_in_the_brand_colours(self):
+        """TASK-TRC-134 (owner's request of 2026-11-23): Given the page, Then its header draws the AGNOS mark "Spans" And its
+        five colours are the performance center's brand colours (RQ-TRC-114, DEC-TRC-056)."""
+        page = (ASSETS / "explorer.html").read_text(encoding="utf-8")
+        parts = ("mark-tile", "mark-bar-light", "mark-bar-blue", "mark-bar-green", "mark-bar-yellow")
+        for part in parts:
+            self.assertIn(f'class="{part}"', page)
+        perf = json.loads((HERE.parents[1] / "agnos-perf-center" / "assets" / "tokens.json").read_text(encoding="utf-8"))
+        for brand in ("brand-tile", "brand-light", "brand-blue", "brand-green", "brand-yellow"):
+            self.assertEqual(perf["global"][perf["semantic"][brand]], self.colour(brand), brand)
+
+    def test_DEC_TRC_010_given_the_page_style_and_script_then_no_raw_visual_value_is_written(self):
+        for name in ("explorer.css", "explorer.js"):
+            text = re.sub(r"/\*.*?\*/|//[^\n]*", "", (ASSETS / name).read_text(encoding="utf-8"), flags=re.S)
+            self.assertEqual([], RAW_VISUAL_RE.findall(text), name)
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class ExplorerPageTest(unittest.TestCase):
+    """TASK-TRC-133: RQ-TRC-145, RQ-TRC-146, RQ-TRC-148, RQ-TRC-149, RQ-TRC-154, in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute("
+                                                     "'data-r-' + k, String(v));" + script))
+
+    # RQ-TRC-145, amended by TASK-GXP-008 and TASK-GXP-009: the date as the performance center shows it, its UTC value in the
+    # tooltip, on the right beside the help, no commit, no counts
+    def test_RQ_TRC_145_given_the_page_then_its_header_shows_the_readable_date_with_utc_tooltip_on_the_right_alone(self):
+        found = self.run_page("const head = document.getElementById('graph-meta'); r('head', head.textContent);"
+                              "r('tip', head.querySelector('[title]').title);"
+                              "const help = document.getElementById('help-button').getBoundingClientRect();"
+                              "const box = head.getBoundingClientRect(); r('beside', box.right <= help.left && help.left - box.right < help.width * 2);")
+        self.assertTrue(found["head"].startswith("Generated "))
+        self.assertNotIn(GENERATED_AT, found["head"])
+        for word in ("commit", "elements", "nodes", "relations"):
+            self.assertNotIn(word, found["head"])
+        self.assertEqual(GENERATED_AT.replace("T", " ").replace("Z", " UTC"), found["tip"])
+        self.assertEqual("true", found["beside"])
+
+    def test_RQ_TRC_146_given_the_tables_then_they_list_every_node_and_relation_of_the_file(self):
+        found = self.run_page("agnosExplorer.showView('nodes'); r('nodes', document.querySelectorAll('#node-table tbody tr').length);"
+                              "agnosExplorer.showView('relations'); r('relations', document.querySelectorAll('#relation-table tbody tr').length);")
+        nodes = len(self.graph["elements"]) + len(self.graph["sections"]) + len(self.graph["files"])
+        relations = len(self.graph["edges"]) + len(self.graph["sections"]) + sum(len(s["refs"]) for s in self.graph["sections"])
+        self.assertEqual((str(nodes), str(relations)), (found["nodes"], found["relations"]))
+
+    def test_RQ_TRC_149_given_the_relation_table_then_it_scrolls_under_a_fixed_header_and_sorts_on_a_header_click(self):
+        found = self.run_page(
+            "agnosExplorer.showView('relations'); const t = document.getElementById('relation-table');"
+            "r('sticky', getComputedStyle(t.querySelector('th')).position);"
+            "r('scroll', getComputedStyle(t.closest('.table-scroll')).overflowY);"
+            "const head = t.querySelector('th[data-key=\"source\"]'); head.click();"
+            "const first = () => t.querySelector('tbody tr td').textContent; r('asc', first()); head.click(); r('desc', first());")
+        sources = sorted(e[0] for e in self.graph["edges"])
+        self.assertEqual(("sticky", "auto"), (found["sticky"], found["scroll"]))
+        self.assertEqual(sources[0], found["asc"])
+        self.assertNotEqual(found["asc"], found["desc"])
+
+    def test_RQ_TRC_159_given_the_title_header_edge_dragged_then_the_column_widens_keeps_it_on_sort_and_has_a_minimum(self):
+        # TASK-TRC-142: a drag is a pointer press on the header's handle, moves on the document, a release
+        found = self.run_page(
+            "agnosExplorer.showView('nodes'); const th = () => document.querySelector('#node-table th[data-key=\"title\"]');"
+            "const drag = (dx) => { const h = th().querySelector('.col-resize'); const x = h.getBoundingClientRect().left;"
+            " h.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: x, pointerId: 1 }));"
+            " document.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: x + dx, pointerId: 1 }));"
+            " document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: x + dx, pointerId: 1 })); };"
+            "const w = () => th().getBoundingClientRect().width; const before = w(); drag(150); r('wider', w() - before);"
+            "const wide = w(); th().click(); r('sorted', Math.abs(w() - wide) < 1);"
+            "drag(-5000); r('min', Math.round(w()));"
+            "r('token', parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-table-column-min-width')));")
+        self.assertGreater(float(found["wider"]), 100)
+        self.assertEqual("true", found["sorted"])
+        self.assertEqual(found["token"], found["min"])
+
+    def test_RQ_TRC_165_given_the_graph_view_then_the_legend_shows_types_and_kinds_from_tokens_and_folds(self):
+        # TASK-TRC-145
+        found = self.run_page(
+            "const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();"
+            "const rgb = (c) => { const d = document.createElement('i'); d.style.color = c; document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return v; };"
+            "const legend = document.getElementById('graph-legend');"
+            "const rq = legend.querySelector('[data-type=\"RQ\"] .swatch'); r('rq', getComputedStyle(rq).backgroundColor === rgb(css('--s-type-rq')));"
+            "const line = legend.querySelector('[data-kind=\"contains\"] .legend-line'); const s = getComputedStyle(line);"
+            "r('dashed', s.borderTopStyle); r('colour', s.borderTopColor === rgb(css('--c-graph-edge-contains')));"
+            "legend.querySelector('.legend-toggle').click(); r('folded', getComputedStyle(legend.querySelector('.legend-body')).display);"
+            "r('title', getComputedStyle(legend.querySelector('.legend-toggle')).display);")
+        self.assertEqual(("true", "dashed", "true"), (found["rq"], found["dashed"], found["colour"]))
+        self.assertEqual("none", found["folded"])
+        self.assertNotEqual("none", found["title"])
+
+    def test_RQ_TRC_165_given_the_graph_view_then_the_legend_is_a_wrapped_band_along_its_bottom(self):
+        # TASK-TRC-148: as the performance center's legend
+        found = self.run_page(
+            "agnosExplorer.showView('graph'); const view = document.getElementById('view-graph').getBoundingClientRect();"
+            "const legend = document.getElementById('graph-legend'); const box = legend.getBoundingClientRect();"
+            "r('gap', view.bottom - box.bottom); r('wide', box.width > box.height);"
+            "const items = [...legend.querySelectorAll('li')].map((li) => li.getBoundingClientRect());"
+            "r('rows', items[1].top === items[0].top && items[1].left > items[0].left);")
+        self.assertLess(float(found["gap"]), 40)
+        self.assertGreaterEqual(float(found["gap"]), 0)
+        self.assertEqual(("true", "true"), (found["wide"], found["rows"]))
+
+    def test_RQ_TRC_146_given_an_undefined_task_id_selected_then_the_detail_names_its_type_as_not_defined(self):
+        # TASK-TRC-148: the note of TASK-TRC-147 holds for every type, not only ADR
+        graph = {"elements": [{"id": "TASK-ZZZ-001", "kind": "undefined", "type": "TASK", "tri": "ZZZ", "title": "", "doc": "",
+                               "first": 0, "last": 0, "status": ""}], "edges": []}
+        found = self.run_page(f"agnosExplorer.loadText('g.json', {json.dumps(json.dumps(graph))});"
+                              "agnosExplorer.select('TASK-ZZZ-001'); r('note', document.querySelector('#detail .detail-empty').textContent);")
+        self.assertIn("cited TASK ID, not defined in the index", found["note"])
+
+    def test_RQ_TRC_145_given_a_file_without_elements_then_it_is_named_and_the_graph_stays(self):
+        found = self.run_page("const before = agnosExplorer.counts().nodes; agnosExplorer.loadText('bad.json', '{}');"
+                              "r('message', document.getElementById('load-message').textContent);"
+                              "r('kept', agnosExplorer.counts().nodes === before);")
+        self.assertIn("bad.json", found["message"])
+        self.assertIn("no elements list", found["message"])
+        self.assertEqual("true", found["kept"])
+
+    def test_RQ_TRC_145_given_another_valid_graph_then_it_replaces_the_shown_one(self):
+        other = {"meta": {"generatedAt": "2026-01-01T00:00Z", "commit": None}, "edges": [], "files": [], "links": [],
+                 "sections": [], "tasks": {}, "elements": [{"id": "RQ-ZZZ-001", "type": "RQ", "tri": "ZZZ", "kind": "element",
+                                                           "doc": "x.md", "first": 1, "last": 2, "status": "", "title": "T"}]}
+        found = self.run_page(f"agnosExplorer.loadText('other.json', {json.dumps(json.dumps(other))});"
+                              "r('nodes', agnosExplorer.counts().nodes);")
+        self.assertEqual("1", found["nodes"])
+
+    def test_RQ_TRC_148_given_the_splitters_when_moved_with_the_keys_then_the_side_panels_change_by_one_step(self):
+        found = self.run_page(
+            "const w = (id) => document.getElementById(id).getBoundingClientRect().width;"
+            "const key = (id, k) => document.getElementById(id).dispatchEvent(new KeyboardEvent('keydown', {key: k, bubbles: true}));"
+            "const step = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-splitter-step'));"
+            "const s0 = w('facets'), d0 = w('detail'); key('split-left', 'ArrowRight'); key('split-right', 'ArrowLeft');"
+            "r('left', Math.round(w('facets') - s0) === Math.round(step)); r('right', Math.round(w('detail') - d0) === Math.round(step));")
+        self.assertEqual(("true", "true"), (found["left"], found["right"]))
+
+    def test_RQ_TRC_154_given_a_selected_plan_then_the_detail_lists_its_properties_and_relations_with_field_and_proof(self):
+        found = self.run_page("agnosExplorer.select('PLAN-DEM-001'); const d = document.getElementById('detail');"
+                              "r('text', d.textContent.replace(/\\s+/g, ' '));")
+        self.assertIn("PLAN-DEM-001", found["text"])
+        self.assertIn("ADR-DEM-001", found["text"])
+        self.assertIn("ADR refs", found["text"])
+        self.assertIn("- **ADR refs**: ADR-DEM-001", found["text"])
+
+    def test_RQ_TRC_147_given_a_type_label_in_a_table_then_it_uses_its_type_text_token(self):
+        found = self.run_page(
+            "agnosExplorer.showView('nodes'); const cell = document.querySelector('#node-table .type-label[data-type=\"RQ\"]');"
+            "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq-text').trim();"
+            "const probe = document.createElement('span'); probe.style.color = want; document.body.append(probe);"
+            "r('same', getComputedStyle(cell).color === getComputedStyle(probe).color);")
+        self.assertEqual("true", found["same"])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class QueryLanguageTest(unittest.TestCase):
+    """TASK-TRC-135: RQ-TRC-151, RQ-TRC-152, RQ-TRC-155 (DEC-TRC-092), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+        cls.defined = {e["id"]: e for e in cls.graph["elements"] if e["kind"] == "element"}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def shown_after(self, query):
+        """The node IDs every view shows once the query ran, and the query's message."""
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      f" String(v)); agnosExplorer.query({json.dumps(query)});"
+                                                      "r('shown', agnosExplorer.shownIds().join(' '));"
+                                                      "r('message', document.getElementById('query-message').textContent);"))
+        return set(found.get("shown", "").split()), found.get("message", "")
+
+    def of_type(self, *types):
+        return {i for i, e in self.defined.items() if e["type"] in types}
+
+    def linked(self, source_type, field, target_type):
+        """(source, target) of the links whose source and target types and field are those given."""
+        return {(s, t) for s, t, rows in self.graph["links"] if s.startswith(source_type + "-") and t.startswith(target_type + "-")
+                and any(f == field for _, f in rows)}
+
+    def test_RQ_TRC_152_given_key_value_terms_then_every_term_is_met(self):
+        shown, _ = self.shown_after("type:RQ tri:DEM status:!Done")
+        self.assertEqual({i for i in self.of_type("RQ") if self.defined[i]["status"] != "Done"}, shown)
+
+    def test_RQ_TRC_152_given_a_list_of_values_then_one_of_them_is_met(self):
+        self.assertEqual(self.of_type("RQ", "DEC"), self.shown_after("type:RQ,DEC")[0])
+
+    def test_RQ_TRC_152_given_a_contains_term_then_the_text_is_found_whatever_its_case(self):
+        shown, _ = self.shown_after("title:~COVER")
+        self.assertEqual({i for i, e in self.defined.items() if "cover" in e["title"].lower()}, shown)
+        self.assertTrue(shown)
+
+    def test_RQ_TRC_152_given_a_negated_cited_by_term_then_only_the_uncited_requirements_are_shown(self):
+        cited = {t for _, t in self.linked("TASK", "Requirement refs", "RQ")}
+        self.assertEqual(self.of_type("RQ") - cited, self.shown_after("type:RQ !cited-by:TASK[Requirement refs]")[0])
+
+    def test_RQ_TRC_152_given_a_cites_term_then_only_the_citing_nodes_are_shown(self):
+        citing = {s for s, t, rows in self.graph["links"] if t.startswith("ADR-") and any(f == "ADR refs" for _, f in rows)}
+        self.assertTrue(citing)
+        self.assertEqual(citing, self.shown_after("cites:ADR[ADR refs]")[0])
+
+    def test_RQ_TRC_152_given_an_edge_query_then_only_those_relations_and_their_ends_are_shown(self):
+        ends = {x for s, t, rows in self.graph["links"] if s.startswith("DEC-") and any(f == "text" for _, f in rows) for x in (s, t)}
+        self.assertTrue(ends)
+        self.assertEqual(ends, self.shown_after("edge kind:refs field:text from:DEC")[0])
+
+    def test_RQ_TRC_152_given_a_term_that_does_not_parse_then_it_is_named_and_the_former_result_stays(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); agnosExplorer.query('type:RQ'); const before = agnosExplorer.shownIds().join(' ');"
+                                                      "agnosExplorer.query('type:'); r('kept', agnosExplorer.shownIds().join(' ') === before);"
+                                                      "r('message', document.getElementById('query-message').textContent);"))
+        self.assertEqual("true", found["kept"])
+        self.assertIn("type:", found["message"])
+
+    def test_RQ_TRC_151_given_a_field_unchecked_then_no_relation_of_that_field_is_shown(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const box = document.querySelector('#facet-field input[value=\"text\"]');"
+                                                      "r('count', box.closest('label').textContent.replace(/\\D+/g, ' ').trim()); box.click();"
+                                                      "agnosExplorer.showView('relations');"
+                                                      "r('fields', [...document.querySelectorAll('#relation-table tbody tr td:nth-child(4)')].map((c) => c.textContent).join('|'));"))
+        self.assertNotIn("text", found["fields"].split("|"))
+        texts = sum(1 for _, _, rows in self.graph["links"] if any(f == "text" for _, f in rows))
+        self.assertIn(str(texts), found["count"].split())
+
+    def test_RQ_TRC_160_given_the_node_types_facet_when_none_then_all_is_clicked_then_no_node_then_every_node_is_shown(self):
+        # TASK-TRC-141
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const f = () => document.getElementById('facet-type');"
+                                                      "f().querySelector('[data-bulk=\"none\"]').click(); r('none', agnosExplorer.shownIds().length);"
+                                                      "r('checked', f().querySelectorAll('input:checked').length);"
+                                                      "f().querySelector('[data-bulk=\"all\"]').click(); r('all', agnosExplorer.shownIds().length);"
+                                                      "r('total', agnosExplorer.counts().nodes);"))
+        self.assertEqual(("0", "0"), (found["none"], found["checked"]))
+        self.assertEqual(found["total"], found["all"])
+
+    def test_RQ_TRC_161_given_a_facet_list_with_its_scrollbar_then_every_count_ends_left_of_it(self):
+        # TASK-TRC-141: the list is made shorter than its values so that its scrollbar shows
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const list = document.querySelector('#facet-type .facet-values');"
+                                                      "list.style.maxHeight = '3em'; const inner = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;"
+                                                      "r('scrolls', list.scrollHeight > list.clientHeight);"
+                                                      "r('clear', [...list.querySelectorAll('.count')].every((c) => c.getBoundingClientRect().right <= inner + 0.5));"
+                                                      "const panel = document.getElementById('facets');"
+                                                      "r('panel', getComputedStyle(panel).scrollbarGutter);"))
+        self.assertEqual(("true", "true"), (found["scrolls"], found["clear"]))
+        self.assertIn("stable", found["panel"])
+
+    def test_RQ_TRC_151_given_the_query_focused_when_a_facet_value_is_clicked_then_its_term_is_written(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                      " String(v)); const q = document.getElementById('query'); q.focus();"
+                                                      "document.querySelector('#facet-type input[value=\"RQ\"]').click(); r('query', q.value);"))
+        self.assertIn("type:RQ", found["query"])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class SavedQueriesTest(unittest.TestCase):
+    """TASK-TRC-136: RQ-TRC-153, RQ-TRC-155 (DEC-TRC-093), in a headless browser, each run in a fresh profile."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.presets = json.loads((ASSETS / "presets.json").read_text(encoding="utf-8"))["queries"]
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const s = agnosExplorer.saved;"
+                                                     "const labels = () => [...document.querySelectorAll('#saved-queries .saved-run')]"
+                                                     ".map((b) => b.textContent).join('|');" + script))
+
+    def test_RQ_TRC_164_given_the_buttons_being_edited_then_every_control_has_a_tooltip_and_the_tools_read_words(self):
+        # TASK-TRC-144: a node is selected, so that the detail panel's controls exist too
+        found = self.run_page(
+            "document.querySelector('[data-saved=\"manage\"]').click(); agnosExplorer.select('RQ-DEM-001');"
+            "const controls = [...document.querySelectorAll('button, input, select, label.button, [role=tab]')];"
+            "r('untitled', controls.filter((c) => !(c.title || '').trim()).map((c) => c.id || c.className || c.tagName).join('|'));"
+            "r('tools', [...new Set([...document.querySelectorAll('.saved-tool')].map((b) => b.textContent))].join('|'));")
+        self.assertEqual("", found["untitled"])
+        self.assertEqual("Edit|Move left|Move right|Delete", found["tools"])
+
+    def test_RQ_TRC_153_given_an_empty_store_then_the_default_buttons_are_shown(self):
+        found = self.run_page("r('labels', labels());")
+        self.assertEqual("|".join(p["label"] for p in self.presets), found["labels"])
+
+    def test_RQ_TRC_153_given_a_created_button_when_the_page_reloads_then_it_is_shown_and_runs_its_query(self):
+        found = self.run_page("s.add('Undefined IDs only', 'type:UNDEFINED'); s.load(); r('labels', labels());"
+                              "[...document.querySelectorAll('#saved-queries .saved-run')].pop().click();"
+                              "r('query', document.getElementById('query').value);")
+        self.assertTrue(found["labels"].endswith("|Undefined IDs only"))
+        self.assertEqual("type:UNDEFINED", found["query"])
+
+    def test_RQ_TRC_153_given_a_button_edited_moved_and_deleted_when_reloaded_then_the_changes_are_kept(self):
+        found = self.run_page("s.edit(0, 'First renamed', 'type:FTR'); s.move(0, 1); s.remove(2); s.load(); r('labels', labels());"
+                              "r('query', s.list()[1].query);")
+        labels = [p["label"] for p in self.presets]
+        expected = [labels[1], "First renamed"] + labels[3:]
+        self.assertEqual("|".join(expected), found["labels"])
+        self.assertEqual("type:FTR", found["query"])
+
+    def test_RQ_TRC_153_given_buttons_exported_then_imported_in_a_fresh_store_then_the_same_buttons_are_shown(self):
+        found = self.run_page("s.add('Mine', 'type:RQ'); s.move(s.list().length - 1, -1); const text = s.exportText();"
+                              "localStorage.clear(); s.load(); const fresh = labels(); s.importText(text); s.load();"
+                              "r('fresh', fresh); r('labels', labels()); r('order', JSON.parse(text).queries.map((q) => q.label).join('|'));")
+        self.assertEqual("|".join(p["label"] for p in self.presets), found["fresh"])
+        self.assertEqual(found["order"], found["labels"])
+        self.assertIn("Mine", found["labels"])
+
+    def test_RQ_TRC_155_given_the_default_buttons_then_each_query_parses(self):
+        found = self.run_page("r('bad', s.list().filter((q) => !agnosExplorer.query(q.query)).map((q) => q.label).join('|'));")
+        self.assertEqual("", found["bad"])
+
+
+@unittest.skipUnless(BROWSER and HAS_TREE_SITTER, f"{NEEDS_BROWSER}, or {NEEDS_TREE_SITTER}")
+class CallGraphAndHistoryTest(unittest.TestCase):
+    """TASK-TRC-137: RQ-TRC-146 (DEC-TRC-089): functions, calls, history and delivery in the explorer."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        folder, patch = isolated_git()
+        cls.addClassCleanup(shutil.rmtree, folder, ignore_errors=True)
+        with patch:
+            process, src, head = committed_fixture(Path(cls.tmp.name))
+            out = Path(cls.tmp.name) / "graph" / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(process), "--sources", str(src), "--sources", str(process.parent / "calls"),
+                                     "--out", str(out), "--generated-at", GENERATED_AT, "--call-graph", "--history", "--explorer"])
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+        cls.head = head
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_RQ_TRC_146_given_a_call_graph_then_its_functions_and_calls_are_nodes_and_relations(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      "agnosExplorer.query('type:FN'); r('fns', agnosExplorer.shownIds().length);"
+                                                      "agnosExplorer.query('edge kind:call'); agnosExplorer.showView('relations');"
+                                                      "r('calls', document.querySelectorAll('#relation-table tbody tr').length);"))
+        self.assertEqual(str(len(self.graph["callGraph"]["functions"])), found["fns"])
+        self.assertGreater(int(found["calls"]), 0)
+
+    def test_RQ_TRC_146_given_a_history_then_a_task_detail_shows_its_commits_and_identities(self):
+        task = next(iter(self.graph["tasks"]))
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      f"agnosExplorer.select('{task}');"
+                                                      "r('text', document.getElementById('detail').textContent.replace(/\\s+/g, ' '));"))
+        self.assertIn(self.head[:10], found["text"])
+        self.assertIn("Tester", found["text"])
+
+
+LOAD_LIMIT_MS = 5000          # RQ-TRC-158
+FRAME_LIMIT_MS = 3000         # RQ-GXP-019
+
+
+@unittest.skipUnless(ONLINE and HAS_TREE_SITTER and os.environ.get("AGNOS_GRAPH_PERF"),
+                     "set AGNOS_GRAPH_PERF=1 (needs a browser, cdnjs and tree-sitter): builds this repository's graph")
+class LoadTimeTest(unittest.TestCase):
+    """TASK-TRC-138: RQ-TRC-158: this repository's graph with call graph and history, first view under 5 s."""
+
+    def test_RQ_TRC_158_given_this_repository_graph_then_the_first_view_is_drawn_in_less_than_5_s(self):
+        repo = HERE.parents[3]
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(repo / "agnos-process"), "--sources", str(repo / ".github"), "--out", str(out),
+                                     "--call-graph", "--history", "--explorer"])
+            self.assertEqual(0, code, err)
+            env = {k: v for k, v in os.environ.items() if k.upper() != COMPAT_LAYER_VAR}
+            with tempfile.TemporaryDirectory() as profile:
+                done = subprocess.run([BROWSER, "--headless=new", "--disable-gpu", "--no-first-run", f"--user-data-dir={profile}",
+                                       f"--window-size={BROWSER_WINDOW}", "--dump-dom", (out.parent / PAGE_NAME).resolve().as_uri()],
+                                      capture_output=True, timeout=300, check=False, env=env)
+            found = re.search(r'data-first-view-ms="(\d+)"', done.stdout.decode("utf-8", errors="replace"))
+            self.assertIsNotNone(found)
+            self.assertLess(int(found.group(1)), LOAD_LIMIT_MS)
+
+    # TASK-GXP-018: RQ-GXP-019, from the tab's click to the first drawn 3D frame, three.js's download included; real time,
+    # no virtual time budget: the script element three.js is loaded by delays the load event the dump waits for
+    def test_RQ_GXP_019_given_this_repository_graph_when_graph_3d_is_clicked_then_its_first_frame_is_drawn_in_less_than_3_s(self):
+        repo = HERE.parents[3]
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "agnos-graph.json"
+            code, _, err = run_main(["--process", str(repo / "agnos-process"), "--sources", str(repo / ".github"), "--out", str(out),
+                                     "--call-graph", "--history", "--explorer"])
+            self.assertEqual(0, code, err)
+            page = out.parent / PAGE_NAME
+            page.write_text(page.read_text(encoding="utf-8").replace("</body>", "<script>const t0 = performance.now();"
+                            "document.getElementById('tab-graph3d').click(); agnosExplorer.view3d.ready().then(() =>"
+                            " document.documentElement.dataset.firstFrameMs = String(Math.round(performance.now() - t0)));</script></body>"),
+                            encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k.upper() != COMPAT_LAYER_VAR}
+            with tempfile.TemporaryDirectory() as profile:
+                done = subprocess.run([BROWSER, "--headless=new", "--no-first-run", f"--user-data-dir={profile}",
+                                       f"--window-size={BROWSER_WINDOW}", "--dump-dom", page.resolve().as_uri()],
+                                      capture_output=True, timeout=300, check=False, env=env)
+            dom = done.stdout.decode("utf-8", errors="replace")
+            frame = re.search(r'data-first-frame-ms="(\d+)"', dom)
+            first = re.search(r'data-first-view-ms="(\d+)"', dom)
+            self.assertIsNotNone(frame)
+            self.assertLess(int(frame.group(1)), FRAME_LIMIT_MS)
+            self.assertLess(int(first.group(1)), LOAD_LIMIT_MS)
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class GraphViewTest(unittest.TestCase):
+    """TASK-TRC-134: RQ-TRC-147, RQ-TRC-150, RQ-TRC-154 (DEC-TRC-090, DEC-TRC-091), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute("
+                                                     "'data-r-' + k, String(v)); const g = agnosExplorer.graph;"
+                                                     "agnosExplorer.showView('graph');" + script))
+
+    def test_RQ_TRC_150_given_a_dragged_node_when_a_type_is_hidden_then_shown_then_it_keeps_its_position(self):
+        found = self.run_page("g.move('RQ-DEM-001', 4321, -1234); agnosExplorer.hideTypes(['TASK']);"
+                              "r('hidden', g.shown('TASK-DEM-001')); agnosExplorer.hideTypes([]);"
+                              "const p = g.position('RQ-DEM-001'); r('pos', Math.round(p.x) + ',' + Math.round(p.y));"
+                              "r('back', g.shown('TASK-DEM-001'));")
+        self.assertEqual(("false", "4321,-1234", "true"), (found["hidden"], found["pos"], found["back"]))
+
+    def test_RQ_TRC_150_given_the_fit_button_then_every_shown_node_is_in_the_view(self):
+        # 5000 graph units away: within what the minimum zoom token can frame (a view of about 11000 units at 0.08)
+        found = self.run_page("g.move('RQ-DEM-001', 5000, 5000); document.getElementById('graph-fit').click();"
+                              "r('inside', g.allInView());")
+        self.assertEqual("true", found["inside"])
+
+    def test_RQ_TRC_150_given_the_zoom_bounds_then_they_are_the_tokens(self):
+        found = self.run_page(
+            "const css = (n) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));"
+            "const cy = g.cy(); r('min', cy.minZoom() === css('--c-graph-zoom-min')); r('max', cy.maxZoom() === css('--c-graph-zoom-max'));"
+            "for (let i = 0; i < 40; i += 1) document.getElementById('graph-zoom-in').click(); r('top', cy.zoom() <= cy.maxZoom());")
+        self.assertEqual(("true", "true", "true"), (found["min"], found["max"], found["top"]))
+
+    def test_RQ_TRC_154_given_a_selected_node_when_isolated_then_widened_then_one_then_two_hops_are_shown(self):
+        found = self.run_page("agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); r('one', g.shownIds().join(' '));"
+                              "agnosExplorer.widen(); r('two', g.shownIds().length);")
+        one = set(found["one"].split())
+        self.assertIn("RQ-DEM-001", one)
+        self.assertIn("FTR-DEM-001", one)                  # its feature contains it: one hop
+        self.assertGreater(int(found["two"]), len(one))
+
+    def test_RQ_TRC_154_given_a_hidden_node_then_it_is_listed_and_can_be_shown_again(self):
+        found = self.run_page("agnosExplorer.select('RQ-DEM-001'); agnosExplorer.hide('RQ-DEM-001');"
+                              "r('gone', g.shown('RQ-DEM-001')); r('listed', document.getElementById('hidden-list').textContent);"
+                              "document.querySelector('#hidden-list [data-unhide=\"RQ-DEM-001\"]').click(); r('back', g.shown('RQ-DEM-001'));")
+        self.assertEqual("false", found["gone"])
+        self.assertIn("RQ-DEM-001", found["listed"])
+        self.assertEqual("true", found["back"])
+
+    def test_RQ_TRC_151_given_a_relation_kind_unchecked_then_its_edges_leave_the_graph_and_the_count(self):
+        # TASK-TRC-140: the graph view hides the relations a facet excludes, as the tables do
+        found = self.run_page("const cy = g.cy(); const drawn = (k) => cy.edges().filter((e) => e.data('kind') === k && !e.hasClass('hidden')).length;"
+                              "r('before', drawn('contains')); document.querySelector('#facet-kind input[value=\"contains\"]').click();"
+                              "r('after', drawn('contains')); r('edges', g.shownEdgeCount());"
+                              "r('count', document.getElementById('view-count').textContent.split('·')[1]);")
+        self.assertGreater(int(found["before"]), 0)
+        self.assertEqual("0", found["after"])
+        self.assertIn(f"{found['edges']} /", found["count"])
+
+    def test_RQ_TRC_162_given_circle_chosen_then_the_nodes_are_on_a_circle_in_view_and_keep_it_after_a_filter(self):
+        # TASK-TRC-143
+        found = self.run_page(
+            "const sel = document.getElementById('graph-layout'); sel.value = 'circle'; sel.dispatchEvent(new Event('change'));"
+            "const ps = g.shownIds().map((id) => g.position(id)); const cx = ps.reduce((s, p) => s + p.x, 0) / ps.length;"
+            "const cy0 = ps.reduce((s, p) => s + p.y, 0) / ps.length; const d = ps.map((p) => Math.hypot(p.x - cx, p.y - cy0));"
+            "r('spread', (Math.max(...d) - Math.min(...d)) / Math.max(...d)); r('inside', g.allInView());"
+            "const before = g.position('RQ-DEM-001'); agnosExplorer.hideTypes(['TASK']); agnosExplorer.hideTypes([]);"
+            "const after = g.position('RQ-DEM-001'); r('kept', Math.abs(before.x - after.x) + Math.abs(before.y - after.y) < 1);")
+        self.assertLess(float(found["spread"]), 0.01)
+        self.assertEqual(("true", "true"), (found["inside"], found["kept"]))
+
+    def test_RQ_TRC_166_given_type_columns_when_top_to_bottom_chosen_then_a_type_shares_a_row_and_types_go_down(self):
+        # TASK-TRC-149
+        found = self.run_page(
+            "const pick = (id, v) => { const s = document.getElementById(id); s.value = v; s.dispatchEvent(new Event('change')); };"
+            "pick('graph-layout', 'columns'); pick('graph-direction', 'tb');"
+            "const y = (id) => Math.round(g.position(id).y); r('row', y('RQ-DEM-001') === y('RQ-DEM-002'));"
+            "r('down', y('FTR-DEM-001') < y('RQ-DEM-001') && y('RQ-DEM-001') < y('TASK-DEM-001'));"
+            "r('enabled', !document.getElementById('graph-direction').disabled);"
+            "pick('graph-layout', 'circle'); r('disabled', document.getElementById('graph-direction').disabled);")
+        self.assertEqual(("true", "true", "true", "true"), (found["row"], found["down"], found["enabled"], found["disabled"]))
+
+    def test_RQ_TRC_167_given_a_node_hovered_then_after_the_delay_its_properties_show_and_the_selection_stays(self):
+        # TASK-TRC-150: the delay is the copied tooltip token; virtual time runs the timers
+        found = self.run_page(
+            "const delay = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-graph-tip-delay'));"
+            "agnosExplorer.select('RQ-DEM-002'); const tip = document.getElementById('graph-tip'); const node = g.cy().$id('RQ-DEM-001');"
+            "const keys = (root) => [...root.querySelectorAll('.properties dt')].map((d) => d.textContent).join('|');"
+            "node.emit('mouseover'); setTimeout(() => r('early', tip.hidden), delay / 2);"
+            "setTimeout(() => { r('shown', !tip.hidden); r('tipkeys', keys(tip)); r('id', tip.querySelector('.detail-id').textContent);"
+            " r('selected', document.querySelector('#detail .detail-id').textContent);"
+            " agnosExplorer.select('RQ-DEM-001'); r('detailkeys', keys(document.getElementById('detail')));"
+            " node.emit('mouseout'); r('gone', tip.hidden); }, delay + 300);")
+        self.assertEqual(("true", "true", "true"), (found["early"], found["shown"], found["gone"]))
+        self.assertEqual(("RQ-DEM-001", "RQ-DEM-002"), (found["id"], found["selected"]))
+        self.assertTrue(found["tipkeys"])
+        self.assertEqual(found["detailkeys"], found["tipkeys"])
+
+    def test_RQ_TRC_163_given_a_node_right_clicked_when_two_hops_chosen_then_only_its_two_hop_neighbourhood_is_shown(self):
+        found = self.run_page(
+            "agnosExplorer.select('RQ-DEM-001'); agnosExplorer.isolate(); agnosExplorer.widen(); r('two', g.shownIds().sort().join(' '));"
+            "agnosExplorer.showAll(); g.cy().$id('RQ-DEM-001').emit('cxttap');"
+            "r('menu', [...document.querySelectorAll('#graph-menu [data-menu]')].map((b) => b.dataset.menu).join(' '));"
+            "document.querySelector('#graph-menu [data-menu=\"hops:2\"]').click(); r('shown', g.shownIds().sort().join(' '));"
+            "r('closed', document.getElementById('graph-menu').hidden);")
+        self.assertIn("hops:1", found["menu"].split())
+        self.assertIn("hide", found["menu"].split())
+        self.assertEqual(found["two"], found["shown"])
+        self.assertEqual("true", found["closed"])
+
+    def test_RQ_TRC_163_given_the_background_right_clicked_then_layouts_and_no_node_action_and_escape_closes(self):
+        found = self.run_page(
+            "g.cy().emit('cxttap'); const menu = document.getElementById('graph-menu');"
+            "r('items', [...menu.querySelectorAll('[data-menu]')].map((b) => b.dataset.menu).join(' ')); r('open', !menu.hidden);"
+            "document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); r('closed', menu.hidden);")
+        items = found["items"].split()
+        self.assertIn("layout:circle", items)
+        self.assertFalse([i for i in items if i.startswith("hops:") or i == "hide"])
+        self.assertEqual(("true", "true"), (found["open"], found["closed"]))
+
+    def test_RQ_TRC_147_given_a_node_in_the_graph_then_its_colour_is_its_type_token(self):
+        found = self.run_page(
+            "const want = getComputedStyle(document.documentElement).getPropertyValue('--s-type-rq').trim().toLowerCase();"
+            "r('same', g.colour('RQ-DEM-001') === want);")
+        self.assertEqual("true", found["same"])
+
+
+class MenuBarTest(unittest.TestCase):
+    """TASK-GXP-002: RQ-GXP-001, RQ-TRC-164 (ADR-GXP-001: DEC-GXP-001), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-001: helpers reading the menu bar as the reader sees it
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const bar = document.getElementById('menubar');"
+                                                     "const title = (n) => bar.querySelector(`[data-menu-title=\"${n}\"]`);"
+                                                     "const shown = () => [...bar.querySelectorAll('[role=menu]:not([hidden]) [role=menuitem]')]"
+                                                     ".map((i) => i.textContent).join('|');"
+                                                     "const key = (k) => document.activeElement.dispatchEvent(new KeyboardEvent('keydown',"
+                                                     " { key: k, bubbles: true }));" + script))
+
+    # RQ-GXP-001; RQ-GXP-016 (TASK-GXP-030): the view's export and import follow the saved queries', no saved view;
+    # RQ-GXP-017 (TASK-GXP-028): Export image last
+    def test_RQ_GXP_001_given_the_explorer_when_file_is_clicked_then_open_import_and_export_are_listed(self):
+        found = self.run_page("title('file').click(); r('items', shown());")
+        self.assertEqual("Open graph file…|Import saved queries…|Export saved queries…|Export view…|Import view…"
+                         "|Export image",
+                         found["items"])
+
+    # RQ-GXP-001
+    def test_RQ_GXP_001_given_an_open_menu_when_right_arrow_then_the_next_opens_and_escape_closes_to_its_title(self):
+        found = self.run_page("title('file').click(); title('file').focus(); key('ArrowRight');"
+                              "r('open', [...bar.querySelectorAll('[role=menu]:not([hidden])')].map((m) => m.dataset.menu).join('|'));"
+                              "key('Escape'); r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);"
+                              "r('focus', document.activeElement.dataset.menuTitle);")
+        self.assertEqual(("view", "0", "view"), (found["open"], found["closed"], found["focus"]))
+
+    # RQ-GXP-001: the menus whose actions exist, in order; Time, Appearance and Dimensions come with their tasks
+    # (TASK-GXP-003 added Help)
+    def test_RQ_GXP_001_given_the_menu_bar_then_only_delivered_menus_are_shown_and_every_item_has_a_tooltip(self):
+        found = self.run_page("r('menus', [...bar.querySelectorAll('[data-menu-title]')].map((t) => t.textContent).join('|'));"
+                              "r('untitled', [...bar.querySelectorAll('button')].filter((b) => !(b.title || '').trim())"
+                              ".map((b) => b.textContent).join('|'));")
+        self.assertEqual("File|View|Filter|Time|Appearance|Dimensions|Help", found["menus"])   # TASK-GXP-004 Appearance, TASK-GXP-005 Time, TASK-GXP-015 Dimensions
+        self.assertEqual("", found["untitled"])
+
+    # RQ-GXP-001: an item that does not apply to the current view is disabled
+    def test_RQ_GXP_001_given_the_nodes_view_then_fit_is_disabled_and_choosing_graph_shows_the_graph_view(self):
+        found = self.run_page("agnosExplorer.showView('nodes'); title('view').click();"
+                              "const item = (t) => [...bar.querySelectorAll('[role=menuitem]')].find((i) => i.textContent === t);"
+                              "r('fit', item('Fit').disabled); item('Graph 2D').click();"   # TASK-GXP-012: RQ-GXP-010 names it Graph 2D
+                              "r('view', document.querySelector('.tab[aria-selected=true]').dataset.view);"
+                              "r('closed', bar.querySelectorAll('[role=menu]:not([hidden])').length);")
+        self.assertEqual(("true", "graph", "0"), (found["fit"], found["view"], found["closed"]))
+
+
+HELP_TOPICS = "Overview|Graph|Nodes|Relations|Facets and queries|Time|Appearance|Licenses|About"   # RQ-GXP-002: stated, not read
+
+
+class HelpDialogTest(unittest.TestCase):
+    """TASK-GXP-003: RQ-GXP-002, RQ-GXP-003, RQ-GXP-004 (ADR-GXP-001: DEC-GXP-002), in a headless browser and in Python."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-002: helpers reading the dialog as the reader sees it
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const dialog = document.getElementById('help-dialog');"
+                                                     "const topic = () => dialog.querySelector('[data-help]:not([hidden])').dataset.title;"
+                                                     + script))
+
+    # RQ-GXP-002
+    def test_RQ_GXP_002_given_the_nodes_view_when_help_opens_then_the_nodes_topic_is_shown_among_every_topic(self):
+        found = self.run_page("agnosExplorer.showView('nodes'); document.getElementById('help-button').click();"
+                              "r('open', dialog.open); r('topic', topic());"
+                              "r('list', [...document.querySelectorAll('#help-list .help-topic')].map((b) => b.textContent).join('|'));")
+        self.assertEqual(("true", "Nodes", HELP_TOPICS), (found["open"], found["topic"], found["list"]))
+
+    # RQ-GXP-002
+    def test_RQ_GXP_002_given_the_help_open_when_a_topic_is_clicked_then_it_replaces_the_former_and_close_closes(self):
+        found = self.run_page("document.getElementById('help-button').click();"
+                              "[...document.querySelectorAll('#help-list .help-topic')].find((b) => b.textContent === 'About').click();"
+                              "r('topic', topic()); r('shown', dialog.querySelectorAll('[data-help]:not([hidden])').length);"
+                              "document.getElementById('help-close').click(); r('open', dialog.open);")
+        self.assertEqual(("About", "1", "false"), (found["topic"], found["shown"], found["open"]))
+
+    # RQ-GXP-002, RQ-GXP-001: the Help menu opens the same dialog on a chosen topic
+    def test_RQ_GXP_002_given_the_help_menu_when_licenses_is_chosen_then_the_dialog_shows_licenses(self):
+        found = self.run_page("document.querySelector('[data-menu-title=\"help\"]').click();"
+                              "[...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === 'Licenses').click();"
+                              "r('open', dialog.open); r('topic', topic());")
+        self.assertEqual(("true", "Licenses"), (found["open"], found["topic"]))
+
+    # RQ-GXP-003
+    def test_RQ_GXP_003_given_the_licenses_topic_then_agnos_and_each_library_have_a_badge_linked_to_spdx(self):
+        found = self.run_page("const badges = [...document.querySelectorAll('#licence-list .licence-badge')];"
+                              "r('badges', badges.map((b) => b.textContent.replace(/\\s+/g, ' ').trim()).join('|'));"
+                              "r('mit', badges.find((b) => b.textContent.includes('Cytoscape')).getAttribute('href'));")
+        self.assertEqual("AGNOSAGPL-3.0|Cytoscape.js 3.30.2MIT|three.js 0.149.0MIT", found["badges"])   # TASK-GXP-012: three.js
+        self.assertEqual("https://spdx.org/licenses/MIT.html", found["mit"])
+
+    def about_of(self, version_text):
+        """The About lockup's name of a page rendered while the version file holds version_text, or is absent (None)."""
+        import explorer
+        version = Path(self.tmp.name) / f"VERSION-{abs(hash(version_text))}"
+        if version_text is not None:
+            version.write_text(version_text, encoding="utf-8")
+        with mock.patch.object(explorer, "VERSION_PATH", version):
+            page = explorer.render_page()
+        return re.search(r'class="about-wordmark">([^<]*)<', page).group(1).strip(), page
+
+    # RQ-GXP-004
+    def test_RQ_GXP_004_given_a_version_file_then_about_reads_agnos_major_minor_the_tagline_and_names_agnos_graph(self):
+        name, page = self.about_of("3.12.4\n")
+        self.assertEqual("AGNOS v.3.12", name)
+        self.assertIn("Agentic efficiency by traceability", page)
+        self.assertIn("generated by agnos-graph", page)
+
+    # RQ-GXP-004
+    def test_RQ_GXP_004_given_no_version_file_then_about_reads_agnos_alone(self):
+        self.assertEqual("AGNOS", self.about_of(None)[0])
+
+
+CHOSEN_COLOUR = "#00aa00"                                   # RQ-GXP-005: a reader's colour, not a token's
+COLOUR_STORE_KEY = "agnos-graph-explorer.relation-colours"  # DEC-GXP-005: stated, not read from the script
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class RelationColourTest(unittest.TestCase):
+    """TASK-GXP-004: RQ-GXP-005, RQ-TRC-165 (ADR-GXP-001: DEC-GXP-005), in a headless browser with the graph view."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        # RQ-GXP-005: helpers choosing a colour as the reader does and reading it back from the graph and the legend
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); agnosExplorer.showView('graph'); const cy = agnosExplorer.graph.cy();"
+                                                     "const rgb = (c) => { const d = document.createElement('i'); d.style.color = c;"
+                                                     " document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return v; };"
+                                                     "const edge = () => rgb(cy.edges('[kind = \"contains\"]')[0].data('colour'));"
+                                                     "const line = () => getComputedStyle(document.querySelector("
+                                                     "'#graph-legend [data-kind=\"contains\"] .legend-line')).borderTopColor;"
+                                                     "const token = rgb(getComputedStyle(document.documentElement).getPropertyValue('--c-graph-edge-contains').trim());"
+                                                     "const menuItem = (menu, label) => { document.querySelector(`[data-menu-title=\"${menu}\"]`).click();"
+                                                     " [...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+                                                     "const pick = (hex) => { const i = document.getElementById('relation-colour'); i.value = hex;"
+                                                     " i.dispatchEvent(new Event('input', { bubbles: true })); };" + script))
+
+    # RQ-GXP-005
+    def test_RQ_GXP_005_given_the_graph_view_when_contains_is_given_a_colour_then_its_edges_and_legend_line_take_it(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              f"r('edge', edge() === rgb('{CHOSEN_COLOUR}')); r('line', line() === rgb('{CHOSEN_COLOUR}'));")
+        self.assertEqual(("true", "true"), (found["edge"], found["line"]))
+
+    # RQ-GXP-005: kept in the browser, read again on load
+    def test_RQ_GXP_005_given_a_chosen_colour_when_the_page_loads_again_then_it_is_kept(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              f"r('stored', JSON.parse(localStorage.getItem('{COLOUR_STORE_KEY}')).contains);"
+                              "agnosExplorer.appearance.load();"
+                              f"r('edge', edge() === rgb('{CHOSEN_COLOUR}')); r('line', line() === rgb('{CHOSEN_COLOUR}'));")
+        self.assertEqual((CHOSEN_COLOUR, "true", "true"), (found["stored"], found["edge"], found["line"]))
+
+    # RQ-GXP-005
+    def test_RQ_GXP_005_given_a_chosen_colour_when_reset_colours_is_chosen_then_the_token_colour_is_back(self):
+        found = self.run_page(f"menuItem('appearance', 'Colour of contains…'); pick('{CHOSEN_COLOUR}');"
+                              "menuItem('appearance', 'Reset colours');"
+                              f"r('edge', edge() === token); r('line', line() === token);"
+                              f"r('stored', localStorage.getItem('{COLOUR_STORE_KEY}'));")
+        self.assertEqual(("true", "true", "null"), (found["edge"], found["line"], found["stored"]))
+
+    # RQ-GXP-005: the legend is the other way to the choice
+    def test_RQ_GXP_005_given_the_legend_when_a_relation_kind_is_clicked_then_its_colour_is_being_chosen(self):
+        found = self.run_page("document.querySelector('#graph-legend [data-kind=\"contains\"] .legend-kind').click();"
+                              f"pick('{CHOSEN_COLOUR}'); r('edge', edge() === rgb('{CHOSEN_COLOUR}'));"
+                              "r('tip', document.querySelector('#graph-legend [data-kind=\"contains\"] .legend-kind').title);")
+        self.assertEqual("true", found["edge"])
+        self.assertIn("contains", found["tip"])
+
+
+# RQ-GXP-006, DEC-GXP-004: a graph whose history dates its nodes: OLD first changed on 2026-07-14, NEW on 2026-11-05, UNDATED
+# never changed in the history read; written by the test, so that each date is known
+HISTORY_FIRST = "2026-07-14T10:00:00+00:00"
+HISTORY_LAST = "2026-11-05T10:00:00+00:00"
+OLD, NEW, UNDATED = "RQ-DEM-001", "RQ-DEM-002", "RQ-DEM-003"
+
+
+def dated_graph():
+    """A graph of three requirements with a history of two commits (graph-format.md, history block)."""
+    element = lambda i, title: {"id": i, "type": "RQ", "tri": "DEM", "status": "", "title": title, "doc": "FTR-DEM-001.md",
+                                "first": 1, "last": 2, "kind": "element"}
+    commit = lambda h, date, subject: {"hash": h, "date": date, "subject": subject, "author": 0, "coAuthors": [], "kind": "human"}
+    return {"meta": {"generatedAt": GENERATED_AT, "commit": "0123456789"}, "elements": [element(OLD, "Old"), element(NEW, "New"),
+            element(UNDATED, "Undated")], "edges": [], "files": [], "sections": [], "links": [], "tasks": {},
+            "history": {"commits": [commit("aaaaaaaaaa", HISTORY_FIRST, "first"), commit("bbbbbbbbbb", HISTORY_LAST, "later")],
+                        "people": [{"name": "Dev"}], "interventions": {"elements": {OLD: [[0, 3]], NEW: [[1, 4]]}},
+                        "limits": {"first": HISTORY_FIRST, "last": HISTORY_LAST}}}
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TimePeriodTest(unittest.TestCase):
+    """TASK-GXP-005: RQ-GXP-006, RQ-GXP-009 (ADR-GXP-001: DEC-GXP-003, DEC-GXP-004), in a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+        cls.graph = json.loads(out.read_text(encoding="utf-8"))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script, dated=True):
+        # RQ-GXP-006: helpers moving a handle as the reader does and reading the node table
+        load = f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});" if dated else ""
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const t = agnosExplorer.time;" + load +
+                                                     "const handle = (id, iso) => { const i = document.getElementById(id);"
+                                                     " i.value = t.dayOf(iso); i.dispatchEvent(new Event('input', { bubbles: true }));"
+                                                     " i.dispatchEvent(new Event('change', { bubbles: true })); };"
+                                                     "const rows = () => { agnosExplorer.showView('nodes'); return [...document.querySelectorAll("
+                                                     "'#node-table tbody tr')].map((tr) => tr.dataset.key).sort().join('|'); };"
+                                                     "const menuItem = (menu, label) => { document.querySelector(`[data-menu-title=\"${menu}\"]`).click();"
+                                                     " [...document.querySelectorAll('#menubar [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+                                                     + script))
+
+    # RQ-GXP-006
+    def test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it(self):
+        found = self.run_page("r('bar', document.getElementById('time-bar').hidden); r('all', rows());"
+                              "handle('time-start', '2026-11-01'); r('narrow', rows());"
+                              "r('label', document.getElementById('time-range').textContent);")
+        self.assertEqual("false", found["bar"])
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["all"])
+        self.assertEqual(NEW, found["narrow"])
+        self.assertIn("2026-11-01", found["label"])
+
+    # RQ-GXP-006 (TASK-GXP-009): the track shares the controls' row, after the mode, to save height
+    def test_RQ_GXP_006_given_the_time_bar_then_its_track_is_on_the_controls_row_right_of_the_mode(self):
+        found = self.run_page("const box = (id) => document.getElementById(id).getBoundingClientRect();"
+                              "const track = document.querySelector('.time-track').getBoundingClientRect(); const mode = box('time-window');"
+                              "r('row', Math.abs((track.top + track.bottom) / 2 - (mode.top + mode.bottom) / 2) < mode.height / 2);"
+                              "r('right', track.left >= mode.right);")
+        self.assertEqual(("true", "true"), (found["row"], found["right"]))
+
+    # RQ-GXP-006 (TASK-GXP-010): while a handle is dragged the views wait; they follow once it rests or is released
+    def test_RQ_GXP_006_given_a_handle_dragged_then_the_views_wait_until_it_rests(self):
+        found = self.run_page("const i = document.getElementById('time-start'); i.value = t.dayOf('2026-11-01');"
+                              "i.dispatchEvent(new Event('input', { bubbles: true })); r('label', document.getElementById('time-range').textContent);"
+                              "r('during', agnosExplorer.shownIds().length);"
+                              "setTimeout(() => r('after', agnosExplorer.shownIds().length), 1500);")
+        self.assertIn("2026-11-01", found["label"])
+        self.assertEqual(("3", "1"), (found["during"], found["after"]))
+
+    # RQ-GXP-006, DEC-GXP-004
+    def test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit(self):
+        found = self.run_page(f"r('undated', t.dateOf('{UNDATED}')); r('old', t.dateOf('{OLD}'));"
+                              "handle('time-end', '2026-07-14'); r('first-day', rows());")
+        self.assertEqual(found["undated"], found["old"])
+        self.assertEqual("|".join(sorted((OLD, UNDATED))), found["first-day"])
+
+    # RQ-GXP-006: the Time menu gives back the whole history
+    def test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again(self):
+        found = self.run_page("handle('time-start', '2026-11-01'); menuItem('time', 'Whole history'); r('rows', rows());")
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["rows"])
+
+    # RQ-GXP-009
+    def test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history(self):
+        found = self.run_page("const title = document.querySelector('[data-menu-title=\"time\"]');"
+                              "r('bar', document.getElementById('time-bar').hidden); r('disabled', title.disabled); r('tip', title.title);"
+                              "r('rows', rows().split('|').length);", dated=False)
+        nodes = len(self.graph["elements"]) + len(self.graph["sections"]) + len(self.graph["files"])
+        self.assertEqual(("true", "true"), (found["bar"], found["disabled"]))
+        self.assertIn("--history", found["tip"])
+        self.assertEqual(str(nodes), found["rows"])
+
+
+@unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+class TimePlaybackTest(TimePeriodTest):
+    """TASK-GXP-006: RQ-GXP-007, RQ-GXP-008 (ADR-GXP-001: DEC-GXP-006). `t.advance(s)` moves the playback as animation frames
+    would over s seconds, so that each step is known; one test lets the real animation frames run."""
+
+    # the page and helpers of TimePeriodTest; its own tests are not run again here
+    test_RQ_GXP_006_given_a_graph_with_history_when_the_period_starts_in_november_then_the_table_lists_only_nodes_dated_in_it = None
+    test_RQ_GXP_006_given_a_node_without_history_rows_then_it_is_dated_the_history_first_commit = None
+    test_RQ_GXP_006_given_the_time_bar_then_its_track_is_on_the_controls_row_right_of_the_mode = None
+    test_RQ_GXP_006_given_a_handle_dragged_then_the_views_wait_until_it_rests = None
+    test_RQ_GXP_006_given_a_narrowed_period_when_whole_history_is_chosen_then_every_node_is_shown_again = None
+    test_RQ_GXP_009_given_a_graph_without_history_then_no_time_bar_and_the_time_menu_is_disabled_naming_history = None
+
+    def run_playback(self, script):
+        # RQ-GXP-007: the fastest speed of the speed list, then the reader's actions
+        return self.run_page("const speed = document.getElementById('time-speed'); speed.value = speed.options[speed.options.length - 1].value;"
+                             "speed.dispatchEvent(new Event('change')); const play = document.getElementById('time-play');"
+                             "const count = () => agnosExplorer.shownIds().length;" + script)
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_a_period_when_play_is_pressed_then_the_shown_count_grows_until_the_end(self):
+        found = self.run_playback("play.click(); r('start', count()); r('label', play.textContent); t.advance(1); r('later', count());"
+                                  "t.advance(60); r('end', count()); r('stopped', play.textContent);")
+        self.assertEqual(("0", "Pause", "2", "3", "Play"), (found["start"], found["label"], found["later"], found["end"], found["stopped"]))
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_loop_checked_when_the_cursor_reaches_the_end_then_it_starts_again_from_the_start(self):
+        found = self.run_playback("document.getElementById('time-loop').click(); play.click(); t.advance(1); r('before', count());"
+                                  "t.advance(4); r('again', count()); r('playing', play.textContent);")
+        self.assertEqual("2", found["before"])
+        self.assertLess(int(found["again"]), 3)
+        self.assertEqual("Pause", found["playing"])
+
+    # RQ-GXP-007
+    def test_RQ_GXP_007_given_playback_when_pause_then_the_cursor_stays_and_when_stop_the_whole_period_is_shown(self):
+        found = self.run_playback("play.click(); t.advance(1); play.click(); const at = t.cursor(); t.advance(2);"
+                                  "r('kept', t.cursor() === at); r('paused', count());"
+                                  "document.getElementById('time-stop').click(); r('stopped', count()); r('cursor', t.cursor());")
+        self.assertEqual(("true", "2", "3", "null"), (found["kept"], found["paused"], found["stopped"], found["cursor"]))
+
+    # RQ-GXP-008
+    def test_RQ_GXP_008_given_the_window_mode_of_7_days_then_only_the_nodes_of_the_7_days_before_the_cursor_are_shown(self):
+        found = self.run_playback("const mode = document.getElementById('time-window'); mode.value = '7'; mode.dispatchEvent(new Event('change'));"
+                                  "t.setCursor('2026-11-06T00:00:00Z'); r('window', rows());"
+                                  "mode.value = '0'; mode.dispatchEvent(new Event('change')); r('cumulative', rows());")
+        self.assertEqual(NEW, found["window"])
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["cumulative"])
+
+    # RQ-GXP-007, DEC-GXP-006: the animation frames move the cursor by themselves
+    def test_RQ_GXP_007_given_play_pressed_when_frames_pass_then_the_cursor_moves_forward(self):
+        found = self.run_playback("play.click(); const first = t.cursor();"
+                                  "setTimeout(() => { r('moved', t.cursor() === null || t.cursor() > first); }, 1500);")
+        self.assertEqual("true", found["moved"])
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class TimePeriodGraphTest(unittest.TestCase):
+    """TASK-GXP-005: RQ-GXP-006 in the graph view (DEC-GXP-003: the period is one more term of the visibility every view reads)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    # RQ-GXP-006
+    def test_RQ_GXP_006_given_the_graph_view_when_the_period_starts_in_november_then_only_its_nodes_are_drawn(self):
+        found = results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k, String(v));"
+                                                      f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
+                                                      "agnosExplorer.showView('graph'); const i = document.getElementById('time-start');"
+                                                      "i.value = agnosExplorer.time.dayOf('2026-11-01'); i.dispatchEvent(new Event('input')); i.dispatchEvent(new Event('change'));"
+                                                      "r('shown', agnosExplorer.graph.shownIds().join('|'));"))
+        self.assertEqual(NEW, found["shown"])
+
+
+THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"   # DEC-GXP-007: stated, not read
+
+
+class FlatTabsTest(unittest.TestCase):
+    """TASK-GXP-012: RQ-GXP-010, RQ-GXP-003, RQ-GXP-019 (ADR-GXP-002: DEC-GXP-007), in Python and a headless browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v));" + script))
+
+    # RQ-GXP-019, DEC-GXP-007: three.js is not a script of the page; its record carries what loading it needs
+    def test_RQ_GXP_019_given_the_page_then_three_js_is_recorded_but_not_loaded_by_a_script_element(self):
+        import explorer
+        page = self.page.read_text(encoding="utf-8")
+        self.assertNotIn(f'<script src="{THREE_URL}"', page)
+        three = next(lib for lib in explorer.library_record() if lib["name"] == "three.js")
+        self.assertEqual((THREE_URL, "THREE", True), (three["url"], three["global"], three["lazy"]))
+        self.assertTrue(three["integrity"].startswith("sha512-"))
+
+    # RQ-GXP-010
+    @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+    def test_RQ_GXP_010_given_the_explorer_then_four_tabs_read_graph_2d_graph_3d_nodes_and_relations(self):
+        found = self.run_page("r('tabs', [...document.querySelectorAll('.tab')].map((t) => t.textContent).join('|'));")
+        self.assertEqual("Graph 2D|Graph 3D|Nodes|Relations", found["tabs"])
+
+    # RQ-GXP-019, DEC-GXP-007: the page loads three.js only when Graph 3D is first shown
+    @unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+    def test_RQ_GXP_019_given_the_page_when_graph_3d_was_never_shown_then_three_js_is_not_loaded_and_its_show_loads_it(self):
+        found = self.run_page("r('before', typeof window.THREE); agnosExplorer.showView('graph3d');"
+                              "r('panel', document.getElementById('view-graph3d').classList.contains('active'));"
+                              "agnosExplorer.view3d.ready().then(() => r('after', typeof window.THREE));")
+        self.assertEqual(("undefined", "true", "object"), (found["before"], found["panel"], found.get("after")))
+
+    # RQ-GXP-003, RQ-GXP-010: the Licenses topic names three.js, and the View menu shows both graph views
+    @unittest.skipUnless(BROWSER, NEEDS_BROWSER)
+    def test_RQ_GXP_003_given_the_licenses_topic_then_three_js_has_its_mit_badge_and_view_lists_both_graphs(self):
+        found = self.run_page("r('three', [...document.querySelectorAll('#licence-list .licence-badge')]"
+                              ".map((b) => b.textContent.replace(/\\s+/g, ' ').trim()).find((t) => t.startsWith('three.js')));"
+                              "document.querySelector('[data-menu-title=\"view\"]').click();"
+                              "r('items', [...document.querySelectorAll('#menubar [role=menuitem]')].map((i) => i.textContent)"
+                              ".filter((t) => t.startsWith('Graph')).join('|'));")
+        self.assertEqual(("three.js 0.149.0MIT", "Graph 2D|Graph 3D"), (found["three"], found["items"]))
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class View3DTest(unittest.TestCase):
+    """TASK-GXP-013: RQ-GXP-011 (ADR-GXP-002: DEC-GXP-008, DEC-GXP-009), in a headless browser with WebGL."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_3d(self, script):
+        """Runs script once the 3D view is drawn; `v` is its test hook."""
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const v = agnosExplorer.view3d; agnosExplorer.showView('graph3d');"
+                                                     f"v.ready().then(() => {{ {script} }});"))
+
+    # RQ-GXP-011
+    def test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows(self):
+        found = self.run_3d("r('points', v.shownIds().length); r('lines', v.shownRelations());"
+                            "agnosExplorer.showView('nodes'); r('rows', document.querySelectorAll('#node-table tbody tr').length);"
+                            "agnosExplorer.showView('relations'); r('relations', document.querySelectorAll('#relation-table tbody tr').length);")
+        self.assertEqual(found["rows"], found["points"])
+        self.assertEqual(found["relations"], found["lines"])
+        self.assertNotEqual("0", found["points"])
+
+    # RQ-GXP-011: the fixture has no function, so a type it has stands for FN; the test is the same facet
+    def test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown(self):
+        # an element of kind "undefined" is typed UNDEFINED by the model (RQ-TRC-147), not RQ
+        found = self.run_3d("const rq = new Set(window.AGNOS_GRAPH.elements.filter((e) => e.type === 'RQ' && e.kind !== 'undefined')"
+                            ".map((e) => e.id));"
+                            "r('before', v.shownIds().filter((id) => rq.has(id)).length); agnosExplorer.hideTypes(['RQ']);"
+                            "r('after', v.shownIds().filter((id) => rq.has(id)).length);")
+        self.assertNotEqual("0", found["before"])
+        self.assertEqual("0", found["after"])
+
+    # RQ-GXP-011, DEC-GXP-009: a drag rotates the camera around its target, at the same distance
+    def test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target(self):
+        found = self.run_3d("const c = document.querySelector('#graph3d canvas'); const b = c.getBoundingClientRect();"
+                            "const at = (type, x) => c.dispatchEvent(new PointerEvent(type, { clientX: b.left + x, clientY: b.top + b.height / 2,"
+                            " button: 0, buttons: 1, pointerId: 1, bubbles: true }));"
+                            "const before = v.camera(); at('pointerdown', 100); at('pointermove', 200); at('pointerup', 200);"
+                            "const after = v.camera(); r('moved', before.position.some((p, i) => Math.abs(p - after.position[i]) > 1e-6));"
+                            "r('same', Math.abs(before.distance - after.distance) < 1e-6);"
+                            "r('target', before.target.every((t, i) => t === after.target[i]));")
+        self.assertEqual(("true", "true", "true"), (found["moved"], found["same"], found["target"]))
+
+
+# TASK-GXP-014: a point the picker finds at its own screen position, and a pointer event there
+PICKABLE = ("const c = document.querySelector('#graph3d canvas'); const b = c.getBoundingClientRect();"
+            "const id = v.shownIds().find((i) => { const s = v.screenOf(i); return s && v.pick(s.x, s.y) === i; });"
+            "const s = v.screenOf(id); const at = (type, extra) => c.dispatchEvent(new PointerEvent(type, { clientX: b.left + s.x,"
+            " clientY: b.top + s.y, button: 0, pointerId: 1, bubbles: true, cancelable: true, ...extra }));")
+
+
+class Interaction3DTest(View3DTest):
+    """TASK-GXP-014: RQ-GXP-012 (ADR-GXP-002: DEC-GXP-010), in a headless browser with WebGL."""
+
+    # the inherited tests are TASK-GXP-013's, run once there
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-012
+    def test_RQ_GXP_012_given_the_3d_view_when_a_point_is_clicked_then_the_detail_panel_shows_its_node(self):
+        found = self.run_3d(PICKABLE + "r('id', id); at('pointerdown'); at('pointerup');"
+                            "r('detail', document.getElementById('detail').textContent.includes(id));")
+        self.assertNotEqual("undefined", found["id"])
+        self.assertEqual("true", found["detail"])
+
+    # RQ-GXP-012: the tooltip opens after the tooltip delay, inside the 3D panel
+    def test_RQ_GXP_012_given_the_3d_view_when_the_pointer_rests_on_a_point_then_its_tooltip_is_shown_after_the_delay(self):
+        found = self.run_3d(PICKABLE + "const tip = document.getElementById('graph-tip'); at('pointermove', { buttons: 0 });"
+                            "r('early', tip.hidden); setTimeout(() => { r('late', tip.hidden); r('has', tip.textContent.includes(id));"
+                            " r('inside', tip.parentElement.id); }, 1500);")
+        self.assertEqual(("true", "false", "true", "view-graph3d"), (found["early"], found["late"], found["has"], found["inside"]))
+
+    # RQ-GXP-012: the node actions of the context menu, the neighbourhood isolated as the 2D view does
+    def test_RQ_GXP_012_given_the_3d_view_when_a_point_is_right_clicked_and_one_hop_is_chosen_then_only_its_neighbours_show(self):
+        found = self.run_3d(PICKABLE + "const all = v.shownIds().length; c.dispatchEvent(new MouseEvent('contextmenu', { clientX: b.left + s.x,"
+                            " clientY: b.top + s.y, button: 2, bubbles: true, cancelable: true }));"
+                            "const menu = document.getElementById('graph-menu'); r('open', !menu.hidden);"
+                            "[...menu.querySelectorAll('[data-menu]')].find((i) => i.textContent === 'Neighbours, 1 hop').click();"
+                            "const shown = v.shownIds(); r('fewer', shown.length < all); r('has', shown.includes(id));"
+                            "r('same', shown.join('|') === agnosExplorer.shownIds().join('|'));")
+        self.assertEqual(("true", "true", "true", "true"), (found["open"], found["fewer"], found["has"], found["same"]))
+
+
+HISTORY_DIMENSIONS = "first|last|commits|lines|author|authorKind"   # RQ-GXP-013: the dimensions read from the history
+
+
+class Dimensions3DTest(View3DTest):
+    """TASK-GXP-015: RQ-GXP-013, RQ-GXP-009 (ADR-GXP-002: DEC-GXP-011), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-013
+    def test_RQ_GXP_013_given_the_3d_view_when_the_height_is_set_to_the_changed_lines_then_the_most_changed_is_highest(self):
+        found = self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))}); agnosExplorer.showView('graph3d');"
+                            "const height = document.getElementById('dim-height'); height.value = 'lines';"
+                            "height.dispatchEvent(new Event('change'));"
+                            f"const y = (id) => v.positionOf(id)[1]; r('highest', y('{NEW}') > y('{OLD}') && y('{OLD}') > y('{UNDATED}'));")
+        self.assertEqual("true", found["highest"])
+
+    # RQ-GXP-013: the defaults
+    def test_RQ_GXP_013_given_a_graph_with_history_then_the_defaults_are_date_trigram_layer_type_type(self):
+        found = self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))}); agnosExplorer.showView('graph3d');"
+                            "r('dims', ['height', 'angle', 'radius', 'colour', 'size'].map((d) => document.getElementById('dim-' + d).value).join('|'));")
+        self.assertEqual("first|tri|layer|type|type", found["dims"])
+
+    # RQ-GXP-013, RQ-GXP-009
+    def test_RQ_GXP_013_given_a_graph_without_history_then_its_dimensions_are_disabled_and_height_is_the_relation_count(self):
+        found = self.run_3d("const height = document.getElementById('dim-height'); r('height', height.value);"
+                            "r('off', [...height.options].filter((o) => o.disabled).map((o) => o.value).join('|'));")
+        self.assertEqual(("relations", HISTORY_DIMENSIONS), (found["height"], found["off"]))
+
+    # RQ-GXP-013, RQ-GXP-001: the Dimensions menu reaches each choice, in the 3D view only
+    def test_RQ_GXP_013_given_the_dimensions_menu_then_each_dimension_item_focuses_its_choice(self):
+        found = self.run_3d("document.querySelector('[data-menu-title=\"dimensions\"]').click();"
+                            "const items = [...document.querySelectorAll('#menubar [data-menu=\"dimensions\"] [role=menuitem]')];"
+                            "r('items', items.map((i) => i.textContent).join('|')); items[1].click();"
+                            "r('focus', document.activeElement.id);")
+        self.assertEqual(("Height…|Angle…|Radius…|Colour…|Size…", "dim-angle"), (found["items"], found["focus"]))
+
+
+# TASK-GXP-016: choose an item of the View menu by its label
+CHOOSE_VIEW = ("const choose = (label) => { document.querySelector('[data-menu-title=\"view\"]').click();"
+               " [...document.querySelectorAll('#menubar [data-menu=\"view\"] [role=menuitem]')].find((i) => i.textContent === label).click(); };"
+               "const rise = (p) => { const a = v.project(p); const b = v.project([p[0], p[1] + 10, p[2]]); return Math.hypot(a.x - b.x, a.y - b.y); };")
+
+
+class Projection3DTest(View3DTest):
+    """TASK-GXP-016: RQ-GXP-014 (ADR-GXP-002: DEC-GXP-012), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    # RQ-GXP-014 (amended by TASK-GXP-016): no perspective, a height difference has one screen length wherever it lies
+    def test_RQ_GXP_014_given_isometric_then_a_height_difference_has_the_same_screen_length_wherever_it_lies(self):
+        # project() gives normalised device coordinates, so the lengths are compared relatively
+        found = self.run_3d(CHOOSE_VIEW + "const near = [-40, 0, -40]; const far = [40, 0, 40];"
+                            "const gap = () => Math.abs(rise(near) - rise(far)) / Math.max(rise(near), rise(far));"
+                            "r('persp', gap() > 0.05); choose('Isometric'); r('kind', v.cameraKind()); r('iso', gap() < 1e-4);")
+        self.assertEqual(("true", "orthographic", "true"), (found["persp"], found["kind"], found["iso"]))
+
+    # RQ-GXP-014
+    def test_RQ_GXP_014_given_front_then_two_points_of_the_same_height_share_the_same_screen_height(self):
+        found = self.run_3d(CHOOSE_VIEW + "choose('Front'); r('same', Math.abs(v.project([-40, 5, -40]).y - v.project([40, 5, 40]).y) < 1e-3);")
+        self.assertEqual("true", found["same"])
+
+    # RQ-GXP-014: Top looks down the height axis; Perspective comes back
+    def test_RQ_GXP_014_given_top_then_the_camera_looks_down_and_perspective_restores_the_perspective_camera(self):
+        found = self.run_3d(CHOOSE_VIEW + "choose('Top'); const c = v.camera();"
+                            "r('down', Math.hypot(c.position[0] - c.target[0], c.position[2] - c.target[2]) < c.distance * 0.02"
+                            " && c.position[1] > c.target[1]); choose('Perspective'); r('kind', v.cameraKind());")
+        self.assertEqual(("true", "perspective"), (found["down"], found["kind"]))
+
+
+# TASK-GXP-017: the height of an instant when the height is the first commit date of dated_graph(), extent 100 (tokens)
+HEIGHT_OF = (f"const low = Date.parse('{HISTORY_FIRST}'); const high = Date.parse('{HISTORY_LAST}');"
+             "const heightOf = (t) => ((t - low) / (high - low) - 0.5) * 100;")
+
+
+class Planes3DTest(View3DTest):
+    """TASK-GXP-017: RQ-GXP-015 (ADR-GXP-002: DEC-GXP-013), in a headless browser with WebGL."""
+
+    test_RQ_GXP_011_given_the_graph_when_graph_3d_is_shown_then_it_shows_as_many_points_as_the_node_table_rows = None
+    test_RQ_GXP_011_given_the_3d_view_when_a_type_is_unchecked_then_none_of_its_points_is_shown = None
+    test_RQ_GXP_011_given_the_3d_view_when_it_is_dragged_then_the_camera_rotates_around_its_target = None
+
+    def run_dated(self, script):
+        return self.run_3d(f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
+                           "agnosExplorer.showView('graph3d');" + HEIGHT_OF + script)
+
+    # RQ-GXP-015
+    def test_RQ_GXP_015_given_height_by_first_commit_date_then_a_ring_labelled_2026_08_lies_at_that_month_height(self):
+        found = self.run_dated("const ring = v.rings().find((g) => g.label === '2026-08');"
+                               "r('labels', v.rings().map((g) => g.label).join('|'));"
+                               "r('at', Math.abs(ring.y - heightOf(new Date(2026, 7, 1).getTime())) < 1e-3);")
+        self.assertEqual(("2026-08|2026-09|2026-10|2026-11", "true"), (found["labels"], found["at"]))
+
+    # RQ-GXP-015, RQ-GXP-007: the grid plane follows the playback cursor
+    def test_RQ_GXP_015_given_play_pressed_then_the_grid_plane_rises_with_the_cursor(self):
+        found = self.run_dated("r('idle', v.plane().visible); document.getElementById('time-play').click();"
+                               "const y1 = v.plane().y; agnosExplorer.time.advance(10); const y2 = v.plane().y;"
+                               "r('shown', v.plane().visible); r('rises', y2 > y1);"
+                               "r('at', Math.abs(y2 - heightOf(agnosExplorer.time.cursor())) < 1e-3);")
+        self.assertEqual(("false", "true", "true", "true"), (found["idle"], found["shown"], found["rises"], found["at"]))
+
+    # RQ-GXP-015: the angle's category labels, each overlay toggled in the View menu
+    def test_RQ_GXP_015_given_angle_by_trigram_then_its_labels_are_shown_and_the_view_menu_hides_them(self):
+        found = self.run_3d(CHOOSE_VIEW + "r('labels', v.labels().sort().join('|'));"
+                            "r('tris', [...new Set([...document.querySelectorAll('#facets [data-facet=\"tri\"] input')].map((i) => i.value))].sort().join('|'));"
+                            "choose('Angle labels'); r('off', v.labels().length);")
+        self.assertNotEqual("", found["labels"])
+        self.assertEqual(found["tris"], found["labels"])
+        self.assertEqual("0", found["off"])
+
+
+class Indicator3DTest(Planes3DTest):
+    """TASK-GXP-020: RQ-GXP-020 (ADR-GXP-003: DEC-GXP-014), in a headless browser with WebGL."""
+
+    test_RQ_GXP_015_given_height_by_first_commit_date_then_a_ring_labelled_2026_08_lies_at_that_month_height = None
+    test_RQ_GXP_015_given_play_pressed_then_the_grid_plane_rises_with_the_cursor = None
+    test_RQ_GXP_015_given_angle_by_trigram_then_its_labels_are_shown_and_the_view_menu_hides_them = None
+
+    # RQ-GXP-020: shown by default, its height axis named from the height dimension
+    def test_RQ_GXP_020_given_the_3d_view_then_the_indicator_is_shown_and_its_height_axis_reads_the_first_commit_date(self):
+        found = self.run_dated("const i = v.indicator(); r('shown', i.visible); r('labels', i.labels.join('|'));")
+        self.assertEqual("true", found["shown"])
+        self.assertIn("Height: First commit date", found["labels"].split("|"))
+
+    # RQ-GXP-020: the labels follow the Dimensions choices
+    def test_RQ_GXP_020_given_the_height_set_to_the_changed_lines_then_the_indicator_height_axis_reads_the_changed_lines(self):
+        found = self.run_dated("const height = document.getElementById('dim-height'); height.value = 'lines';"
+                               "height.dispatchEvent(new Event('change')); r('labels', v.indicator().labels.join('|'));")
+        self.assertIn("Height: Changed lines", found["labels"].split("|"))
+
+    # RQ-GXP-020: toggled in the View menu; it turns with the camera
+    def test_RQ_GXP_020_given_the_axis_indicator_unchecked_then_it_is_hidden(self):
+        found = self.run_3d(CHOOSE_VIEW + "const before = v.indicator().up; choose('Top'); r('turns', before.some((c, i) => Math.abs(c - v.indicator().up[i]) > 1e-3));"
+                            "choose('Axis indicator'); const i = v.indicator(); r('shown', i.visible); r('labels', i.labels.length);")
+        self.assertEqual(("true", "false", "0"), (found["turns"], found["shown"], found["labels"]))
+
+
+class Cartesian3DTest(Indicator3DTest):
+    """TASK-GXP-021: RQ-GXP-021, RQ-GXP-020 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_020_given_the_3d_view_then_the_indicator_is_shown_and_its_height_axis_reads_the_first_commit_date = None
+    test_RQ_GXP_020_given_the_height_set_to_the_changed_lines_then_the_indicator_height_axis_reads_the_changed_lines = None
+    test_RQ_GXP_020_given_the_axis_indicator_unchecked_then_it_is_hidden = None
+
+    # RQ-GXP-021: no ring nor angle label; x grows with the angle's value
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_no_ring_is_drawn_and_the_greatest_angle_value_has_the_greatest_x(self):
+        found = self.run_dated(CHOOSE_VIEW + "r('before', v.rings().length); choose('Cartesian layout'); r('layout', v.layout());"
+                               "r('rings', v.rings().length); r('labels', v.labels().length);"
+                               "const angle = document.getElementById('dim-angle'); angle.value = 'lines'; angle.dispatchEvent(new Event('change'));"
+                               f"const x = (id) => v.positionOf(id)[0]; r('x', x('{NEW}') > x('{OLD}') && x('{OLD}') > x('{UNDATED}'));")
+        self.assertNotEqual("0", found["before"])
+        self.assertEqual(("cartesian", "0", "0", "true"), (found["layout"], found["rings"], found["labels"], found["x"]))
+
+    # RQ-GXP-021: the cylindrical layout gives back RQ-GXP-013's positions
+    def test_RQ_GXP_021_given_the_cylindrical_layout_chosen_again_then_the_positions_return(self):
+        found = self.run_dated(CHOOSE_VIEW + f"const p = () => v.positionOf('{NEW}').join(','); const before = p();"
+                               "choose('Cartesian layout'); r('moved', p() !== before); choose('Cylindrical layout');"
+                               "r('layout', v.layout()); r('back', p() === before);")
+        self.assertEqual(("true", "cylindrical", "true"), (found["moved"], found["layout"], found["back"]))
+
+    # RQ-GXP-021, RQ-GXP-020: the indicator names x, y and z
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_the_indicator_reads_x_y_and_z_with_their_dimensions(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); r('labels', v.indicator().labels.sort().join('|'));")
+        self.assertEqual("X: Trigram|Y: First commit date|Z: Layer", found["labels"])
+
+
+class Trihedron3DTest(Cartesian3DTest):
+    """TASK-GXP-022: RQ-GXP-021 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_no_ring_is_drawn_and_the_greatest_angle_value_has_the_greatest_x = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_chosen_again_then_the_positions_return = None
+    test_RQ_GXP_021_given_the_cartesian_layout_then_the_indicator_reads_x_y_and_z_with_their_dimensions = None
+
+    # RQ-GXP-021: three axes named after their dimensions, graduated
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); const t = v.trihedron(); r('shown', t.visible);"
+                               "r('names', t.names.sort().join('|')); r('ticks', t.ticks.length);")
+        self.assertEqual(("true", "X: Trigram|Y: First commit date|Z: Layer"), (found["shown"], found["names"]))
+        self.assertGreater(int(found["ticks"]), 3)
+
+    # RQ-GXP-021: toggled in the View menu
+    def test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden(self):
+        found = self.run_dated(CHOOSE_VIEW + "choose('Cartesian layout'); choose('Axes'); const t = v.trihedron();"
+                               "r('shown', t.visible); r('labels', t.names.length + t.ticks.length);")
+        self.assertEqual(("false", "0"), (found["shown"], found["labels"]))
+
+    # RQ-GXP-021: no trihedron in the cylindrical layout, its choice disabled
+    def test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled(self):
+        found = self.run_dated("document.querySelector('[data-menu-title=\"view\"]').click();"
+                               "const item = [...document.querySelectorAll('#menubar [data-menu=\"view\"] [role=menuitem]')].find((i) => i.textContent === 'Axes');"
+                               "r('disabled', item.disabled); r('shown', v.trihedron().visible);")
+        self.assertEqual(("true", "false"), (found["disabled"], found["shown"]))
+
+
+# TASK-GXP-024: the period from 2026-10-01 to the history's last day
+PERIOD_OCTOBER = (f"const t = agnosExplorer.time; const lastDay = t.dayOf('{HISTORY_LAST}');"
+                  "const setOctober = () => t.setPeriodDays(t.dayOf('2026-10-01T12:00:00Z'), lastDay);")
+
+
+class AxisNames3DTest(Trihedron3DTest):
+    """TASK-GXP-025: RQ-GXP-021 (ADR-GXP-003: DEC-GXP-015), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn = None
+    test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled = None
+
+    # RQ-GXP-021: the toolbar's choices and the Dimensions menu read X, Y, Z in cartesian, Height, Angle, Radius again in cylindrical
+    def test_RQ_GXP_021_given_the_cartesian_layout_then_the_choices_read_x_y_z_and_back_in_cylindrical(self):
+        found = self.run_dated(CHOOSE_VIEW + "const names = () => [...document.querySelectorAll('label.graph3d-control')].map((l) => l.textContent).join('|');"
+                               "const items = () => { document.querySelector('[data-menu-title=\"dimensions\"]').click();"
+                               " const t = [...document.querySelectorAll('#menubar [data-menu=\"dimensions\"] [role=menuitem]')].map((i) => i.textContent).join('|');"
+                               " document.querySelector('[data-menu-title=\"dimensions\"]').click(); return t; };"
+                               "choose('Cartesian layout'); r('cart', names()); r('menu', items());"
+                               "const x = document.querySelector('label[for=\"dim-angle\"]').textContent; r('x', x);"
+                               "choose('Cylindrical layout'); r('cyl', names());")
+        self.assertEqual(("X|Y|Z|Colour|Size", "X…|Y…|Z…|Colour…|Size…", "X", "Height|Angle|Radius|Colour|Size"),
+                         (found["cart"], found["menu"], found["x"], found["cyl"]))
+
+
+class PeriodScale3DTest(Trihedron3DTest):
+    """TASK-GXP-024: RQ-GXP-022 (ADR-GXP-003: DEC-GXP-016), in a headless browser with WebGL."""
+
+    test_RQ_GXP_021_given_the_cartesian_layout_then_three_axes_labelled_with_their_dimensions_are_drawn = None
+    test_RQ_GXP_021_given_the_axes_unchecked_then_the_trihedron_is_hidden = None
+    test_RQ_GXP_021_given_the_cylindrical_layout_then_the_axes_choice_is_disabled = None
+
+    # RQ-GXP-022: the date height spans the period; no ring before it
+    def test_RQ_GXP_022_given_a_period_then_the_date_height_spans_it_and_no_ring_lies_before_it(self):
+        found = self.run_dated(PERIOD_OCTOBER + "setOctober(); const p = t.period();"
+                               "r('rings', v.rings().map((g) => g.label).join('|'));"
+                               "const nov = v.rings().find((g) => g.label === '2026-11');"
+                               "r('at', Math.abs(nov.y - ((new Date(2026, 10, 1).getTime() - p.start) / (p.end - p.start) - 0.5) * 100) < 1e-3);"
+                               "r('inside', v.shownIds().every((id) => Math.abs(v.positionOf(id)[1]) <= 50 + 1e-3));")
+        self.assertEqual(("2026-11", "true", "true"), (found["rings"], found["at"], found["inside"]))
+
+    # RQ-GXP-022: the whole history gives back the former positions
+    def test_RQ_GXP_022_given_the_whole_history_again_then_the_positions_return(self):
+        found = self.run_dated(PERIOD_OCTOBER + f"const y = () => v.positionOf('{NEW}')[1]; const before = y();"
+                               "setOctober(); r('moved', y() !== before); t.setPeriodDays(0, lastDay); r('back', Math.abs(y() - before) < 1e-6);")
+        self.assertEqual(("true", "true"), (found["moved"], found["back"]))
+
+
+# TASK-GXP-027, TASK-GXP-030: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018): the state a view file restores, read from the hooks
+VIEW_STATE = ("const e = agnosExplorer; const shot = () => ({ tab: document.querySelector('.tab[aria-selected=true]').dataset.view,"
+              " kind: v.cameraKind(), period: JSON.stringify(t.period()), query: document.getElementById('query').value,"
+              " shown: e.shownIds().sort().join('|') });"
+              "const reset = () => { e.showAll(); choose('Perspective'); t.setPeriodDays(0, 1e6); e.showView('nodes'); };")
+VIEW_FILE_NAME = "agnos-graph-view.json"         # RQ-GXP-016 (TASK-GXP-030): the view file's suggested name
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class ViewFilesTest(unittest.TestCase):
+    """TASK-GXP-030: RQ-GXP-016 (ADR-GXP-004: DEC-GXP-017, DEC-GXP-018), in a headless browser with WebGL, each run in a
+    fresh profile."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_dated(self, script):
+        """RQ-GXP-016: runs script once the 3D view of dated_graph() is drawn; `w` holds the view file's hooks."""
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const v = agnosExplorer.view3d; const t = agnosExplorer.time;"
+                                                     " const w = agnosExplorer.views;"
+                                                     f"agnosExplorer.loadText('dated.json', {json.dumps(json.dumps(dated_graph()))});"
+                                                     "agnosExplorer.showView('graph3d');" + CHOOSE_VIEW + VIEW_STATE +
+                                                     f"v.ready().then(() => {{ {script} }}).catch((error) => r('error', error.message));"))
+
+    # RQ-GXP-016
+    def test_RQ_GXP_016_given_an_isometric_3d_view_with_a_period_a_query_and_a_hidden_node_when_exported_reset_and_imported_then_it_is_restored(self):
+        found = self.run_dated("choose('Isometric'); t.setPeriodDays(0, t.dayOf('2026-10-01')); e.query('type:RQ');"
+                               f"e.hide('{UNDATED}'); const before = shot(); const text = w.exportText(); reset(); const between = shot();"
+                               "const ok = w.importText(text); v.ready().then(() => { const after = shot();"
+                               " r('before', JSON.stringify(before)); r('between', JSON.stringify(between)); r('after', JSON.stringify(after));"
+                               " r('ok', ok); });")
+        self.assertNotIn("error", found)
+        before = json.loads(found["before"].replace("&quot;", '"'))
+        self.assertEqual(("graph3d", "orthographic", OLD), (before["tab"], before["kind"], before["shown"]))
+        self.assertNotEqual(found["before"], found["between"])
+        self.assertEqual(found["before"], found["after"])
+        self.assertEqual("true", found["ok"])
+
+    # RQ-GXP-016, DEC-GXP-017: a view is a file only: no saved view in the File menu, no view in the browser's storage
+    def test_RQ_GXP_016_given_a_view_exported_then_the_file_menu_has_no_saved_view_and_the_storage_holds_no_view(self):
+        found = self.run_dated("w.exportFile().then(() => { document.querySelector('[data-menu-title=\"file\"]').click();"
+                               " const items = [...document.querySelectorAll('#menubar [data-menu=\"file\"] [role=menuitem]')];"
+                               " r('items', items.map((i) => i.textContent).join('|'));"
+                               " r('untitled', items.filter((i) => !(i.title || '').trim()).length);"
+                               " r('keys', Object.keys(localStorage).filter((k) => /view/i.test(k)).join('|')); });")
+        self.assertNotIn("error", found)
+        items = found["items"].split("|")
+        for label in ("Export view…", "Import view…"):
+            self.assertIn(label, items)
+        for label in ("Save view…", "Import views…", "Export views…"):
+            self.assertNotIn(label, items)
+        self.assertEqual(("0", ""), (found["untitled"], found["keys"]))
+
+    # RQ-GXP-016, DEC-GXP-018: a value the loaded graph cannot apply is skipped, the others restored; a file of no view refused
+    def test_RQ_GXP_016_given_a_view_file_hiding_a_node_the_graph_lacks_when_imported_then_the_other_values_are_restored(self):
+        found = self.run_dated("choose('Isometric'); e.query('type:RQ');"
+                               "const text = w.exportText().replace('\"hidden\": []', '\"hidden\": [\"RQ-ZZZ-999\"]');"
+                               "reset(); let failed = ''; let ok = null;"
+                               "try { ok = w.importText(text); } catch (error) { failed = error.message; }"
+                               "v.ready().then(() => { const after = shot(); r('failed', failed); r('ok', ok); r('kind', after.kind);"
+                               " r('query', after.query); r('tab', after.tab); r('shown', after.shown);"
+                               " r('bad', w.importText('{\"nothing\": 1}')); });")
+        self.assertNotIn("error", found)
+        self.assertEqual(("", "true", "orthographic", "type:RQ", "graph3d", "false"),
+                         (found["failed"], found["ok"], found["kind"], found["query"], found["tab"], found["bad"]))
+        self.assertEqual("|".join(sorted((OLD, NEW, UNDATED))), found["shown"])
+
+    # RQ-GXP-016, DEC-GXP-017: the view's and the queries' exports open a save dialog remembering its folder, else download
+    def test_RQ_GXP_016_given_a_save_dialog_when_the_view_or_queries_are_exported_then_it_is_used_else_the_file_is_downloaded(self):
+        found = self.run_dated("const calls = []; const written = [];"
+                               "window.showSaveFilePicker = (options) => { calls.push(options); return Promise.resolve({"
+                               " createWritable: () => Promise.resolve({ write: (text) => { written.push(text); return Promise.resolve(); },"
+                               " close: () => Promise.resolve() }) }); };"
+                               "Promise.all([w.exportFile(), agnosExplorer.saveText('b.json', agnosExplorer.saved.exportText())]).then(() => {"
+                               " r('ids', calls.map((c) => Boolean(c.id)).join('|')); r('names', calls.map((c) => c.suggestedName).join('|'));"
+                               " r('written', written.length); delete window.showSaveFilePicker; const clicked = [];"
+                               " HTMLAnchorElement.prototype.click = function () { clicked.push(this.download); };"
+                               " return w.exportFile().then(() => r('download', clicked.join('|'))); });")
+        self.assertNotIn("error", found)
+        self.assertEqual(("true|true", f"{VIEW_FILE_NAME}|b.json", "2", VIEW_FILE_NAME),
+                         (found["ids"], found["names"], found["written"], found["download"]))
+
+
+# TASK-GXP-028: the current view's PNG decoded, its size compared with the view's box, and the File menu's item state
+IMAGE_SIZE = ("const e = agnosExplorer; const box = (id) => document.getElementById(id).getBoundingClientRect();"
+              # the PNG's size from its IHDR chunk (width and height at bytes 16 and 20), read faster than a decoding
+              "const sized = (id) => e.imageBlob().then((b) => b.arrayBuffer().then((a) => { const d = new DataView(a);"
+              " r('type', b.type); r('image', d.getUint32(16) + 'x' + d.getUint32(20));"
+              " r('view', Math.round(box(id).width) + 'x' + Math.round(box(id).height)); }));"
+              "const exportItem = () => { document.querySelector('[data-menu-title=\"file\"]').click();"
+              " return [...document.querySelectorAll('#menubar [data-menu=\"file\"] [role=menuitem]')]"
+              ".find((i) => i.textContent === 'Export image'); };")
+
+
+@unittest.skipUnless(ONLINE, NEEDS_NETWORK)
+class ImageExportTest(unittest.TestCase):
+    """TASK-GXP-028: RQ-GXP-017 (ADR-GXP-004: DEC-GXP-019), in a headless browser with WebGL."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        code, out, err = build(cls.tmp.name, "--explorer")
+        assert code == 0, err
+        cls.page = out.parent / PAGE_NAME
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_page(self, script):
+        return results(rendered_dom_after(self.page, "const r = (k, v) => document.documentElement.setAttribute('data-r-' + k,"
+                                                     " String(v)); const v = agnosExplorer.view3d;" + IMAGE_SIZE + script))
+
+    # RQ-GXP-017
+    def test_RQ_GXP_017_given_the_3d_view_when_export_image_is_chosen_then_a_png_of_the_view_size_is_saved(self):
+        found = self.run_page("e.showView('graph3d'); v.ready().then(() => { const item = exportItem();"
+                              " r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled); return sized('graph3d'); });")
+        self.assertEqual("false", found["disabled"])
+        self.assertEqual("image/png", found["type"])
+        self.assertEqual(found["view"], found["image"])
+
+    # RQ-GXP-017
+    def test_RQ_GXP_017_given_the_2d_view_when_export_image_is_chosen_then_a_png_of_the_view_size_is_saved(self):
+        found = self.run_page("e.showView('graph'); const item = exportItem();"
+                              "r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled); sized('graph');")
+        self.assertEqual("false", found["disabled"])
+        self.assertEqual("image/png", found["type"])
+        self.assertEqual(found["view"], found["image"])
+
+    # RQ-GXP-017: the table views have no image
+    def test_RQ_GXP_017_given_the_nodes_view_then_export_image_is_disabled(self):
+        found = self.run_page("e.showView('nodes'); const item = exportItem();"
+                              "r('disabled', item.getAttribute('aria-disabled') === 'true' || item.disabled);")
+        self.assertEqual("true", found["disabled"])
+
+    # RQ-GXP-017, DEC-GXP-019: the image goes through the save dialog, as a PNG named after the view
+    def test_RQ_GXP_017_given_a_save_dialog_when_the_image_is_exported_then_it_is_offered_as_a_png_named_after_the_view(self):
+        found = self.run_page("let asked = null; window.showSaveFilePicker = (o) => { asked = o; return Promise.resolve("
+                              "{ createWritable: () => Promise.resolve({ write: () => Promise.resolve(), close: () => Promise.resolve() }) }); };"
+                              "e.showView('graph'); e.exportImage().then(() => { r('name', asked.suggestedName);"
+                              " r('accept', Object.keys(asked.types[0].accept).join('|')); r('id', asked.id); });")
+        self.assertEqual("agnos-graph-graph.png", found["name"])
+        self.assertEqual("image/png", found["accept"])
+        self.assertEqual("agnos-graph-explorer", found["id"])
+
+
+if __name__ == "__main__":
+    unittest.main()

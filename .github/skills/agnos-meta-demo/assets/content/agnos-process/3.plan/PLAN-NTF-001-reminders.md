@@ -5,8 +5,8 @@ Delivers the creation event, the reminder scheduler with its notifier port, and 
 decided in ADR-NTF-001.
 
 ## References
-- **Requirements**: RQ-NTF-001, RQ-NTF-002, RQ-NTF-003, RQ-NTF-004
-- **ADRs**: ADR-NTF-001 (DEC-NTF-001, DEC-NTF-002)
+- **Requirement refs**: RQ-NTF-001, RQ-NTF-002, RQ-NTF-003, RQ-NTF-004
+- **ADR refs**: ADR-NTF-001 (DEC-NTF-001, DEC-NTF-002)
 
 This plan implements the tasks in the format specified below.
 ---

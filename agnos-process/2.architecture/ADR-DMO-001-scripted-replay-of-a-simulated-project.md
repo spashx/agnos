@@ -124,7 +124,7 @@ flowchart LR
   LIB --> GEN
   SCN --> GEN
   HAI[Haiku sub-agents<br/>Python and TypeScript code] -->|reviewed| LIB
-  GEN -->|env identity and dates<br/>agnos-index at each task| DEMO[(agnos-lightweight-process.demo)]
+  GEN -->|env identity and dates<br/>agnos-index at each task| DEMO[(agnos-demo)]
   DEMO --> VER
   DEMO --> TR[agnos-index and agnos-perf-center]
   VER -->|failure| SCN

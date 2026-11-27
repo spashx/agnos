@@ -1,7 +1,7 @@
 # PLAN-DMO-001: Demo repository with a simulated two-month history
 
 ## Overview
-Builds `agnos-lightweight-process.demo`: the generator, the content (process documents, Python and
+Builds `agnos-demo`: the generator, the content (process documents, Python and
 TypeScript code, README and state files), the scenario of about 55 commits, then the repository and its
 verification. Session variable `unit_tests=false`: no unit test is written for the generator; the demo's
 own tests are deliverable content (RQ-DMO-004). The generator is the maintainer skill `agnos-demo`
@@ -9,8 +9,8 @@ own tests are deliverable content (RQ-DMO-004). The generator is the maintainer 
 rebuilt and verified again when AGNOS evolves.
 
 ## References
-- **Requirements**: RQ-DMO-001 to RQ-DMO-021
-- **ADRs**: ADR-DMO-001 (DEC-DMO-001 to DEC-DMO-006)
+- **Requirement refs**: RQ-DMO-001 to RQ-DMO-021
+- **ADR refs**: ADR-DMO-001 (DEC-DMO-001 to DEC-DMO-006)
 
 ---
 
@@ -190,7 +190,7 @@ rebuilt and verified again when AGNOS evolves.
 ### TASK-DMO-010: Build and verify the demo repository
 - **Tier**: L
 - **Status**: Done
-- **Description**: Run the skill's `build` on the scenario to create `agnos-lightweight-process.demo`,
+- **Description**: Run the skill's `build` on the scenario to create `agnos-demo`,
   then `verify`, `agnos-index` and `agnos-trace`; fix the scenario or the content and rebuild until
   every check passes; build a second time to check reproducibility.
 - **Requirement refs**: RQ-DMO-001 to RQ-DMO-021

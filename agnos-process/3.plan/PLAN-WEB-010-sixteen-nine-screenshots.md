@@ -4,8 +4,8 @@
 Frame and check the site's screenshots at 16:9, 1920 × 1080 px, instead of 1291:720 (owner request of 2026-11-13).
 
 ## References
-- **Requirements**: RQ-WEB-012, RQ-WEB-019
-- **ADRs**: ADR-WEB-001 (DEC-WEB-007)
+- **Requirement refs**: RQ-WEB-012, RQ-WEB-019
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-007)
 
 This plan implements the tasks in the format specified below.
 ---

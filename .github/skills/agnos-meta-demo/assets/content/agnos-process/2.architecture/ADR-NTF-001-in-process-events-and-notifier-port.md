@@ -15,10 +15,14 @@ break a booking.
 ### DEC-NTF-001: Publishing decorator over an in-process bus
 - **Statement**: A decorator of the create-reservation use case SHALL publish the reservation-created event on an in-process event bus, after the wrapped call succeeds, for announcing reservations without changing the use case.
 - **Rationale**: the booking code must not know about notifications; one process needs no broker.
+- **Requirement refs**: RQ-NTF-001
+- **Dependencies**: DEC-BKG-001
 
 ### DEC-NTF-002: Retrying decorator over a notifier port
 - **Statement**: The reminder scheduler SHALL use a notifier port, wrapped by a retrying decorator that calls the real notifier up to 3 times, logs the final failure and never raises, for sending one reminder per Confirmed reservation entering its lead time, read from the repository on a clock tick.
 - **Rationale**: the delivery channel (console today, mail later) must be replaceable, and a failed delivery must not break a booking (RQ-NTF-003).
+- **Requirement refs**: RQ-NTF-002, RQ-NTF-003, RQ-NTF-004
+- **Dependencies**: DEC-NTF-001
 
 ## Consequences
 - Booking code is untouched by this feature (DEC-BKG-002 spirit).

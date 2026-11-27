@@ -259,10 +259,14 @@ repository already exposes cursor-based pagination over orders.
 ### DEC-EXP-001: Streaming CSV generation
 - **Statement**: The exporter SHALL stream the CSV document through a `Readable`, for memory independent of the result size.
 - **Rationale**: A materialised 1,000,000-row CSV is about 120 MB, six times the RQ-EXP-002 budget; the repository already exposes cursor-based pagination, which a stream consumes batch by batch.
+- **Requirement refs**: RQ-EXP-001, RQ-EXP-002
+- **Dependencies**: None
 
 ### DEC-EXP-002: Batched repository fetching
 - **Statement**: The exporter SHALL fetch orders from the repository in batches of 500 rows.
 - **Rationale**: 500 is the smallest batch that keeps the database round-trip count off the critical path at 1,000,000 rows; as a tuning knob it is a named constant, not a literal at a call site.
+- **Requirement refs**: RQ-EXP-002
+- **Dependencies**: DEC-EXP-001
 
 ## Consequences
 
@@ -358,8 +362,8 @@ Plan the implementation of FTR-EXP-001.
 Implements the streaming CSV exporter and exposes it on the orders API.
 
 ## References
-- **Requirements**: RQ-EXP-001, RQ-EXP-002
-- **ADRs**: ADR-EXP-001 (DEC-EXP-001, DEC-EXP-002)
+- **Requirement refs**: RQ-EXP-001, RQ-EXP-002
+- **ADR refs**: ADR-EXP-001 (DEC-EXP-001, DEC-EXP-002)
 
 ---
 
@@ -673,7 +677,7 @@ Generate the traceability matrix for src and tests.
 ```
 
 **The agent** invokes the `agnos-perf-center` skill on the `src` and `tests` folders. It first runs the `agnos-graph` skill,
-which writes the project's state, `agnos-process/4.knowledge/agnos-graph.json`, and prints the `scanned extensions`,
+which writes the project's state, `agnos-process/4.knowledge/graph/agnos-graph.json`, and prints the `scanned extensions`,
 `scanned names` and `excluded` lines, each saying whether it is the default or the user's list; the agent reports them,
 then the page is made from that state. Next time, the page is made from the existing state unless you ask to rebuild it.
 The result line follows as it is:
@@ -681,12 +685,12 @@ The result line follows as it is:
 ```text
 agnos-perf-center: 9 elements, 2 files; RQ 2: covered 2, indirect 0, uncovered 0; quality: <grade> <score>/10;
 checks: covered <s>, defined <s>, tasked <s>, task-rq <s>, adr-rq <s>, filled <s>, connected <s>,
-files-traced <s>; findings 0; agnos-process/PERF-CENTER.html written in <s.mmm> s
+files-traced <s>; findings 0; agnos-process/perf-center.html written in <s.mmm> s
 ```
 
-**What you get — `agnos-process/PERF-CENTER.html`**, a complete application. Open it from disk in any current browser; it
-loads its libraries from cdnjs, so it needs the network once. Keep `PERF-CENTER.data.js` beside it;
-`PERF-CENTER.json` holds the same data for any other tool. The three files are generated: whether you commit them
+**What you get — `agnos-process/perf-center.html`**, a complete application. Open it from disk in any current browser; it
+loads its libraries from cdnjs, so it needs the network once. Keep `perf-center.data.js` beside it;
+`perf-center.json` holds the same data for any other tool. The three files are generated: whether you commit them
 or ignore them is your choice.
 
 | View | What it answers |
@@ -801,7 +805,7 @@ One row per stage. This is the whole human side of a session.
 | 5. Implement | `TASK-EXP-001 approved. Implement it.` | Source with ID comments, named constants |
 | 6. Test | `Run the tests.` | Gherkin-named tests, run under `session.platform` |
 | 7. Commit | *(agent proposes)* `commit-task TASK-EXP-001 ADR-EXP-001 <description>` | `feat(EXP): ADR-EXP-001/TASK-EXP-001 <description>` |
-| 8. Perf Center | `Generate the AGNOS Performance Center for src and tests.` — options: `--call-graph` (functions and calls), `--history` (who changed what, deliveries; `--history-since 6.months`) | `PERF-CENTER.html` — Performance Center: matrix, coverage, quality score and grade, graph; call graph and history with their options |
+| 8. Perf Center | `Generate the AGNOS Performance Center for src and tests.` — options: `--call-graph` (functions and calls), `--history` (who changed what, deliveries; `--history-since 6.months`) | `perf-center.html` — Performance Center: matrix, coverage, quality score and grade, graph; call graph and history with their options |
 | 9. Close | `End of session.` | Summary report with deferred work, blockers and friction metrics |
 
 Corrections at any point are just sentences: *"RQ-EXP-002 should be 20 MB, not 50."* — *"Drop the retry logic, it's

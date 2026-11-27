@@ -238,13 +238,15 @@ Brief description of the feature's purpose and scope.
   ## Decision
   ### DEC-<TRI>-<NNN>: <Decision title>
   - **Statement**: What was decided, and why? one single choice, one sentence, active voice: "The <element> SHALL <use|apply|expose> <mechanism> for <purpose>".
-  - **Rationale**: the reason for the choice, plus the evidence it rests on (analysis, benchmark, spike, constraint), or "None".
+  - **Rationale**: the reason for the choice, plus the evidence it rests on (analysis, benchmark, spike, constraint).
+  - **Requirement refs**: the requirement ID(s) this decision fulfills.
+  - **Dependencies**: [List of DEC IDs this depends on, or "None"]
   ## Consequences
   What becomes easier, harder, or constrained as a result?
   ## Alternatives Considered
   What other options were evaluated? Why were they rejected?
   ## Diagram
-  [Mermaid diagrams -- required]
+  [Mermaid diagrams with clear titles -- required]
   ```
 - Every decision in ADR SHALL have a unique identifier in the format `DEC-<TRI>-<NNN>` (e.g., `DEC-USR-001`), consistent with the universal ID schema, that can be referenced in plans, tasks, and source code. Each decision SHALL be declared as a `### DEC-<TRI>-<NNN>: <title>` heading under `## Decision`, so that it is indexed. <!-- RQ-IDX-014 -->
 - The `## Diagram` section SHALL hold at least two Mermaid diagrams, scoped to the ADR and the requirements it cites:
@@ -324,8 +326,8 @@ Every plan file in `agnos-process/3.plan/` SHALL follow this structure:
 Brief description of the plan's purpose and scope.
 
 ## References
-- **Requirements**: [List of RQ IDs this plan covers]
-- **ADRs**: [List of ADR IDs relevant to this plan, or "None"]
+- **Requirement refs**: [List of RQ IDs this plan covers]
+- **ADR refs**: [List of ADR IDs relevant to this plan, or "None"]
 
 This plan implements the tasks in the format specified below. 
 ---

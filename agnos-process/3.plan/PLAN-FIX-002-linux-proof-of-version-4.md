@@ -4,8 +4,8 @@
 Records the real run of plugin 4.0.0 on Linux and corrects the statements that said Linux was simulated only.
 
 ## References
-- **Requirements**: RQ-PLG-008, RQ-PLG-009, RQ-INI-013
-- **ADRs**: ADR-INI-002 (Consequences only; no DEC amended)
+- **Requirement refs**: RQ-PLG-008, RQ-PLG-009, RQ-INI-013
+- **ADR refs**: ADR-INI-002 (Consequences only; no DEC amended)
 
 This plan implements the tasks in the format specified below.
 ---

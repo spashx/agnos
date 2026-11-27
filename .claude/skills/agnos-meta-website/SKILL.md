@@ -1,7 +1,7 @@
 ---
 name: agnos-meta-website
 description: "AGNOS maintainer skill. Builds the AGNOS presentation website, a guided tour of the demo's Performance Center for CIOs, in English and French, from the Markdown text and the images of its assets, with the demo Performance Center page. USE FOR: regenerating the site after AGNOS, its demo or the site's text evolves. It writes a folder only: committing and publishing it stay with the maintainer."
-argument-hint: "build --demo <demo repository> --out <folder> [--demo-page <PERF-CENTER.html>]"
+argument-hint: "build --demo <demo repository> --out <folder> [--demo-page <perf-center.html>]"
 ---
 
 <!-- FTR-WEB-001; RQ-WEB-001 -->

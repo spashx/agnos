@@ -5,8 +5,8 @@ In the chain card, remove the demo's name beside "Performance Center" and start 
 (owner request of 2026-11-13).
 
 ## References
-- **Requirements**: RQ-WEB-010, RQ-WEB-015
-- **ADRs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
+- **Requirement refs**: RQ-WEB-010, RQ-WEB-015
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-005)
 
 This plan implements the tasks in the format specified below.
 ---

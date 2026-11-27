@@ -6,8 +6,8 @@ count the unresolved calls by cause (recommendations R1 and R2 of `insights/call
 2026-11-21).
 
 ## References
-- **Requirements**: RQ-TRC-122, RQ-TRC-123, RQ-TRC-030, RQ-TRC-035, RQ-PLG-024
-- **ADRs**: ADR-TRC-020 (DEC-TRC-067, DEC-TRC-068), ADR-TRC-004 (DEC-TRC-015), ADR-TRC-008 (DEC-TRC-032)
+- **Requirement refs**: RQ-TRC-122, RQ-TRC-123, RQ-TRC-030, RQ-TRC-035, RQ-PLG-024
+- **ADR refs**: ADR-TRC-020 (DEC-TRC-067, DEC-TRC-068), ADR-TRC-004 (DEC-TRC-015), ADR-TRC-008 (DEC-TRC-032)
 
 This plan implements the tasks in the format specified below.
 ---

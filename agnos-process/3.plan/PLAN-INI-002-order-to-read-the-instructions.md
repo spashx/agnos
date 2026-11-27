@@ -4,8 +4,8 @@
 Replace the `@` import of the `CLAUDE.md` block by the order the `AGENTS.md` block already gives, leave starting a session to the user, rebuild the demo, and check on real sessions that this is followed. Everything stays local.
 
 ## References
-- **Requirements**: RQ-INI-010; amended: RQ-INI-005, RQ-INI-006
-- **ADRs**: ADR-INI-001 (DEC-INI-007); amended: DEC-INI-003
+- **Requirement refs**: RQ-INI-010; amended: RQ-INI-005, RQ-INI-006
+- **ADR refs**: ADR-INI-001 (DEC-INI-007); amended: DEC-INI-003
 
 This plan implements the tasks in the format specified below.
 ---

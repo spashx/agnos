@@ -5,8 +5,8 @@ Delivers `agnos-meta-qa`, then corrects what it and VS Code report on `agnos-tra
 The owner approved the plan and asked for it to run unattended on 2026-10-31.
 
 ## References
-- **Requirements**: RQ-QLT-001 to RQ-QLT-010
-- **ADRs**: ADR-QLT-001 (DEC-QLT-001 to DEC-QLT-008)
+- **Requirement refs**: RQ-QLT-001 to RQ-QLT-010
+- **ADR refs**: ADR-QLT-001 (DEC-QLT-001 to DEC-QLT-008)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -109,7 +109,7 @@ class TestTheBuiltPage(unittest.TestCase):
         self.assertNotIn("shot-link", PAGE)
         self.assertNotIn("shot-open", PAGE)
         self.assertNotIn("Open in the demo", PAGE)
-        self.assertNotIn('href="demo/PERF-CENTER.html#', PAGE)
+        self.assertNotIn('href="demo/perf-center.html#', PAGE)
 
     def test_given_the_page_then_no_request_leaves_it_but_fonts(self):
         sources = re.findall(r'\ssrc="([^"]+)"', PAGE)
@@ -160,7 +160,7 @@ class TestTheCards(unittest.TestCase):
         self.assertIn(".cards{grid-template-columns:minmax(0,1fr)}", css.split("@media (max-width: 640px)")[1])
 
 
-DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-lightweight-process.demo" / "client" / "design" / "tokens.json"
+DEMO_TOKENS = SKILL_DIR.parents[2].parent / "agnos-demo" / "client" / "design" / "tokens.json"
 STYLES = ("primary", "danger")
 # site token -> the demo's token whose resolved value it repeats
 SAMPLE_TOKENS = {"web-sample-primary-background": "button.primary.background",

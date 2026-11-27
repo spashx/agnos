@@ -12,7 +12,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 SCRIPTS = SKILL / "scripts"
-PYTHON_SCRIPTS = ("graph.py", "callgraph.py", "history.py")   # TASK-TRC-117: RQ-TRC-133 / DEC-TRC-074
+PYTHON_SCRIPTS = ("graph.py", "callgraph.py", "history.py",   # TASK-TRC-117: RQ-TRC-133 / DEC-TRC-074
+                  "explorer.py")                               # TASK-TRC-133: RQ-TRC-144 / DEC-TRC-084
+PAGE_SCRIPTS = (SKILL / "assets" / "explorer" / "explorer.js",)   # TASK-TRC-133: RQ-TRC-146 / DEC-TRC-084
 STRING_MIN = 4
 FREE_NUMBERS = frozenset({0, 1, 2})
 SHOWN = 12
@@ -109,6 +111,11 @@ class RepeatedLiteralTest(unittest.TestCase):
             if repeated:
                 report[name] = repeated[:SHOWN] + [(len(repeated), "repeated in all")]
         self.assertEqual({}, report)
+
+    def test_RQ_TRC_067_given_the_explorer_script_when_its_literals_are_listed_then_none_is_written_more_than_once(self):
+        """TASK-TRC-133: Given explorer.js, When its literals are listed, Then none is written twice (RQ-TRC-067)."""
+        report = {path.name: self.repeated(js_literals(path))[:SHOWN] for path in PAGE_SCRIPTS}
+        self.assertEqual({}, {name: found for name, found in report.items() if found})
 
 
 if __name__ == "__main__":

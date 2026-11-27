@@ -9,9 +9,9 @@ design system, and group the overlapping marks of the History timeline. Each ste
 the next session starts from TASK-TRC-065, reads ADR-TRC-010 first, and needs the network for the page tests.
 
 ## References
-- **Requirements**: RQ-TRC-080 to RQ-TRC-088; amended: RQ-TRC-010, RQ-TRC-024 (superseded by RQ-TRC-082), RQ-TRC-061,
+- **Requirement refs**: RQ-TRC-080 to RQ-TRC-088; amended: RQ-TRC-010, RQ-TRC-024 (superseded by RQ-TRC-082), RQ-TRC-061,
   RQ-TRC-075, RQ-TRC-079
-- **ADRs**: ADR-TRC-010 (DEC-TRC-040 to DEC-TRC-044); ADR-TRC-002 (design system); amended: ADR-TRC-003 (DEC-TRC-005,
+- **ADR refs**: ADR-TRC-010 (DEC-TRC-040 to DEC-TRC-044); ADR-TRC-002 (design system); amended: ADR-TRC-003 (DEC-TRC-005,
   DEC-TRC-006), ADR-TRC-008 (DEC-TRC-035), ADR-TRC-009 (DEC-TRC-039)
 
 This plan implements the tasks in the format specified below.

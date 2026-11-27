@@ -6,8 +6,8 @@ developer link to the marketplace's getting-started section, with every address 
 spacing of an English tour question (owner request of 2026-11-18).
 
 ## References
-- **Requirements**: RQ-WEB-004, RQ-WEB-006, RQ-WEB-009, RQ-WEB-020
-- **ADRs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-008)
+- **Requirement refs**: RQ-WEB-004, RQ-WEB-006, RQ-WEB-009, RQ-WEB-020
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003, DEC-WEB-008)
 
 This plan implements the tasks in the format specified below.
 ---

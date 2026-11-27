@@ -663,7 +663,8 @@ def read_graph(repo, since=None):
     for record in out.split(RECORD):
         if record.strip():
             full, parents, date, subject = record.rstrip("\n").split(FIELD)
-            nodes.append({KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_DATE: utc_marked(date), KEY_SUBJECT: subject})
+            nodes.append({KEY_HASH: full, KEY_PARENTS: parents.split(), KEY_DATE: utc_marked(date),
+                          KEY_SUBJECT: subject})
     return nodes
 
 
@@ -812,7 +813,7 @@ REASON_NO_TIER = "no-tier"
 DAY_LENGTH = 10                                    # "2026-10-27" at the head of an ISO author date: the author's day
 SECONDS_PER_DAY = 86400
 COMMIT_TYPE_RE = re.compile(r"^([a-z]+)(?:\([^)]*\))?!?:")
-ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-[0-9]{3}(?![0-9])")
+ID_RE = re.compile(r"(?<![A-Za-z0-9])(?:FTR|RQ|ADR|DEC|PLAN|TASK)-[A-Z]{3}-\d{3}(?!\d)", re.ASCII)
 
 
 def load_delivery_settings(path=DELIVERY_PATH):
@@ -922,8 +923,8 @@ def blamed_lines(repo, path):
 
 def friction_block(lines, position, merges, name):
     """RQ-TRC-090, RQ-TRC-091: [date, trigram, 4 counters, commit index] of each data row of the log's blamed lines; a
-    row outside the history read is left out, a malformed row or one of a merge also named on the error stream, the log by
-    its name."""
+    row outside the history read is left out, a malformed row or one of a merge also named on the error stream, the
+    log by its name."""
     rows, in_table = [], False
     for commit, text in lines:
         if not text.startswith(TABLE_MARK):
@@ -980,8 +981,9 @@ def build(folder, documents, files, functions, scope, since=None, *, depth=None,
         # RQ-PLG-036 / DEC-PLG-027: the log's path in the folder is the caller's, from the layout, so that this module
         # imports only the standard library (RQ-HST-015)
         log = relative_to(Path(folder) / friction_log, repo.top)
-        block[KEY_DELIVERY]["friction"] = friction_block(blamed_lines(repo, log), position,
-                                                         {c[KEY_HASH] for c in commits if is_merge(c)}, Path(friction_log).name)
+        merges = {c[KEY_HASH] for c in commits if is_merge(c)}
+        block[KEY_DELIVERY]["friction"] = friction_block(blamed_lines(repo, log), position, merges,
+                                                         Path(friction_log).name)
     return block
 
 

@@ -5,8 +5,8 @@ Order the site's tour stops as the Performance Center orders its views: Matrix, 
 owner's new chain-card title into both languages (owner request of 2026-11-13).
 
 ## References
-- **Requirements**: RQ-WEB-001, RQ-WEB-003, RQ-WEB-010
-- **ADRs**: ADR-WEB-001 (DEC-WEB-003)
+- **Requirement refs**: RQ-WEB-001, RQ-WEB-003, RQ-WEB-010
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-003)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -51,6 +51,10 @@ script renames the folder to `agnos-process/` and its index to `process.idx.md`,
 history follows, and reports `moved`. A `process/` without that index is not AGNOS's and is left untouched. When both folders
 exist, it stops before any write, exit 1, naming both: the user keeps one. <!-- RQ-PLG-038 / DEC-PLG-031 -->
 
+In the `## References` section of each `agnos-process/3.plan/PLAN-*.md`, it renames the former field names `- **Requirements**:`
+and `- **ADRs**:` to `- **Requirement refs**:` and `- **ADR refs**:`, the task's names, every other byte preserved, after any
+folder move, and reports each file changed `converted <path>`; a converted plan is not written again. <!-- RQ-INI-023 / DEC-INI-017 -->
+
 To update a project after AGNOS changes, call it again.
 
 ## Layout

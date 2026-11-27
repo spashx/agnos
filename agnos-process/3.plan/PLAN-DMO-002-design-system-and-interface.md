@@ -9,8 +9,8 @@ and rebuilds the demo, which then also gets the current toolkit (the History tab
 and RQ-DMO-008 again.
 
 ## References
-- **Requirements**: RQ-DMO-022, RQ-DMO-011 (amended); RQ-DMO-002, RQ-DMO-008, RQ-DMO-021 (verified again)
-- **ADRs**: ADR-DMO-001 (DEC-DMO-007; DEC-DMO-002, DEC-DMO-003, DEC-DMO-005)
+- **Requirement refs**: RQ-DMO-022, RQ-DMO-011 (amended); RQ-DMO-002, RQ-DMO-008, RQ-DMO-021 (verified again)
+- **ADR refs**: ADR-DMO-001 (DEC-DMO-007; DEC-DMO-002, DEC-DMO-003, DEC-DMO-005)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -6,8 +6,8 @@ subfolders, and aligns every description of the process folder, the demo and the
 the skills transforming facts are out of scope (FTR-PLG-010).
 
 ## References
-- **Requirements**: RQ-PLG-048, RQ-PLG-049, RQ-PLG-050
-- **ADRs**: ADR-PLG-010 (DEC-PLG-038, DEC-PLG-039, DEC-PLG-040); extends ADR-PLG-006 (DEC-PLG-027, DEC-PLG-028)
+- **Requirement refs**: RQ-PLG-048, RQ-PLG-049, RQ-PLG-050
+- **ADR refs**: ADR-PLG-010 (DEC-PLG-038, DEC-PLG-039, DEC-PLG-040); extends ADR-PLG-006 (DEC-PLG-027, DEC-PLG-028)
 
 This plan implements the tasks in the format specified below.
 ---

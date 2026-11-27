@@ -6,8 +6,8 @@ starts with the Feature, and the reader can move the columns, keep the order and
 `assets/` (`matrix.js`, `matrix.css`, `matrix.html`) and `SKILL.md`.
 
 ## References
-- **Requirements**: RQ-TRC-051, RQ-TRC-052; RQ-TRC-014, RQ-TRC-041, RQ-TRC-043, RQ-TRC-045 (kept)
-- **ADRs**: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028)
+- **Requirement refs**: RQ-TRC-051, RQ-TRC-052; RQ-TRC-014, RQ-TRC-041, RQ-TRC-043, RQ-TRC-045 (kept)
+- **ADR refs**: ADR-TRC-006 (DEC-TRC-027, DEC-TRC-028)
 
 This plan implements the tasks in the format specified below.
 ---

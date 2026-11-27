@@ -1,4 +1,5 @@
 # ADR-TRC-002: Design System of the Traceability Page
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
@@ -58,5 +59,5 @@ flowchart LR
     GEN --> V[":root / dark custom properties"]
     V --> CSS[matrix.css var(--…)]
     V --> JS[matrix.js getComputedStyle → Cytoscape style]
-    CSS & JS --> PAGE[PERF-CENTER.html]
+    CSS & JS --> PAGE[perf-center.html]
 ```

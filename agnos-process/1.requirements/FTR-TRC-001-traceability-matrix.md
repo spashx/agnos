@@ -1,4 +1,5 @@
 # FTR-TRC-001: AGNOS Traceability Matrix
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Overview
@@ -23,11 +24,11 @@ ADR-TRC-003).
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
 - **Statement**: The trace generator SHALL take a process folder holding `INDEX.idx.md`, one or more source folders and an
-  output path (default `<process>/PERF-CENTER.html`), and SHALL write the page at that path.
+  output path (default `<process>/perf-center.html`), and SHALL write the page at that path.
 - **Rationale**: one command, run from any project, gives the page.
 - **Priority**: Must
 - **Acceptance Criteria**: Given a process folder and a source folder, When `python <skill>/scripts/perf_center.py
-  --process process --sources src` runs, Then it exits 0 and the page exists at `process/PERF-CENTER.html`.
+  --process process --sources src` runs, Then it exits 0 and the page exists at `process/perf-center.html`.
 - **Dependencies**: DEC-TRC-001
 
 ### RQ-TRC-119: What is scanned and excluded is always shown
@@ -222,7 +223,7 @@ ADR-TRC-003).
   fragment or the browser goes back or forward, the page SHALL select the element it names.
 - **Rationale**: a link to one element can be sent; back undoes a navigation.
 - **Priority**: Should
-- **Acceptance Criteria**: Given `PERF-CENTER.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
+- **Acceptance Criteria**: Given `perf-center.html#RQ-X-002`, When it is opened, Then RQ-X-002 is selected.
 - **Dependencies**: RQ-TRC-018, ADR-TRC-002, RQ-TRC-012
 
 ### RQ-TRC-121: Deep link to a view
@@ -234,7 +235,7 @@ ADR-TRC-003).
 - **Rationale**: a presentation or a message can send its reader straight to one view, such as the matrix, and a view added
   later is linkable as is (owner request of 2026-11-12).
 - **Priority**: Should
-- **Acceptance Criteria**: Given `PERF-CENTER.html#view=matrix`, When it is opened, Then the Matrix tab is selected and its view
+- **Acceptance Criteria**: Given `perf-center.html#view=matrix`, When it is opened, Then the Matrix tab is selected and its view
   shown; Given each tab the page shows, Then `#view=<its name>` opens it; Given `#view=history` on a page built without
   `--history`, or `#view=unknown`, Then the Overview opens; Given `#RQ-X-002`, Then RQ-TRC-016 applies unchanged.
 - **Dependencies**: RQ-TRC-016

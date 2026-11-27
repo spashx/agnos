@@ -1,4 +1,5 @@
 # ADR-TRC-001: Trace Generator and Link Model
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
@@ -17,7 +18,7 @@ that must stay byte-identical; this one has to scan thousands of files, compute 
 
 ### DEC-TRC-001: One Python script, standard library only
 `scripts/perf_center.py`, Python ≥ 3.9, no third-party import (RQ-TRC-021). Arguments: `--process <dir>` (holds
-`INDEX.idx.md`), `--sources <dir>` (repeatable), `--out <file>` (default `<process>/PERF-CENTER.html`), `--ext` and
+`INDEX.idx.md`), `--sources <dir>` (repeatable), `--out <file>` (default `<process>/perf-center.html`), `--ext` and
 `--exclude` (override the default source extensions and excluded folders: `.git`, `node_modules`, `build*`, `dist`,
 `out`, `_deps`, `.venv`, `venv`, `__pycache__`), `--title`, `--generated-at` (fixed timestamp, for reproducible output,
 RQ-TRC-023). Exit codes: 0 written, 1 input error (nothing written, RQ-TRC-002). The last line printed gives the element
@@ -83,5 +84,5 @@ flowchart LR
     G --> COV[coverage per RQ]
     G --> GAP[gap lists]
     G & COV & GAP --> J[JSON data]
-    J --> H[PERF-CENTER.html]
+    J --> H[perf-center.html]
 ```

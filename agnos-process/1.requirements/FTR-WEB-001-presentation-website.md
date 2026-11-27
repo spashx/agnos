@@ -1,4 +1,5 @@
 # FTR-WEB-001: The AGNOS Presentation Website, Built by agnos-meta-website
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 
 ## Overview
 The maintainer calls `agnos-meta-website` to build the AGNOS presentation website, for technical CIOs who know the challenges AI brings
@@ -38,13 +39,13 @@ separate Performance Center feature, RQ-TRC-121, which the site's links use sinc
 ### RQ-WEB-002: The demo page, given or regenerated
 - **Category**: Functional
 - **EARS Type**: Event-driven
-- **Statement**: WHEN `--demo-page <PERF-CENTER.html>` is given, the skill SHALL copy that page and its data files beside it into
+- **Statement**: WHEN `--demo-page <perf-center.html>` is given, the skill SHALL copy that page and its data files beside it into
   `demo/`; otherwise it SHALL generate the page with this working tree's `agnos-perf-center` on the demo repository, with `--history`, and
   `--call-graph` when its packages are installed.
 - **Rationale**: the owner may already hold a demo page, or want the one the current AGNOS produces.
 - **Priority**: Must
 - **Acceptance Criteria**: Given `--demo-page`, When `build` runs, Then `demo/` holds that page and its data files, byte for byte; Given no
-  `--demo-page`, When `build` runs, Then `demo/PERF-CENTER.html` is the output of `agnos-perf-center` on the demo, with its history.
+  `--demo-page`, When `build` runs, Then `demo/perf-center.html` is the output of `agnos-perf-center` on the demo, with its history.
 - **Dependencies**: RQ-WEB-001, RQ-TRC-016
 
 ### RQ-WEB-003: The text and the images in the assets

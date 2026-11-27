@@ -5,8 +5,8 @@ Declare the layout once, move every script and text onto it, then rename the fol
 Runs before PLAN-PLG-005, whose files then go into the renamed folder. No push at any step (DEC-PLG-007).
 
 ## References
-- **Requirements**: RQ-PLG-034, RQ-PLG-035, RQ-PLG-036, RQ-PLG-037, RQ-PLG-038
-- **ADRs**: ADR-PLG-006, ADR-PLG-001, ADR-INI-001, ADR-IDX-001
+- **Requirement refs**: RQ-PLG-034, RQ-PLG-035, RQ-PLG-036, RQ-PLG-037, RQ-PLG-038
+- **ADR refs**: ADR-PLG-006, ADR-PLG-001, ADR-INI-001, ADR-IDX-001
 
 This plan implements the tasks in the format specified below.
 ---

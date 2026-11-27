@@ -21,7 +21,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$DEMO_FOLDER_NAME = 'agnos-lightweight-process.demo'
+$DEMO_FOLDER_NAME = 'agnos-demo'
 # RQ-PLG-034, RQ-PLG-036 / DEC-PLG-027: the process folder's names come from the generated agnos-layout.ps1
 . (Join-Path $PSScriptRoot 'agnos-layout.ps1')
 $PF = [regex]::Escape($AGNOS_FOLDER)

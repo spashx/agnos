@@ -1,4 +1,6 @@
 # ADR-TRC-022: Graph construction boundary
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
+<!-- Amended on 2026-11-22: the graph file is in the graph folder, 4.knowledge/graph/ (RQ-TRC-142, DEC-TRC-086). -->
 
 ## Status
 Accepted (owner, 2026-11-22) — for FTR-TRC-011 (RQ-TRC-129 to RQ-TRC-133). Amends DEC-TRC-002 (one generator holding the model and the page) and
@@ -25,8 +27,8 @@ self-contained (DEC-PLG-027); the perf center already reads one sibling skill's 
 - **Rationale**: a subprocess keeps both skills self-contained, with no import across skill folders, and the plugin delivers both side by side; the version file read from `agnos-init` already relies on that placement.
 
 ### DEC-TRC-077: Graph path declared in the layout
-- **Statement**: `layout.json` SHALL declare `graphFile` as `4.knowledge/agnos-graph.json`, and both skills SHALL read it from their generated layout copy.
-- **Rationale**: the default path is one name of the process folder, written once (RQ-PLG-036).
+- **Statement**: `layout.json` SHALL declare `graphFile` as `4.knowledge/graph/agnos-graph.json`, and both skills SHALL read it from their generated layout copy.
+- **Rationale**: the default path is one name of the process folder, written once (RQ-PLG-036). Path amended by DEC-TRC-086 (2026-11-22).
 
 ## Consequences
 - Easier: an agent or tool reads the project's state without rendering a page; the page can be regenerated from a kept state.
@@ -45,9 +47,9 @@ self-contained (DEC-PLG-027); the perf center already reads one sibling skill's 
 ```mermaid
 classDiagram
     class GraphSkill { agnos-graph: graph.py, callgraph.py, history.py }
-    class GraphFile { 4.knowledge/agnos-graph.json: meta, elements, edges, files, tasks, callGraph?, history?, delivery? }
+    class GraphFile { 4.knowledge/graph/agnos-graph.json: meta, elements, edges, files, tasks, callGraph?, history?, delivery? }
     class PerfCenter { agnos-perf-center: analyse, scorecard, render }
-    class Page { PERF-CENTER.html, .json, .data.js }
+    class Page { perf-center.html, .json, .data.js }
     GraphSkill --> GraphFile : writes
     PerfCenter --> GraphFile : reads
     PerfCenter --> Page : writes

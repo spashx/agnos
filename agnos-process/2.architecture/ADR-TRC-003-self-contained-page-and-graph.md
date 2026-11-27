@@ -1,4 +1,5 @@
 # ADR-TRC-003: Self-Contained Page and Interactive Graph
+<!-- Amended on 2026-11-22: the performance center's outputs are lowercase, perf-center.* (RQ-TRC-143, DEC-TRC-087). -->
 <!-- Amended on 2026-10-31: the skill, its script and its outputs carry their current names (RQ-TRC-104, RQ-TRC-105, DEC-TRC-055). -->
 
 ## Status
@@ -83,7 +84,7 @@ implement it in two clicks; a link to one element can be shared.
 ## Diagram
 ```mermaid
 flowchart TB
-    subgraph Page[PERF-CENTER.html]
+    subgraph Page[perf-center.html]
       D[trace-data JSON] --> S[selection state + URL fragment]
       SB[sidebar: search, filters, gaps] --> S
       S --> OV[Overview]

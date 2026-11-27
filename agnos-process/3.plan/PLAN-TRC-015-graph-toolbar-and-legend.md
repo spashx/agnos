@@ -5,8 +5,8 @@ Two owner-requested tweaks to the graph view: remove the unreadable "Whole graph
 relation line samples for readability.
 
 ## References
-- **Requirements**: RQ-TRC-012, RQ-TRC-045, RQ-TRC-044
-- **ADRs**: ADR-TRC-015 (TASK-TRC-099); ADR-TRC-002 (TASK-TRC-100, no amendment)
+- **Requirement refs**: RQ-TRC-012, RQ-TRC-045, RQ-TRC-044
+- **ADR refs**: ADR-TRC-015 (TASK-TRC-099); ADR-TRC-002 (TASK-TRC-100, no amendment)
 
 ---
 

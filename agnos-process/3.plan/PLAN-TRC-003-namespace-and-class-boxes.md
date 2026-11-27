@@ -6,9 +6,9 @@ the chosen level of detail, the boxes drawn as compound nodes in the flow layout
 detail panel, then the skill's documentation and a run on this repository.
 
 ## References
-- **Requirements**: RQ-TRC-047; RQ-TRC-037, RQ-TRC-038, RQ-TRC-040 (limits kept), RQ-TRC-044, RQ-TRC-045, RQ-TRC-046
+- **Requirement refs**: RQ-TRC-047; RQ-TRC-037, RQ-TRC-038, RQ-TRC-040 (limits kept), RQ-TRC-044, RQ-TRC-045, RQ-TRC-046
   (relation look, tooltips)
-- **ADRs**: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022); ADR-TRC-004 (DEC-TRC-014, DEC-TRC-016, DEC-TRC-017),
+- **ADR refs**: ADR-TRC-005 (DEC-TRC-019 to DEC-TRC-022); ADR-TRC-004 (DEC-TRC-014, DEC-TRC-016, DEC-TRC-017),
   ADR-TRC-003 (DEC-TRC-006), ADR-TRC-002 (DEC-TRC-010, DEC-TRC-011)
 
 This plan implements the tasks in the format specified below.

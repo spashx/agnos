@@ -6,8 +6,8 @@ HTTP server that serves the page and the generated stylesheet, as decided in ADR
 system of ADR-DSN-001.
 
 ## References
-- **Requirements**: RQ-WEB-001, RQ-WEB-002, RQ-WEB-003, RQ-WEB-004, RQ-WEB-005, RQ-WEB-006, RQ-DSN-003, RQ-DSN-005
-- **ADRs**: ADR-WEB-001 (DEC-WEB-001, DEC-WEB-002), ADR-DSN-001 (DEC-DSN-002)
+- **Requirement refs**: RQ-WEB-001, RQ-WEB-002, RQ-WEB-003, RQ-WEB-004, RQ-WEB-005, RQ-WEB-006, RQ-DSN-003, RQ-DSN-005
+- **ADR refs**: ADR-WEB-001 (DEC-WEB-001, DEC-WEB-002), ADR-DSN-001 (DEC-DSN-002)
 
 This plan implements the tasks in the format specified below.
 ---

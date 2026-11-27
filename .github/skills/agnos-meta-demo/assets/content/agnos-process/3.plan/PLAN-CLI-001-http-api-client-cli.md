@@ -5,8 +5,8 @@ Delivers the HTTP adapter of the service, then the transport, the typed client a
 in TypeScript, as decided in ADR-CLI-001, and the command that starts the service.
 
 ## References
-- **Requirements**: RQ-CLI-001, RQ-CLI-002, RQ-CLI-003, RQ-CLI-004, RQ-CLI-005, RQ-CLI-006
-- **ADRs**: ADR-CLI-001 (DEC-CLI-001, DEC-CLI-002)
+- **Requirement refs**: RQ-CLI-001, RQ-CLI-002, RQ-CLI-003, RQ-CLI-004, RQ-CLI-005, RQ-CLI-006
+- **ADR refs**: ADR-CLI-001 (DEC-CLI-001, DEC-CLI-002)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -6,8 +6,8 @@ prove the marketplace, and regenerate the marketplace folder from the proved out
 repositories are committed locally; the merge, tag and push stay with the owner.
 
 ## References
-- **Requirements**: RQ-DMO-020, RQ-DMO-021, RQ-WEB-001, RQ-WEB-002, RQ-PLG-001, RQ-PLG-002, RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032
-- **ADRs**: ADR-DMO-001, ADR-WEB-001, ADR-PLG-001, ADR-PLG-005
+- **Requirement refs**: RQ-DMO-020, RQ-DMO-021, RQ-WEB-001, RQ-WEB-002, RQ-PLG-001, RQ-PLG-002, RQ-PLG-027, RQ-PLG-028, RQ-PLG-029, RQ-PLG-030, RQ-PLG-031, RQ-PLG-032
+- **ADR refs**: ADR-DMO-001, ADR-WEB-001, ADR-PLG-001, ADR-PLG-005
 
 This plan implements the tasks in the format specified below.
 ---
@@ -17,7 +17,7 @@ This plan implements the tasks in the format specified below.
 ### TASK-PLG-081: Regenerate demo repository
 - **Tier**: S
 - **Status**: Done
-- **Description**: Rebuild `agnos-lightweight-process.demo` with `agnos-meta-demo build -Verify` from this working tree.
+- **Description**: Rebuild `agnos-demo` with `agnos-meta-demo build -Verify` from this working tree.
 - **Requirement refs**: RQ-DMO-020, RQ-DMO-021
 - **ADR refs**: ADR-DMO-001
 - **Acceptance Criteria**: Given this working tree, When `build -Verify` runs, Then every demo requirement prints PASS And the exit code is 0.

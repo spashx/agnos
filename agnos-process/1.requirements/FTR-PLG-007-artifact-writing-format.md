@@ -31,10 +31,10 @@ Out of scope: retitling this repository's own artifacts.
 ### RQ-PLG-040: Decision statement with rationale
 - **Category**: Functional
 - **EARS Type**: Ubiquitous
-- **Statement**: The process SHALL require every DEC to hold a **Statement** of one sentence in active voice and a **Rationale** citing its evidence or "None".
-- **Rationale**: a decision written as prose mixes the choice and its reasons, which a reader then cannot cite apart.
+- **Statement**: The process SHALL require every DEC to hold a **Statement** of one sentence in active voice, a **Rationale** citing its evidence, its **Requirement refs** and its **Dependencies** on other DECs or "None".
+- **Rationale**: a decision written as prose mixes the choice and its reasons, which a reader then cannot cite apart; a decision naming its requirements and the decisions it builds on is traced without reading its ADR's context. Amended by the owner's edit of the instructions file on 2026-11-22 (TASK-PLG-096), for new decisions only: existing DECs are not rewritten.
 - **Priority**: Must
-- **Acceptance Criteria**: Given the ADR template of the instructions file, Then each DEC holds a Statement and a Rationale; Given the demo, Then each of its DECs holds both.
+- **Acceptance Criteria**: Given the ADR template of the instructions file, Then each DEC holds a Statement, a Rationale with no "None", Requirement refs and Dependencies; Given the demo and the user's guide, Then each of their DECs holds all four.
 - **Dependencies**: RQ-DMO-005
 
 ### RQ-PLG-041: Plain-text IDs in process artifacts

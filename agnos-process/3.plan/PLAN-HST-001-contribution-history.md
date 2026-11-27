@@ -7,9 +7,9 @@ History tab and its timeline, the figures and filters, the entry points of the s
 the speed, the accessibility and the documentation. Unit tests build small git repositories in a temporary folder.
 
 ## References
-- **Requirements**: RQ-HST-001 to RQ-HST-015; RQ-TRC-018, RQ-TRC-021, RQ-TRC-026, RQ-TRC-067 (design system, standard
+- **Requirement refs**: RQ-HST-001 to RQ-HST-015; RQ-TRC-018, RQ-TRC-021, RQ-TRC-026, RQ-TRC-067 (design system, standard
   library, sentinel, literals)
-- **ADRs**: ADR-HST-001 (DEC-HST-001 to DEC-HST-006); ADR-TRC-002 (design system), ADR-TRC-004 (opt-in loading)
+- **ADR refs**: ADR-HST-001 (DEC-HST-001 to DEC-HST-006); ADR-TRC-002 (design system), ADR-TRC-004 (opt-in loading)
 
 This plan implements the tasks in the format specified below.
 ---

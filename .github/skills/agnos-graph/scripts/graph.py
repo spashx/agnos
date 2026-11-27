@@ -19,7 +19,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import agnos_layout  # noqa: E402  RQ-PLG-036 / DEC-TRC-077: the process folder's names, generated beside this script
+# RQ-PLG-036 / DEC-TRC-077: the process folder's names, generated beside this script
+import agnos_layout  # noqa: E402
+# RQ-TRC-144 / DEC-TRC-084: the graph explorer page, beside this script
+import explorer  # noqa: E402
+# RQ-QLT-011: the suppression comments hold nothing but the rule, so SonarQube reads them
 
 # RQ-TRC-067: a literal written more than once is a named constant.
 PROG = "agnos-graph"
@@ -54,6 +58,27 @@ INDEX_FIELDS = INDEX_TITLE_FIELD + 1
 PREFIX_CUT = -(NUMBER_LENGTH + 1)              # "RQ-ABC-001"[:PREFIX_CUT] == "RQ-ABC"
 LINE_TEXT_MAX = 200                            # characters of a line kept as evidence (DEC-TRC-003)
 ELEMENT_FIELDS = ("id", KEY_KIND, KEY_TYPE, "tri", "doc", KEY_FIRST, KEY_LAST, KEY_STATUS, KEY_TITLE)
+
+# RQ-TRC-134 to RQ-TRC-136, DEC-TRC-079, DEC-TRC-080: the sections of a feature, ADR or plan.
+KEY_SECTIONS = "sections"
+TYPE_SECTION = "SEC"
+SECTIONED_TYPES = frozenset({"FTR", "ADR", "PLAN"})
+SECTION_LEVEL, SUBSECTION_LEVEL = 2, 3                 # "##" and "###"
+HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(\S.*)$")   # the closing '#' and blanks are stripped from the title
+FENCE_PREFIXES = ("```", "~~~")
+SECTION_MARK, SUBSECTION_MARK, REPEAT_MARK = "#", "/", "."
+FIRST_REPEAT = 2                                       # the second heading of one title is suffixed ".2"
+
+# RQ-TRC-138 to RQ-TRC-140, DEC-TRC-081 to DEC-TRC-083: the link field of each citation of a requirement, a decision, a
+# task or a plan.
+KEY_LINKS = "links"
+FIELD_TEXT = "text"                                    # a citation held by no link field of its source's type
+FIELD_REQUIREMENTS, FIELD_ADRS, FIELD_DEPENDENCIES = "Requirement refs", "ADR refs", "Dependencies"
+LINK_FIELDS = {"RQ": frozenset({FIELD_DEPENDENCIES}),
+               "DEC": frozenset({FIELD_REQUIREMENTS, FIELD_DEPENDENCIES}),
+               "TASK": frozenset({FIELD_REQUIREMENTS, FIELD_ADRS, FIELD_DEPENDENCIES}),
+               "PLAN": frozenset({FIELD_REQUIREMENTS, FIELD_ADRS})}
+FIELD_LINE_RE = re.compile(r"^\s*-\s*\*\*([^*]+)\*\*\s*:")   # "- **<name>**:", as the templates write a field
 
 # RQ-TRC-006, DEC-TRC-001: what a source folder holds that can carry an ID; every list is replaceable from the command
 # line.
@@ -227,6 +252,141 @@ def build_process_model(process_dir):
         lines = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines()
         add_document_references(model, members, lines, defined)
     return model
+
+
+# ---- document sections -------------------------------------------------------------------------------------------
+# RQ-TRC-134, RQ-TRC-135, DEC-TRC-079
+def headings(lines):
+    """[(line, level, title)] of the Markdown headings of a document, those inside a code fence left out."""
+    found, fenced = [], False
+    for ln, text in enumerate(lines, 1):
+        if text.lstrip().startswith(FENCE_PREFIXES):
+            fenced = not fenced
+            continue
+        m = None if fenced else HEADING_RE.match(text)
+        if m:
+            found.append((ln, len(m.group(1)), m.group(2).rstrip().rstrip(SECTION_MARK).rstrip()))
+    return found
+
+
+# RQ-TRC-134, RQ-TRC-135
+def heading_ranges(found, last, level):
+    """[(first, last, title)] of the headings of one level: each ends before the next heading of that level or above."""
+    ranges = []
+    for n, (ln, lvl, title) in enumerate(found):
+        if lvl != level:
+            continue
+        end = next((h[0] - 1 for h in found[n + 1:] if h[1] <= level), last)
+        ranges.append((ln, min(end, last), title))
+    return ranges
+
+
+# RQ-TRC-136, DEC-TRC-080
+def unique_name(title, taken):
+    """The title, suffixed '.2', '.3' from its second occurrence among one parent's children."""
+    count = taken.get(title, 0) + 1
+    taken[title] = count
+    return title if count < FIRST_REPEAT else f"{title}{REPEAT_MARK}{count}"
+
+
+# RQ-TRC-136, DEC-TRC-080
+def section_refs(lines, first, last, inner, defined):
+    """[[ID, proofs]] of the IDs cited on a section's own lines, those of its subsections ([(first, last)]) left out."""
+    refs = {}
+    for ln in range(first, last + 1):
+        if any(a <= ln <= b for a, b in inner):
+            continue
+        for target in sorted(extract_ids(lines[ln - 1], defined)):
+            refs.setdefault(target, []).append(evidence(ln, lines[ln - 1]))
+    return [[target, proofs] for target, proofs in sorted(refs.items())]
+
+
+# RQ-TRC-134 to RQ-TRC-136, DEC-TRC-079, DEC-TRC-080
+def sections_of_document(document, members, lines, defined):
+    """The section nodes of one document: its '##' holding no indexed element, and their '###', in line order."""
+    last = min(document[KEY_LAST], len(lines))
+    found = [h for h in headings(lines) if document[KEY_FIRST] <= h[0] <= last]
+    starts = [m[KEY_FIRST] for m in members if m is not document]
+    nodes, top_taken = [], {}
+
+    def node(sid, level, parent, first, end, title, inner):
+        return {"id": sid, KEY_TYPE: TYPE_SECTION, "level": level, "parent": parent, "doc": document["doc"],
+                KEY_FIRST: first, KEY_LAST: end, KEY_TITLE: title,
+                KEY_REFS: section_refs(lines, first, end, inner, defined)}
+
+    for first, end, title in heading_ranges(found, last, SECTION_LEVEL):
+        if any(first <= s <= end for s in starts):
+            continue
+        sid = f"{document['id']}{SECTION_MARK}{unique_name(title, top_taken)}"
+        inside = [h for h in found if first < h[0] <= end]
+        subs = heading_ranges(inside, end, SUBSECTION_LEVEL)
+        nodes.append(node(sid, SECTION_LEVEL, document["id"], first, end, title, [(a, b) for a, b, _ in subs]))
+        sub_taken = {}
+        for a, b, sub_title in subs:
+            nodes.append(node(f"{sid}{SUBSECTION_MARK}{unique_name(sub_title, sub_taken)}", SUBSECTION_LEVEL, sid,
+                              a, b, sub_title, []))
+    return nodes
+
+
+# RQ-TRC-134, RQ-TRC-137, DEC-TRC-078: reads the model, never changes it.
+def document_sections(process_dir, model):
+    """The section nodes of every feature, ADR and plan of the index, in index then line order."""
+    process_dir = Path(process_dir)
+    defined = {i for i, e in model.elements.items() if e[KEY_KIND] == KEY_ELEMENT}
+    by_doc = {}
+    for element in model.elements.values():
+        if element[KEY_KIND] == KEY_ELEMENT:
+            by_doc.setdefault(element["doc"], []).append(element)
+    nodes = []
+    for doc, members in by_doc.items():
+        documents = [m for m in members if m[KEY_TYPE] in SECTIONED_TYPES]
+        path = resolve_document(process_dir, doc)
+        if not documents or path is None:
+            continue
+        document = max(documents, key=lambda m: m[KEY_LAST] - m[KEY_FIRST])
+        lines = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines()
+        nodes.extend(sections_of_document(document, members, lines, defined))
+    return nodes
+
+
+# ---- element link fields -----------------------------------------------------------------------------------------
+# RQ-TRC-139, RQ-TRC-140, DEC-TRC-082, DEC-TRC-083
+def line_fields(lines, element):
+    """{line: field} over an element's range: a field runs from its line to the next field line or heading; a field
+    outside the element type's table, and a line before any field, give FIELD_TEXT."""
+    allowed = LINK_FIELDS[element[KEY_TYPE]]
+    fields, current = {}, None
+    for ln in range(element[KEY_FIRST], min(element[KEY_LAST], len(lines)) + 1):
+        text = lines[ln - 1]
+        match = FIELD_LINE_RE.match(text)
+        if HEADING_RE.match(text):
+            current = None
+        elif match:
+            name = match.group(1).strip()
+            current = name if name in allowed else None
+        fields[ln] = current or FIELD_TEXT
+    return fields
+
+
+# RQ-TRC-138, RQ-TRC-141, DEC-TRC-081: reads the model, never changes it.
+def element_links(process_dir, model):
+    """[[source, target, [[line, field]]]] of every refs edge whose source is a requirement, a decision, a task or a
+    plan, in edge order, one field per proof line."""
+    process_dir = Path(process_dir)
+    lines_of, fields_of, rows = {}, {}, []
+    for (source, target, kind), proofs in sorted(model.edges.items()):
+        element = model.elements.get(source)
+        if (kind != KEY_REFS or element is None or element[KEY_KIND] != KEY_ELEMENT
+                or element[KEY_TYPE] not in LINK_FIELDS):
+            continue
+        if source not in fields_of:
+            doc = element["doc"]
+            if doc not in lines_of:
+                path = resolve_document(process_dir, doc)
+                lines_of[doc] = path.read_text(encoding=ENCODING, errors=KEY_REPLACE).splitlines() if path else []
+            fields_of[source] = line_fields(lines_of[doc], element)
+        rows.append([source, target, [[ln, fields_of[source].get(ln, FIELD_TEXT)] for ln, _ in proofs]])
+    return rows
 
 
 # ---- sources -----------------------------------------------------------------------------------------------------
@@ -419,8 +579,9 @@ def call_graph_block(call_graph, paths):
 
 
 # RQ-TRC-129, RQ-TRC-130, DEC-TRC-074: sorted so that two runs on the same inputs write the same bytes.
-def state_data(model, meta, tasks, call_graph=None, history=None):
-    """The graph file's content: meta, elements, edges, files, tasks and, when asked, callGraph, history, delivery."""
+def state_data(model, meta, tasks, call_graph=None, history=None, sections=(), links=()):
+    """The graph file's content: meta, elements, edges, files, tasks, sections (RQ-TRC-137, DEC-TRC-078), links
+    (RQ-TRC-141, DEC-TRC-081) and, when asked, callGraph, history, delivery."""
     paths = sorted(model.files)
     data = {
         "meta": meta,
@@ -428,6 +589,8 @@ def state_data(model, meta, tasks, call_graph=None, history=None):
         "files": [model.files[p] for p in paths],
         "edges": [[s, d, k, lines] for (s, d, k), lines in sorted(model.edges.items())],
         "tasks": {task: {"tier": tier, "requirements": cited} for task, (tier, cited) in tasks.items()},
+        KEY_SECTIONS: list(sections),
+        KEY_LINKS: list(links),
     }
     if call_graph is not None and not call_graph.core_missing:      # RQ-TRC-026: no key at all without a call graph
         data[KEY_CALL_GRAPH] = call_graph_block(call_graph, paths)
@@ -438,12 +601,14 @@ def state_data(model, meta, tasks, call_graph=None, history=None):
     return data
 
 
-# RQ-TRC-129
+# RQ-TRC-129, RQ-TRC-156
 def write_state(path, data):
-    """The graph file, one sorted JSON document."""
+    """The graph file, one sorted JSON document; returns its text, which the explorer's data script holds
+    (DEC-TRC-085)."""
+    text = json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n",
-                    encoding=ENCODING, newline="\n")
+    path.write_text(text, encoding=ENCODING, newline="\n")
+    return text
 
 
 # ---- command line ------------------------------------------------------------------------------------------------
@@ -471,6 +636,8 @@ def parse_args(argv):
     parser.add_argument("--history-since", help="with --history: only the commits authored since this date or duration "
                                                 "(a form git reads: 6.months, 2.weeks, 2026-01-01)")
     parser.add_argument("--history-depth", help="with --history: only the N most recent commits")
+    parser.add_argument("--explorer", action=STORE_TRUE,                 # RQ-TRC-144, DEC-TRC-085
+                        help=f"also write {explorer.PAGE_NAME} and {explorer.DATA_SCRIPT_NAME} beside the graph file")
     return parser.parse_args(argv)
 
 
@@ -523,7 +690,8 @@ def build_state(args, process, extensions, excludes, generated_at):
     meta = {"generatedAt": generated_at, "commit": head_commit(process), "process": process.as_posix(),
             "sources": [Path(s).as_posix() for s in args.sources], "extensions": sorted(extensions),
             "names": sorted(DEFAULT_NAMES), "excludes": list(excludes), "summaries": summaries}
-    return state_data(model, meta, tasks, call_graph, history), line
+    return state_data(model, meta, tasks, call_graph, history, document_sections(process, model),
+                      element_links(process, model)), line
 
 
 # RQ-TRC-129
@@ -540,10 +708,17 @@ def main(argv=None):
     except InputError as error:
         print(f"{PROG}: {error}", file=sys.stderr)
         return 1
-    write_state(out, data)
+    text = write_state(out, data)
+    written = out.as_posix()
+    if args.explorer:                                   # RQ-TRC-144, RQ-TRC-156: after the graph, as written
+        try:
+            written += f", {explorer.write_explorer(out, text).as_posix()}"
+        except explorer.ExplorerError as error:
+            print(f"{PROG}: explorer not written: {error}", file=sys.stderr)
+            return 1
     print_scan_lists(extensions, args.ext, excludes, args.exclude)
     # RQ-TRC-107: the duration is printed only, never put in the generated file.
-    print(f"{line}; {out.as_posix()} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
+    print(f"{line}; {written} written in {time.perf_counter() - started:{DURATION_FORMAT}} s")
     return 0
 
 

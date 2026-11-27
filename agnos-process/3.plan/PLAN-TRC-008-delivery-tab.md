@@ -7,8 +7,8 @@ days, compared between two periods chosen within the history read. Each step lea
 the data first, then the figures, the tab, the charts, the table, and last the speed and the documentation.
 
 ## References
-- **Requirements**: RQ-HST-006 (TASK-TRC-055); RQ-TRC-068 to RQ-TRC-079
-- **ADRs**: ADR-HST-001 (DEC-HST-004); ADR-TRC-009 (DEC-TRC-036 to DEC-TRC-039); ADR-TRC-002 (design system)
+- **Requirement refs**: RQ-HST-006 (TASK-TRC-055); RQ-TRC-068 to RQ-TRC-079
+- **ADR refs**: ADR-HST-001 (DEC-HST-004); ADR-TRC-009 (DEC-TRC-036 to DEC-TRC-039); ADR-TRC-002 (design system)
 
 This plan implements the tasks in the format specified below.
 ---

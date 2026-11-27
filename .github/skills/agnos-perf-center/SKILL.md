@@ -19,11 +19,11 @@ and runs that skill itself when the graph is absent or `--rebuild` is given. Run
 | Parameter | Meaning |
 |---|---|
 | `--process <dir>` | The folder holding `process.idx.md` |
-| `--graph <file>` | The graph read; default `<process>/4.knowledge/agnos-graph.json` |
+| `--graph <file>` | The graph read; default `<process>/4.knowledge/graph/agnos-graph.json` |
 | `--rebuild` | Runs `agnos-graph` even when the graph exists: without it, an existing graph is read as it is, at its own date |
 | `--sources <dir>` | Repeatable; needed to build the graph: every folder whose files should carry IDs (code, tests, build, CI), not a documentation folder quoting IDs as examples |
 | `--ext .x`, `--exclude`, `--call-graph`, `--history`, `--history-since`, `--history-depth` | Passed to `agnos-graph` when it builds the graph: its `SKILL.md` gives their meaning and default lists |
-| `--out <file>` | Default `<process>/PERF-CENTER.html` |
+| `--out <file>` | Default `<process>/perf-center.html` |
 | `--title <t>`, `--generated-at <t>` | The page's title; a fixed timestamp makes the page, and a graph it builds, byte-identical |
 
 **Outputs:** the page, `<page>.json` and `<page>.data.js` beside it: generated, never edit them; the project decides whether to commit or ignore

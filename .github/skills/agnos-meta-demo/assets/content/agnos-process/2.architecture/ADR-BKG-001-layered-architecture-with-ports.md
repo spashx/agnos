@@ -15,10 +15,14 @@ The domain code must not depend on either.
 ### DEC-BKG-001: Ports-and-adapters layering
 - **Statement**: The service SHALL apply a layering of domain, use cases and ports for keeping the domain objects (room, reservation, errors) free of storage and transport, use cases depending only on small interfaces, such as the reservation repository, that adapters implement.
 - **Rationale**: each module keeps one responsibility, and the storage, which the project expects to change, is replaced without touching the use cases.
+- **Requirement refs**: RQ-BKG-001 to RQ-BKG-006
+- **Dependencies**: None
 
 ### DEC-BKG-002: Rule objects per validity check
 - **Statement**: The create-reservation use case SHALL apply a list of rule objects, one module per validity rule (overlap, capacity, closed room) with one `check` method, run in order, for adding a rule without editing the use case.
 - **Rationale**: the rules will grow during the project (open for extension, closed for modification); each rule's test stays small.
+- **Requirement refs**: RQ-BKG-003, RQ-BKG-004, RQ-BKG-006
+- **Dependencies**: DEC-BKG-001
 
 ## Consequences
 - Adding a rule or an adapter adds a file and leaves existing files unchanged.

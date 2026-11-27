@@ -5,8 +5,8 @@ Delivers the room catalog, reservation creation, the three validity rules and ca
 repository, in the layered structure of ADR-BKG-001.
 
 ## References
-- **Requirements**: RQ-BKG-001, RQ-BKG-002, RQ-BKG-003, RQ-BKG-004, RQ-BKG-005, RQ-BKG-006
-- **ADRs**: ADR-BKG-001 (DEC-BKG-001, DEC-BKG-002), ADR-BKG-002 (DEC-BKG-003)
+- **Requirement refs**: RQ-BKG-001, RQ-BKG-002, RQ-BKG-003, RQ-BKG-004, RQ-BKG-005, RQ-BKG-006
+- **ADR refs**: ADR-BKG-001 (DEC-BKG-001, DEC-BKG-002), ADR-BKG-002 (DEC-BKG-003)
 
 This plan implements the tasks in the format specified below.
 ---

@@ -44,9 +44,9 @@ class Fixture(unittest.TestCase):
         self.demo.mkdir()
         self.given = self.root / "given"
         self.given.mkdir()
-        (self.given / "PERF-CENTER.html").write_bytes(GIVEN_PAGE)
-        (self.given / "PERF-CENTER.json").write_bytes(GIVEN_JSON)
-        (self.given / "PERF-CENTER.data.js").write_bytes(GIVEN_SCRIPT)
+        (self.given / "perf-center.html").write_bytes(GIVEN_PAGE)
+        (self.given / "perf-center.json").write_bytes(GIVEN_JSON)
+        (self.given / "perf-center.data.js").write_bytes(GIVEN_SCRIPT)
         self.stub = self.root / "stub" / "perf_center.py"
         self.stub.parent.mkdir()
         self.stub.write_text(STUB_GENERATOR, encoding="utf-8")
@@ -93,7 +93,7 @@ class TestTheScreenSize(Fixture):
         before = self.snapshot()
         saved, site.ASSETS_DIR = site.ASSETS_DIR, broken
         try:
-            result = self.run_build("--demo-page", str(self.given / "PERF-CENTER.html"))
+            result = self.run_build("--demo-page", str(self.given / "perf-center.html"))
         finally:
             site.ASSETS_DIR = saved
         return (*result, before)
@@ -126,7 +126,7 @@ class TestTheSiteFolder(Fixture):
     """RQ-WEB-001, DEC-WEB-006: the site written into the folder, the owner's other files kept."""
 
     def test_given_valid_assets_when_built_then_the_folder_holds_the_site(self):
-        code, out, err = self.run_build("--demo-page", str(self.given / "PERF-CENTER.html"))
+        code, out, err = self.run_build("--demo-page", str(self.given / "perf-center.html"))
         self.assertEqual((code, err), (0, ""))
         self.assertTrue((self.out / "index.html").is_file())
         self.assertEqual(sorted(p.name for p in (self.out / "screens").iterdir()), sorted(f"{v}.png" for v in VIEWS))
@@ -144,7 +144,7 @@ class TestTheSiteFolder(Fixture):
         (broken / "content" / "fr.md").write_text("## page\n\n### title\nSeul\n", encoding="utf-8")
         site.ASSETS_DIR = broken
         try:
-            code, out, err = self.run_build("--demo-page", str(self.given / "PERF-CENTER.html"))
+            code, out, err = self.run_build("--demo-page", str(self.given / "perf-center.html"))
         finally:
             site.ASSETS_DIR = saved_assets
         self.assertEqual(code, 1)
@@ -157,18 +157,18 @@ class TestTheDemoPage(Fixture):
     """RQ-WEB-002, DEC-WEB-002: the demo page copied when given, generated otherwise."""
 
     def test_given_a_demo_page_then_it_is_copied_with_its_data_byte_for_byte(self):
-        code, _, _ = self.run_build("--demo-page", str(self.given / "PERF-CENTER.html"))
+        code, _, _ = self.run_build("--demo-page", str(self.given / "perf-center.html"))
         self.assertEqual(code, 0)
-        self.assertEqual((self.out / "demo" / "PERF-CENTER.html").read_bytes(), GIVEN_PAGE)
-        self.assertEqual((self.out / "demo" / "PERF-CENTER.json").read_bytes(), GIVEN_JSON)
-        self.assertEqual((self.out / "demo" / "PERF-CENTER.data.js").read_bytes(), GIVEN_SCRIPT)
+        self.assertEqual((self.out / "demo" / "perf-center.html").read_bytes(), GIVEN_PAGE)
+        self.assertEqual((self.out / "demo" / "perf-center.json").read_bytes(), GIVEN_JSON)
+        self.assertEqual((self.out / "demo" / "perf-center.data.js").read_bytes(), GIVEN_SCRIPT)
         self.assertFalse((self.stub.parent / "arguments.json").exists())
 
     def test_given_no_demo_page_then_it_is_generated_from_the_demo_with_its_history(self):
         code, _, err = self.run_build()
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual((self.out / "demo" / "PERF-CENTER.html").read_bytes(), b"<html>generated</html>")
-        self.assertTrue((self.out / "demo" / "PERF-CENTER.data.js").is_file())
+        self.assertEqual((self.out / "demo" / "perf-center.html").read_bytes(), b"<html>generated</html>")
+        self.assertTrue((self.out / "demo" / "perf-center.data.js").is_file())
         arguments = json.loads((self.stub.parent / "arguments.json").read_text(encoding="utf-8"))
         self.assertIn("--history", arguments)
         self.assertIn("--call-graph", arguments)
@@ -185,17 +185,17 @@ class TestTheDemoPage(Fixture):
         self.assertEqual(self.snapshot(), before)
 
     def test_given_a_demo_page_without_its_data_then_it_is_reported(self):
-        (self.given / "PERF-CENTER.data.js").unlink()
-        code, _, err = self.run_build("--demo-page", str(self.given / "PERF-CENTER.html"))
+        (self.given / "perf-center.data.js").unlink()
+        code, _, err = self.run_build("--demo-page", str(self.given / "perf-center.html"))
         self.assertEqual(code, 1)
-        self.assertIn("PERF-CENTER.data.js does not exist", err)
+        self.assertIn("perf-center.data.js does not exist", err)
 
     def test_given_a_demo_page_of_another_name_then_it_is_reported(self):
         renamed = self.given / "trace.html"
-        (self.given / "PERF-CENTER.html").rename(renamed)
+        (self.given / "perf-center.html").rename(renamed)
         code, _, err = self.run_build("--demo-page", str(renamed))
         self.assertEqual(code, 1)
-        self.assertIn("the demo page must be named PERF-CENTER.html", err)
+        self.assertIn("the demo page must be named perf-center.html", err)
 
 
 if __name__ == "__main__":

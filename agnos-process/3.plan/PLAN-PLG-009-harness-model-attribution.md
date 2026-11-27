@@ -5,8 +5,8 @@ Name the agent's tool and model in the co-author trailer of each task commit, so
 tool and model made each change.
 
 ## References
-- **Requirements**: RQ-HST-030, RQ-HST-005
-- **ADRs**: ADR-HST-003
+- **Requirement refs**: RQ-HST-030, RQ-HST-005
+- **ADR refs**: ADR-HST-003
 
 This plan implements the tasks in the format specified below.
 ---

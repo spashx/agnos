@@ -7,9 +7,9 @@ repository's Python. The fixtures stand in `tests/fixtures/languages/`, outside 
 counts of the existing tests do not change.
 
 ## References
-- **Requirements**: RQ-TRC-050; RQ-TRC-028 to RQ-TRC-032, RQ-TRC-047 (what each language must give), RQ-TRC-039,
+- **Requirement refs**: RQ-TRC-050; RQ-TRC-028 to RQ-TRC-032, RQ-TRC-047 (what each language must give), RQ-TRC-039,
   RQ-TRC-040 (pinned, reproducible)
-- **ADRs**: ADR-TRC-004 (DEC-TRC-014, DEC-TRC-015, DEC-TRC-025, DEC-TRC-026), ADR-TRC-005 (DEC-TRC-019)
+- **ADR refs**: ADR-TRC-004 (DEC-TRC-014, DEC-TRC-015, DEC-TRC-025, DEC-TRC-026), ADR-TRC-005 (DEC-TRC-019)
 
 This plan implements the tasks in the format specified below.
 ---

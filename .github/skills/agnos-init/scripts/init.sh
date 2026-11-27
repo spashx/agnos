@@ -109,6 +109,37 @@ move_process_path() {   # <from> <to>
   fi
 }
 
+# RQ-INI-023 / DEC-INI-017: the former plan reference names, renamed in the References section only.
+PLAN_FOLDER=$AGNOS_FOLDER/3.plan
+
+# RQ-INI-023 / DEC-INI-017: writes the plan with its References lines renamed, every other byte as it was.
+convert_plan_text() {   # <input> <output>
+  final=$(tail -c 1 "$1" | wc -l | tr -d ' ')
+  awk -v BINMODE=3 -v final="$final" '    # BINMODE: gawk on Windows keeps the CR bytes (DEC-INI-002)
+    /^#/ { refs = ($0 ~ /^## References[ \t\r]*$/) }
+    !/^#/ && refs {
+      old = "**Requirements**:"; new = "**Requirement refs**:"
+      if (!match($0, /^[ \t]*- \*\*Requirements\*\*:/)) { old = "**ADRs**:"; new = "**ADR refs**:"; match($0, /^[ \t]*- \*\*ADRs\*\*:/) }
+      if (RSTART == 1) $0 = substr($0, 1, RLENGTH - length(old)) new substr($0, RLENGTH + 1)
+    }
+    { printf "%s%s", (NR > 1 ? "\n" : ""), $0 }
+    END { if (final == 1) printf "\n" }
+  ' "$1" > "$2"
+}
+
+# RQ-INI-023 / DEC-INI-017: converts each plan of the project, in name order, reporting each file changed.
+convert_plans() {
+  [ -d "$target/$PLAN_FOLDER" ] || return 0
+  for path in "$target/$PLAN_FOLDER"/PLAN-*.md; do
+    [ -f "$path" ] || continue
+    convert_plan_text "$path" "$work/plan.converted" || fail "cannot read $path"
+    if ! cmp -s "$work/plan.converted" "$path"; then
+      cat "$work/plan.converted" > "$path" || fail "cannot write $path"
+      echo "${REPORT_PREFIX}converted $PLAN_FOLDER/${path##*/}"
+    fi
+  done
+}
+
 migrate=no
 if [ "$AGNOS_LEGACY_FOLDER" != "$AGNOS_FOLDER" ] && [ -f "$target/$AGNOS_LEGACY_FOLDER/$AGNOS_LEGACY_INDEX" ]; then
   migrate=yes
@@ -124,6 +155,7 @@ if [ "$migrate" = yes ]; then
   fi
   echo "${REPORT_PREFIX}moved $AGNOS_LEGACY_FOLDER to $AGNOS_FOLDER"
 fi
+convert_plans    # RQ-INI-023
 
 for file in $ENTRY_FILES; do
   path=$target/$file
