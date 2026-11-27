@@ -493,3 +493,6 @@ agnos-process/perf-center.data.js
 .agnos-qa/
 # RQ-INI-016 / DEC-INI-012: the AGNOS session state belongs to one session, not to the history
 agnos-process/_sessionstate/session.yaml
+agnos-process/4.knowledge/graph/agnos-graph.data.js
+agnos-process/4.knowledge/graph/agnos-graph.json
+agnos-process/4.knowledge/graph/graph-explorer.html
