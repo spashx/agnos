@@ -14,7 +14,7 @@ visual"; flat tabs Graph 2D, Graph 3D, Nodes, Relations; delivery in two lots, A
 then B (3D); a hand-written orbit controller; the 3D view usable without history, the history being one dimension among
 others; the node colours kept; the help and About copied from the performance center.
 
-Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session. RQ-GXP-020 to RQ-GXP-022 (PLAN-GXP-003).
+Lot A: RQ-GXP-001 to RQ-GXP-009 (PLAN-GXP-001). Lot B: RQ-GXP-010 to RQ-GXP-019, planned in a later session. RQ-GXP-020 to RQ-GXP-022 (PLAN-GXP-003). Lot B2: RQ-GXP-016, RQ-GXP-017 (PLAN-GXP-004); RQ-GXP-018 cancelled by the owner on 2026-11-27.
 
 Out of scope: nodes deleted before the graph's commit (the graph is the state at one commit, so the time filter shows when
 today's nodes first appeared, not what was removed); a choice of node type colours (owner: "en gardant la couleur des
@@ -187,7 +187,7 @@ nœuds"); a dark theme; editing the graph; a server.
 - **EARS Type**: State-driven
 - **Statement**: WHILE the presentation mode is on, the explorer SHALL show the current graph view alone over the whole window, with the 3D view rotating slowly, until Escape is pressed.
 - **Rationale**: the graph shows the complexity of a project to an audience (owner, 2026-11-24).
-- **Priority**: Could
+- **Priority**: Won't (cancelled by the owner, 2026-11-27, TASK-GXP-026: kept defined so that its citations stay resolved)
 - **Acceptance Criteria**: Given the 3D view, When the presentation mode is chosen, Then the menus and panels are hidden And the view rotates; When Escape is pressed, Then the layout is restored.
 - **Dependencies**: RQ-GXP-011
 
